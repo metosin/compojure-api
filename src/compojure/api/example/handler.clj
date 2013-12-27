@@ -2,8 +2,17 @@
   (:require [compojure.api.core :refer [defapi]]
             [compojure.api.swagger :refer :all]
             [compojure.route :as route]
+            [compojure.core :refer :all]
             [ring.util.response :refer :all]
-            [compojure.core :refer :all]))
+            [schema.core :as s]
+            [schema.macros :as sm]))
+
+(def Topping (s/enum :cheese :olives :ham :pepperoni :artichoke))
+
+(def Pizza {:id s/Int
+            :name s/String
+            (s/optional-key :description) s/String
+            :toppings [Topping]})
 
 (defapi api
   (swagger-docs "/api/docs"
