@@ -14,6 +14,10 @@
             (s/optional-key :description) s/String
             :toppings [Topping]})
 
+(def quatro {:id 1
+             :name "Quatro"
+             :toppings [:cheese :olives :artichoke]})
+
 (defapi api
   (swagger-docs "/api/docs"
     ;;:apiVersion "1.0.0"
@@ -26,13 +30,9 @@
   (swaggered :sample
     :description "sample api"
     (context "/api" []
-      (context "/v1" []
-        (let-routes [v 1]
-          (GET "/kikka/:id" [id] (response {:hello (str "kukka id=" id ", v=" v)}))
-          (POST "/kakka" [] (response {:hello "kukka"}))))
-      (context "/v2" []
-        (GET  "/kikka/:a/:b/:c" [a b c] (response {:hello (str a b c)}))
-        (POST "/kakka" [] (response {:hello "kukka"}))))))
+      (context "/pizza" []
+        (GET  "/:id" [id] (^{:model Piza} response quatro))
+        (POST "" [] (response {:a 1}))))))
 
 (def app
   (routes
