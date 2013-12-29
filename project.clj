@@ -6,10 +6,10 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [metosin/compojure-api "0.0.1-SNAPSHOT"]
+                 ;;[metosin/compojure-api "0.0.1-SNAPSHOT"]
                  [cheshire "5.3.0"]
                  [prismatic/schema "0.1.10"]
-                 [compojure "1.1.6"]]
+                 [compojure "1.1.5"]]
   :plugins [[lein-ring "0.8.7"]]
   :ring {:handler compojure.api.example.handler/app}
   :profiles {:dev {:plugins [[lein-clojars "0.9.1"]]
