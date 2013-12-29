@@ -170,7 +170,7 @@
 (defmacro swaggered [name & body]
   (let [[parameters body] (extract-parameters body)
         routes  (get-routes body)
-        _       (doseq [route (vals routes)] (->> route (map (juxt identity meta)) println))
+        _       (doseq [[method :as route] (vals routes)] (println route "\n ->" (meta method)))
         routes  (->map (for [[p b] routes] [p (extract-method b)]))
         details (assoc parameters :routes routes)]
     (println details)
