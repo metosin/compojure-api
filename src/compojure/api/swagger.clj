@@ -107,7 +107,7 @@
         x))
     form))
 
-(defrecord Route [p m])
+(defrecord Route [p b])
 (defrecord Routes [p c])
 
 (defn filter-routes [c]
@@ -122,7 +122,7 @@
           (let [[m p] x
                 rm (and (symbol? m) (resolve m))]
             (cond
-              (compojure-route? rm)     (->Route  p  (-> m str .toLowerCase keyword))
+              (compojure-route? rm)     (->Route  p  x)
               (compojure-context? rm)   (->Routes p  (filter-routes x))
               (compojure-letroutes? rm) (->Routes "" (filter-routes x)))))
         x))
@@ -131,11 +131,15 @@
 (defn merge-path-vals [v]
   (map (fn [[ks v]] [(apply str ks) v]) v))
 
+; FIXME: Route body should not be walked, recur smartly
 (defn create-paths [m]
   (apply array-map
     (walk/postwalk
-      (map-defn [{:keys [m p c]}]
-        (if m [p m] [p (->map c)]))
+      (map-defn [{:keys [p b c] :as x}]
+        (cond
+          b [p b]
+          c [p (->map c)]
+          :else x))
       m)))
 
 (defn peel [x] (or (and (seq? x) (= 1 (count x)) (first x)) x))
@@ -146,7 +150,6 @@
     macroexpand-to-compojure
     collect-compojure-routes
     prewalk-record->map
-    ->map
     create-paths
     path-vals
     merge-path-vals
@@ -157,6 +160,9 @@
         form (drop (* 2 (count parameters)) form)]
     [parameters form]))
 
+(defn extract-method [body]
+  (-> body first str .toLowerCase keyword))
+
 ;;
 ;; Compojure-Swagger public api
 ;;
@@ -164,6 +170,7 @@
 (defmacro swaggered [name & body]
   (let [[parameters body] (extract-parameters body)
         routes  (get-routes body)
+        routes  (->map (for [[p b] routes] [p (extract-method b)]))
         details (assoc parameters :routes routes)]
     (println details)
     (swap! swagger assoc name details)
