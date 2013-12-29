@@ -31,7 +31,8 @@
     :description "sample api"
     (context "/api" []
       (context "/pizza" []
-        (GET  "/:id" [id] (^{:model Piza} response quatro))
+        (^{:model Pizza} GET "/:id" [id]
+          (response quatro))
         (POST "" [] (response {:a 1}))))))
 
 (def app
