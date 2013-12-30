@@ -5,18 +5,17 @@
             [compojure.core :refer :all]
             [ring.util.response :refer :all]
             [schema.core :as s]
+            [compojure.api.schema :refer [defmodel optional]]
             [schema.macros :as sm]))
 
-(def Topping (s/enum :cheese :olives :ham :pepperoni :artichoke))
+(defmodel Pizza {:id s/Int
+                 :name s/String
+                 (optional :description) s/String
+                 :toppings [(s/enum :cheese :olives :ham :pepperoni :artichoke)]})
 
-(def Pizza {:id s/Int
-            :name s/String
-            (s/optional-key :description) s/String
-            :toppings [Topping]})
-
-(def quatro {:id 1
-             :name "Quatro"
-             :toppings [:cheese :olives :artichoke]})
+(defmodel quatro {:id 1
+                  :name "Quatro"
+                  :toppings [:cheese :olives :artichoke]})
 
 (defapi api
   (swagger-docs "/api/docs"
