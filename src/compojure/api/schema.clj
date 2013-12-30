@@ -11,7 +11,6 @@
 (defmethod json-type s/String [_] {:type "string"})
 (defmethod json-type sString  [_] {:type "string"})
 (defmethod json-type :default [e]
-  (println ".. in" e (class e))
   (cond
     (= (class e) schema.core.EnumSchema) {:type "string"
                                           :enum (seq (:vs e))}
@@ -53,7 +52,6 @@
       target)))
 
 (defn collect-models [x]
-  (println "collecting models" x)
   (let [model  (-> x meta :model)
         values (if (map? x) (vals x) (seq x))
         cols   (filter coll? values)
@@ -83,4 +81,4 @@
 (defn optional [k] (s/optional-key k))
 
 (defmacro defmodel [name form]
-  `(def ~name (with-meta ~form {:model '~name})))
+  `(def ~name (with-meta ~form {:model '~(resolve name)})))
