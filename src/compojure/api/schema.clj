@@ -42,10 +42,10 @@
 ;; public Api
 ;;
 
-(defn transform [schema-symbol]
-  (let [schema (eval-symbol-or-var schema-symbol)
+(defn transform [schema*]
+  (let [schema (eval-symbol-or-var schema*)
         required (required-keys schema)
-        target {:id (str schema-symbol)
+        target {:id (-> schema* meta :name)
                 :properties (properties schema)}]
     (if (seq required)
       (assoc target :required required)
@@ -59,8 +59,8 @@
         models (if model (conj models model) model)]
     (reduce concat models (map collect-models cols))))
 
-(defn transform-models [& schema-symbols]
-  (->> schema-symbols
+(defn transform-models [& schemas*]
+  (->> schemas*
     (map eval-symbol-or-var)
     (mapcat collect-models)
     set
