@@ -54,13 +54,13 @@
      :produces ["application/json"]
      :models (apply schema/transform-models (:models details))
      :apis (map
-             (fn [[path {:keys [method]}]]
+             (fn [[path {:keys [method return]}]]
                {:path (swagger-path path)
                 :operations
                 [{:method (-> method name .toUpperCase)
                   :summary ""
                   :notes ""
-                  :type "json"
+                  :type (or (name-of return) "json")
                   :nickname path
                   :parameters (map
                                 (fn [path-parameter]
@@ -149,13 +149,13 @@
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
 
-(defn extract-model [body]
-  (some-> body first meta :model resolve))
+(defn extract-return-model [body]
+  (some-> body first meta :return resolve))
 
 (defn route-definition [[p b]]
   [p (remove-empty-keys
        {:method (extract-method b)
-        :return (extract-model b)})])
+        :return (extract-return-model b)})])
 
 (defn extract-routes [body]
   (->> body
@@ -187,6 +187,5 @@
         models  (extract-models routes)
         details (merge parameters {:routes routes
                                    :models models})]
-    (println details)
     (swap! swagger assoc name details)
     `(routes ~@body)))
