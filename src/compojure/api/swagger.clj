@@ -52,7 +52,7 @@
      :basePath basepath
      :resourcePath "" ;; TODO: should be supported?
      :produces ["application/json"]
-     ;;:models (apply schema/transform-models (:models details))
+     :models (apply schema/transform-models (:models details))
      :apis (map
              (fn [[path {:keys [method]}]]
                {:path (swagger-path path)
