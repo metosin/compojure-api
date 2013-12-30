@@ -1,6 +1,7 @@
 (ns compojure.api.schema
   (:require [schema.core :as s]
-            [schema.macros :as sm]))
+            [schema.macros :as sm]
+            [compojure.api.common :refer :all]))
 
 (def sString
   "Clojure String Predicate enabling setting metadata to it."
@@ -44,12 +45,11 @@
 
 (defn transform [schema*]
   (let [schema (eval-symbol-or-var schema*)
-        required (required-keys schema)
-        target {:id (-> schema* meta :name)
-                :properties (properties schema)}]
-    (if (seq required)
-      (assoc target :required required)
-      target)))
+        required (required-keys schema)]
+    (remove-empty-keys
+      {:id (-> schema* meta :name)
+       :properties (properties schema)
+       :required required})))
 
 (defn collect-models [x]
   (let [model  (-> x meta :model)

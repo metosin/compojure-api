@@ -49,3 +49,7 @@
   [b & body]
   (assert (and (vector? b) (= 1 (count b))))
   `(fn [x#] (if (map? x#) (let [~(first b) x#] ~@body) x#)))
+
+(defn remove-empty-keys
+  "removes empty keys from a map"
+  [m] (into {} (filter (fn-> second nil? not) m)))

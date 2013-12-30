@@ -146,9 +146,6 @@
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
 
-(defn remove-empty-keys [m]
-  (into {} (filter second m)))
-
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
 

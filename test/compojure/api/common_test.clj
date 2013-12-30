@@ -42,3 +42,6 @@
   (let [f (map-defn [{:keys [x y z]}] (+ x y z))]
     (f {:x 1 :y 2 :z 3}) => 6
     (f "x") => "x"))
+
+(fact "remove-empty-keys"
+  (remove-empty-keys {:a nil :b false :c 0}) => {:b false :c 0})
