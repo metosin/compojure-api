@@ -60,6 +60,6 @@
   (transform 'Pet) => Pet')
 
 (fact "Swagger Petstore example"
-  (transform-models 'Tag 'Category 'Pet) => {:Pet Pet'
-                                             :Tag Tag'
-                                             :Category Category'})
+  (transform-models 'Pet) => {:Pet Pet'
+                              :Tag Tag'
+                              :Category Category'})

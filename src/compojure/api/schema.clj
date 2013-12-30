@@ -47,16 +47,19 @@
       target)))
 
 (defn collect-models [x]
-  (let [values (if (map? x) (vals x) (seq x))
+  (let [model  (-> x meta :model)
+        values (if (map? x) (vals x) (seq x))
         cols   (filter coll? values)
-        models (->> cols (map meta) (keep :model))]
-    (flatten (reduce conj models (map collect-models cols)))))
+        models (->> cols (map meta) (keep :model))
+        models (if model (conj models model) model)]
+    (reduce concat models (map collect-models cols))))
 
 (defn transform-models [& schema-symbols]
   {:pre [(every? symbol? schema-symbols)]}
   (->> schema-symbols
-;    (->> (map eval) (map collect-models))
-;    set
+    (map eval)
+    (mapcat collect-models)
+    set
     (map transform)
     (map (juxt (comp keyword :id) identity))
     (into {})))
