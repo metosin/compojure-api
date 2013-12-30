@@ -4,8 +4,9 @@
             [schema.macros :as sm]
             [compojure.api.schema :refer :all]))
 
-(def Tag {(s/optional-key :id)   (with-meta s/Int {:description "Unique identifier for the tag"})
-          (s/optional-key :name) (with-meta sString {:description "Friendly name for the tag"})})
+(def Tag {(s/optional-key :id)   (field s/Int {:description "Unique identifier for the tag"})
+          (s/optional-key :name) (field s/String {:description "Friendly name for the tag"})})
+
 (def Tag' {:id "Tag"
            :properties {:id {:type "integer"
                              :format "int64"
@@ -13,12 +14,10 @@
                         :name {:type "string"
                                :description "Friendly name for the tag"}}})
 
-(def Category  {:id (with-meta s/Int {:description "Category unique identifier"
-                                      :minimum "0.0"
-                                      :maximum "100.0"})
-                :name (with-meta sString {:description "Name of the category"
-                                          :minimum "0.0"
-                                          :maximum "100.0"})})
+(def Category  {(s/optional-key :id) (field s/Int {:description "Category unique identifier"
+                                                   :minimum "0.0"
+                                                   :maximum "100.0"})
+                (s/optional-key :name) (field s/String {:description "Name of the category"})})
 
 (def Category' {:id "Category"
                 :properties {:id {:type "integer"
@@ -27,12 +26,42 @@
                                   :minimum "0.0"
                                   :maximum "100.0"}
                              :name {:type "string"
-                                    :description "Name of the category"
-                                    :minimum "0.0"
-                                    :maximum "100.0"}}})
+                                    :description "Name of the category"}}})
 
-(fact "simple schema"
-  (transform 'Tag) => Tag')
+(def Pet  {:id                         (field s/Int {:description "Unique identifier for the Pet"
+                                                     :minimum "0.0"
+                                                     :maximum "100.0"})
+           :name                       (field s/String {:description "Friendly name of the pet"})
+;;           (s/optional-key :category)  (field Category {:description "Category the pet is in"})
+           (s/optional-key :photoUrls) (field [s/String] {:description "Image URLs"})
+;;           (s/optional-key :tags)      (field [Tag] {:description "Tags assigned to this pet"})
+           (s/optional-key :status)    (field (s/enum :available :pending :sold) {:description "pet status in the store"})
+})
 
-#_(fact "Swagger Petstore example"
-  (transform 'Category) => Category')
+(def Pet' {:id "Pet"
+           :required [:id :name]
+           :properties {:id {:type "integer"
+                             :format "int64"
+                             :description "Unique identifier for the Pet"
+                             :minimum "0.0"
+                             :maximum "100.0"}
+;                        :category {:$ref "Category"
+;                                   :description "Category the pet is in"}
+                        :name {:type "string"
+                               :description "Friendly name of the pet"}
+                        :photoUrls {:type "array"
+                                    :description "Image URLs"
+                                    :items {:type "string"}}
+;                        :tags {:type "array"
+;                               :description "Tags assigned to this pet"
+;                               :items {:$ref "Tag"}}
+                        :status {:type "string"
+                                 :description "pet status in the store"
+                                 :enum [:pending :sold :available]}}})
+
+(facts "simple schemas"
+  (transform 'Tag) => Tag'
+  (transform 'Category) => Category'
+  (transform 'Pet) => Pet')
+
+(fact "Swagger Petstore example")
