@@ -8,14 +8,26 @@
             [compojure.api.schema :refer [defmodel optional]]
             [schema.macros :as sm]))
 
+;;
+;; Domain
+;;
+
 (defmodel Pizza {:id s/Int
                  :name s/String
                  (optional :description) s/String
                  :toppings [(s/enum :cheese :olives :ham :pepperoni :artichoke)]})
 
-(defmodel quatro {:id 1
-                  :name "Quatro"
-                  :toppings [:cheese :olives :artichoke]})
+;;
+;; Repository
+;;
+
+(def quatro {:id 1
+             :name "Quatro"
+             :toppings [:cheese :olives :artichoke]})
+
+;;
+;; Web Api
+;;
 
 (defapi api
   (swagger-docs "/api/docs"
@@ -25,7 +37,7 @@
     :description "sample api"
     (context "/api" []
       (context "/pizza" []
-        (^{:model Pizza} GET "/:id" [id] (response quatro))
+        (^{:return Pizza} GET "/:id" [id] (response quatro))
         (POST "" [] (response {:a 1}))))))
 
 (def app
