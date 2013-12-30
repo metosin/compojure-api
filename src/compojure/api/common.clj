@@ -56,6 +56,6 @@
 
 (defn name-of [x]
   (cond
-    (var? x) (:name (meta x))
+    (var? x) (-> x meta :name name)
     (nil? x) nil
     :else    (name x)))

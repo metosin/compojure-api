@@ -15,7 +15,7 @@
   (cond
     (= (class e) schema.core.EnumSchema) {:type "string"
                                           :enum (seq (:vs e))}
-    (map? e) {:$ref (-> e meta :model str)}
+    (map? e) {:$ref (-> e meta :model name-of)}
     :else (throw (IllegalArgumentException. (str e)))))
 
 (defn type-of [v]
@@ -45,7 +45,8 @@
 
 (defn transform [schema*]
   (let [schema (eval-symbol-or-var schema*)
-        required (required-keys schema)]
+        required (required-keys schema)
+        required (if-not (empty? required) required)]
     (remove-empty-keys
       {:id (name-of schema*)
        :properties (properties schema)

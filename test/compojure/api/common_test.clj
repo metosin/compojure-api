@@ -49,7 +49,8 @@
 (def Abba nil)
 
 (fact "name-of"
+  (name-of (resolve 'Abba)) => "Abba"
+  (name-of 'Abba)  => "Abba"
   (name-of "Abba") => "Abba"
   (name-of :Abba)  => "Abba"
-  (name-of 'Abba)  => "Abba"
   (name-of nil)    => nil)
