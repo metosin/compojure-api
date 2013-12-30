@@ -45,3 +45,11 @@
 
 (fact "remove-empty-keys"
   (remove-empty-keys {:a nil :b false :c 0}) => {:b false :c 0})
+
+(def Abba nil)
+
+(fact "name-of"
+  (name-of "Abba") => "Abba"
+  (name-of :Abba)  => "Abba"
+  (name-of 'Abba)  => "Abba"
+  (name-of nil)    => nil)

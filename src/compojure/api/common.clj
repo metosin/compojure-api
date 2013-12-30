@@ -53,3 +53,9 @@
 (defn remove-empty-keys
   "removes empty keys from a map"
   [m] (into {} (filter (fn-> second nil? not) m)))
+
+(defn name-of [x]
+  (cond
+    (var? x) (:name (meta x))
+    (nil? x) nil
+    :else    (name x)))

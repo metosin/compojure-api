@@ -47,7 +47,7 @@
   (let [schema (eval-symbol-or-var schema*)
         required (required-keys schema)]
     (remove-empty-keys
-      {:id (-> schema* meta :name)
+      {:id (name-of schema*)
        :properties (properties schema)
        :required required})))
 
