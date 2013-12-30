@@ -53,7 +53,7 @@
      :produces ["application/json"]
      ;;:models []
      :apis (map
-             (fn [[path method]]
+             (fn [[path {:keys [method]}]]
                {:path (swagger-path path)
                 :operations
                 [{:method (-> method name .toUpperCase)
@@ -163,6 +163,9 @@
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
 
+(defn extract-models [body]
+  (some-> body first meta :model eval))
+
 ;;
 ;; Compojure-Swagger public api
 ;;
@@ -171,7 +174,7 @@
   (let [[parameters body] (extract-parameters body)
         routes  (get-routes body)
         _       (doseq [[method :as route] (vals routes)] (println route "\n ->" (meta method) (-> method meta :model eval)))
-        routes  (->map (for [[p b] routes] [p (extract-method b)]))
+        routes  (->map (for [[p b] routes] [p {:method (extract-method b)}]))
         details (assoc parameters :routes routes)]
     (println details)
     (swap! swagger assoc name details)
