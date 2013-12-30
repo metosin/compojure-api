@@ -14,8 +14,11 @@
 (defmethod json-type s/String [_] {:type "string"})
 (defmethod json-type sString  [_] {:type "string"})
 (defmethod json-type :default [e]
-  {:type "string"
-   :enum (seq (:vs e))})
+  (cond
+    (= (class e) schema.core.EnumSchema) {:type "string"
+                                          :enum (seq (:vs e))}
+    (map? e) {:$ref (-> e meta :model str)}
+    :else (throw (RuntimeException. "kosh"))))
 
 (defn type-of [v]
   (if (sequential? v)
@@ -27,7 +30,7 @@
   (into {}
     (for [[k v] schema
           :let [k (s/explicit-schema-key k)]]
-      [k (merge (meta v) (type-of v))])))
+      [k (merge (dissoc (meta v) :model) (type-of v))])))
 
 (defn transform [schema-symbol]
   {:pre [(symbol? schema-symbol)]}
@@ -39,6 +42,17 @@
       (assoc target :required required)
       target)))
 
+(defn transform-models [& schema-symbols]
+  {:pre [(every? symbol? schema-symbols)]}
+  (->> schema-symbols
+    (map transform)
+    (map (juxt (comp keyword :id) identity))
+    (into {})))
+
 (defn field [pred metadata]
-  (let [pred (if (= s/String pred) sString pred)]
-    (with-meta pred metadata)))
+  (let [pred (if (= s/String pred) sString pred)
+        old-meta (meta pred)]
+    (with-meta pred (merge old-meta metadata))))
+
+(defmacro defmodel [name form]
+  `(def ~name (with-meta ~form {:model '~name})))
