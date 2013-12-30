@@ -2,9 +2,6 @@
   (:require [schema.core :as s]
             [schema.macros :as sm]))
 
-(defn required-keys [schema]
-  (filter s/required-key? (keys schema)))
-
 (def sString
   "Clojure String Predicate enabling setting metadata to it."
   (s/pred string? 'string?))
@@ -32,6 +29,13 @@
           :let [k (s/explicit-schema-key k)]]
       [k (merge (dissoc (meta v) :model) (type-of v))])))
 
+(defn required-keys [schema]
+  (filter s/required-key? (keys schema)))
+
+;;
+;; public Api
+;;
+
 (defn transform [schema-symbol]
   {:pre [(symbol? schema-symbol)]}
   (let [schema (eval schema-symbol)
@@ -42,12 +46,24 @@
       (assoc target :required required)
       target)))
 
+(defn collect-models [x]
+  (let [values (if (map? x) (vals x) (seq x))
+        cols   (filter coll? values)
+        models (->> cols (map meta) (keep :model))]
+    (flatten (reduce conj models (map collect-models cols)))))
+
 (defn transform-models [& schema-symbols]
   {:pre [(every? symbol? schema-symbols)]}
   (->> schema-symbols
+;    (->> (map eval) (map collect-models))
+;    set
     (map transform)
     (map (juxt (comp keyword :id) identity))
     (into {})))
+
+;;
+;; the DSL
+;;
 
 (defn field [pred metadata]
   (let [pred (if (= s/String pred) sString pred)
