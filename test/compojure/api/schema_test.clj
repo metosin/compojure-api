@@ -14,9 +14,7 @@
                         :name {:type "string"
                                :description "Friendly name for the tag"}}})
 
-(defmodel Category  {(optional :id) (field s/Int {:description "Category unique identifier"
-                                                        :minimum "0.0"
-                                                        :maximum "100.0"})
+(defmodel Category  {(optional :id)   (field s/Int {:description "Category unique identifier" :minimum "0.0" :maximum "100.0"})
                      (optional :name) (field s/String {:description "Name of the category"})})
 
 (def Category' {:id "Category"
@@ -28,10 +26,8 @@
                              :name {:type "string"
                                     :description "Name of the category"}}})
 
-(defmodel Pet  {:id                         (field s/Int {:description "Unique identifier for the Pet"
-                                                          :minimum "0.0"
-                                                          :maximum "100.0"})
-                :name                       (field s/String {:description "Friendly name of the pet"})
+(defmodel Pet  {:id                   (field s/Int {:description "Unique identifier for the Pet" :minimum "0.0" :maximum "100.0"})
+                :name                 (field s/String {:description "Friendly name of the pet"})
                 (optional :category)  (field Category {:description "Category the pet is in"})
                 (optional :photoUrls) (field [s/String] {:description "Image URLs"})
                 (optional :tags)      (field [Tag] {:description "Tags assigned to this pet"})
