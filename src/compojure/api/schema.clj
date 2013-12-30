@@ -9,11 +9,12 @@
 (defmethod json-type s/Int [_] {:type "integer"
                                 :format "int64"})
 (defmethod json-type s/String [_] {:type "string"})
+(defmethod json-type sString  [_] {:type "string"})
 
 (defn properties [schema]
   (into {}
     (for [[k v] schema]
-      [k (json-type v)])))
+      [k (merge (meta v) (json-type v))])))
 
 (defn transform [schema-symbol]
   {:pre [(symbol? schema-symbol)]}
@@ -22,3 +23,6 @@
      :required (required-keys schema)
      :properties (properties schema)}))
 
+(def sString
+  "Clojure String"
+  (s/pred string? 'string?))
