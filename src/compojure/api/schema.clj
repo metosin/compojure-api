@@ -11,11 +11,12 @@
 (defmethod json-type s/String [_] {:type "string"})
 (defmethod json-type sString  [_] {:type "string"})
 (defmethod json-type :default [e]
+  (println ".. in" e (class e))
   (cond
     (= (class e) schema.core.EnumSchema) {:type "string"
                                           :enum (seq (:vs e))}
     (map? e) {:$ref (-> e meta :model str)}
-    :else (throw (RuntimeException. "kosh"))))
+    :else (throw (IllegalArgumentException. (str e)))))
 
 (defn type-of [v]
   (if (sequential? v)
@@ -32,13 +33,18 @@
 (defn required-keys [schema]
   (filter s/required-key? (keys schema)))
 
+(defn eval-symbol-or-var [x]
+  (cond
+    (symbol? x) (eval x)
+    (var? x) (var-get x)
+    :else (throw (IllegalArgumentException. (str "not a symbol or var: " x)))))
+
 ;;
 ;; public Api
 ;;
 
 (defn transform [schema-symbol]
-  {:pre [(symbol? schema-symbol)]}
-  (let [schema (eval schema-symbol)
+  (let [schema (eval-symbol-or-var schema-symbol)
         required (required-keys schema)
         target {:id (str schema-symbol)
                 :properties (properties schema)}]
@@ -47,6 +53,7 @@
       target)))
 
 (defn collect-models [x]
+  (println "collecting models" x)
   (let [model  (-> x meta :model)
         values (if (map? x) (vals x) (seq x))
         cols   (filter coll? values)
@@ -55,9 +62,8 @@
     (reduce concat models (map collect-models cols))))
 
 (defn transform-models [& schema-symbols]
-  {:pre [(every? symbol? schema-symbols)]}
   (->> schema-symbols
-    (map eval)
+    (map eval-symbol-or-var)
     (mapcat collect-models)
     set
     (map transform)

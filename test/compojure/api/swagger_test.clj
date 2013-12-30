@@ -17,7 +17,7 @@
 
 (fact "extracting compojure paths"
   (fact "all compojure.core macros are interpreted"
-    (get-routes
+    (extract-routes
       '(context "/a" []
          (routes
            (context "/b" []
@@ -29,25 +29,25 @@
                (OPTIONS "/g" [] identity)
                (PATCH   "/h" [] identity)))
            (context "/:i/:j" []
-             (GET "/k/:l/m/:n" [] identity))))) => {"/a/b/c" :get
-                                                    "/a/b/d" :post
-                                                    "/a/b/e" :put
-                                                    "/a/b/f" :delete
-                                                    "/a/b/g" :options
-                                                    "/a/b/h" :patch
-                                                    "/a/:i/:j/k/:l/m/:n" :get})
+             (GET "/k/:l/m/:n" [] identity))))) => {"/a/b/c" {:method :get}
+                                                    "/a/b/d" {:method :post}
+                                                    "/a/b/e" {:method :put}
+                                                    "/a/b/f" {:method :delete}
+                                                    "/a/b/g" {:method :options}
+                                                    "/a/b/h" {:method :patch}
+                                                    "/a/:i/:j/k/:l/m/:n" {:method :get}})
   (fact "runtime code in route is ignored"
-    (get-routes
+    (extract-routes
       '(context "/api" []
          (if true
            (GET "/true" [] identity)
-           (PUT "/false" [] identity)))) => {"/api/true" :get
-                                             "/api/false" :put})
+           (PUT "/false" [] identity)))) => {"/api/true" {:method :get}
+                                             "/api/false" {:method :put}})
   (fact "macros are expanded"
     (defmacro optional-routes [p & body] (when p `(routes ~@body)))
-    (get-routes
+    (extract-routes
       '(context "/api" []
          (optional-routes true
            (GET "/true" [] identity))
          (optional-routes false
-           (PUT "/false" [] identity)))) => {"/api/true" :get}))
+           (PUT "/false" [] identity)))) => {"/api/true" {:method :get}}))

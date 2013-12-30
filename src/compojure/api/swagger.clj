@@ -6,6 +6,7 @@
             [clojure.set :refer [union]]
             [clojure.pprint :refer :all]
             [compojure.api.common :refer :all]
+            [compojure.api.schema :as schema]
             [compojure.core :refer :all]))
 
 ;;
@@ -51,7 +52,7 @@
      :basePath basepath
      :resourcePath "" ;; TODO: should be supported?
      :produces ["application/json"]
-     ;;:models []
+     ;;:models (apply schema/transform-models (:models details))
      :apis (map
              (fn [[path {:keys [method]}]]
                {:path (swagger-path path)
@@ -142,9 +143,24 @@
           :else x))
       m)))
 
-(defn peel [x] (or (and (seq? x) (= 1 (count x)) (first x)) x))
+(defn peel [x]
+  (or (and (seq? x) (= 1 (count x)) (first x)) x))
 
-(defn get-routes [body]
+(defn remove-empty-keys [m]
+  (into {} (filter second m)))
+
+(defn extract-method [body]
+  (-> body first str .toLowerCase keyword))
+
+(defn extract-model [body]
+  (some-> body first meta :model resolve))
+
+(defn route-definition [[p b]]
+  [p (remove-empty-keys
+       {:method (extract-method b)
+        :return (extract-model b)})])
+
+(defn extract-routes [body]
   (->> body
     peel
     macroexpand-to-compojure
@@ -153,6 +169,7 @@
     create-paths
     path-vals
     merge-path-vals
+    (map route-definition)
     ->map))
 
 (defn extract-parameters [form]
@@ -160,11 +177,8 @@
         form (drop (* 2 (count parameters)) form)]
     [parameters form]))
 
-(defn extract-method [body]
-  (-> body first str .toLowerCase keyword))
-
-(defn extract-models [body]
-  (some-> body first meta :model eval))
+(defn extract-models [routes]
+  (->> routes vals (keep :return)))
 
 ;;
 ;; Compojure-Swagger public api
@@ -172,10 +186,10 @@
 
 (defmacro swaggered [name & body]
   (let [[parameters body] (extract-parameters body)
-        routes  (get-routes body)
-        _       (doseq [[method :as route] (vals routes)] (println route "\n ->" (meta method) (-> method meta :model eval)))
-        routes  (->map (for [[p b] routes] [p {:method (extract-method b)}]))
-        details (assoc parameters :routes routes)]
+        routes  (extract-routes body)
+        models  (extract-models routes)
+        details (merge parameters {:routes routes
+                                   :models models})]
     (println details)
     (swap! swagger assoc name details)
     `(routes ~@body)))
