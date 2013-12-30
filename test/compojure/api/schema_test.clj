@@ -4,8 +4,8 @@
             [schema.macros :as sm]
             [compojure.api.schema :refer :all]))
 
-(defmodel Tag {(s/optional-key :id)   (field s/Int {:description "Unique identifier for the tag"})
-               (s/optional-key :name) (field s/String {:description "Friendly name for the tag"})})
+(defmodel Tag {(optional :id)   (field s/Int {:description "Unique identifier for the tag"})
+               (optional :name) (field s/String {:description "Friendly name for the tag"})})
 
 (def Tag' {:id "Tag"
            :properties {:id {:type "integer"
@@ -14,10 +14,10 @@
                         :name {:type "string"
                                :description "Friendly name for the tag"}}})
 
-(defmodel Category  {(s/optional-key :id) (field s/Int {:description "Category unique identifier"
+(defmodel Category  {(optional :id) (field s/Int {:description "Category unique identifier"
                                                         :minimum "0.0"
                                                         :maximum "100.0"})
-                     (s/optional-key :name) (field s/String {:description "Name of the category"})})
+                     (optional :name) (field s/String {:description "Name of the category"})})
 
 (def Category' {:id "Category"
                 :properties {:id {:type "integer"
@@ -32,11 +32,10 @@
                                                           :minimum "0.0"
                                                           :maximum "100.0"})
                 :name                       (field s/String {:description "Friendly name of the pet"})
-                (s/optional-key :category)  (field Category {:description "Category the pet is in"})
-                (s/optional-key :photoUrls) (field [s/String] {:description "Image URLs"})
-                (s/optional-key :tags)      (field [Tag] {:description "Tags assigned to this pet"})
-                (s/optional-key :status)    (field (s/enum :available :pending :sold) {:description "pet status in the store"})
-                })
+                (optional :category)  (field Category {:description "Category the pet is in"})
+                (optional :photoUrls) (field [s/String] {:description "Image URLs"})
+                (optional :tags)      (field [Tag] {:description "Tags assigned to this pet"})
+                (optional :status)    (field (s/enum :available :pending :sold) {:description "pet status in the store"})})
 
 (def Pet' {:id "Pet"
            :required [:id :name]

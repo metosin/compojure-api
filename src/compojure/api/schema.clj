@@ -54,5 +54,8 @@
         old-meta (meta pred)]
     (with-meta pred (merge old-meta metadata))))
 
+(defn required [k] (s/required-key k))
+(defn optional [k] (s/optional-key k))
+
 (defmacro defmodel [name form]
   `(def ~name (with-meta ~form {:model '~name})))
