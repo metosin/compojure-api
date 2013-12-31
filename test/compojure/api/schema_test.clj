@@ -14,8 +14,8 @@
                         :name {:type "string"
                                :description "Friendly name for the tag"}}})
 
-(defmodel Category  {(optional :id)   (field s/Int {:description "Category unique identifier" :minimum "0.0" :maximum "100.0"})
-                     (optional :name) (field s/String {:description "Name of the category"})})
+(defmodel Category {(optional :id)   (field s/Int {:description "Category unique identifier" :minimum "0.0" :maximum "100.0"})
+                    (optional :name) (field s/String {:description "Name of the category"})})
 
 (def Category' {:id "Category"
                 :properties {:id {:type "integer"

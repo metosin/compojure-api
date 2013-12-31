@@ -81,5 +81,5 @@
 (defn required [k] (s/required-key k))
 (defn optional [k] (s/optional-key k))
 
-(defmacro defmodel [name form]
-  `(def ~name (with-meta ~form {:model '~(resolve name)})))
+(defmacro defmodel [model form]
+  `(def ~model (with-meta ~form {:model (var ~model)})))
