@@ -38,7 +38,7 @@
     (context "/api" []
       (context "/pizza" []
         (^{:return Pizza} GET "/:id" [id] (response quatro))
-        (POST "" [] (response {:a 1}))))))
+        (POST "" [] (response quatro))))))
 
 (def app
   (routes
