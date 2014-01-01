@@ -4,7 +4,6 @@
             [clout.core :as clout]
             [clojure.string :as s]
             [clojure.set :refer [union]]
-            [clojure.pprint :refer :all]
             [compojure.api.common :refer :all]
             [compojure.api.schema :as schema]
             [compojure.core :refer :all]))
@@ -56,14 +55,14 @@
      :produces ["application/json"]
      :models (apply schema/transform-models (:models details))
      :apis (map
-             (fn [[path {:keys [method return]}]]
-               {:path (swagger-path path)
+             (fn [[{:keys [method uri]} {:keys [return]}]]
+               {:path (swagger-path uri)
                 :operations
                 [{:method (-> method name .toUpperCase)
                   :summary ""
                   :notes ""
                   :type (or (name-of return) "json")
-                  :nickname path
+                  :nickname uri
                   :parameters (map
                                 (fn [path-parameter]
                                   {:name (name path-parameter)
@@ -71,7 +70,7 @@
                                    :required true
                                    :type "string"
                                    :paramType "path"})
-                                (extract-path-parameters path)
+                                (extract-path-parameters uri)
                                 )}]})
              (:routes details))}))
 
@@ -100,7 +99,7 @@
 (defn- macroexpand-to-compojure [form]
   (walk/postwalk
     (fn [x]
-      (if (and (seq? x) (> (count x) 0))
+      (if (and (seq? x) (> (count x) 1))
         (do
           (if (and
                 (symbol? (first x))
@@ -151,14 +150,19 @@
 (defn route-definition [[route body]]
   [route (remove-empty-keys {:return (extract-return-model body)})])
 
+(defn peel [x]
+  (or (and (seq? x) (= 1 (count x)) (first x)) x))
+
 (defn extract-routes [body]
   (->> body
+    peel
     macroexpand-to-compojure
     collect-compojure-routes
     create-paths
     path-vals
     (map create-api-route)
     (map route-definition)
+    reverse
     ->map))
 
 (defn extract-parameters [form]
@@ -167,7 +171,7 @@
     [parameters form]))
 
 (defn extract-models [routes]
-  (->> routes vals (keep :return)))
+  (->> routes vals (keep :return) set vec))
 
 ;;
 ;; Compojure-Swagger public api
@@ -179,5 +183,6 @@
         models  (extract-models routes)
         details (merge parameters {:routes routes
                                    :models models})]
+    (println routes)
     (swap! swagger assoc name details)
     `(routes ~@body)))
