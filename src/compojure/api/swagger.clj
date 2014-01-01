@@ -19,6 +19,8 @@
 ;; Swagger-json generation
 ;;
 
+(defrecord Route [method uri])
+
 (defn extract-basepath
   [{:keys [scheme server-name server-port]}]
   (str (name scheme) "://" server-name ":" server-port))
@@ -98,7 +100,7 @@
 (defn- macroexpand-to-compojure [form]
   (walk/postwalk
     (fn [x]
-      (if (seq? x)
+      (if (and (seq? x) (> (count x) 0))
         (do
           (if (and
                 (symbol? (first x))
@@ -108,11 +110,11 @@
         x))
     form))
 
-(defrecord Route [p b])
-(defrecord Routes [p c])
+(defrecord CompojureRoute [p b])
+(defrecord CompojureRoutes [p c])
 
 (defn filter-routes [c]
-  (filter #(#{Route Routes} (class %)) (flatten c)))
+  (filter #(#{CompojureRoute CompojureRoutes} (class %)) (flatten c)))
 
 (defn collect-compojure-routes [form]
   (walk/postwalk
@@ -123,49 +125,39 @@
           (let [[m p] x
                 rm (and (symbol? m) (resolve m))]
             (cond
-              (compojure-route? rm)     (->Route  p  x)
-              (compojure-context? rm)   (->Routes p  (filter-routes x))
-              (compojure-letroutes? rm) (->Routes "" (filter-routes x)))))
+              (compojure-route? rm)     (->CompojureRoute  p  x)
+              (compojure-context? rm)   (->CompojureRoutes p  (filter-routes x))
+              (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x)))))
         x))
     form))
 
-(defn merge-path-vals [v]
-  (map (fn [[ks v]] [(apply str ks) v]) v))
-
-; FIXME: Route body should not be walked, recur smartly
-(defn create-paths [m]
-  (apply array-map
-    (walk/postwalk
-      (map-defn [{:keys [p b c] :as x}]
-        (cond
-          b [p b]
-          c [p (->map c)]
-          :else x))
-      m)))
-
-(defn peel [x]
-  (or (and (seq? x) (= 1 (count x)) (first x)) x))
+(defn create-api-route [[ks v]]
+  [(->Route
+     (first (keep second ks))
+     (->> ks (map first) (apply str))) v])
 
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
 
+(defn create-paths [{:keys [p b c] :as r}]
+  (apply array-map
+    (condp = (class r)
+      CompojureRoute  [[p (extract-method b)] b]
+      CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
+
 (defn extract-return-model [body]
   (some-> body first meta :return resolve))
 
-(defn route-definition [[p b]]
-  [p (remove-empty-keys
-       {:method (extract-method b)
-        :return (extract-return-model b)})])
+(defn route-definition [[route body]]
+  [route (remove-empty-keys {:return (extract-return-model body)})])
 
 (defn extract-routes [body]
   (->> body
-    peel
     macroexpand-to-compojure
     collect-compojure-routes
-    prewalk-record->map
     create-paths
     path-vals
-    merge-path-vals
+    (map create-api-route)
     (map route-definition)
     ->map))
 

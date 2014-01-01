@@ -29,20 +29,20 @@
                (OPTIONS "/g" [] identity)
                (PATCH   "/h" [] identity)))
            (context "/:i/:j" []
-             (GET "/k/:l/m/:n" [] identity))))) => {"/a/b/c" {:method :get}
-                                                    "/a/b/d" {:method :post}
-                                                    "/a/b/e" {:method :put}
-                                                    "/a/b/f" {:method :delete}
-                                                    "/a/b/g" {:method :options}
-                                                    "/a/b/h" {:method :patch}
-                                                    "/a/:i/:j/k/:l/m/:n" {:method :get}})
+             (GET "/k/:l/m/:n" [] identity))))) => {(->Route :get "/a/b/c") {}
+                                                    (->Route :post "/a/b/d") {}
+                                                    (->Route :put "/a/b/e") {}
+                                                    (->Route :delete "/a/b/f") {}
+                                                    (->Route :options "/a/b/g") {}
+                                                    (->Route :patch "/a/b/h") {}
+                                                    (->Route :get "/a/:i/:j/k/:l/m/:n") {}})
   (fact "runtime code in route is ignored"
     (extract-routes
       '(context "/api" []
          (if true
            (GET "/true" [] identity)
-           (PUT "/false" [] identity)))) => {"/api/true" {:method :get}
-                                             "/api/false" {:method :put}})
+           (PUT "/false" [] identity)))) => {(->Route :get "/api/true") {}
+                                             (->Route :put "/api/false") {}})
   (fact "macros are expanded"
     (defmacro optional-routes [p & body] (when p `(routes ~@body)))
     (extract-routes
@@ -50,4 +50,4 @@
          (optional-routes true
            (GET "/true" [] identity))
          (optional-routes false
-           (PUT "/false" [] identity)))) => {"/api/true" {:method :get}}))
+           (PUT "/false" [] identity)))) => {(->Route :get "/api/true") {}}))
