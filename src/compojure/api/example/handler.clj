@@ -48,7 +48,10 @@
     :description "sample api"
     (context "/api" []
       (context "/pizzas" []
-        (^{:return Pizza} GET "" [] (response (get-pizzas)))
+        (^{:return Pizza
+           :summary "Gets all Pizzas"
+           :notes   "Fast and furious"
+           :nickname "getPizzas"} GET "" [] (response (get-pizzas)))
         (^{:return Pizza} GET "/:id" [id] (response (get-pizza id)))
         (^{:return Pizza
            :body   Pizza} POST "" {pizza :params} (response (add! pizza)))

@@ -46,6 +46,8 @@
        :info (select-keys parameters info-keys)}
       (select-keys parameters top-level-keys))))
 
+(defn generate-nick [uri] uri)
+
 (defn api-declaration [details basepath]
   (response
     {:apiVersion "1.0.0"
@@ -55,14 +57,14 @@
      :produces ["application/json"]
      :models (apply schema/transform-models (:models details))
      :apis (map
-             (fn [[{:keys [method uri]} {:keys [return]}]]
+             (fn [[{:keys [method uri]} {:keys [return summary notes nickname]}]]
                {:path (swagger-path uri)
                 :operations
                 [{:method (-> method name .toUpperCase)
-                  :summary ""
-                  :notes ""
+                  :summary (or summary "")
+                  :notes (or notes "")
                   :type (or (name-of return) "json")
-                  :nickname uri
+                  :nickname (or nickname (generate-nick uri))
                   :parameters (map
                                 (fn [path-parameter]
                                   {:name (name path-parameter)
@@ -144,11 +146,13 @@
       CompojureRoute  [[p (extract-method b)] b]
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
-(defn extract-return-model [body]
-  (some-> body first meta :return resolve))
+(defn route-metadata [body]
+  (remove-empty-keys
+    (let [meta (or (meta (first body)) {})]
+      (merge meta {:return (some-> meta :return resolve)}))))
 
 (defn route-definition [[route body]]
-  [route (remove-empty-keys {:return (extract-return-model body)})])
+  [route (route-metadata body)])
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
