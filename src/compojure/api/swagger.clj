@@ -187,6 +187,5 @@
         models  (extract-models routes)
         details (merge parameters {:routes routes
                                    :models models})]
-    (println routes)
     (swap! swagger assoc name details)
     `(routes ~@body)))

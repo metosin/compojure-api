@@ -18,8 +18,8 @@
 
 ;; Repository
 
-(def id-seq (atom 0))
-(def pizzas (atom (array-map)))
+(defonce id-seq (atom 0))
+(defonce pizzas (atom (array-map)))
 
 (defn add! [pizza]
   (let [id (swap! id-seq inc)]
@@ -35,8 +35,11 @@
 
 ;; Data
 
-(add! {:name "Quatro" :toppings [:cheese :olives :artichoke]})
-(add! {:name "Il Diablo" :toppings [:ham :habanero]})
+(when (empty? @pizzas)
+  (add! {:name "Quatro" :toppings [:cheese :olives :artichoke]})
+  (add! {:name "Il Diablo" :toppings [:ham :habanero]}))
+
+(println (get-pizzas))
 
 ;; Web Api
 
@@ -47,16 +50,21 @@
   (swaggered :sample
     :description "sample api"
     (context "/api" []
-      (context "/pizzas" []
+      (context "/store" []
         (^{:return Pizza
            :summary "Gets all Pizzas"
-           :notes   "Fast and furious"
-           :nickname "getPizzas"} GET "" [] (response (get-pizzas)))
-        (^{:return Pizza} GET "/:id" [id] (response (get-pizza id)))
+           :notes   "'nuff said."
+           :nickname "getPizzas"} GET "/pizzas" [] (response (get-pizzas)))
         (^{:return Pizza
-           :body   Pizza} POST "" {pizza :params} (response (add! pizza)))
-        (^{:return Pizza} PUT "" {pizza :params} (response (update! pizza)))
-        (^{:return Pizza} DELETE "/:id" [id] (delete! id))))))
+           :summary "Gets a pizza"
+           :notes   "'nuff said."
+           :nickname "getPizza"} GET "/pizzas/:id" [id] (response (get-pizza id)))
+        (^{:return Pizza
+           :summary "Adds a pizza"
+           :notes   "'nuff said."
+           :nickname "getPizza"} POST "/pizzas" {pizza :params} (response (add! pizza)))
+        (^{:return Pizza} PUT "/pizzas" {pizza :params} (response (update! pizza)))
+        (^{:return Pizza} DELETE "/pizzas/:id" [id] (delete! id))))))
 
 ;; Ring App
 
