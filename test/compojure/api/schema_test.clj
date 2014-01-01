@@ -63,3 +63,8 @@
   (transform-models 'Pet) => {:Pet Pet'
                               :Tag Tag'
                               :Category Category'})
+
+(defmodel Inty {:int s/Int})
+
+(fact "defmodel"
+  (:model (meta Inty)) => (var Inty))

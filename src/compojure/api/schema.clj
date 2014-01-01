@@ -82,4 +82,6 @@
 (defn optional [k] (s/optional-key k))
 
 (defmacro defmodel [model form]
-  `(def ~model (with-meta ~form {:model (var ~model)})))
+  `(do
+     (def ~model (with-meta ~form {:model (var ~model)}))
+     (defn ~(symbol (str "validate-" model)) [x#] (s/validate ~model x#))))
