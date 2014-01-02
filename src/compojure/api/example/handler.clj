@@ -15,7 +15,7 @@
 (defmodel Pizza {:id s/Int
                  :name s/String
                  (optional :description) s/String
-                 :toppings [(s/enum "cheese" "olives" "ham" "pepperoni" "artichoke" "habanero")]})
+                 :toppings [(s/enum "cheese" "olives" "ham" "pepperoni" "habanero")]})
 
 (defmodel NewPizza (dissoc Pizza :id))
 
@@ -27,7 +27,8 @@
 (defn add! [pizza]
   (let [id (swap! id-seq inc)]
     (swap! pizzas assoc id
-      (s/validate Pizza (assoc pizza :id id)))))
+      (s/validate Pizza (assoc pizza :id id)))
+    (get-pizza id)))
 
 (defn get-pizza [id] (@pizzas id))
 (defn get-pizzas [] (-> pizzas deref vals reverse))
@@ -39,7 +40,7 @@
 ;; Data
 
 (when (empty? @pizzas)
-  (add! {:name "Quatro" :toppings ["cheese" "olives" "artichoke"]})
+  (add! {:name "Frutti" :toppings ["cheese" "olives"]})
   (add! {:name "Il Diablo" :toppings ["ham" "habanero"]}))
 
 ;; Web Api
