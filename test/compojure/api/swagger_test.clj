@@ -9,12 +9,6 @@
 (fact "swagger-path"
   (swagger-path "/api/:kikka/:kakka/:kukka") => "/api/{kikka}/{kakka}/{kukka}")
 
-(fact "extract-parameters"
-  (fact "works with even number of values before body"
-    (extract-parameters [:kikka 1 :kakka 2 :kukka 3 '(+ 1 1)]) => [{:kikka 1 :kakka 2 :kukka 3} '((+ 1 1))])
-  (fact "fails with uneven number of values before body"
-    (extract-parameters [:kikka '(+ 1 1)]) => (throws Exception)))
-
 (fact "extracting compojure paths"
   (fact "all compojure.core macros are interpreted"
     (extract-routes

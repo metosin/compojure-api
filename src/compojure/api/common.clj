@@ -59,3 +59,11 @@
     (var? x) (-> x meta :name name)
     (nil? x) nil
     :else    (name x)))
+
+(defn extract-parameters
+  "extracts key & value pairs from beginning of a list until
+   a list is found."
+  [form]
+  (let [parameters (->> form (take-while (comp not list?)) (apply hash-map))
+        form (drop (* 2 (count parameters)) form)]
+    [parameters form]))
