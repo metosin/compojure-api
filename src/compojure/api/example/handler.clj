@@ -78,6 +78,11 @@
            :notes    "'nuff said."
            :nickname "addPizza"} POST "/pizzas" {pizza :params} (response (add! pizza)))
         (^{:return   Pizza
+           :parameters [{:paramType   :body
+                         :name        "body"
+                         :description "updated pizza"
+                         :required    true
+                         :type        Pizza}]
            :body     Pizza
            :summary  "Updates a pizza"
            :notes    "'nuff said."
