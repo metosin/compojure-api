@@ -72,7 +72,7 @@
                          :name        "body"
                          :description "new pizza"
                          :required    true
-                         :type        'NewPizza}]
+                         :type        NewPizza}]
            :body     NewPizza
            :summary  "Adds a pizza"
            :notes    "'nuff said."

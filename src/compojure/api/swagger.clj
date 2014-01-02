@@ -57,7 +57,7 @@
      :produces ["application/json"]
      :models (apply schema/transform-models (:models details))
      :apis (map
-             (fn [[{:keys [method uri]} {:keys [return summary notes nickname]}]]
+             (fn [[{:keys [method uri]} {:keys [return summary notes nickname parameters]}]]
                {:path (swagger-path uri)
                 :operations
                 [{:method (-> method name .toUpperCase)
@@ -65,15 +65,16 @@
                   :notes (or notes "")
                   :type (or (name-of return) "json")
                   :nickname (or nickname (generate-nick uri))
-                  :parameters (map
-                                (fn [path-parameter]
-                                  {:name (name path-parameter)
-                                   :description ""
-                                   :required true
-                                   :type "string"
-                                   :paramType "path"})
-                                (extract-path-parameters uri)
-                                )}]})
+                  :parameters (into
+                                parameters
+                                (map
+                                  (fn [path-parameter]
+                                    {:name (name path-parameter)
+                                     :description ""
+                                     :required true
+                                     :type "string"
+                                     :paramType "path"})
+                                  (extract-path-parameters uri)))}]})
              (:routes details))}))
 
 ;;
@@ -127,7 +128,7 @@
           (let [[m p] x
                 rm (and (symbol? m) (resolve m))]
             (cond
-              (with-meta? rm)           (assoc (eval x))
+              (with-meta? rm)           (eval x)
               (compojure-route? rm)     (->CompojureRoute p x)
               (compojure-context? rm)   (->CompojureRoutes p  (filter-routes x))
               (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x)))))
@@ -150,15 +151,16 @@
                         [[p (extract-method b)] new-body])
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
-(defn extract-parameters [coll]
-  (println "***" coll))
+;; TODO: resolve all symbols here!
+(defn transform-parameters [parameters]
+  (for [{:keys [type] :as parameter} parameters]
+    parameter))
 
 (defn route-metadata [body]
   (remove-empty-keys
     (let [{:keys [body return parameters] :as meta} (or (meta (first body)) {})]
-      (merge meta {:parameters (extract-parameters parameters)
-                   :return (some-> return resolve)
-                   :body (some-> body resolve)}))))
+      (merge meta {:parameters (transform-parameters parameters)
+                   :return (some-> return resolve)}))))
 
 (defn route-definition [[route body]]
   [route (route-metadata body)])
@@ -178,8 +180,14 @@
     reverse
     ->map))
 
+; TODO: don't resolve here
 (defn extract-models [routes]
-  (->> routes vals (keep :return) set vec))
+  (let [return-models (->> routes vals (keep :return))
+        parameter-models (->> routes vals (mapcat :parameters) (keep :type) (map resolve))]
+    (-> return-models
+      (into parameter-models)
+      set
+      vec)))
 
 ;;
 ;; Compojure-Swagger public api
