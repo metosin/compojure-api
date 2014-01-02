@@ -7,6 +7,7 @@
             [schema.core :as s]
             [compojure.api.schema :refer [defmodel optional]]
             [compojure.api.common :refer :all]
+            [compojure.api.dsl :refer :all]
             [schema.macros :as sm]))
 
 ;; Domain
@@ -15,6 +16,8 @@
                  :name s/String
                  (optional :description) s/String
                  :toppings [(s/enum :cheese :olives :ham :pepperoni :artichoke :habanero)]})
+
+(defmodel NewPizza (dissoc Pizza :id))
 
 ;; Repository
 
@@ -39,8 +42,6 @@
   (add! {:name "Quatro" :toppings [:cheese :olives :artichoke]})
   (add! {:name "Il Diablo" :toppings [:ham :habanero]}))
 
-(println (get-pizzas))
-
 ;; Web Api
 
 (defapi api
@@ -50,6 +51,13 @@
   (swaggered :sample
     :description "sample api"
     (context "/api" []
+      (context "/shop" []
+        (GET* "/pizzas" []
+          :return 'Pizza
+          :summary "Gets all Pizzas v2"
+          :notes   "'nuff said."
+          :nickname "getPizzaFromShop"
+          (response (get-pizzas))))
       (context "/store" []
         (^{:return Pizza
            :summary "Gets all Pizzas"
@@ -58,13 +66,19 @@
         (^{:return Pizza
            :summary "Gets a pizza"
            :notes   "'nuff said."
-           :nickname "getPizza"} GET "/pizzas/:id" [id] (response (get-pizza id)))
+           :nickname "getPizza"} GET "/pizzas/:id" [id] (response (get-pizza (java.lang.Integer/parseInt id))))
         (^{:return Pizza
            :summary "Adds a pizza"
            :notes   "'nuff said."
-           :nickname "getPizza"} POST "/pizzas" {pizza :params} (response (add! pizza)))
-        (^{:return Pizza} PUT "/pizzas" {pizza :params} (response (update! pizza)))
-        (^{:return Pizza} DELETE "/pizzas/:id" [id] (delete! id))))))
+           :nickname "addPizza"} POST "/pizzas" {pizza :params} (response (add! pizza)))
+        (^{:return Pizza
+           :summary "Updates a pizza"
+           :notes   "'nuff said."
+           :nickname "updatePizza"} PUT "/pizzas" {pizza :params} (response (update! pizza)))
+        (^{:return Pizza
+           :summary "Deletes a Pizza"
+           :notes   "'nuff said."
+           :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (delete! id))))))
 
 ;; Ring App
 
