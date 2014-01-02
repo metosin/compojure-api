@@ -97,9 +97,10 @@
 (def compojure-context?   #{#'context})
 (def compojure-letroutes? #{#'let-routes})
 (def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
+(def with-meta?           #{#'with-meta})
 
 (defn- macroexpand-to-compojure [form]
-  (walk/postwalk
+  (walk/prewalk
     (fn [x]
       (if (and (seq? x) (> (count x) 1))
         (do
@@ -107,7 +108,7 @@
                 (symbol? (first x))
                 (compojure-macro? (resolve (first x))))
             (filter (comp not nil?) x)
-            (macroexpand x)))
+            (macroexpand-1 x)))
         x))
     form))
 
@@ -126,7 +127,8 @@
           (let [[m p] x
                 rm (and (symbol? m) (resolve m))]
             (cond
-              (compojure-route? rm)     (->CompojureRoute  p  x)
+              (with-meta? rm)           (assoc (eval x))
+              (compojure-route? rm)     (->CompojureRoute p x)
               (compojure-context? rm)   (->CompojureRoutes p  (filter-routes x))
               (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x)))))
         x))
@@ -143,7 +145,9 @@
 (defn create-paths [{:keys [p b c] :as r}]
   (apply array-map
     (condp = (class r)
-      CompojureRoute  [[p (extract-method b)] b]
+      CompojureRoute  (let [metadata (merge (meta r) (meta (first b)))
+                            new-body [(with-meta (first b) metadata) (rest b)]]
+                        [[p (extract-method b)] new-body])
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
 (defn route-metadata [body]
@@ -169,11 +173,6 @@
     reverse
     ->map))
 
-(defn extract-parameters [form]
-  (let [parameters (->> form (take-while (comp not list?)) (apply hash-map))
-        form (drop (* 2 (count parameters)) form)]
-    [parameters form]))
-
 (defn extract-models [routes]
   (->> routes vals (keep :return) set vec))
 
@@ -187,5 +186,6 @@
         models  (extract-models routes)
         details (merge parameters {:routes routes
                                    :models models})]
+    (println routes)
     (swap! swagger assoc name details)
     `(routes ~@body)))
