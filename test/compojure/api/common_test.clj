@@ -57,7 +57,7 @@
 
 (fact "extract-parameters"
   (fact "works with even number of values before body"
-    (extract-parameters [:kikka 1 :kakka 2 :kukka 3 '(+ 1 1)]) => [{:kikka 1 :kakka 2 :kukka 3} '((+ 1 1))])
+    (extract-fn-parameters [:kikka 1 :kakka 2 :kukka 3 '(+ 1 1)]) => [{:kikka 1 :kakka 2 :kukka 3} '((+ 1 1))])
   (fact "fails with uneven number of values before body"
-    (extract-parameters [:kikka '(+ 1 1)]) => (throws Exception)))
+    (extract-fn-parameters [:kikka '(+ 1 1)]) => (throws Exception)))
 

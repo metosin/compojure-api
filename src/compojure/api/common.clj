@@ -60,7 +60,7 @@
     (nil? x) nil
     :else    (name x)))
 
-(defn extract-parameters
+(defn extract-fn-parameters
   "extracts key & value pairs from beginning of a list until
    a list is found."
   [form]

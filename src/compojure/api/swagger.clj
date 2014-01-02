@@ -150,10 +150,15 @@
                         [[p (extract-method b)] new-body])
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
+(defn extract-parameters [coll]
+  (println "***" coll))
+
 (defn route-metadata [body]
   (remove-empty-keys
-    (let [meta (or (meta (first body)) {})]
-      (merge meta {:return (some-> meta :return resolve)}))))
+    (let [{:keys [body return parameters] :as meta} (or (meta (first body)) {})]
+      (merge meta {:parameters (extract-parameters parameters)
+                   :return (some-> return resolve)
+                   :body (some-> body resolve)}))))
 
 (defn route-definition [[route body]]
   [route (route-metadata body)])
@@ -181,7 +186,7 @@
 ;;
 
 (defmacro swaggered [name & body]
-  (let [[parameters body] (extract-parameters body)
+  (let [[parameters body] (extract-fn-parameters body)
         routes  (extract-routes body)
         models  (extract-models routes)
         details (merge parameters {:routes routes

@@ -53,31 +53,38 @@
     (context "/api" []
       (context "/shop" []
         (GET* "/pizzas" []
-          :return 'Pizza
-          :summary "Gets all Pizzas v2"
-          :notes   "'nuff said."
+          :return   'Pizza
+          :summary  "Gets all Pizzas v2"
+          :notes    "'nuff said."
           :nickname "getPizzaFromShop"
           (response (get-pizzas))))
       (context "/store" []
-        (^{:return Pizza
-           :summary "Gets all Pizzas"
-           :notes   "'nuff said."
+        (^{:return   Pizza
+           :summary  "Gets all Pizzas"
+           :notes    "'nuff said."
            :nickname "getPizzas"} GET "/pizzas" [] (response (get-pizzas)))
-        (^{:return Pizza
-           :summary "Gets a pizza"
-           :notes   "'nuff said."
+        (^{:return   Pizza
+           :summary  "Gets a pizza"
+           :notes    "'nuff said."
            :nickname "getPizza"} GET "/pizzas/:id" [id] (response (get-pizza (java.lang.Integer/parseInt id))))
-        (^{:return Pizza
-           :summary "Adds a pizza"
-           :notes   "'nuff said."
+        (^{:return   Pizza
+           :parameters [{:paramType   :body
+                         :name        "body"
+                         :description "new pizza"
+                         :required    true
+                         :type        'NewPizza}]
+           :body     NewPizza
+           :summary  "Adds a pizza"
+           :notes    "'nuff said."
            :nickname "addPizza"} POST "/pizzas" {pizza :params} (response (add! pizza)))
-        (^{:return Pizza
-           :summary "Updates a pizza"
-           :notes   "'nuff said."
+        (^{:return   Pizza
+           :body     Pizza
+           :summary  "Updates a pizza"
+           :notes    "'nuff said."
            :nickname "updatePizza"} PUT "/pizzas" {pizza :params} (response (update! pizza)))
-        (^{:return Pizza
-           :summary "Deletes a Pizza"
-           :notes   "'nuff said."
+        (^{:return   Pizza
+           :summary  "Deletes a Pizza"
+           :notes    "'nuff said."
            :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (delete! id))))))
 
 ;; Ring App
