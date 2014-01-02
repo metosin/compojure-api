@@ -15,7 +15,7 @@
 (defmodel Pizza {:id s/Int
                  :name s/String
                  (optional :description) s/String
-                 :toppings [(s/enum :cheese :olives :ham :pepperoni :artichoke :habanero)]})
+                 :toppings [(s/enum "cheese" "olives" "ham" "pepperoni" "artichoke" "habanero")]})
 
 (defmodel NewPizza (dissoc Pizza :id))
 
@@ -39,8 +39,8 @@
 ;; Data
 
 (when (empty? @pizzas)
-  (add! {:name "Quatro" :toppings [:cheese :olives :artichoke]})
-  (add! {:name "Il Diablo" :toppings [:ham :habanero]}))
+  (add! {:name "Quatro" :toppings ["cheese" "olives" "artichoke"]})
+  (add! {:name "Il Diablo" :toppings ["ham" "habanero"]}))
 
 ;; Web Api
 
