@@ -1,5 +1,5 @@
 (ns compojure.api.example.handler
-  (:require [compojure.api.core :refer [defapi with-middleware logged-request]]
+  (:require [compojure.api.core :refer [defapi with-middleware keywordize-request]]
             [compojure.api.swagger :refer :all]
             [compojure.route :as route]
             [compojure.core :refer :all]
@@ -47,7 +47,7 @@
 ;; Web Api
 
 (defapi api
-  (with-middleware [logged-request]
+  (with-middleware [keywordize-request]
     (swagger-docs "/api/docs"
       :title "Cool api"
       :description "Compojure Sample Web Api")

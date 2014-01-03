@@ -50,7 +50,7 @@
     (handler
       (walk/keywordize-keys request))))
 
-(defn logged-request
+(defn printed-request
   [handler]
   (fn [request]
     (println request)
@@ -74,7 +74,6 @@
   "opinionated chain of middlewares for web apis."
   [handler]
   (-> handler
-    keywordize-request
     wrap-json-response
     wrap-json-body-and-params
     compojure/api))
