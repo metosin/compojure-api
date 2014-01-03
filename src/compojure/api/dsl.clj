@@ -14,13 +14,14 @@
       (let [parameters (-> parameters
                          (dissoc :body)
                          schema/purge-model-vars
-                         (update-in [:parameters] conj (merge
-                                                         {:name (-> body-model schema/purge-model-var name-of .toLowerCase)
-                                                          :description ""
-                                                          :required "true"}
-                                                         body-meta
-                                                         {:paramType "body"
-                                                          :type body-model}))
+                         (update-in [:parameters] conj
+                           (merge
+                             {:name (-> body-model schema/purge-model-var name-of .toLowerCase)
+                              :description ""
+                              :required "true"}
+                             body-meta
+                             {:paramType "body"
+                              :type body-model}))
                          (update-in [:parameters] vec))]
         `(fn [req#]
            (let [{~body-name :params} req#]
