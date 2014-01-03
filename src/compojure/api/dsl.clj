@@ -22,8 +22,7 @@
                          (update-in [:parameters] vec))]
         `(fn [req#]
            (let [{~body-name :params} req#]
-             (println "BODY:" ~body-name)
-             (with-meta (POST ~path ~arg ~@body) ~parameters))))
+             ((with-meta (POST ~path ~arg ~@body) ~parameters) req#))))
       `(with-meta (POST ~path ~arg ~@body) ~parameters))))
 
 (defmacro TEST* [& body]
