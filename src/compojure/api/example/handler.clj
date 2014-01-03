@@ -62,7 +62,7 @@
           (response (get-pizzas)))
         (POST* "/pizzas" []
           :return   'Pizza
-          :body     [pizza 'NewPizza]
+          :body     [pizza 'NewPizza {:description "described it is."}]
           :summary  "Gets all Pizzas v2"
           :notes    "'nuff said."
           :nickname "getPizzaFromShop"
