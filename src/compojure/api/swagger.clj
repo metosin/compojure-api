@@ -153,8 +153,9 @@
 
 ;; TODO: resolve all symbols here!
 (defn transform-parameters [parameters]
-  (for [{:keys [type] :as parameter} parameters]
-    parameter))
+  (let [parameters (for [{:keys [type] :as parameter} parameters]
+                     parameter)]
+    (if-not (empty? parameters) parameters)))
 
 (defn route-metadata [body]
   (remove-empty-keys
