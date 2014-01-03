@@ -24,15 +24,16 @@
 (defonce id-seq (atom 0))
 (defonce pizzas (atom (array-map)))
 
+(defn get-pizza [id] (@pizzas id))
+(defn get-pizzas [] (-> pizzas deref vals reverse))
+(defn delete! [id] (swap! pizzas dissoc id))
+
 (defn add! [pizza]
   (let [id (swap! id-seq inc)]
     (swap! pizzas assoc id
       (s/validate Pizza (assoc pizza :id id)))
     (get-pizza id)))
 
-(defn get-pizza [id] (@pizzas id))
-(defn get-pizzas [] (-> pizzas deref vals reverse))
-(defn delete! [id] (swap! pizzas dissoc id))
 (defn update! [pizza]
   (swap! pizzas assoc (:id pizza)
     (s/validate Pizza pizza)))
@@ -52,13 +53,20 @@
   (swaggered :sample
     :description "sample api"
     (context "/api" []
-      (context "/shop" []
+      (context "/v2" []
         (GET* "/pizzas" []
           :return   'Pizza
           :summary  "Gets all Pizzas v2"
           :notes    "'nuff said."
           :nickname "getPizzaFromShop"
-          (response (get-pizzas))))
+          (response (get-pizzas)))
+        (POST* "/pizzas" []
+          :return   'Pizza
+          :body     [pizza 'NewPizza]
+          :summary  "Gets all Pizzas v2"
+          :notes    "'nuff said."
+          :nickname "getPizzaFromShop"
+          (response (add! pizza))))
       (context "/store" []
         (^{:return   Pizza
            :summary  "Gets all Pizzas"
@@ -70,7 +78,7 @@
            :nickname "getPizza"} GET "/pizzas/:id" [id] (response (get-pizza (java.lang.Integer/parseInt id))))
         (^{:return   Pizza
            :parameters [{:paramType   :body
-                         :name        "body"
+                         :name        "pizza"
                          :description "new pizza"
                          :required    true
                          :type        NewPizza}]
