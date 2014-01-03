@@ -55,14 +55,14 @@
     (context "/api" []
       (context "/v2" []
         (GET* "/pizzas" []
-          :return   'Pizza
+          :return   Pizza
           :summary  "Gets all Pizzas v2"
           :notes    "'nuff said."
           :nickname "getPizzaFromShop"
           (response (get-pizzas)))
         (POST* "/pizzas" []
-          :return   'Pizza
-          :body     [pizza 'NewPizza {:description "described it is."}]
+          :return   Pizza
+          :body     [pizza NewPizza {:description "described it is."}]
           :summary  "Gets all Pizzas v2"
           :notes    "'nuff said."
           :nickname "getPizzaFromShop"
@@ -106,6 +106,6 @@
 (def app
   (routes
     api
-    (GET "/" [] (redirect "/index.html"))
+    (GET "/" [] (redirect "/index.html#!/sample"))
     (route/resources "/")
     (route/not-found "not found")))

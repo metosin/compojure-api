@@ -163,7 +163,7 @@
   (remove-empty-keys
     (let [{:keys [body return parameters] :as meta} (or (meta (first body)) {})]
       (merge meta {:parameters (transform-parameters parameters)
-                   :return (some-> return resolve)}))))
+                   :return (some-> return schema/purge-model-var)}))))
 
 (defn route-definition [[route body]]
   [route (route-metadata body)])
