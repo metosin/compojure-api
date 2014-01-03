@@ -46,7 +46,7 @@
 (fact "remove-empty-keys"
   (remove-empty-keys {:a nil :b false :c 0}) => {:b false :c 0})
 
-(def Abba nil)
+(def Abba "abba")
 
 (fact "name-of"
   (name-of (resolve 'Abba)) => "Abba"
@@ -54,6 +54,10 @@
   (name-of "Abba") => "Abba"
   (name-of :Abba)  => "Abba"
   (name-of nil)    => nil)
+
+(fact "value-of"
+  (value-of Abba) => "abba"
+  (value-of #'Abba) => "abba")
 
 (fact "extract-parameters"
   (fact "works with even number of values before body"

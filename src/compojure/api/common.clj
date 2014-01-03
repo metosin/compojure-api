@@ -60,6 +60,9 @@
     (nil? x) nil
     :else    (name x)))
 
+(defn value-of [x]
+  (if (var? x) (var-get x) x))
+
 (defn extract-fn-parameters
   "extracts key & value pairs from beginning of a list until
    a list is found."
