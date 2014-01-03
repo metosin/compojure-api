@@ -106,5 +106,6 @@
 (def app
   (routes
     api
+    (GET "/" [] (redirect "/index.html"))
     (route/resources "/")
     (route/not-found "not found")))
