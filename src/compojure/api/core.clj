@@ -50,11 +50,25 @@
     (handler
       (walk/keywordize-keys request))))
 
+(defn logged-request
+  [handler]
+  (fn [request]
+    (println request)
+    (handler request)))
+
 (defmacro apiroutes [& body]
   `(api-middleware (routes ~@body)))
 
 (defmacro defapi [name & body]
   `(defroutes ~name (apiroutes ~@body)))
+
+(defmacro with-middleware [middlewares & body]
+  `(routes
+     (reduce
+       (fn [handler# middleware#]
+         (middleware# handler#))
+       (routes ~@body)
+       ~middlewares)))
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
