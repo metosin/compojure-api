@@ -6,6 +6,7 @@
             [clojure.set :refer [union]]
             [compojure.api.common :refer :all]
             [compojure.api.schema :as schema]
+            [cheshire.generate :as generate]
             [compojure.core :refer :all]))
 
 ;;
@@ -17,6 +18,9 @@
 ;;
 ;; Swagger-json generation
 ;;
+
+(generate/add-encoder clojure.lang.Var
+  (fn [x jsonGenerator] (.writeString jsonGenerator (name-of x))))
 
 (defrecord Route [method uri])
 
@@ -151,10 +155,8 @@
                         [[p (extract-method b)] new-body])
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
-;; TODO: resolve all symbols here!
 (defn transform-parameters [parameters]
-  (let [parameters (for [{:keys [type] :as parameter} parameters]
-                     parameter)]
+  (let [parameters (map schema/purge-model-vars parameters)]
     (if-not (empty? parameters) parameters)))
 
 (defn route-metadata [body]
@@ -181,10 +183,9 @@
     reverse
     ->map))
 
-; TODO: don't resolve here
 (defn extract-models [routes]
   (let [return-models (->> routes vals (keep :return))
-        parameter-models (->> routes vals (mapcat :parameters) (keep :type) (map resolve))]
+        parameter-models (->> routes vals (mapcat :parameters) (keep :type))]
     (-> return-models
       (into parameter-models)
       set

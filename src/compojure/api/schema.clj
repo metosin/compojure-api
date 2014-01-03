@@ -33,13 +33,7 @@
 (defn required-keys [schema]
   (filter s/required-key? (keys schema)))
 
-(defn eval-symbol-or-var [x]
-  (cond
-    (symbol? x) (eval x)
-    (var? x) (var-get x)
-    :else (throw (IllegalArgumentException. (str "not a symbol or var: " x)))))
-
-(defn get-model-var [x]
+(defn purge-model-var [x]
   (cond
     (map? x)    (or (-> x meta :model) x)
     (symbol? x) (-> x eval recur)
@@ -47,14 +41,14 @@
                   (if (= (class x) (class x')) x (recur x')))))
 
 (defn purge-model-vars [m]
-  (into {} (for [[k v] m] [k (get-model-var v)])))
+  (into {} (for [[k v] m] [k (purge-model-var v)])))
 
 ;;
 ;; public Api
 ;;
 
 (defn transform [schema*]
-  (let [schema (eval-symbol-or-var schema*)
+  (let [schema (value-of schema*)
         required (required-keys schema)
         required (if-not (empty? required) required)]
     (remove-empty-keys
@@ -63,7 +57,8 @@
        :required required})))
 
 (defn collect-models [x]
-  (let [model  (-> x meta :model)
+  (let [x      (value-of x)
+        model  (-> x meta :model)
         values (if (map? x) (vals x) (seq x))
         cols   (filter coll? values)
         models (->> cols (map meta) (keep :model))
@@ -72,7 +67,6 @@
 
 (defn transform-models [& schemas*]
   (->> schemas*
-    (map eval-symbol-or-var)
     (mapcat collect-models)
     set
     (map transform)
