@@ -39,6 +39,16 @@
     (var? x) (var-get x)
     :else (throw (IllegalArgumentException. (str "not a symbol or var: " x)))))
 
+(defn get-model-var [x]
+  (cond
+    (map? x)    (or (-> x meta :model) x)
+    (symbol? x) (-> x eval recur)
+    :else       (let [x' (eval x)]
+                  (if (= (class x) (class x')) x (recur x')))))
+
+(defn purge-model-vars [m]
+  (into {} (for [[k v] m] [k (get-model-var v)])))
+
 ;;
 ;; public Api
 ;;
