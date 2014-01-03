@@ -7,6 +7,7 @@
   (let [[parameters body] (extract-fn-parameters body)]
     `(with-meta (GET ~path ~arg ~@body) ~parameters)))
 
+;; TODO: evaluates with-meta for all requests
 (defmacro POST* [path arg & body]
   (let [[parameters body] (extract-fn-parameters body)]
     (if-let [[body-name body-model body-meta] (:body parameters)]
