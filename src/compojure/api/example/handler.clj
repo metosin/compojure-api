@@ -58,24 +58,20 @@
           (GET* "/pizzas" []
             :return   Pizza
             :summary  "Gets all Pizzas v2"
-            :notes    "'nuff said."
             :nickname "getPizzaFromShop"
             (response (get-pizzas)))
           (POST* "/pizzas" []
             :return   Pizza
             :body     [pizza NewPizza {:description "described it is."}]
             :summary  "Gets all Pizzas v2"
-            :notes    "'nuff said."
             :nickname "getPizzaFromShop"
             (response (add! pizza))))
         (context "/store" []
           (^{:return   Pizza
              :summary  "Gets all Pizzas"
-             :notes    "'nuff said."
              :nickname "getPizzas"} GET "/pizzas" [] (response (get-pizzas)))
           (^{:return   Pizza
              :summary  "Gets a pizza"
-             :notes    "'nuff said."
              :nickname "getPizza"} GET "/pizzas/:id" [id] (response (get-pizza (java.lang.Integer/parseInt id))))
           (^{:return   Pizza
              :parameters [{:paramType   :body
@@ -85,7 +81,6 @@
                            :type        NewPizza}]
              :body     NewPizza
              :summary  "Adds a pizza"
-             :notes    "'nuff said."
              :nickname "addPizza"} POST "/pizzas" {pizza :params} (response (add! pizza)))
           (^{:return   Pizza
              :parameters [{:paramType   :body
@@ -95,9 +90,7 @@
                            :type        Pizza}]
              :body     Pizza
              :summary  "Updates a pizza"
-             :notes    "'nuff said."
              :nickname "updatePizza"} PUT "/pizzas" {pizza :params} (response (update! pizza)))
           (^{:return   Pizza
              :summary  "Deletes a Pizza"
-             :notes    "'nuff said."
              :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (delete! id)))))))
