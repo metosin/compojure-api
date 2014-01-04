@@ -45,3 +45,7 @@
            (GET "/true" [] identity))
          (optional-routes false
            (PUT "/false" [] identity)))) => {(->Route :get "/api/true") {}}))
+
+(fact "generate-nick"
+  (generate-nick (->Route :get "/api/pizzas/:id")) => "getApiPizzasById"
+  (generate-nick (->Route :delete "/api/:version/pizzas/:id")) => "deleteApiByVersionPizzasById")

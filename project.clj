@@ -8,6 +8,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  ;;[metosin/compojure-api "0.0.1-SNAPSHOT"]
                  [cheshire "5.3.0"]
+                 [camel-snake-kebab "0.1.1"]
                  [prismatic/schema "0.1.10"]
                  [compojure "1.1.5"]]
   :plugins [[lein-ring "0.8.7"]]

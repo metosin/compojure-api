@@ -7,6 +7,7 @@
             [compojure.api.common :refer :all]
             [compojure.api.schema :as schema]
             [cheshire.generate :as generate]
+            [camel-snake-kebab :refer [->camelCase]]
             [compojure.core :refer :all]))
 
 ;;
@@ -34,6 +35,12 @@
 (defn swagger-path [path]
   (s/replace path #":([^/]+)" "{$1}"))
 
+(defn generate-nick [{:keys [method uri]}]
+  (-> (str (name method) " " uri)
+    (s/replace #"/" " ")
+    (s/replace #":" " by ")
+    ->camelCase))
+
 (def top-level-keys [:apiVersion])
 (def info-keys      [:title :description :termsOfServiceUrl :contact :license :licenseUrl])
 
@@ -50,8 +57,6 @@
        :info (select-keys parameters info-keys)}
       (select-keys parameters top-level-keys))))
 
-(defn generate-nick [uri] uri)
-
 (defn api-declaration [details basepath]
   (response
     {:apiVersion "1.0.0"
@@ -61,14 +66,14 @@
      :produces ["application/json"]
      :models (apply schema/transform-models (:models details))
      :apis (map
-             (fn [[{:keys [method uri]} {:keys [return summary notes nickname parameters]}]]
+             (fn [[{:keys [method uri] :as route} {:keys [return summary notes nickname parameters]}]]
                {:path (swagger-path uri)
                 :operations
                 [{:method (-> method name .toUpperCase)
                   :summary (or summary "")
                   :notes (or notes "")
                   :type (or (name-of return) "json")
-                  :nickname (or nickname (generate-nick uri))
+                  :nickname (or nickname (generate-nick route))
                   :parameters (into
                                 parameters
                                 (map
@@ -107,7 +112,7 @@
 (defn- macroexpand-to-compojure [form]
   (walk/prewalk
     (fn [x]
-      (if (and (seq? x) (> (count x) 1))
+      (if (seq? x)
         (do
           (if (and
                 (symbol? (first x))
