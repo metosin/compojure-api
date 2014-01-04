@@ -54,19 +54,7 @@
     (swaggered :sample
       :description "sample api"
       (context "/api" []
-        (context "/v2" []
-          (GET* "/pizzas" []
-            :return   Pizza
-            :summary  "Gets all Pizzas v2"
-            :nickname "getPizzaFromShop"
-            (response (get-pizzas)))
-          (POST* "/pizzas" []
-            :return   Pizza
-            :body     [pizza NewPizza {:description "described it is."}]
-            :summary  "Gets all Pizzas v2"
-            :nickname "getPizzaFromShop"
-            (response (add! pizza))))
-        (context "/store" []
+        (context "/resources" []
           (^{:return   Pizza
              :summary  "Gets all Pizzas"
              :nickname "getPizzas"} GET "/pizzas" [] (response (get-pizzas)))
