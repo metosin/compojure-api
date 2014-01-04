@@ -1,5 +1,5 @@
 (ns compojure.api.example.handler
-  (:require [compojure.api.core :refer [defapi with-middleware keywordize-request]]
+  (:require [compojure.api.core :refer [defapi with-middleware public-resources]]
             [compojure.api.swagger :refer :all]
             [compojure.route :as route]
             [compojure.core :refer :all]
@@ -46,8 +46,8 @@
 
 ;; Web Api
 
-(defapi api
-  (with-middleware [keywordize-request]
+(defapi app
+  (with-middleware [public-resources]
     (swagger-docs "/api/docs"
       :title "Cool api"
       :description "Compojure Sample Web Api")
@@ -100,12 +100,4 @@
           (^{:return   Pizza
              :summary  "Deletes a Pizza"
              :notes    "'nuff said."
-           :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (delete! id)))))))
-
-;; Ring App
-
-(defroutes app
-  api
-  (GET "/" [] (redirect "/index.html#!/sample"))
-  (route/resources "/")
-  (route/not-found "not found"))
+             :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (delete! id)))))))

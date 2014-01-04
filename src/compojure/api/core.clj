@@ -1,9 +1,10 @@
 (ns compojure.api.core
   (:require [clojure.walk :as walk]
             [compojure.handler :as compojure]
-            [ring.util.response :refer [response content-type]]
+            [ring.util.response :refer [response content-type redirect]]
             [cheshire.core :as cheshire]
             [clojure.java.io :as io]
+            [compojure.route :as route]
             [compojure.core :refer :all]))
 
 (defn json-request?
@@ -50,6 +51,17 @@
     (handler
       (walk/keywordize-keys request))))
 
+(defroutes public-resource-routes
+  (GET "/" [] (redirect "/index.html"))
+  (route/resources "/"))
+
+(defn public-resources
+  "serves public resources for missed requests"
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (or response (public-resource-routes request)))))
+
 (defn printed-request
   [handler]
   (fn [request]
@@ -74,6 +86,7 @@
   "opinionated chain of middlewares for web apis."
   [handler]
   (-> handler
+    keywordize-request
     wrap-json-response
     wrap-json-body-and-params
     compojure/api))
