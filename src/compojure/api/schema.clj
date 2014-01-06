@@ -86,4 +86,4 @@
 (defn optional [k] (s/optional-key k))
 
 (defmacro defmodel [model form]
-  `(def ~model (with-meta ~form {:model (var ~model)})))
+  `(def ~model ~(str model) (with-meta ~form {:model (var ~model)})))
