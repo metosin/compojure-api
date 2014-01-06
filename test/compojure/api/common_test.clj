@@ -59,9 +59,13 @@
   (value-of Abba) => "abba"
   (value-of #'Abba) => "abba")
 
-(fact "extract-parameters"
-  (fact "works with even number of values before body"
-    (extract-fn-parameters [:kikka 1 :kakka 2 :kukka 3 '(+ 1 1)]) => [{:kikka 1 :kakka 2 :kukka 3} '((+ 1 1))])
-  (fact "fails with uneven number of values before body"
-    (extract-fn-parameters [:kikka '(+ 1 1)]) => (throws Exception)))
+(fact "extractors"
 
+  (fact "extract-map"
+    (extract-map-parameters [{:a 1 :b 2}]) => [{} [{:a 1 :b 2}]]
+    (extract-map-parameters [{:a 1 :b 2} 1]) => [{:a 1 :b 2} [1]])
+
+  (fact "extract-parameters"
+    (extract-parameters [:kikka 1 :kakka 2 :kukka 3 '(+ 1 1)]) => [{:kikka 1 :kakka 2 :kukka 3} '((+ 1 1))]
+    (extract-parameters [:kikka '(+ 1 1)]) => [{:kikka '(+ 1 1)} []]
+    (extract-parameters [:kikka 1 :kakka 2 :kukka]) => [{:kikka 1 :kakka 2} [:kukka]]))

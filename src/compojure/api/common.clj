@@ -70,3 +70,27 @@
   (let [parameters (->> form (take-while (comp not list?)) (apply hash-map))
         form (drop (* 2 (count parameters)) form)]
     [parameters form]))
+
+(defn extract-map-parameters
+  "extract possible map from beginning of a seq if it has more elements."
+  [c] {:pre [(sequential? c)]}
+  (if (and (map? (first c)) (> (count c) 1)) [(first c) (rest c)] [{} c]))
+
+(defn extract-parameters
+  "Extract parameters from head of the list. Parameters can be:
+     1) a map (if followed by any form) [{:a 1 :b 2} :body] => {:a 1 :b 2}
+     2) list of keywords & values   [:a 1 :b 2 :body] => {:a 1 :b 2}
+   Returns a tuple with parameters and body without the parameters"
+  [c]
+  {:pre [(sequential? c)]}
+  (if (and (map? (first c)) (> (count c) 1)) [(first c) (rest c)]
+    (if (keyword? (first c))
+      (let [parameters (->> c
+                         (partition 2)
+                         (take-while (comp keyword? first))
+                         (mapcat identity)
+                         (apply hash-map))
+            form       (drop (* 2 (count parameters)) c)]
+        [parameters form]))))
+
+(defn ->Long [s] (java.lang.Long/parseLong s))
