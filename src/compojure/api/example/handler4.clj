@@ -32,7 +32,7 @@
           (ok (add! pizza)))
         (PUT* "/pizzas" []
           :return   Pizza
-          :body     [pizza NewPizza {:description "new pizza"}]
+          :body     [pizza Pizza]
           :summary  "Updates a pizza"
           :nickname "updatePizza"
           (ok (update! pizza)))
