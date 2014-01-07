@@ -14,30 +14,40 @@
     (swaggered :sample
       :description "sample api"
       (context "/api" []
-        (GET* "/pizzas" []
-          :return   Pizza
-          :summary  "Gets all Pizzas"
-          :nickname "getPizzas"
+        (GET "/pizzas" []
+          {:return   Pizza
+           :summary  "Gets all Pizzas"
+           :nickname "getPizzas"}
           (ok (get-pizzas)))
-        (GET* "/pizzas/:id" [id]
-          :return   Pizza
-          :summary  "Gets a pizza"
-          :nickname "getPizza"
+        (GET "/pizzas/:id" [id]
+          {:return   Pizza
+           :summary  "Gets a pizza"
+           :nickname "getPizza"}
           (ok (get-pizza (->Long id))))
-        (POST* "/pizzas" []
-          :return   Pizza
-          :body     [pizza NewPizza {:description "new pizza"}]
-          :summary  "Adds a pizza"
-          :nickname "addPizza"
+        (POST "/pizzas" {pizza :params}
+          {:return   Pizza
+           :parameters [{:paramType   :body
+                         :name        "pizza"
+                         :description "new pizza"
+                         :required    true
+                         :type        NewPizza}]
+           :body     NewPizza
+           :summary  "Adds a pizza"
+           :nickname "addPizza"}
           (ok (add! pizza)))
-        (PUT* "/pizzas" []
-          :return   Pizza
-          :body     [pizza Pizza]
-          :summary  "Updates a pizza"
-          :nickname "updatePizza"
+        (PUT "/pizzas" {pizza :params}
+          {:return   Pizza
+           :parameters [{:paramType   :body
+                         :name        "body"
+                         :description "updated pizza"
+                         :required    true
+                         :type        Pizza}]
+           :body     Pizza
+           :summary  "Updates a pizza"
+           :nickname "updatePizza"}
           (ok (update! pizza)))
-        (DELETE* "/pizzas/:id" [id]
-          :return   Pizza
-          :summary  "Deletes a Pizza"
-          :nickname "deletePizza"
+        (DELETE "/pizzas/:id" [id]
+          {:return   Pizza
+           :summary  "Deletes a Pizza"
+           :nickname "deletePizza"}
           (ok (delete! (->Long id))))))))

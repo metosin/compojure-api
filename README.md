@@ -14,13 +14,13 @@ lein ring server
 - [x] expand macros (read routes from compojure internals) => gentle-macroexpand
 - [x] generate smart nicknames
 - [x] syntax quote to get full paths to compojure stuff
-- [ ] multiple apis in single app
-- [ ] portable swagger-ui
 - [x] meta-data driven endpoints (route and in & out parameters etc)
 - [x] clean api ON TOP to support keyword-pair type inputs
 - [x] easy adding of middlewares
+- [ ] multiple apis in single app
+- [ ] portable swagger-ui
+- [ ] separate ring-swagger endpoint generation with clean api
 - [ ] cors-support?
-- [ ] separate swagger-stuff into separate project
 - [ ] usage
 - [ ] test 'em all
 
