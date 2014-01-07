@@ -23,7 +23,7 @@
           :return   Pizza
           :summary  "Gets a pizza"
           :nickname "getPizza"
-          (ok (get-pizza (java.lang.Integer/parseInt id))))
+          (ok (get-pizza (->Long id))))
         (POST "/pizzas" {pizza :params}
           :return   Pizza
           :parameters [{:paramType   :body
