@@ -17,12 +17,16 @@ lein ring server
 - [x] meta-data driven endpoints (route and in & out parameters etc)
 - [x] clean api ON TOP to support keyword-pair type inputs
 - [x] easy adding of middlewares
-- [ ] multiple apis in single app
+- [x] multiple apis in single app
 - [ ] portable swagger-ui
 - [ ] separate ring-swagger endpoint generation with clean api
 - [ ] cors-support?
 - [ ] usage
 - [ ] test 'em all
+- [ ] license
+- [ ] repackage stuff (response, middleware etc.)
+- [ ] one joint entry package/import for easy usage
+- [ ] resource-macro for RESTfull-crud stuff
 
 ## License
 
