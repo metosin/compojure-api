@@ -5,7 +5,7 @@
             [compojure.api.common :as common]))
 
 (ns compojure.core)
-(defonce compile-route-orinal compile-route)
+(defonce compile-route-original compile-route)
 (defn compile-route-pimped
   "Compile a route in the form (method path & {optional meta-data} body) into a function."
   [method route bindings body]
