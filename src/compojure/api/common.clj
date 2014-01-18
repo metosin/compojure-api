@@ -80,10 +80,12 @@
   "Extract parameters from head of the list. Parameters can be:
      1) a map (if followed by any form) [{:a 1 :b 2} :body] => {:a 1 :b 2}
      2) list of keywords & values   [:a 1 :b 2 :body] => {:a 1 :b 2}
+     3) else => {}
    Returns a tuple with parameters and body without the parameters"
   [c]
   {:pre [(sequential? c)]}
-  (if (and (map? (first c)) (> (count c) 1)) [(first c) (rest c)]
+  (if (and (map? (first c)) (> (count c) 1))
+    [(first c) (rest c)]
     (if (keyword? (first c))
       (let [parameters (->> c
                          (partition 2)
@@ -91,6 +93,7 @@
                          (mapcat identity)
                          (apply hash-map))
             form       (drop (* 2 (count parameters)) c)]
-        [parameters form]))))
+        [parameters form])
+      [{} c])))
 
 (defn ->Long [s] (java.lang.Long/parseLong s))

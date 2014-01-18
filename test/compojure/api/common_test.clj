@@ -63,9 +63,12 @@
 
   (fact "extract-map"
     (extract-map-parameters [{:a 1 :b 2}]) => [{} [{:a 1 :b 2}]]
-    (extract-map-parameters [{:a 1 :b 2} 1]) => [{:a 1 :b 2} [1]])
+    (extract-map-parameters [{:a 1 :b 2} ..any..]) => [{:a 1 :b 2} [..any..]])
 
   (fact "extract-parameters"
-    (extract-parameters [:kikka 1 :kakka 2 :kukka 3 '(+ 1 1)]) => [{:kikka 1 :kakka 2 :kukka 3} '((+ 1 1))]
-    (extract-parameters [:kikka '(+ 1 1)]) => [{:kikka '(+ 1 1)} []]
-    (extract-parameters [:kikka 1 :kakka 2 :kukka]) => [{:kikka 1 :kakka 2} [:kukka]]))
+    (extract-parameters [:kikka 1 :kakka 2 ..any..]) => [{:kikka 1 :kakka 2} [..any..]]
+    (extract-parameters [:kikka 1 :kakka 2 :kukka]) => [{:kikka 1 :kakka 2} [:kukka]]
+    (extract-parameters [:kikka 1 :kakka ..any..]) => [{:kikka 1 :kakka ..any..} []])
+
+  (fact "extract none"
+    (extract-parameters [..any..]) => [{} [..any..]]))
