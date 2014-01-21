@@ -17,12 +17,12 @@
 ;; routes
 ;;
 
-(defmacro GET* [path arg & body] `(GET ~path ~arg ~@body))
-(defmacro DELETE* [path arg & body] `(DELETE ~path ~arg ~@body))
-(defmacro HEAD* [path arg & body] `(HEAD ~path ~arg ~@body))
+(defmacro GET* [path arg & body]     `(GET ~path ~arg ~@body))
+(defmacro ANY* [path arg & body]     `(ANY ~path ~arg ~@body))
+(defmacro HEAD* [path arg & body]    `(HEAD ~path ~arg ~@body))
+(defmacro PATCH* [path arg & body]   `(PATCH ~path ~arg ~@body))
+(defmacro DELETE* [path arg & body]  `(DELETE ~path ~arg ~@body))
 (defmacro OPTIONS* [path arg & body] `(OPTIONS ~path ~arg ~@body))
-(defmacro PATCH* [path arg & body] `(PATCH ~path ~arg ~@body))
-(defmacro ANY* [path arg & body] `(ANY ~path ~arg ~@body))
 
 (defmacro POST* [path arg & body]
   (let [[parameters body] (extract-parameters body)]
