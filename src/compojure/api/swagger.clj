@@ -135,7 +135,7 @@
 ;;
 
 (defmacro swaggered [name & body]
-  (let [[parameters body] (extract-fn-parameters body)
+  (let [[parameters body] (extract-parameters body)
         routes  (extract-routes body)
         models  (extract-models routes)
         details (merge parameters {:routes routes
