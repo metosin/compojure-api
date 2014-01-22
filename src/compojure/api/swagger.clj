@@ -1,14 +1,9 @@
 (ns compojure.api.swagger
   (:require [clojure.walk :as walk]
             [ring.util.response :refer :all]
-            [clout.core :as clout]
-            [clojure.string :as s]
             [clojure.set :refer [union]]
             [ring.swagger.common :refer :all]
-            [ring.swagger.schema :as schema]
             [ring.swagger.core :as swagger]
-            [cheshire.generate :as generate]
-            [camel-snake-kebab :refer [->camelCase]]
             [compojure.core :refer :all]))
 
 ;;
