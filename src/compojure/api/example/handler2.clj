@@ -9,7 +9,7 @@
 
 (defroutes app
   (with-middleware [api-middleware]
-    (swagger-ui "/")
+    (swagger-ui)
     (swagger-docs "/api/docs"
       :title "Cool api"
       :description "Compojure Sample Web Api")

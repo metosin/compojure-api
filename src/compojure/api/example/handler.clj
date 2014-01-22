@@ -5,7 +5,7 @@
             [compojure.api.example.domain :refer :all]))
 
 (defapi app
-  (swagger-ui "/")
+  (swagger-ui)
   (swagger-docs "/api/docs"
     :title "Cool api"
     :description "Compojure Sample Web Api")

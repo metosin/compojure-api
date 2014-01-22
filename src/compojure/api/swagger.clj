@@ -120,10 +120,12 @@
 ;; Compojure-Swagger public api
 ;;
 
-(defn swagger-ui [path]
-  (routes
-    (GET path [] (redirect (s/replace (str "/" path "/index.html") #"//" "/")))
-    (route/resources path {:root "swagger-ui"})))
+(defn swagger-ui
+  ([] (swagger-ui "/"))
+  ([path]
+    (routes
+      (GET path [] (redirect (path-to-index path)))
+      (route/resources path {:root "swagger-ui"}))))
 
 (defn swagger-docs [path & key-values]
   (let [parameters (apply hash-map key-values)]
