@@ -22,7 +22,7 @@
       (GET path []
         (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
-        (some-> api keyword (@swagger) (swagger/api-declaration request))))))
+        (some-> api name (@swagger) (swagger/api-declaration request))))))
 
 ;;
 ;; Compojure-Swagger

@@ -10,7 +10,7 @@
     (swagger-docs "/api/docs"
       :title "Cool api"
       :description "Compojure Sample Web Api")
-    (swaggered :sample
+    (swaggered "sample"
       :description "sample api"
       (context "/api" []
         (GET* "/pizzas" []
