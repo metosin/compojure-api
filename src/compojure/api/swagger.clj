@@ -1,5 +1,6 @@
 (ns compojure.api.swagger
   (:require [clojure.walk :as walk]
+            [clojure.string :as s]
             [ring.util.response :refer :all]
             [clojure.set :refer [union]]
             [ring.swagger.common :refer :all]
@@ -12,23 +13,6 @@
 ;;
 
 (defonce swagger (atom {}))
-
-;;
-;; Swagger-docs public api
-;;
-
-(defn swagger-ui [path]
-  (routes
-    (GET path [] (redirect "/index.html"))
-    (route/resources path :root "/swagger-uiz")))
-
-(defn swagger-docs [path & key-values]
-  (let [parameters (apply hash-map key-values)]
-    (routes
-      (GET path []
-        (swagger/api-listing parameters @swagger))
-      (GET (str path "/:api") {{api :api} :route-params :as request}
-        (some-> api name (@swagger) (swagger/api-declaration request))))))
 
 ;;
 ;; Compojure-Swagger
@@ -130,9 +114,24 @@
       set
       vec)))
 
+(defn path-to-index [path] (s/replace (str path "/index.html") #"//" "/"))
+
 ;;
 ;; Compojure-Swagger public api
 ;;
+
+(defn swagger-ui [path]
+  (routes
+    (GET path [] (redirect (s/replace (str "/" path "/index.html") #"//" "/")))
+    (route/resources path {:root "swagger-ui"})))
+
+(defn swagger-docs [path & key-values]
+  (let [parameters (apply hash-map key-values)]
+    (routes
+      (GET path []
+        (swagger/api-listing parameters @swagger))
+      (GET (str path "/:api") {{api :api} :route-params :as request}
+        (some-> api name (@swagger) (swagger/api-declaration request))))))
 
 (defmacro swaggered [name & body]
   (let [[parameters body] (extract-parameters body)

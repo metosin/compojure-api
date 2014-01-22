@@ -40,3 +40,8 @@
            (GET "/true" [] identity))
          (optional-routes false
            (PUT "/false" [] identity)))) => {(->Route :get "/api/true") {}}))
+
+(fact "path-to-index"
+  (path-to-index "/")    => "/index.html"
+  (path-to-index "/ui")  => "/ui/index.html"
+  (path-to-index "/ui/") => "/ui/index.html")
