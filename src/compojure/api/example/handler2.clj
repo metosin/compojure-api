@@ -2,13 +2,14 @@
   (:require [compojure.core :refer :all]
             [compojure.api.core :refer :all]
             [compojure.api.swagger :refer :all]
-            [compojure.api.middleware :refer [public-resources]]
+            [compojure.api.middleware :refer [api-middleware]]
             [compojure.api.example.domain :refer :all]))
 
 ;; Web Api
 
-(defapi app
-  (with-middleware [public-resources]
+(defroutes app
+  (with-middleware [api-middleware]
+    (swagger-ui "/")
     (swagger-docs "/api/docs"
       :title "Cool api"
       :description "Compojure Sample Web Api")
@@ -19,8 +20,8 @@
            :summary  "Gets all Pizzas"
            :nickname "getPizzas"} GET "/pizzas" [] (ok (get-pizzas)))
         (^{:return   Pizza
-           :summary  "Gets a pizza"
-           :nickname "getPizza"} GET "/pizzas/:id" [id] (ok (get-pizza (->Long id))))
+         :summary  "Gets a pizza"
+         :nickname "getPizza"} GET "/pizzas/:id" [id] (ok (get-pizza (->Long id))))
         (^{:return   Pizza
            :parameters [{:paramType   :body
                          :name        "pizza"

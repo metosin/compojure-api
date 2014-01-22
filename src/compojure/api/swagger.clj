@@ -4,6 +4,7 @@
             [clojure.set :refer [union]]
             [ring.swagger.common :refer :all]
             [ring.swagger.core :as swagger]
+            [compojure.route :as route]
             [compojure.core :refer :all]))
 
 ;;
@@ -15,6 +16,11 @@
 ;;
 ;; Swagger-docs public api
 ;;
+
+(defn swagger-ui [path]
+  (routes
+    (GET path [] (redirect "/index.html"))
+    (route/resources path :root "/swagger-uiz")))
 
 (defn swagger-docs [path & key-values]
   (let [parameters (apply hash-map key-values)]

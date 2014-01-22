@@ -2,11 +2,12 @@
   (:require [compojure.core :refer :all]
             [compojure.api.core :refer :all]
             [compojure.api.swagger :refer :all]
-            [compojure.api.middleware :refer [public-resources]]
+            [compojure.api.middleware :refer [api-middleware]]
             [compojure.api.example.domain :refer :all]))
 
-(defapi app
-  (with-middleware [public-resources]
+(defroutes app
+  (with-middleware [api-middleware]
+    (swagger-ui "/")
     (swagger-docs "/api/docs"
       :title "Cool api"
       :description "Compojure Sample Web Api")
