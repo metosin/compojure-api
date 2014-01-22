@@ -1,9 +1,9 @@
 (ns compojure.api.example.handler4
   (:require [compojure.core :refer :all]
-            [compojure.api.core :refer [defapi with-middleware public-resources]]
+            [compojure.api.core :refer :all]
             [compojure.api.swagger :refer :all]
-            [compojure.api.example.domain :refer :all]
-            [compojure.api.dsl :refer :all]))
+            [compojure.api.middleware :refer [public-resources]]
+            [compojure.api.example.domain :refer :all]))
 
 (defapi app
   (with-middleware [public-resources]

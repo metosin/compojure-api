@@ -1,75 +1,28 @@
 (ns compojure.api.core
-  (:require [clojure.walk :as walk]
-            [compojure.handler :as compojure]
-            [ring.util.response :refer [response content-type redirect]]
-            [cheshire.core :as cheshire]
-            [clojure.java.io :as io]
-            [compojure.route :as route]
-            [compojure.core :refer :all]))
+  (:require [compojure.core :refer :all]
+            [compojure.api.pimp]
+            [compojure.api.middleware :as mw]
+            [ring.util.response :as response]
+            [ring.swagger.core :as swagger]
+            [ring.swagger.schema :as schema]
+            [ring.swagger.common :refer :all]))
 
-(defn json-request?
-  "Checks from request content-type weather it's JSON."
-  [{:keys [content-type] :as request}]
-  (and
-    content-type
-    (not (empty? (re-find #"^application/(vnd.+)?json" content-type)))))
+;;
+;; common
+;;
 
-(defn wrap-json-body-and-params
-  [handler]
-  (fn [{:keys [character-encoding content-type body] :as request}]
-    (handler
-      (or
-        (if (and body (json-request? request))
-          (let [json (cheshire/parse-stream (io/reader body :encoding (or character-encoding "utf-8")))]
-            (or
-              (and (sequential? json)
-                (-> request
-                  (assoc :body (vec json))
-                  (assoc :body-params (vec json))))
-              (and (map? json)
-                (-> request
-                  (assoc :body json)
-                  (assoc :body-params json)
-                  (assoc :json-params json)
-                  (update-in [:params] merge json))))))
-        request))))
+(defn ok
+  "status 200"
+  [body] (response/response body))
 
-(defn wrap-json-response
-  [handler]
-  (fn [request]
-    (let [{:keys [body] :as response} (handler request)]
-      (if (coll? body)
-        (-> response
-          (content-type "application/json; charset=utf-8")
-          (update-in [:body] cheshire/generate-string))
-        response))))
+(defn ->Long [s] (java.lang.Long/parseLong s))
 
-(defn keywordize-request
-  "keywordizes all ring-request keys recursively."
-  [handler]
-  (fn [request]
-    (handler
-      (walk/keywordize-keys request))))
-
-(defroutes public-resource-routes
-  (GET "/" [] (redirect "/index.html"))
-  (route/resources "/"))
-
-(defn public-resources
-  "serves public resources for missed requests"
-  [handler]
-  (fn [request]
-    (let [response (handler request)]
-      (or response (public-resource-routes request)))))
-
-(defn printed-request
-  [handler]
-  (fn [request]
-    (println request)
-    (handler request)))
+;;
+;; routes
+;;
 
 (defmacro apiroutes [& body]
-  `(api-middleware (routes ~@body)))
+  `(mw/api-middleware (routes ~@body)))
 
 (defmacro defapi [name & body]
   `(defroutes ~name (apiroutes ~@body)))
@@ -82,11 +35,53 @@
        (routes ~@body)
        ~middlewares)))
 
-(defn api-middleware
-  "opinionated chain of middlewares for web apis."
-  [handler]
-  (-> handler
-    keywordize-request
-    wrap-json-response
-    wrap-json-body-and-params
-    compojure/api))
+;;
+;; Methods
+;;
+
+(defmacro GET* [path arg & body]     `(GET ~path ~arg ~@body))
+(defmacro ANY* [path arg & body]     `(ANY ~path ~arg ~@body))
+(defmacro HEAD* [path arg & body]    `(HEAD ~path ~arg ~@body))
+(defmacro PATCH* [path arg & body]   `(PATCH ~path ~arg ~@body))
+(defmacro DELETE* [path arg & body]  `(DELETE ~path ~arg ~@body))
+(defmacro OPTIONS* [path arg & body] `(OPTIONS ~path ~arg ~@body))
+
+(defmacro POST* [path arg & body]
+  (let [[parameters body] (extract-parameters body)]
+    (if-let [[body-name body-model body-meta] (:body parameters)]
+      (let [parameters (-> parameters
+                         (dissoc :body)
+                         swagger/purge-model-vars
+                         (update-in [:parameters] conj
+                           (merge
+                             {:name (-> body-model swagger/purge-model-var name-of .toLowerCase)
+                              :description ""
+                              :required "true"}
+                             body-meta
+                             {:paramType "body"
+                              :type (swagger/purge-model-var body-model)}))
+                         (update-in [:parameters] vec))]
+        `(fn [req#]
+           (let [{~body-name :params} req#]
+             ((POST ~path ~arg ~parameters ~@body) req#))))
+      `(POST ~path ~arg ~parameters ~@body))))
+
+(defmacro PUT* [path arg & body]
+  (let [[parameters body] (extract-parameters body)]
+    (if-let [[body-name body-model body-meta] (:body parameters)]
+      (let [parameters (-> parameters
+                         (dissoc :body)
+                         swagger/purge-model-vars
+                         (update-in [:parameters] conj
+                           (merge
+                             {:name (-> body-model swagger/purge-model-var name-of .toLowerCase)
+                              :description ""
+                              :required "true"}
+                             body-meta
+                             {:paramType "body"
+                              :type body-model}))
+                         (update-in [:parameters] vec))]
+        `(fn [req#]
+           (let [{~body-name :params} req#]
+             ((PUT ~path ~arg ~parameters ~@body) req#))))
+      `(PUT ~path ~arg ~parameters ~@body))))

@@ -1,7 +1,7 @@
-(ns compojure.api.core-test
+(ns compojure.api.middleware-test
   (:require [midje.sweet :refer :all]
             [clojure.java.io :as io]
-            [compojure.api.core :refer :all])
+            [compojure.api.middleware :refer :all])
   (:import [java.io ByteArrayInputStream]))
 
 (defn stream [s]
