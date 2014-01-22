@@ -24,11 +24,10 @@
 (defn swagger-docs [path & key-values]
   (let [parameters (apply hash-map key-values)]
     (routes
-      (GET path [] (swagger/api-listing parameters @swagger))
+      (GET path []
+        (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
-        (when-let [details (@swagger (keyword api))]
-          (let [basepath (swagger/extract-basepath request)]
-            (swagger/api-declaration details basepath)))))))
+        (some-> api keyword (@swagger) (swagger/api-declaration request))))))
 
 ;;
 ;; Compojure-Swagger
