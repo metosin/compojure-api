@@ -19,18 +19,18 @@ lein ring server
 - [x] easy adding of middlewares
 - [x] multiple apis in single app
 - [ ] portable swagger-ui
-- [ ] separate ring-swagger endpoint generation with clean api
+- [x] separate ring-swagger endpoint generation with clean api
 - [ ] cors-support?
 - [ ] usage
 - [ ] test 'em all
 - [ ] license
-- [ ] repackage stuff (response, middleware etc.)
+- [x] repackage stuff (response, middleware etc.)
 - [ ] one joint entry package/import for easy usage
 - [ ] resource-macro for RESTfull-crud stuff
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2014 FIXME
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
