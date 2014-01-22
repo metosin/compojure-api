@@ -4,8 +4,9 @@
             [clout.core :as clout]
             [clojure.string :as s]
             [clojure.set :refer [union]]
-            [compojure.api.common :refer :all]
-            [compojure.api.schema :as schema]
+            [ring.swagger.common :refer :all]
+            [ring.swagger.schema :as schema]
+            [ring.swagger.core :as swagger]
             [cheshire.generate :as generate]
             [camel-snake-kebab :refer [->camelCase]]
             [compojure.core :refer :all]))
@@ -17,87 +18,17 @@
 (defonce swagger (atom {}))
 
 ;;
-;; Swagger-json generation
-;;
-
-(generate/add-encoder clojure.lang.Var
-  (fn [x jsonGenerator] (.writeString jsonGenerator (name-of x))))
-
-(defrecord Route [method uri])
-
-(defn extract-basepath
-  [{:keys [scheme server-name server-port]}]
-  (str (name scheme) "://" server-name ":" server-port))
-
-(defn extract-path-parameters [path]
-  (-> path clout/route-compile :keys))
-
-(defn swagger-path [path]
-  (s/replace path #":([^/]+)" "{$1}"))
-
-(defn generate-nick [{:keys [method uri]}]
-  (-> (str (name method) " " uri)
-    (s/replace #"/" " ")
-    (s/replace #":" " by ")
-    ->camelCase))
-
-(def top-level-keys [:apiVersion])
-(def info-keys      [:title :description :termsOfServiceUrl :contact :license :licenseUrl])
-
-(defn api-listing [parameters]
-  (response
-    (merge
-      {:apiVersion "1.0.0"
-       :swaggerVersion "1.2"
-       :apis (map
-               (fn [[api details]]
-                 {:path (str "/" (name api))
-                  :description (:description details)})
-               @swagger)
-       :info (select-keys parameters info-keys)}
-      (select-keys parameters top-level-keys))))
-
-(defn api-declaration [details basepath]
-  (response
-    {:apiVersion "1.0.0"
-     :swaggerVersion "1.2"
-     :basePath basepath
-     :resourcePath "" ;; TODO: should be supported?
-     :produces ["application/json"]
-     :models (apply schema/transform-models (:models details))
-     :apis (map
-             (fn [[{:keys [method uri] :as route} {:keys [return summary notes nickname parameters]}]]
-               {:path (swagger-path uri)
-                :operations
-                [{:method (-> method name .toUpperCase)
-                  :summary (or summary "")
-                  :notes (or notes "")
-                  :type (or (name-of return) "json")
-                  :nickname (or nickname (generate-nick route))
-                  :parameters (into
-                                parameters
-                                (map
-                                  (fn [path-parameter]
-                                    {:name (name path-parameter)
-                                     :description ""
-                                     :required true
-                                     :type "string"
-                                     :paramType "path"})
-                                  (extract-path-parameters uri)))}]})
-             (:routes details))}))
-
-;;
 ;; Swagger-docs public api
 ;;
 
 (defn swagger-docs [path & key-values]
   (let [parameters (apply hash-map key-values)]
     (routes
-      (GET path [] (api-listing parameters))
+      (GET path [] (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
         (when-let [details (@swagger (keyword api))]
-          (let [basepath (extract-basepath request)]
-            (api-declaration details basepath)))))))
+          (let [basepath (swagger/extract-basepath request)]
+            (swagger/api-declaration details basepath)))))))
 
 ;;
 ;; Compojure-Swagger
@@ -145,7 +76,7 @@
     form))
 
 (defn create-api-route [[ks v]]
-  [(->Route
+  [(swagger/->Route
      (first (keep second ks))
      (->> ks (map first) (apply str))) v])
 
@@ -164,14 +95,14 @@
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
 (defn transform-parameters [parameters]
-  (let [parameters (map schema/purge-model-vars parameters)]
+  (let [parameters (map swagger/purge-model-vars parameters)]
     (if-not (empty? parameters) parameters)))
 
 (defn route-metadata [body]
   (remove-empty-keys
     (let [{:keys [body return parameters] :as meta} (or (meta (first body)) {})]
       (merge meta {:parameters (transform-parameters parameters)
-                   :return (some-> return schema/purge-model-var)}))))
+                   :return (some-> return swagger/purge-model-var)}))))
 
 (defn route-definition [[route body]]
   [route (route-metadata body)])

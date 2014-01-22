@@ -1,13 +1,8 @@
 (ns compojure.api.swagger-test
   (:require [midje.sweet :refer :all]
+            [ring.swagger.core :refer [->Route]]
             [compojure.core :refer :all]
             [compojure.api.swagger :refer :all]))
-
-(fact "extract-path-parameters"
-  (extract-path-parameters "/api/:kikka/:kakka/:kukka") => [:kikka :kakka :kukka])
-
-(fact "swagger-path"
-  (swagger-path "/api/:kikka/:kakka/:kukka") => "/api/{kikka}/{kakka}/{kukka}")
 
 (fact "extracting compojure paths"
   (fact "all compojure.core macros are interpreted"
@@ -45,7 +40,3 @@
            (GET "/true" [] identity))
          (optional-routes false
            (PUT "/false" [] identity)))) => {(->Route :get "/api/true") {}}))
-
-(fact "generate-nick"
-  (generate-nick (->Route :get "/api/pizzas/:id")) => "getApiPizzasById"
-  (generate-nick (->Route :delete "/api/:version/pizzas/:id")) => "deleteApiByVersionPizzasById")

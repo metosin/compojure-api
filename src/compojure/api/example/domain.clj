@@ -1,6 +1,6 @@
 (ns compojure.api.example.domain
   (:require [schema.core :as s]
-            [compojure.api.schema :refer [defmodel optional]]))
+            [ring.swagger.schema :refer [defmodel optional]]))
 
 ;; Domain
 

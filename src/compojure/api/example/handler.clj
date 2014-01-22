@@ -2,7 +2,6 @@
   (:require [compojure.core :refer :all]
             [compojure.api.core :refer [defapi with-middleware public-resources]]
             [compojure.api.swagger :refer :all]
-            [compojure.api.common :refer :all]
             [compojure.api.example.domain :refer :all]
             [compojure.api.dsl :refer :all]))
 

@@ -1,9 +1,10 @@
 (ns compojure.api.dsl
   (:require [compojure.core :refer :all]
             [compojure.api.pimp]
-            [compojure.api.schema :as schema]
             [ring.util.response :as response]
-            [compojure.api.common :refer :all]))
+            [ring.swagger.core :as swagger]
+            [ring.swagger.schema :as schema]
+            [ring.swagger.common :refer :all]))
 
 ;;
 ;; common
@@ -12,6 +13,8 @@
 (defn ok
   "status 200"
   [body] (response/response body))
+
+(defn ->Long [s] (java.lang.Long/parseLong s))
 
 ;;
 ;; routes
@@ -29,15 +32,15 @@
     (if-let [[body-name body-model body-meta] (:body parameters)]
       (let [parameters (-> parameters
                          (dissoc :body)
-                         schema/purge-model-vars
+                         swagger/purge-model-vars
                          (update-in [:parameters] conj
                            (merge
-                             {:name (-> body-model schema/purge-model-var name-of .toLowerCase)
+                             {:name (-> body-model swagger/purge-model-var name-of .toLowerCase)
                               :description ""
                               :required "true"}
                              body-meta
                              {:paramType "body"
-                              :type (schema/purge-model-var body-model)}))
+                              :type (swagger/purge-model-var body-model)}))
                          (update-in [:parameters] vec))]
         `(fn [req#]
            (let [{~body-name :params} req#]
@@ -49,10 +52,10 @@
     (if-let [[body-name body-model body-meta] (:body parameters)]
       (let [parameters (-> parameters
                          (dissoc :body)
-                         schema/purge-model-vars
+                         swagger/purge-model-vars
                          (update-in [:parameters] conj
                            (merge
-                             {:name (-> body-model schema/purge-model-var name-of .toLowerCase)
+                             {:name (-> body-model swagger/purge-model-var name-of .toLowerCase)
                               :description ""
                               :required "true"}
                              body-meta

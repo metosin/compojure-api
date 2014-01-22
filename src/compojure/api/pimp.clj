@@ -2,15 +2,14 @@
   "var-pimp of of compojure.core/compile-route to support meta-data"
   (:require [compojure.core]
             [clout.core :as clout]
-            [compojure.api.common :as common]))
+            [ring.swagger.common :as common]))
 
 (ns compojure.core)
 (defonce compile-route-original compile-route)
 (defn compile-route-pimped
   "Compile a route in the form (method path & {optional meta-data} body) into a function."
   [method route bindings body]
-  (let [[meta-data body] (compojure.api.common/extract-parameters body)]
-    (println "compiling:" method route)
+  (let [[meta-data body] (ring.swagger.common/extract-parameters body)]
     (with-meta
       `(make-route
          ~method ~(prepare-route route)
