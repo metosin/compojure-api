@@ -111,7 +111,7 @@
         parameter-models (->> routes (map :metadata) (mapcat :parameters) (keep :type))]
     (-> return-models
       (into parameter-models)
-      set
+      distinct
       vec)))
 
 (defn path-to-index [path] (s/replace (str path "/index.html") #"//" "/"))

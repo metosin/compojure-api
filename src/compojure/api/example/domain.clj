@@ -6,7 +6,7 @@
 
 (defmodel Pizza {:id s/Int
                  :name s/Str
-                 (optional :description) s/Str
+                 (s/optional-key :description) s/Str
                  :toppings [(s/enum :cheese :olives :ham :pepperoni :habanero)]})
 
 (defmodel NewPizza (dissoc Pizza :id))
