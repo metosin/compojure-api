@@ -1,8 +1,8 @@
-(ns compojure.api.swagger-test
+(ns compojure.swagger.core-test
   (:require [midje.sweet :refer :all]
             [ring.swagger.core :refer [->Route]]
             [compojure.core :refer :all]
-            [compojure.api.swagger :refer :all]))
+            [compojure.swagger.core :refer :all]))
 
 (fact "extracting compojure paths"
   (fact "all compojure.core macros are interpreted"

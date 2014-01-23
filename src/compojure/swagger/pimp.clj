@@ -1,4 +1,4 @@
-(ns compojure.api.pimp
+(ns compojure.swagger.pimp
   "var-pimp of of compojure.core/compile-route to support meta-data"
   (:require [compojure.core]
             [clout.core :as clout]

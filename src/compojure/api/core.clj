@@ -1,6 +1,6 @@
 (ns compojure.api.core
   (:require [compojure.core :refer :all]
-            [compojure.api.pimp]
+            [compojure.swagger.pimp]
             [compojure.api.middleware :as mw]
             [ring.util.response :as response]
             [ring.swagger.core :as swagger]
@@ -21,11 +21,8 @@
 ;; routes
 ;;
 
-(defmacro apiroutes [& body]
-  `(mw/api-middleware (routes ~@body)))
-
 (defmacro defapi [name & body]
-  `(defroutes ~name (apiroutes ~@body)))
+  `(defroutes ~name (mw/api-middleware (routes ~@body))))
 
 (defmacro with-middleware [middlewares & body]
   `(routes
@@ -45,6 +42,8 @@
 (defmacro PATCH* [path arg & body]   `(PATCH ~path ~arg ~@body))
 (defmacro DELETE* [path arg & body]  `(DELETE ~path ~arg ~@body))
 (defmacro OPTIONS* [path arg & body] `(OPTIONS ~path ~arg ~@body))
+
+; TODO: Extract behavior into composable Routelets
 
 (defmacro POST* [path arg & body]
   (let [[parameters body] (extract-parameters body)]

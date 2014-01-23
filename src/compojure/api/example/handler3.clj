@@ -1,7 +1,7 @@
 (ns compojure.api.example.handler3
   (:require [compojure.core :refer :all]
             [compojure.api.core :refer :all]
-            [compojure.api.swagger :refer :all]
+            [compojure.swagger.core :refer :all]
             [compojure.api.middleware :refer [api-middleware]]
             [compojure.api.example.domain :refer :all]))
 
