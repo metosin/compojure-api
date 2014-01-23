@@ -21,17 +21,10 @@
 ;; routes
 ;;
 
-#_(defmacro defapi [name & body]
+(defmacro defapi [name & body]
   `(defroutes ~name
      (mw/api-middleware
        (routes ~@body))))
-
-(defmacro apiroutes [& body]
-  `(mw/api-middleware (routes ~@body)))
-
-(defmacro defapi [name & body]
-  `(defroutes ~name (apiroutes ~@body)))
-
 
 (defmacro with-middleware [middlewares & body]
   `(routes
