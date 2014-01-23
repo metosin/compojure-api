@@ -20,16 +20,15 @@
 (defn get-pizzas [] (-> pizzas deref vals reverse))
 (defn delete! [id] (swap! pizzas dissoc id) nil)
 
-(defn add! [pizza]
-  (let [id (swap! id-seq inc)]
-    (swap! pizzas assoc id
-      (s/validate Pizza ((coerce Pizza) (assoc pizza :id id))))
-    (get-pizza id)))
+(defn add! [new-pizza]
+  (let [id (swap! id-seq inc)
+        pizza (coerce Pizza (assoc new-pizza :id id))]
+    (swap! pizzas assoc id pizza)
+    pizza))
 
 (defn update! [pizza]
-  (let [pizza ((coerce Pizza) pizza)]
-    (swap! pizzas assoc (:id pizza)
-      (s/validate Pizza pizza))
+  (let [pizza (coerce Pizza pizza)]
+    (swap! pizzas assoc (:id pizza) pizza)
     (get-pizza (:id pizza))))
 
 ;; Data
