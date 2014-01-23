@@ -1,7 +1,5 @@
 (ns compojure.api.example.handler
-  (:require [compojure.core :refer :all]
-            [compojure.api.core :refer :all]
-            [compojure.swagger.core :refer :all]
+  (:require [compojure.api.sweet :refer :all]
             [compojure.api.example.domain :refer :all]))
 
 (defapi app
