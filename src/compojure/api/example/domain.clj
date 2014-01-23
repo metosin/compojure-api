@@ -1,13 +1,13 @@
 (ns compojure.api.example.domain
   (:require [schema.core :as s]
-            [ring.swagger.schema :refer [defmodel optional]]))
+            [ring.swagger.schema :refer :all]))
 
 ;; Domain
 
 (defmodel Pizza {:id s/Int
                  :name s/Str
                  (optional :description) s/Str
-                 :toppings [(s/enum "cheese" "olives" "ham" "pepperoni" "habanero")]})
+                 :toppings [(s/enum :cheese :olives :ham :pepperoni :habanero)]})
 
 (defmodel NewPizza (dissoc Pizza :id))
 
@@ -23,13 +23,14 @@
 (defn add! [pizza]
   (let [id (swap! id-seq inc)]
     (swap! pizzas assoc id
-      (s/validate Pizza (assoc pizza :id id)))
+      (s/validate Pizza ((coerce Pizza) (assoc pizza :id id))))
     (get-pizza id)))
 
 (defn update! [pizza]
-  (swap! pizzas assoc (:id pizza)
-    (s/validate Pizza pizza))
-  (get-pizza (:id pizza)))
+  (let [pizza ((coerce Pizza) pizza)]
+    (swap! pizzas assoc (:id pizza)
+      (s/validate Pizza pizza))
+    (get-pizza (:id pizza))))
 
 ;; Data
 
