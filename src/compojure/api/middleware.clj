@@ -1,4 +1,5 @@
 (ns compojure.api.middleware
+  "common stuff. under construction."
   (:require [clojure.walk :as walk]
             [compojure.handler :as compojure]
             [ring.util.response :refer [response content-type redirect]]
@@ -60,7 +61,8 @@
   [handler]
   (fn [request]
     (let [response (handler request)]
-      (or response (public-resource-routes request)))))
+      (or response
+        ((route/resources "/") request)))))
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."

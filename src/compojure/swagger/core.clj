@@ -1,4 +1,4 @@
-(ns compojure.api.swagger
+(ns compojure.swagger.core
   (:require [clojure.walk :as walk]
             [clojure.string :as s]
             [ring.util.response :refer :all]
