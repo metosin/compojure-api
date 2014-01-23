@@ -134,7 +134,7 @@
         (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
         (if-let [details (@swagger (name api))]
-          (swagger/api-declaration parameters details request))))))
+          (swagger/api-declaration parameters (swagger/extract-basepath request) details))))))
 
 (defmacro swaggered [name & body]
   (let [[parameters body] (extract-parameters body)
