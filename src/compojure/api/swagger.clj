@@ -62,7 +62,8 @@
 (defn create-api-route [[ks v]]
   [(swagger/->Route
      (first (keep second ks))
-     (->> ks (map first) (apply str))) v])
+     (->> ks (map first) (apply str))
+     {}) v])
 
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
@@ -88,8 +89,8 @@
       (merge meta {:parameters (transform-parameters parameters)
                    :return (some-> return swagger/purge-model-var)}))))
 
-(defn route-definition [[route body]]
-  [route (route-metadata body)])
+(defn attach-meta-data-to-route [[route body]]
+  (assoc route :metadata (route-metadata body)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
@@ -102,13 +103,12 @@
     create-paths
     path-vals
     (map create-api-route)
-    (map route-definition)
-    reverse
-    ->map))
+    (map attach-meta-data-to-route)
+    reverse))
 
 (defn extract-models [routes]
-  (let [return-models (->> routes vals (keep :return))
-        parameter-models (->> routes vals (mapcat :parameters) (keep :type))]
+  (let [return-models (->> routes (map :metadata) (keep :return))
+        parameter-models (->> routes (map :metadata) (mapcat :parameters) (keep :type))]
     (-> return-models
       (into parameter-models)
       set
