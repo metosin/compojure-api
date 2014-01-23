@@ -5,8 +5,8 @@
 ;; Domain
 
 (defmodel Pizza {:id s/Int
-                 :name s/String
-                 (optional :description) s/String
+                 :name s/Str
+                 (optional :description) s/Str
                  :toppings [(s/enum "cheese" "olives" "ham" "pepperoni" "habanero")]})
 
 (defmodel NewPizza (dissoc Pizza :id))
