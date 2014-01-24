@@ -24,14 +24,14 @@
 (def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
 (def with-meta?           #{#'with-meta})
 
-(defn- macroexpand-to-compojure [form]
+(defn macroexpand-to-compojure [form]
   (walk/prewalk
     (fn [x]
       (if (seq? x)
-        (do
+        (let [sym (first x)]
           (if (and
-                (symbol? (first x))
-                (compojure-macro? (resolve (first x))))
+                (symbol? sym)
+                (compojure-macro? (eval-re-resolve sym)))
             (filter (comp not nil?) x)
             (macroexpand-1 x)))
         x))
@@ -50,12 +50,13 @@
         (and
           (seq? x)
           (let [[m p] x
-                rm (and (symbol? m) (resolve m))]
+                rm (and (symbol? m) (eval-re-resolve m))]
             (cond
               (with-meta? rm)           (eval x)
               (compojure-route? rm)     (->CompojureRoute p x)
               (compojure-context? rm)   (->CompojureRoutes p  (filter-routes x))
-              (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x)))))
+              (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x))
+              :else                     x)))
         x))
     form))
 
