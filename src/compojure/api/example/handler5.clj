@@ -1,4 +1,4 @@
-(ns compojure.api.example.handler
+(ns compojure.api.example.handler5
   (:require [compojure.core :refer :all]
             [compojure.api.core :refer :all]
             [compojure.swagger.core :refer :all]
