@@ -10,6 +10,7 @@
                  [cheshire "5.3.1"]
                  [camel-snake-kebab "0.1.2"]
                  [prismatic/schema "0.2.0"]
+                 [metosin/ring.swagger-ui "0.0.1"]
                  [compojure "1.1.6"]]
   :plugins [[lein-ring "0.8.7"]]
   :ring {:handler compojure.api.example.handler/app}
