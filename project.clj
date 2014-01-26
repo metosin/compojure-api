@@ -1,5 +1,5 @@
-(defproject metosin/compojure-api-example "0.0.1"
-  :description "Compojure-api-examples"
+(defproject metosin/compojure-api "0.0.1"
+  :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
