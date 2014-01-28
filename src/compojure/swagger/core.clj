@@ -88,7 +88,7 @@
   (remove-empty-keys
     (let [{:keys [body return parameters] :as meta} (or (meta (first body)) {})]
       (merge meta {:parameters (transform-parameters parameters)
-                   :return (some-> return swagger/resolve-model-var)}))))
+                   :return (some-> return swagger/resolve-model-vars)}))))
 
 (defn attach-meta-data-to-route [[route body]]
   (assoc route :metadata (route-metadata body)))
@@ -108,7 +108,7 @@
     reverse))
 
 (defn extract-models [routes]
-  (let [return-models (->> routes (map :metadata) (keep :return))
+  (let [return-models (->> routes (map :metadata) (keep :return) flatten)
         parameter-models (->> routes (map :metadata) (mapcat :parameters) (keep :type))]
     (-> return-models
       (into parameter-models)

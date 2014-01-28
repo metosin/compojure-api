@@ -11,7 +11,7 @@
     :description "sample api"
     (context "/api" []
       (GET* "/pizzas" []
-        :return   Pizza
+        :return   [Pizza]
         :summary  "Gets all Pizzas"
         :nickname "getPizzas"
         (ok (get-pizzas)))
