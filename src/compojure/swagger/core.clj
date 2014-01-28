@@ -123,6 +123,13 @@
 
 (defn path-to-index [path] (s/replace (str path "/index.html") #"//" "/"))
 
+(defn swagger-info [body]
+  (let [[parameters body] (extract-parameters body)
+        routes  (extract-routes body)
+        models  (extract-models routes)]
+    (merge parameters {:routes routes
+                       :models models})))
+
 ;;
 ;; Public api
 ;;
@@ -144,10 +151,5 @@
           (swagger/api-declaration parameters (swagger/extract-basepath request) details))))))
 
 (defmacro swaggered [name & body]
-  (let [[parameters body] (extract-parameters body)
-        routes  (extract-routes body)
-        models  (extract-models routes)
-        details (merge parameters {:routes routes
-                                   :models models})]
-    (swap! swagger assoc name details)
-    `(routes ~@body)))
+  (swap! swagger assoc name (swagger-info body))
+  `(routes ~@body))

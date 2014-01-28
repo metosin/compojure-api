@@ -48,3 +48,9 @@
 
 (fact "create-uri"
   (create-uri "/api/:version/users/:id") => ["/api/" :version "/users/" :id])
+
+(fact "swagger-info"
+  (swagger-info
+    '(context "/api"
+       (GET "/user/:id" [] identity))) => {:models []
+                                           :routes [(->Route :get ["/api/user/" :id] {})]})
