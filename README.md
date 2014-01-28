@@ -20,6 +20,12 @@ lein ring server
 - [x] multiple apis in single app
 - [x] portable swagger-ui
 - [x] separate ring-swagger endpoint generation with clean api
+- [x] support returning lists
+- [ ] smart destructuring of query parameters
+- [ ] error messages
+- [ ] consumes
+- [ ] swagger-ui witn partially generated html
+- [ ] travis
 - [ ] cors-support?
 - [ ] usage
 - [ ] test 'em all
