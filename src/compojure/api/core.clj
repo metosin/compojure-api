@@ -50,20 +50,23 @@
 (defmacro POST* [path arg & body]
   (let [[parameters body] (extract-parameters body)]
     (if-let [[body-name body-model body-meta] (:body parameters)]
-      (let [parameters (-> parameters
+      (let [[body-model body-vec?] (let [body-model (swagger/resolve-model-vars body-model)]
+                                     (println body-model)
+                                     (if (vector? body-model) [(first body-model true)] [body-model false]))
+            parameters (-> parameters
                          (dissoc :body)
-                         swagger/purge-model-vars
+                         swagger/resolve-model-vars
                          (update-in [:parameters] conj
                            (merge
-                             {:name (-> body-model swagger/purge-model-var name-of .toLowerCase)
+                             {:name (-> body-model swagger/resolve-model-var name-of .toLowerCase)
                               :description ""
                               :required "true"}
                              body-meta
                              {:paramType "body"
-                              :type (swagger/purge-model-var body-model)}))
+                              :type (swagger/resolve-model-var body-model)}))
                          (update-in [:parameters] vec))]
         `(fn [req#]
-           (let [{~body-name :params} req#]
+           (let [{~body-name :body-params} req#]
              ((POST ~path ~arg ~parameters ~@body) req#))))
       `(POST ~path ~arg ~parameters ~@body))))
 
@@ -72,10 +75,10 @@
     (if-let [[body-name body-model body-meta] (:body parameters)]
       (let [parameters (-> parameters
                          (dissoc :body)
-                         swagger/purge-model-vars
+                         swagger/resolve-model-vars
                          (update-in [:parameters] conj
                            (merge
-                             {:name (-> body-model swagger/purge-model-var name-of .toLowerCase)
+                             {:name (-> body-model swagger/resolve-model-var name-of .toLowerCase)
                               :description ""
                               :required "true"}
                              body-meta
@@ -83,6 +86,6 @@
                               :type body-model}))
                          (update-in [:parameters] vec))]
         `(fn [req#]
-           (let [{~body-name :params} req#]
+           (let [{~body-name :body-params} req#]
              ((PUT ~path ~arg ~parameters ~@body) req#))))
       `(PUT ~path ~arg ~parameters ~@body))))

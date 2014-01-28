@@ -15,7 +15,7 @@
 (defonce swagger (atom {}))
 
 ;;
-;; Compojure-Swagger
+;; Route peeling
 ;;
 
 (def compojure-route?     #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
@@ -81,14 +81,14 @@
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
 (defn transform-parameters [parameters]
-  (let [parameters (map swagger/purge-model-vars parameters)]
+  (let [parameters (map swagger/resolve-model-vars parameters)]
     (if-not (empty? parameters) parameters)))
 
 (defn route-metadata [body]
   (remove-empty-keys
     (let [{:keys [body return parameters] :as meta} (or (meta (first body)) {})]
       (merge meta {:parameters (transform-parameters parameters)
-                   :return (some-> return swagger/purge-model-var)}))))
+                   :return (some-> return swagger/resolve-model-var)}))))
 
 (defn attach-meta-data-to-route [[route body]]
   (assoc route :metadata (route-metadata body)))
@@ -118,7 +118,7 @@
 (defn path-to-index [path] (s/replace (str path "/index.html") #"//" "/"))
 
 ;;
-;; Compojure-Swagger public api
+;; Public api
 ;;
 
 (defn swagger-ui
