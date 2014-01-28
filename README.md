@@ -18,19 +18,18 @@ lein ring server
 - [x] clean api ON TOP to support keyword-pair type inputs
 - [x] easy adding of middlewares
 - [x] multiple apis in single app
-- [ ] portable swagger-ui
+- [x] portable swagger-ui
 - [x] separate ring-swagger endpoint generation with clean api
 - [ ] cors-support?
 - [ ] usage
 - [ ] test 'em all
 - [ ] license
 - [x] repackage stuff (response, middleware etc.)
-- [ ] one joint entry package/import for easy usage
+- [x] one joint entry package/import for easy usage
 - [ ] resource-macro for RESTfull-crud stuff
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 Metosin Oy
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Eclipse Public License, the same as Clojure.
