@@ -50,10 +50,7 @@
 (defmacro POST* [path arg & body]
   (let [[parameters body] (extract-parameters body)]
     (if-let [[body-name body-model body-meta] (:body parameters)]
-      (let [[body-model body-vec?] (let [body-model (swagger/resolve-model-vars body-model)]
-                                     (println body-model)
-                                     (if (vector? body-model) [(first body-model true)] [body-model false]))
-            parameters (-> parameters
+      (let [parameters (-> parameters
                          (dissoc :body)
                          swagger/resolve-model-vars
                          (update-in [:parameters] conj
