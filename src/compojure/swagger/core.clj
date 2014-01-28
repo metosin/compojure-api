@@ -60,10 +60,16 @@
         x))
     form))
 
+(defn create-uri [s]
+  (-> s
+    (s/replace #":(.[^:|/]*)" " :$1 ")
+    (s/split #" ")
+    (->> (map #(if (.startsWith % ":") (keyword (.substring % 1)) %)))))
+
 (defn create-api-route [[ks v]]
   [(swagger/->Route
      (first (keep second ks))
-     (->> ks (map first) (apply str))
+     (->> ks (map first) s/join create-uri)
      {}) v])
 
 (defn extract-method [body]
