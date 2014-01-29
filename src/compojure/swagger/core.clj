@@ -126,9 +126,10 @@
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
         routes  (extract-routes body)
-        models  (extract-models routes)]
-    (merge parameters {:routes routes
-                       :models models})))
+        models  (extract-models routes)
+        details (merge parameters {:routes routes
+                                   :models models})]
+    [details body]))
 
 ;;
 ;; Public api
@@ -151,5 +152,6 @@
           (swagger/api-declaration parameters (swagger/extract-basepath request) details))))))
 
 (defmacro swaggered [name & body]
-  (swap! swagger assoc name (swagger-info body))
-  `(routes ~@body))
+  (let [[details body] (swagger-info body)]
+    (swap! swagger assoc name details)
+    `(with-meta (routes ~@body) {:swagger '~details})))
