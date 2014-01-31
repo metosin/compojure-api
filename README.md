@@ -116,6 +116,10 @@ In project.clj:
       (DELETE "/thing" [] (response {:delete "thing"}))))
 ```
 
+## Running the sample(s)
+
+```lein ring server``` (samples will be pushed later external directory/respository)
+
 ## Adding meta-data to your Routes
 
 TODO
