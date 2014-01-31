@@ -1,4 +1,4 @@
-(ns compojure.api.example.handler4
+(ns compojure.api.example.vanilla-full
   (:require [compojure.core :refer :all]
             [compojure.api.core :refer :all]
             [compojure.swagger.core :refer :all]
@@ -14,18 +14,13 @@
     (swaggered "sample"
       :description "sample api"
       (context "/api" []
-        (GET "/pizzas" []
-          {:return   Pizza
+        (^{:return   Pizza
            :summary  "Gets all Pizzas"
-           :nickname "getPizzas"}
-          (ok (get-pizzas)))
-        (GET "/pizzas/:id" [id]
-          {:return   Pizza
-           :summary  "Gets a pizza"
-           :nickname "getPizza"}
-          (ok (get-pizza (->Long id))))
-        (POST "/pizzas" {pizza :params}
-          {:return   Pizza
+           :nickname "getPizzas"} GET "/pizzas" [] (ok (get-pizzas)))
+        (^{:return   Pizza
+         :summary  "Gets a pizza"
+         :nickname "getPizza"} GET "/pizzas/:id" [id] (ok (get-pizza (->Long id))))
+        (^{:return   Pizza
            :parameters [{:paramType   :body
                          :name        "pizza"
                          :description "new pizza"
@@ -33,10 +28,8 @@
                          :type        NewPizza}]
            :body     NewPizza
            :summary  "Adds a pizza"
-           :nickname "addPizza"}
-          (ok (add! pizza)))
-        (PUT "/pizzas" {pizza :params}
-          {:return   Pizza
+           :nickname "addPizza"} POST "/pizzas" {pizza :params} (ok (add! pizza)))
+        (^{:return   Pizza
            :parameters [{:paramType   :body
                          :name        "body"
                          :description "updated pizza"
@@ -44,10 +37,7 @@
                          :type        Pizza}]
            :body     Pizza
            :summary  "Updates a pizza"
-           :nickname "updatePizza"}
-          (ok (update! pizza)))
-        (DELETE "/pizzas/:id" [id]
-          {:return   Pizza
+           :nickname "updatePizza"} PUT "/pizzas" {pizza :params} (ok (update! pizza)))
+        (^{:return   Pizza
            :summary  "Deletes a Pizza"
-           :nickname "deletePizza"}
-          (ok (delete! (->Long id))))))))
+           :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (ok (delete! (->Long id))))))))

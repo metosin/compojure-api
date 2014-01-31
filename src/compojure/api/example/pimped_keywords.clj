@@ -1,4 +1,4 @@
-(ns compojure.api.example.handler3
+(ns compojure.api.example.pimped-keywords
   (:require [compojure.core :refer :all]
             [compojure.api.core :refer :all]
             [compojure.swagger.core :refer :all]

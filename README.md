@@ -1,10 +1,12 @@
-# Compojure-swagger
+# Compojure-api
 
-A [Swagger](...) implementation for Compojure & [Schema](https://github.com/Prismatic/schema), on top of [ring-swagger](https://github.com/metosin/ring-swagger).
+Collection on helpers on top of [Compojure](https://github.com/weavejester/compojure) for helping to create sweet web apis.
 
-There are other Swagger-implementations for Clojure, at least [Swag](https://developers.helloreverb.com/swagger/) and [Octohipster](https://github.com/myfreeweb/octohipster).
+Contains a [Swagger](...) implementation for Compojure & [Schema](https://github.com/Prismatic/schema), on top of [ring-swagger](https://github.com/metosin/ring-swagger).
 
-Currently work-in-progress, use it at your own risk.
+(There are other Swagger-implementations for Clojure, at least [Swag](https://developers.helloreverb.com/swagger/) and [Octohipster](https://github.com/myfreeweb/octohipster))
+
+Currently work-in-progress. See [Examples](/tree/master/src/compojure/api/example) for m
 
 ## Installation
 
