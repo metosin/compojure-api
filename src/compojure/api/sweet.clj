@@ -2,7 +2,7 @@
   (:require [potemkin :refer [import-vars]]
             compojure.core
             compojure.api.core
-            compojure.swagger.core))
+            compojure.api.swagger))
 
 (import-vars
 
@@ -29,7 +29,7 @@
    PUT*]
 
   ;; swaggered
-  [compojure.swagger.core
+  [compojure.api.swagger
 
    swagger-ui
    swagger-docs

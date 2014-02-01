@@ -1,6 +1,6 @@
 (ns compojure.api.core
   (:require [compojure.core :refer :all]
-            [compojure.swagger.pimp]
+            [compojure.api.pimp]
             [compojure.api.middleware :as mw]
             [ring.util.response :as response]
             [ring.swagger.core :as swagger]
