@@ -8,15 +8,14 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [potemkin "0.3.4"]
                  [cheshire "5.3.1"]
-                 [camel-snake-kebab "0.1.2"]
+                 [compojure "1.1.6"]
                  [prismatic/schema "0.2.0"]
-                 [metosin/ring.swagger-ui "0.0.1"]
-                 [compojure "1.1.6"]]
-  :plugins [[lein-ring "0.8.7"]]
-  :ring {:handler compojure.api.example.handler/app}
-  :profiles {:dev {:plugins [[lein-clojars "0.9.1"]
-                             [lein-midje "3.1.1"]]
+                 [metosin/ring-swagger "0.0.1"]]
+  :profiles {:dev {:ring {:handler compojure.api.example.handler/app}
+                   :plugins [[lein-clojars "0.9.1"]
+                             [lein-midje "3.1.1"]
+                             [lein-ring "0.8.7"]]
                    :dependencies [[ring-mock "0.1.5"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.0"]
-                                  [clj-http "0.7.8" :exclusions [commons-codec]]]}})
+                                  [metosin/ring-swagger-ui "2.0.4"]]}})
