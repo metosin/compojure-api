@@ -1,12 +1,12 @@
 # Compojure-api
 
-Collection on helpers on top of [Compojure](https://github.com/weavejester/compojure) for helping to create sweet web apis.
+Collection on helpers on top of [Compojure](https://github.com/weavejester/compojure) for helping to create sweet web apis. Target is to be a drop-in replacement for Compojure.
 
-Contains a [Swagger](...) implementation for Compojure & [Schema](https://github.com/Prismatic/schema), on top of [ring-swagger](https://github.com/metosin/ring-swagger).
+Contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation for Compojure, on top of [ring-swagger](https://github.com/metosin/ring-swagger) using [Schema](https://github.com/Prismatic/schema) to describe, validate and coarse the data models.
 
-(There are other Swagger-implementations for Clojure, at least [Swag](https://developers.helloreverb.com/swagger/) and [Octohipster](https://github.com/myfreeweb/octohipster))
+(There are other Swagger-implementations for Clojure, at least [Swag](https://developers.helloreverb.com/swagger/) and [Octohipster](https://github.com/myfreeweb/octohipster)).
 
-Currently work-in-progress. See [Examples](/tree/master/src/compojure/api/example) for m
+Currently work-in-progress. There is a separate example [repository](https://github.com/metosin/compojure-api-examples) for latest working stuff.
 
 ## Installation
 
@@ -18,7 +18,7 @@ Add the following dependency to your `project.clj` file:
 
 1) Start with vanilla Compojure app (with [json-middleware](https://github.com/ring-clojure/ring-json)):
 
-```
+```clojure
 (ns examples.example1
   (:require [compojure.core :refer :all]
             [ring.util.response :refer :all]))
@@ -34,7 +34,7 @@ Add the following dependency to your `project.clj` file:
 
 3) Import the ```compojure.swagger.core```:
 
-```
+```clojure
 (ns examples.example1
   (:require [compojure.core :refer :all]
             [ring.util.response :refer :all]
@@ -43,7 +43,7 @@ Add the following dependency to your `project.clj` file:
 
 4) Create a Swagger-app by wrapping you routes with ```swaggered```-macro:
 
-```
+```clojure
   (swaggered "things"
     :description "Things Api"
     (context "/api" []
@@ -54,7 +54,7 @@ Add the following dependency to your `project.clj` file:
 
 5) Add ```swagger-docs```-route to generate swagger jsons descriptions
 
-```
+```clojure
   (swagger-docs "/api/docs"
     :title "Example Api"
     :description "Described it is.")
@@ -84,7 +84,7 @@ Embed the prepackaged swagger-UI directly to your app.
 
 2) Add ```swagger-ui```-route to start serving the ui
 
-```
+```clojure
   (swagger-ui)
 ```
 
@@ -97,7 +97,7 @@ In project.clj:
     [metosin/compojure-swagger "0.0.1"]
     [metosin/ring-swagger-ui "0.0.1"]
 
-```
+```clojure
 (ns examples.example1
   (:require [compojure.core :refer :all]
             [ring.util.response :refer :all]
