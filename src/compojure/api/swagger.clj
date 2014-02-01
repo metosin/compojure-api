@@ -68,10 +68,8 @@
     (->> (map #(if (.startsWith % ":") (keyword (.substring % 1)) %)))))
 
 (defn create-api-route [[ks v]]
-  [(swagger/->Route
-     (first (keep second ks))
-     (->> ks (map first) s/join create-uri)
-     {}) v])
+  [{:method (first (keep second ks))
+    :uri (->> ks (map first) s/join create-uri)} v])
 
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
@@ -149,8 +147,7 @@
       (GET path []
         (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
-        (if-let [details (@swagger (name api))]
-          (swagger/api-declaration parameters (swagger/extract-basepath request) details))))))
+        (swagger/api-declaration parameters @swagger api (swagger/extract-basepath request))))))
 
 (defmacro swaggered [name & body]
   (let [[details body] (swagger-info body)]

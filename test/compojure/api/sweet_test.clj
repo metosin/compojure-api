@@ -2,7 +2,6 @@
   (:require [midje.sweet :refer :all]
             [schema.core :as s]
             [ring.swagger.schema :refer :all]
-            [ring.swagger.core :refer [->Route map->Route]]
             [compojure.api.sweet :refer :all]))
 
 (defmodel Band {:id s/Int
@@ -37,26 +36,23 @@
     swagger => {:description "sample api"
                 :models [#'NewBand
                          #'Band]
-                :routes [(map->Route
-                           {:method :compojure.core/get ;; should be plain :get
-                            :uri ["/api/bands"]
-                            :metadata {:nickname "getBands"
-                                       :return [#'Band]
-                                       :summary "Gets all Bands"}})
-                         (map->Route
-                           {:method :compojure.core/get ;; should be plain :get
-                            :uri ["/api/bands/" :id]
-                            :metadata {:nickname "getBand"
-                                       :return #'Band
-                                       :summary "Gets a Band"}})
-                          (map->Route
-                            {:method :compojure.core/post ;; should be plain :post
-                             :uri ["/api/bands"]
-                             :metadata {:nickname "addBand"
-                                        :parameters [{:description "new Band"
-                                                      :name "newband"
-                                                      :paramType "body"
-                                                      :required "true"
-                                                      :type #'NewBand}]
-                                        :return #'Band
-                                        :summary "Adds a Band"}})]}))
+                :routes [{:method :compojure.core/get ;; should be plain :get
+                          :uri ["/api/bands"]
+                          :metadata {:nickname "getBands"
+                                     :return [#'Band]
+                                     :summary "Gets all Bands"}}
+                         {:method :compojure.core/get ;; should be plain :get
+                          :uri ["/api/bands/" :id]
+                          :metadata {:nickname "getBand"
+                                     :return #'Band
+                                     :summary "Gets a Band"}}
+                         {:method :compojure.core/post ;; should be plain :post
+                          :uri ["/api/bands"]
+                          :metadata {:nickname "addBand"
+                                     :parameters [{:description "new Band"
+                                                   :name "newband"
+                                                   :paramType "body"
+                                                   :required "true"
+                                                   :type #'NewBand}]
+                                     :return #'Band
+                                     :summary "Adds a Band"}}]}))
