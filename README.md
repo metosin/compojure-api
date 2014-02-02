@@ -4,7 +4,7 @@ Collection on helpers on top of [Compojure](https://github.com/weavejester/compo
 
 Contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation for Compojure, on top of [ring-swagger](https://github.com/metosin/ring-swagger) using [Schema](https://github.com/Prismatic/schema) to describe, validate and coarse the data models.
 
-(There are other Swagger-implementations for Clojure, at least [Swag](https://developers.helloreverb.com/swagger/) and [Octohipster](https://github.com/myfreeweb/octohipster)).
+(There are other Swagger-implementations for Clojure, at least [Swag](https://github.com/elving/swag) and [Octohipster](https://github.com/myfreeweb/octohipster)).
 
 Currently work-in-progress. There is a separate example [repository](https://github.com/metosin/compojure-api-examples) for latest working stuff.
 
