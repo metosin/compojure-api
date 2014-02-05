@@ -4,8 +4,6 @@ Collection on helpers on top of [Compojure](https://github.com/weavejester/compo
 
 Contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation for Compojure, on top of [ring-swagger](https://github.com/metosin/ring-swagger) using [Schema](https://github.com/Prismatic/schema) to describe and coarse the data models.
 
-(there are other Swagger-implementations for Clojure, at least [Swag](https://github.com/narkisr/swag) and [Octohipster](https://github.com/myfreeweb/octohipster)).
-
 Currently work-in-progress.
 
 ## Installation
@@ -18,10 +16,10 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
 
     [metosin/ring-swagger-ui "2.0.4"]
 
-## Quickstart
+## Swagger for existing Compojure projects
 
 
-- ensure you have some [json-middleware](https://github.com/ring-clojure/ring-json) running
+- ensure you have [json-middleware](https://github.com/ring-clojure/ring-json) 
 - wrap your Compojure routes with `swaggered`-macro for collecting your routes
 - enable Swagger-doc genaration by adding a `swagger-docs`-route
 - enable Swagger-Uuiby a adding a `swagger-ui`-route
@@ -30,10 +28,10 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
 ### Sample app
 
 ```clojure
-(ns examples.example1
+(ns compojure.api.example.handler
   (:require [compojure.core :refer :all]
             [ring.util.response :refer :all]
-            [compojure.swagger.core :refer :all]))
+            [compojure.api.swagger :refer :all]))
 
 (defroutes app
   (swagger-ui)
@@ -45,7 +43,7 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
     (context "/api" []
       (GET "/thing" [] (response {:get "thing"}))
       (POST "/thing" [] (response {:post "thing"}))
-      (DELETE "/thing" [] (response {:delete "thing"}))))
+      (DELETE "/thing" [] (response {:delete "thing"})))))
 ```
 
 - browse to ```/api/docs``` & ```/api/docs/things``` to see the swagger details.
@@ -78,6 +76,8 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples)
 ## TODO
 - [ ] describing error messages
 - [ ] describing consumes
+- [ ] collect routes via inlining `defroutes` or other `^:inline` stuff
+- [ ] collect routes from root, not from `swaggered`
 - [ ] smart destructuring of any-type parameters
 - [ ] include external middlewares (ring-middleware-format, ring-cors etc.)
 - [ ] travis
