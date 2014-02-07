@@ -96,7 +96,10 @@
                    :return (some-> return swagger/resolve-model-vars)}))))
 
 (defn attach-meta-data-to-route [[route body]]
-  (assoc route :metadata (route-metadata body)))
+  (let [meta   (route-metadata body)]
+    (if-not (empty? meta)
+      (assoc route :metadata meta)
+      route)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
