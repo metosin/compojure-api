@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.1.0"
+(defproject metosin/compojure-api "0.1.2"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -10,7 +10,7 @@
                  [cheshire "5.3.1"]
                  [compojure "1.1.6"]
                  [prismatic/schema "0.2.0"]
-                 [metosin/ring-swagger "0.0.1"]]
+                 [metosin/ring-swagger "0.1.0"]]
   :profiles {:dev {:ring {:handler compojure.api.example.handler/app}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.1"]
