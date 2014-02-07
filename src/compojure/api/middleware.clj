@@ -34,8 +34,6 @@
     (try
       (handler request)
       (catch clojure.lang.ExceptionInfo e
-        (println e)
-        (println (ex-data e))
         {:status 400
          :headers {}
          :body (ex-data e)}))))
