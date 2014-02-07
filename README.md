@@ -8,7 +8,7 @@ Currently work-in-progress.
 
 ## Installation
 
-    [metosin/compojure-api "0.1.0"]
+    [metosin/compojure-api "0.1.3"]
 
 You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagger-ui):
 
