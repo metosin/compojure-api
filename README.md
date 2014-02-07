@@ -8,18 +8,15 @@ Currently work-in-progress.
 
 ## Installation
 
-Add the following dependency to your `project.clj` file:
+    [metosin/compojure-api "0.1.0"]
 
-    [metosin/compojure-api "0.0.1"]
-
-You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagger-ui) by adding to your `project.clj` file:
+You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagger-ui):
 
     [metosin/ring-swagger-ui "2.0.4"]
 
 ## Swagger for existing Compojure projects
 
-
-- ensure you have [json-middleware](https://github.com/ring-clojure/ring-json) 
+- ensure you have [json-middleware](https://github.com/ring-clojure/ring-json)
 - wrap your Compojure routes with `swaggered`-macro for collecting your routes
 - enable Swagger-doc genaration by adding a `swagger-docs`-route
 - enable Swagger-Uuiby a adding a `swagger-ui`-route
@@ -66,7 +63,7 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples)
 - All Routes swaggered at compile-time
   - there is ~no runtime penalty for describing your apis
   - `swaggered` currently sees only routes in the same lexical scope (as it uses macro-peeling) -> no `defroutes` in between
-  - All runtime-logic from routes are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj#L6-L51) 
+  - All runtime-logic from routes are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj#L6-L51)
 - Routes are stored in an Atom => AOT from swaggered handlersshould be disabled  when Uberjarring (we could store the routes to a file if this is an real issue)
 - Compojure does not allow clean way to declare extra meta-data to routes
   - it works oob, but does look nice (see 'Describing your Apis'))
