@@ -115,22 +115,12 @@
     (map attach-meta-data-to-route)
     reverse))
 
-(defn extract-models [routes]
-  (let [return-models (->> routes (map :metadata) (keep :return) flatten)
-        parameter-models (->> routes (map :metadata) (mapcat :parameters) (keep :type))]
-    (-> return-models
-      (into parameter-models)
-      distinct
-      vec)))
-
 (defn path-to-index [path] (s/replace (str path "/index.html") #"//" "/"))
 
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
         routes  (extract-routes body)
-        models  (extract-models routes)
-        details (merge parameters {:routes routes
-                                   :models models})]
+        details (assoc parameters :routes routes)]
     [details body]))
 
 ;;

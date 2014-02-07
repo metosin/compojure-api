@@ -58,10 +58,29 @@
 (fact "create-uri"
   (create-uri "/api/:version/users/:id") => ["/api/" :version "/users/" :id])
 
-(fact "swagger-info"
-  (first
-    (swagger-info
-      '(context "/api"
-         (GET "/user/:id" [] identity)))) => {:models []
-                                              :routes [{:method :get
-                                                        :uri ["/api/user/" :id]}]})
+(facts "swagger-info"
+
+  (fact "with keyword-parameters"
+    (first
+      (swagger-info
+        '(:title ..title..
+          :description ..description..
+          :routes ..overridded..
+          (context "/api"
+            (GET "/user/:id" [] identity))))) => {:title  ..title..
+                                                  :description ..description..
+                                                  :routes [{:method :get
+                                                            :uri ["/api/user/" :id]}]})
+  (fact "with map-parameters"
+    (first
+      (swagger-info
+        '({:title ..title..
+           :description ..description..
+           :routes ..overridded..}
+          (context "/api"
+            (GET "/user/:id" [] identity))))) => {:title  ..title..
+                                                  :description ..description..
+                                                  :routes [{:method :get
+                                                            :uri ["/api/user/" :id]}]}))
+
+

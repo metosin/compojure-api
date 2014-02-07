@@ -34,8 +34,6 @@
         swagger (:swagger (meta app))]
     app => truthy
     swagger => {:description "sample api"
-                :models [#'NewBand
-                         #'Band]
                 :routes [{:method :compojure.core/get ;; should be plain :get
                           :uri ["/api/bands"]
                           :metadata {:nickname "getBands"
