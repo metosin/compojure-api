@@ -28,6 +28,12 @@
    POST*
    PUT*]
 
+   ;; routing
+  [compojure.api.core
+
+    defapi
+    with-middleware]
+
   ;; swaggered
   [compojure.api.swagger
 
@@ -36,10 +42,7 @@
    swaggered]
 
   ;; common stuff
-  [compojure.api.core
+  [compojure.api.common
 
-    ok
-    ->Long
-    defapi
-    with-middleware])
+   ->Long])
 

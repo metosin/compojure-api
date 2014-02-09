@@ -51,3 +51,9 @@
     (re-resolve-in-compile-time 'walk) => nil)
   (fact "eval-re-resolve works with macros"
     (eval-re-resolve-in-compile-time 'walk) => #'clojure.walk/walk))
+
+(fact "->Long"
+  (->Long 123) => 123
+  (->Long 12.3) => (throws IllegalArgumentException)
+  (->Long "123") => 123
+  (->Long "12.3") => (throws NumberFormatException))

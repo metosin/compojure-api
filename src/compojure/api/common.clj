@@ -36,3 +36,5 @@
         `(var ~s)))))
 
 (defn eval-re-resolve [x] (eval `(re-resolve ~x)))
+
+(defn ->Long [s] (if (string? s) (java.lang.Long/parseLong s) (Long. s)))

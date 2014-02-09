@@ -8,16 +8,6 @@
             [ring.swagger.common :refer :all]))
 
 ;;
-;; common
-;;
-
-(defn ok
-  "status 200"
-  [body] (response/response body))
-
-(defn ->Long [s] (java.lang.Long/parseLong s))
-
-;;
 ;; routes
 ;;
 
