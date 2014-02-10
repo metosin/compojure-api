@@ -143,6 +143,8 @@
         (swagger/api-declaration parameters @swagger api (swagger/extract-basepath request))))))
 
 (defmacro swaggered [name & body]
-  (let [[details body] (swagger-info body)]
+  (let [[details body] (swagger-info body)
+        name (str (eval name))
+        models (swagger/extract-models details)]
     (swap! swagger assoc name details)
     `(with-meta (routes ~@body) {:swagger '~details})))
