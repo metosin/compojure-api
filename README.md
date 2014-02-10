@@ -76,6 +76,7 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 - collect routes from root, not from `swaggered`
 - smart destructuring & coarcing of any parameters (query, post, path)
 - include external middlewares (ring-middleware-format, ring-cors etc.)
+- `url-for`
 - travis
 
 ## License
