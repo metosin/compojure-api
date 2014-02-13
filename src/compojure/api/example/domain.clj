@@ -22,12 +22,12 @@
 
 (defn add! [new-pizza]
   (let [id (swap! id-seq inc)
-        pizza (coerce Pizza (assoc new-pizza :id id))]
+        pizza (coerce! Pizza (assoc new-pizza :id id))]
     (swap! pizzas assoc id pizza)
     pizza))
 
 (defn update! [pizza]
-  (let [pizza (coerce Pizza pizza)]
+  (let [pizza (coerce! Pizza pizza)]
     (swap! pizzas assoc (:id pizza) pizza)
     (get-pizza (:id pizza))))
 
