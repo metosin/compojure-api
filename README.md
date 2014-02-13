@@ -6,7 +6,7 @@ Collection on helpers on top of [Compojure](https://github.com/weavejester/compo
 
 Contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation for Compojure, on top of [ring-swagger](https://github.com/metosin/ring-swagger) using [Schema](https://github.com/Prismatic/schema) to describe and coarse the data models.
 
-Currently work-in-progress. Apis will propably change a bit.
+Currently work-in-progress - Apis might change.
 
 ## Installation
 
@@ -22,7 +22,7 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
 - (enable Swagger-Ui by a adding a `swagger-ui`-route)
 - enjoy
 
-### Minimalistic example
+### Quickstart
 
 ```clojure
 (ns compojure.api.example.handler
@@ -45,7 +45,9 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
 
 ## Describing your Apis
 
-TODO. For now, check [examples](https://github.com/metosin/compojure-api/tree/master/src/compojure/api/example) how to add meta-data.
+TODO. 
+
+For now, check [examples](https://github.com/metosin/compojure-api/tree/master/src/compojure/api/example).
 
 ## Quickstart for a new app
 
@@ -57,26 +59,26 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 
 ## Features and quirks
 
-- Ring-Swagger & Compojure-Swagger are not yet feature-complete, see TODO
 - All Routes are collected at compile-time
   - there is basically no runtime penalty for describing your apis
-  - `swaggered` currently sees only routes in the same lexical scope (as it uses macro-peeling) -> you can only have `defroutes` set up to the root.
-  - All runtime-logic from routes are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj#L6-L51). You should use macros to build your routing DSLs.
-- Routes are collected into an Atom at compile-time => AOT from swaggered apps should be disabled when Uberjarring (one could store the routes to a file if this is an real issue)
-- Compojure does not allow clean way to declare extra meta-data to routes
+  - `swaggered` currently sees only routes in the same lexical scope (as it uses macro-expansion/peeling) -> you can only have `defroutes` set up to the root.
+  - All runtime code between route-macros are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj#L6-L51) -> You should use macros to build your routing DSLs.
+- Routes are collected into an Atom at compile-time => AOT from swaggered apps should be disabled when Uberjarring
+- Compojure doesn't have a decent support adding meta-data to routes
   - There is a way, but kinda morbid (see 'Describing your Apis'))
-  - there is a [dirty hack](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/pimp.clj) to make setting the metadata easier for vanilla Compojure
-  - in future, there will propably be a drop-in replacement for `compojure.core` supporting meta-data (and Schema-aware destructuring)
+  - This library has a [dirty hack](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/pimp.clj) for this
+     - in future, there will propably be a drop-in replacement for `compojure.core` supporting meta-data (and Schema-aware destructuring)
 
 ## TODO
 
 - swagger error messages
 - swagger consumes
-- collect routes via inlining `defroutes` or other `^:inline` stuff
+- support for AOT compilation with uberjars (by persisting route definitions)
+- collect routes from nested `defroutes` via inlining (& other `^:inline`d elements)
 - collect routes from root, not from `swaggered`
-- smart destructuring & coarcing of any parameters (query, post, path)
-- include external middlewares (ring-middleware-format, ring-cors etc.)
-- `url-for`
+- smart destructuring & coarcing of any parameters (`:query-params`, `:path-params`)
+- include external common use middlewares (ring-middleware-format, ring-cors etc.)
+- `url-for` (should be trivial for swaggerd routes)
 
 ## License
 
