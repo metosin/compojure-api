@@ -17,7 +17,7 @@
 (def app-name (str (gensym)))
 
 (defapi api
-  (swagger-docs "/api/docs")
+  (swagger-docs)
   (swaggered app-name
     :description "sample api"
     (context "/api" []
@@ -68,7 +68,7 @@
                              :summary "Adds a Band"}}]})
 
   (fact "api-listing works"
-    (let [{:keys [body status]} (api (request :get "/api/docs"))
+    (let [{:keys [body status]} (api (request :get "/api/api-docs"))
           body (cheshire/parse-string body true)]
       status => 200
       body => {:apiVersion "0.0.1"
@@ -78,7 +78,7 @@
                :swaggerVersion "1.2"}))
 
   (fact "api-details works"
-    (let [{:keys [body status]} (api (request :get (str "/api/docs/" app-name)))
+    (let [{:keys [body status]} (api (request :get (str "/api/api-docs/" app-name)))
           body (cheshire/parse-string body true)]
       status => 200
       body => truthy)))
