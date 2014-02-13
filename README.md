@@ -20,7 +20,7 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
 - (enable Swagger-Ui by a adding a `swagger-ui`-route)
 - enjoy
 
-### Sample app
+### Minimalistic example
 
 ```clojure
 (ns compojure.api.example.handler
@@ -29,10 +29,8 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
             [compojure.api.swagger :refer :all]))
 
 (defroutes app
-  (swagger-ui)
-  (swagger-docs "/api/docs"
-    :title "Example Api"
-    :description "Described it is.")
+  (swagger-ui
+  (swagger-docs)
   (swaggered "things"
     :description "Things Api"
     (context "/api" []
@@ -41,7 +39,7 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
       (DELETE "/thing" [] (response {:delete "thing"})))))
 ```
 
-- browse to ```/api/docs``` & ```/api/docs/things``` to see the swagger details.
+- browse to ```/api/api-docs``` & ```/api/api-docs/things``` to see the swagger details.
 
 ## Describing your Apis
 
