@@ -29,7 +29,7 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
             [compojure.api.swagger :refer :all]))
 
 (defroutes app
-  (swagger-ui
+  (swagger-ui)
   (swagger-docs)
   (swaggered "things"
     :description "Things Api"
