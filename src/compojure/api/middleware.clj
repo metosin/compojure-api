@@ -6,6 +6,9 @@
             [clojure.java.io :as io]
             [compojure.route :as route]
             [compojure.core :refer :all]
+            [ring.util.http-response :refer [bad-request]]
+            ring.middleware.http-response
+            ring.swagger.middleware
             [compojure.api.json :refer :all]))
 
 (defn keywordize-request
@@ -34,14 +37,14 @@
     (try
       (handler request)
       (catch clojure.lang.ExceptionInfo e
-        {:status 400
-         :headers {}
-         :body (ex-data e)}))))
+        (bad-request (ex-data e))))))
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
   [handler]
   (-> handler
+    ring.middleware.http-response/catch-response
+    ring.swagger.middleware/catch-validation-errors
     ex-info-support
     json-support
     compojure/api))
