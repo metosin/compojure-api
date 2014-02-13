@@ -134,8 +134,11 @@
       (GET path [] (redirect (path-to-index path)))
       (route/resources path {:root "swagger-ui"}))))
 
-(defn swagger-docs [path & key-values]
-  (let [parameters (apply hash-map key-values)]
+(defn swagger-docs [& body]
+  (let [[path key-values] (if (string? (first body))
+                            [(first body) (rest body)]
+                            ["/api/api-docs" body])
+        parameters (apply hash-map key-values)]
     (routes
       (GET path []
         (swagger/api-listing parameters @swagger))
