@@ -10,7 +10,7 @@ Currently work-in-progress - Apis might change.
 
 ## Installation
 
-    [metosin/compojure-api "0.4.0"]
+    [metosin/compojure-api "0.4.1"]
 
 You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagger-ui).
 
@@ -45,7 +45,7 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
 
 ## Describing your Apis
 
-TODO. 
+TODO.
 
 For now, check [examples](https://github.com/metosin/compojure-api/tree/master/src/compojure/api/example).
 
