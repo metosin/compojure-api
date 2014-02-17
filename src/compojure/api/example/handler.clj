@@ -3,18 +3,26 @@
             [ring.util.http-response :refer :all]
             [compojure.api.example.domain :refer :all]))
 
-(defroutes ping
+(defroutes ping-route
   (GET* "/ping" [] (ok {:ping "pong"})))
 
 (defapi app
   (swagger-ui)
   (swagger-docs
     :title "Cool api"
-    :description "Compojure Sample Web Api")
-  (swaggered "sample"
-    :description "sample api"
+    :apiVersion "1.0.0"
+    :description "Compojure Sample Web Api"
+    :termsOfServiceUrl "http://www.metosin.fi"
+    :contact "pizza@example.com"
+    :license "Eclipse 1.0"
+    :licenseUrl "http://www.eclipse.org/legal/epl-v10.html")
+  (swaggered "test"
+    :description "Test api"
+    (context "/test" []
+      ping-route))
+  (swaggered "pizza"
+    :description "Pizza api"
     (context "/api" []
-      ping
       (GET* "/pizzas" []
         :return   [Pizza]
         :summary  "Gets all Pizzas"

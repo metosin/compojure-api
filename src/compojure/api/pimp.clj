@@ -5,8 +5,10 @@
             ring.swagger.common))
 
 (ns compojure.core)
-(def compile-route-original compile-route)
-(defn compile-route-pimped
+
+(defonce compile-route-original compile-route)
+
+(defn compile-route
   "Compile a route in the form (method path & {optional meta-data} body) into a function."
   [method route bindings body]
   (let [[meta-data body] (ring.swagger.common/extract-parameters body)]
@@ -16,5 +18,5 @@
          (fn [request#]
            (let-request [~bindings request#] ~@body)))
       meta-data)))
-(def compile-route compile-route-pimped)
+
 (ns compojure.api.pimp)
