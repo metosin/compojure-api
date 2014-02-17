@@ -3,6 +3,9 @@
             [ring.util.http-response :refer :all]
             [compojure.api.example.domain :refer :all]))
 
+(defroutes ping
+  (GET* "/ping" [] (ok {:ping "pong"})))
+
 (defapi app
   (swagger-ui)
   (swagger-docs
@@ -11,6 +14,7 @@
   (swaggered "sample"
     :description "sample api"
     (context "/api" []
+      ping
       (GET* "/pizzas" []
         :return   [Pizza]
         :summary  "Gets all Pizzas"
