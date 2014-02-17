@@ -2,6 +2,7 @@
   (:require [potemkin :refer [import-vars]]
             compojure.core
             compojure.api.core
+            compojure.api.routes
             compojure.api.swagger))
 
 (import-vars
@@ -12,9 +13,13 @@
    let-request
    routing
    routes
-   defroutes
    context
    let-routes]
+
+  ;; with enchanced defroutes
+  [compojure.api.routes
+
+   defroutes]
 
   ;; with enchanced methods
   [compojure.api.core

@@ -16,11 +16,14 @@
 
 (def app-name (str (gensym)))
 
+(defroutes ping-routes (GET* "/ping" [] identity))
+
 (defapi api
   (swagger-docs)
   (swaggered app-name
     :description "sample api"
     (context "/api" []
+      ping-routes
       (GET* "/bands" []
         :return   [Band]
         :summary  "Gets all Bands"
@@ -46,7 +49,9 @@
     (@swagger/swagger app-name)
 
     => {:description "sample api"
-        :routes [{:method :compojure.core/get ;; should be plain :get
+        :routes [{:method :compojure.core/get
+                  :uri ["/api/ping"]}
+                 {:method :compojure.core/get ;; should be plain :get
                   :uri ["/api/bands"]
                   :metadata {:nickname "getBands"
                              :return [#'Band]
