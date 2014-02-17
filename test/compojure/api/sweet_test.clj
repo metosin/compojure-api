@@ -22,6 +22,7 @@
   (swagger-docs)
   (swaggered app-name
     :description "sample api"
+    ping-routes
     (context "/api" []
       ping-routes
       (GET* "/bands" []
@@ -50,6 +51,8 @@
 
     => {:description "sample api"
         :routes [{:method :compojure.core/get
+                  :uri ["/ping"]}
+                 {:method :compojure.core/get
                   :uri ["/api/ping"]}
                  {:method :compojure.core/get ;; should be plain :get
                   :uri ["/api/bands"]

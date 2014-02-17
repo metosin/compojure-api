@@ -44,10 +44,9 @@ You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagge
 - browse to ```/api/api-docs``` & ```/api/api-docs/things``` to see the swagger details.
 
 ## Describing your Apis
+Best way to start developing Schema-aware web apis, is to use `compojure.api.sweet`-package, which imports most of the required things you need.
 
-TODO.
-
-For now, check [examples](https://github.com/metosin/compojure-api/tree/master/src/compojure/api/example).
+See the [full example](https://github.com/metosin/compojure-api/tree/master/src/compojure/api/example/handler.clj) for things that do work.
 
 ## Quickstart for a new app
 
