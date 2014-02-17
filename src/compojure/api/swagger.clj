@@ -107,11 +107,17 @@
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
 
+(defn ensure-routes-in-root [body]
+  (if (seq? body)
+    (->CompojureRoutes "" (flatten body))
+    body))
+
 (defn extract-routes [body]
   (->> body
     peel
     macroexpand-to-compojure
     collect-compojure-routes
+    ensure-routes-in-root
     create-paths
     path-vals
     (map create-api-route)

@@ -16,10 +16,9 @@
     :contact "pizza@example.com"
     :license "Eclipse 1.0"
     :licenseUrl "http://www.eclipse.org/legal/epl-v10.html")
-  (swaggered "test"
-    :description "Test api"
-    (context "/test" []
-      ping-route))
+  (swaggered "Ping"
+    :description "Ping api"
+    ping-route)
   (swaggered "pizza"
     :description "Pizza api"
     (context "/api" []
