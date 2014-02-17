@@ -1,6 +1,7 @@
 (ns compojure.api.swagger-test
   (:require [midje.sweet :refer :all]
             [compojure.core :refer :all]
+            [compojure.api.routes :as routes]
             [compojure.api.swagger :refer :all]))
 
 (fact "extracting compojure paths"
@@ -48,7 +49,29 @@
            (GET "/true" [] identity))
          (optional-routes false
            (PUT "/false" [] identity)))) => [{:method :get
-                                              :uri ["/api/true"]}]))
+                                              :uri ["/api/true"]}])
+
+  (fact "Vanilla Compojure defroutes are NOT followed"
+    (defroutes even-more-routes (GET "/even" [] identity))
+    (defroutes more-routes (context "/more" [] even-more-routes))
+    (extract-routes
+      '(context "/api" []
+         (GET "/true" [] identity)
+         more-routes)) => [{:method :get
+                            :uri ["/api/true"]}
+                           #_{:method :get
+                              :uri ["/api/more/even"]}])
+
+  (fact "Compojure Api defroutes _ARE_ followed"
+    (routes/defroutes even-more-routes* (GET "/even" [] identity))
+    (routes/defroutes more-routes* (context "/more" [] even-more-routes*))
+    (extract-routes
+      '(context "/api" []
+         (GET "/true" [] identity)
+         more-routes*)) => [{:method :get
+                            :uri ["/api/true"]}
+                           {:method :get
+                            :uri ["/api/more/even"]}]))
 
 (fact "path-to-index"
   (path-to-index "/")    => "/index.html"

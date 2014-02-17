@@ -25,17 +25,20 @@
 (def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
 (def with-meta?           #{#'with-meta})
 
+(defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
+
 (defn macroexpand-to-compojure [form]
   (walk/prewalk
     (fn [x]
-      (if (seq? x)
-        (let [sym (first x)]
-          (if (and
-                (symbol? sym)
-                (compojure-macro? (eval-re-resolve sym)))
-            (filter (comp not nil?) x)
-            (macroexpand-1 x)))
-        x))
+      (cond
+        (inline? x) (-> x value-of meta :source)
+        (seq? x)    (let [sym (first x)]
+                      (if (and
+                            (symbol? sym)
+                            (compojure-macro? (eval-re-resolve sym)))
+                        (filter (comp not nil?) x)
+                        (macroexpand-1 x)))
+        :else       x))
     form))
 
 (defrecord CompojureRoute [p b])
@@ -128,13 +131,22 @@
 ;;
 
 (defn swagger-ui
+  "Bind the swagger-ui to the given path. defaults to \"/\""
   ([] (swagger-ui "/"))
   ([path]
     (routes
       (GET path [] (redirect (path-to-index path)))
       (route/resources path {:root "swagger-ui"}))))
 
-(defn swagger-docs [& body]
+(defn swagger-docs
+  "Route to serve the swagger api-docs. If the first
+   parameter is a String, it is used as a url for the
+   api-docs, othereise \"/api/api-docs\" will be used.
+   Next Keyword value pairs for meta-data. Valid keys:
+
+   :title :description :termsOfServiceUrl
+   :contact :license :licenseUrl"
+  [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
                             ["/api/api-docs" body])
@@ -145,7 +157,12 @@
       (GET (str path "/:api") {{api :api} :route-params :as request}
         (swagger/api-declaration parameters @swagger api (swagger/extract-basepath request))))))
 
-(defmacro swaggered [name & body]
+(defmacro swaggered
+   "Defines a swagger-api. Takes api-name, optional
+   Keyword value pairs or a single Map for meta-data
+   and a normal route body. Macropeels the body and
+   extracts route, model and endpoint meta-datas."
+  [name & body]
   (let [[details body] (swagger-info body)
         name (str (eval name))
         models (swagger/extract-models details)]
