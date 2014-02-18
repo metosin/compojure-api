@@ -4,10 +4,12 @@
 
 ;; Domain
 
-(defmodel Pizza {:id s/Int
-                 :name s/Str
-                 (s/optional-key :description) s/Str
-                 :toppings [(s/enum :cheese :olives :ham :pepperoni :habanero)]})
+(defmodel Pizza {:id    Long
+                 :name  String
+                 :price Double
+                 :hot   Boolean
+                 (s/optional-key :description) String
+                 :toppings #{(s/enum :cheese :olives :ham :pepperoni :habanero)}})
 
 (defmodel NewPizza (dissoc Pizza :id))
 
@@ -34,5 +36,5 @@
 ;; Data
 
 (when (empty? @pizzas)
-  (add! {:name "Frutti" :toppings ["cheese" "olives"]})
-  (add! {:name "Il Diablo" :toppings ["ham" "habanero"]}))
+  (add! {:name "Frutti" :price 9.50 :hot false :toppings #{:cheese :olives}})
+  (add! {:name "Il Diablo" :price 12 :hot true :toppings #{:ham :habanero}}))
