@@ -10,7 +10,7 @@ Currently work-in-progress - Apis might change.
 
 ## Installation
 
-    [metosin/compojure-api "0.6.0"]
+    [metosin/compojure-api "0.6.1"]
 
 You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagger-ui).
 
@@ -61,7 +61,7 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 - All Routes are collected at compile-time
   - there is basically no runtime penalty for describing your apis
   - `swaggered` uses macro-expansion/peeling to read the routes. Nested routes composed via vanilla Compojure `defroutes` is not supported, but there is a `compojure.api.routes/defroutes` which has the needed meta-data to enable the auto-wiring needed. `compojure.api.sweet` used the latter by default.
-  - All runtime code between route-macros are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj#L6-L51) -> You should use macros to build your routing DSLs.
+  - All runtime code between route-macros are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj) -> You should use macros to build your routing DSLs.
 - Routes are collected into an Atom at compile-time => AOT from swaggered apps should be disabled when Uberjarring
 - Compojure doesn't have a decent support adding meta-data to routes
   - There is a way, but kinda morbid (see 'Describing your Apis'))
@@ -70,13 +70,14 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 
 ## TODO
 
+- `url-for`
+- smart destructuring & coarcing of any parameters (`:query-params`, `:path-params`)
+- declarative body coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - swagger error messages
 - swagger consumes
 - support for AOT compilation with uberjars (by persisting route definitions)
 - collect routes from root, not from `swaggered`
-- smart destructuring & coarcing of any parameters (`:query-params`, `:path-params`)
 - include external common use middlewares (ring-middleware-format, ring-cors etc.)
-- `url-for` (should be trivial for swaggerd routes)
 
 ## License
 
