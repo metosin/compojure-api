@@ -40,17 +40,18 @@
 (defmacro POST* [path arg & body]
   (let [[parameters body] (extract-parameters body)]
     (if-let [[body-name body-model body-meta] (:body parameters)]
-      (let [parameters (-> parameters
+      (let [model-var  (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
+            parameters (-> parameters
                          (dissoc :body)
                          swagger/resolve-model-vars
                          (update-in [:parameters] conj
                            (merge
-                             {:name (-> body-model swagger/resolve-model-var name-of .toLowerCase)
+                             {:name (-> model-var name-of .toLowerCase)
                               :description ""
                               :required "true"}
                              body-meta
                              {:paramType "body"
-                              :type (swagger/resolve-model-var body-model)}))
+                              :type (if (sequential? body-model) [model-var] model-var)}))
                          (update-in [:parameters] vec))]
         `(fn [req#]
            (let [{~body-name :body-params} req#]
@@ -60,17 +61,18 @@
 (defmacro PUT* [path arg & body]
   (let [[parameters body] (extract-parameters body)]
     (if-let [[body-name body-model body-meta] (:body parameters)]
-      (let [parameters (-> parameters
+      (let [model-var  (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
+            parameters (-> parameters
                          (dissoc :body)
                          swagger/resolve-model-vars
                          (update-in [:parameters] conj
                            (merge
-                             {:name (-> body-model swagger/resolve-model-var name-of .toLowerCase)
+                             {:name (-> model-var name-of .toLowerCase)
                               :description ""
                               :required "true"}
                              body-meta
                              {:paramType "body"
-                              :type body-model}))
+                              :type (if (sequential? body-model) [model-var] model-var)}))
                          (update-in [:parameters] vec))]
         `(fn [req#]
            (let [{~body-name :body-params} req#]

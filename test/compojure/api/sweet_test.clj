@@ -37,7 +37,7 @@
         identity)
       (POST* "/bands" []
         :return   Band
-        :body     [band NewBand {:description "new Band"}]
+        :body     [band [NewBand] {:description "new Band"}]
         :summary  "Adds a Band"
         :nickname "addBand"
         identity))))
@@ -71,7 +71,7 @@
                                            :name "newband"
                                            :paramType "body"
                                            :required "true"
-                                           :type #'NewBand}]
+                                           :type [#'NewBand]}]
                              :return #'Band
                              :summary "Adds a Band"}}]})
 
