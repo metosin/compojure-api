@@ -109,7 +109,7 @@
 
 (defn ensure-routes-in-root [body]
   (if (seq? body)
-    (->CompojureRoutes "" (flatten body))
+    (->CompojureRoutes "" (filter-routes body))
     body))
 
 (defn extract-routes [body]
