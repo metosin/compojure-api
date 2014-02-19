@@ -1,6 +1,7 @@
 (ns compojure.api.example.handler
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
+            [compojure.api.example.dates :as dates]
             [compojure.api.example.domain :refer :all]))
 
 (defroutes ping-route
@@ -16,9 +17,10 @@
     :contact "pizza@example.com"
     :license "Eclipse 1.0"
     :licenseUrl "http://www.eclipse.org/legal/epl-v10.html")
-  (swaggered "Ping"
+  (swaggered "ping"
     :description "Ping api"
     ping-route)
+  dates/route
   (swaggered "pizza"
     :description "Pizza api"
     (context "/api" []
