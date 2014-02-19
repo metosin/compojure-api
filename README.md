@@ -1,6 +1,6 @@
 # Compojure-api
 
-[![Build Status](https://travis-ci.org/metosin/compojure-api.png?branch=0.6.0)](https://travis-ci.org/metosin/compojure-api)
+[![Build Status](https://travis-ci.org/metosin/compojure-api.png?branch=0.7.0)](https://travis-ci.org/metosin/compojure-api)
 
 Collection on helpers on top of [Compojure](https://github.com/weavejester/compojure) for helping to create sweet web apis.
 
@@ -10,7 +10,7 @@ Currently work-in-progress - Apis might change.
 
 ## Installation
 
-    [metosin/compojure-api "0.6.1"]
+    [metosin/compojure-api "0.7.0"]
 
 You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagger-ui).
 

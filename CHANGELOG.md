@@ -1,8 +1,23 @@
-## 0.6.1 (19.2.2014)
+## 0.7.0 (19.2.2014)
 
-- update `ring-swagger` to `0.6.0` to get support for [LocalDate](https://github.com/metosin/ring-swagger/blob/master/CHANGELOG.md).
+- update `ring-swagger` to `0.6.0`
+  - support for [LocalDate](https://github.com/metosin/ring-swagger/blob/master/CHANGELOG.md).
 - updated example to cover all the dates.
-- `swaggered` can now contain also only `CompojureRoute`s.
+- `swaggered` doesn't have to contain container-element (`context` etc.) within, endpoints are ok:
+
+```clojure
+  (swaggered "ping"
+    :description "Ping api"
+    (GET* "/ping" [] (ok {:ping "pong"})))
+```
+
+- body parameter in `POST*` and `PUT*` now allows model sequences:
+
+```clojure
+  (POST* "/pizzas" []
+    :body [pizzas [NewPizza] {:description "new pizzas"}]
+    (ok (add! pizzas)))
+```
 
 ## 0.6.0 (18.2.2014)
 
