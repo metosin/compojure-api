@@ -8,6 +8,33 @@
             [ring.swagger.common :refer :all]))
 
 ;;
+;; Smart Destructuring
+;;
+
+(defn- restructured [method path arg body]
+  (let [method-symbol (let [metadata (meta method)]
+                        (symbol (str (:ns metadata) "/" (:name metadata))))
+        [parameters body] (extract-parameters body)]
+    (if-let [[body-name body-model body-meta] (:body parameters)]
+      (let [model-var  (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
+            parameters (-> parameters
+                         (dissoc :body)
+                         swagger/resolve-model-vars
+                         (update-in [:parameters] conj
+                           (merge
+                             {:name (-> model-var name-of .toLowerCase)
+                              :description ""
+                              :required "true"}
+                             body-meta
+                             {:paramType "body"
+                              :type (if (sequential? body-model) [model-var] model-var)}))
+                         (update-in [:parameters] vec))]
+        `(fn [req#]
+           (let [{~body-name :body-params} req#]
+             ((~method-symbol ~path ~arg ~parameters ~@body) req#))))
+      `(~method-symbol ~path ~arg ~parameters ~@body))))
+
+;;
 ;; routes
 ;;
 
@@ -34,47 +61,6 @@
 (defmacro PATCH* [path arg & body]   `(PATCH ~path ~arg ~@body))
 (defmacro DELETE* [path arg & body]  `(DELETE ~path ~arg ~@body))
 (defmacro OPTIONS* [path arg & body] `(OPTIONS ~path ~arg ~@body))
+(defmacro POST* [path arg & body]     (restructured #'POST path arg body))
+(defmacro PUT* [path arg & body]      (restructured #'PUT path arg body))
 
-; TODO: Extract behavior into composable Routelets
-
-(defmacro POST* [path arg & body]
-  (let [[parameters body] (extract-parameters body)]
-    (if-let [[body-name body-model body-meta] (:body parameters)]
-      (let [model-var  (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
-            parameters (-> parameters
-                         (dissoc :body)
-                         swagger/resolve-model-vars
-                         (update-in [:parameters] conj
-                           (merge
-                             {:name (-> model-var name-of .toLowerCase)
-                              :description ""
-                              :required "true"}
-                             body-meta
-                             {:paramType "body"
-                              :type (if (sequential? body-model) [model-var] model-var)}))
-                         (update-in [:parameters] vec))]
-        `(fn [req#]
-           (let [{~body-name :body-params} req#]
-             ((POST ~path ~arg ~parameters ~@body) req#))))
-      `(POST ~path ~arg ~parameters ~@body))))
-
-(defmacro PUT* [path arg & body]
-  (let [[parameters body] (extract-parameters body)]
-    (if-let [[body-name body-model body-meta] (:body parameters)]
-      (let [model-var  (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
-            parameters (-> parameters
-                         (dissoc :body)
-                         swagger/resolve-model-vars
-                         (update-in [:parameters] conj
-                           (merge
-                             {:name (-> model-var name-of .toLowerCase)
-                              :description ""
-                              :required "true"}
-                             body-meta
-                             {:paramType "body"
-                              :type (if (sequential? body-model) [model-var] model-var)}))
-                         (update-in [:parameters] vec))]
-        `(fn [req#]
-           (let [{~body-name :body-params} req#]
-             ((PUT ~path ~arg ~parameters ~@body) req#))))
-      `(PUT ~path ~arg ~parameters ~@body))))
