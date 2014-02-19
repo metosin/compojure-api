@@ -12,8 +12,7 @@
 ;;
 
 (defn- restructured [method path arg body]
-  (let [method-symbol (let [metadata (meta method)]
-                        (symbol (str (:ns metadata) "/" (:name metadata))))
+  (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters body)]
     (if-let [[body-name body-model body-meta] (:body parameters)]
       (let [model-var  (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
@@ -55,12 +54,11 @@
 ;; Methods
 ;;
 
-(defmacro GET* [path arg & body]     `(GET ~path ~arg ~@body))
-(defmacro ANY* [path arg & body]     `(ANY ~path ~arg ~@body))
-(defmacro HEAD* [path arg & body]    `(HEAD ~path ~arg ~@body))
-(defmacro PATCH* [path arg & body]   `(PATCH ~path ~arg ~@body))
-(defmacro DELETE* [path arg & body]  `(DELETE ~path ~arg ~@body))
+(defmacro GET*     [path arg & body] `(GET ~path ~arg ~@body))
+(defmacro ANY*     [path arg & body] `(ANY ~path ~arg ~@body))
+(defmacro HEAD*    [path arg & body] `(HEAD ~path ~arg ~@body))
+(defmacro PATCH*   [path arg & body] `(PATCH ~path ~arg ~@body))
+(defmacro DELETE*  [path arg & body] `(DELETE ~path ~arg ~@body))
 (defmacro OPTIONS* [path arg & body] `(OPTIONS ~path ~arg ~@body))
-(defmacro POST* [path arg & body]     (restructured #'POST path arg body))
-(defmacro PUT* [path arg & body]      (restructured #'PUT path arg body))
-
+(defmacro POST*    [path arg & body] (restructured #'POST path arg body))
+(defmacro PUT*     [path arg & body] (restructured #'PUT path arg body))
