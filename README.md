@@ -8,9 +8,9 @@ Contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementatio
 
 Currently work-in-progress - Apis might change.
 
-## Installation
+## Latest version
 
-    [metosin/compojure-api "0.7.0"]
+[![Latest version](https://clojars.org/metosin/compojure-api/latest-version.svg)](https://clojars.org/metosin/compojure-api)
 
 You can also use the pre-packaged [Swagger-UI](https://github.com/wordnik/swagger-ui).
 
