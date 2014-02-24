@@ -70,7 +70,8 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 
 ## TODO
 
-- `url-for`
+- better documentation
+- `url-for` for endpoints
 - smart destructuring & coarcing of any parameters (`:query-params`, `:path-params`)
 - declarative body coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - swagger error messages
