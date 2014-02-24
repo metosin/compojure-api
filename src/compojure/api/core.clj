@@ -13,24 +13,24 @@
 
 (defn- restructure-body [request lets parameters]
   (if-let [[body-name body-model body-meta] (:body parameters)]
-    (let [model-var  (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
-          parameters (-> parameters
-                       (dissoc :body)
-                       swagger/resolve-model-vars
-                       (update-in [:parameters] conj
-                         (merge
-                           {:name (-> model-var name-of .toLowerCase)
-                            :description ""
-                            :required "true"}
-                           body-meta
-                           {:paramType "body"
-                            :type (if (sequential? body-model) [model-var] model-var)}))
-                       (update-in [:parameters] vec))
-          new-lets (into lets [{body-name :body-params} request])]
-      [new-lets parameters])
+    (let [model-var (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
+          new-lets (into lets [{body-name :body-params} request])
+          new-parameters (-> parameters
+                           (dissoc :body)
+                           swagger/resolve-model-vars
+                           (update-in [:parameters] conj
+                             (merge
+                               {:name (-> model-var name-of .toLowerCase)
+                                :description ""
+                                :required "true"}
+                               body-meta
+                               {:paramType "body"
+                                :type (if (sequential? body-model) [model-var] model-var)}))
+                           (update-in [:parameters] vec))]
+      [new-lets new-parameters])
     [lets parameters]))
 
-(defn- restructured [method path arg body]
+(defn- restructure [method path arg body]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters body)
         request (gensym)
@@ -60,11 +60,11 @@
 ;; Methods
 ;;
 
-(defmacro GET*     [path arg & body] `(GET ~path ~arg ~@body))
-(defmacro ANY*     [path arg & body] `(ANY ~path ~arg ~@body))
-(defmacro HEAD*    [path arg & body] `(HEAD ~path ~arg ~@body))
-(defmacro PATCH*   [path arg & body] `(PATCH ~path ~arg ~@body))
-(defmacro DELETE*  [path arg & body] `(DELETE ~path ~arg ~@body))
-(defmacro OPTIONS* [path arg & body] `(OPTIONS ~path ~arg ~@body))
-(defmacro POST*    [path arg & body] (restructured #'POST path arg body))
-(defmacro PUT*     [path arg & body] (restructured #'PUT path arg body))
+(defmacro GET*     [path arg & body] (restructure #'GET     path arg body))
+(defmacro ANY*     [path arg & body] (restructure #'ANY     path arg body))
+(defmacro HEAD*    [path arg & body] (restructure #'HEAD    path arg body))
+(defmacro PATCH*   [path arg & body] (restructure #'PATCH   path arg body))
+(defmacro DELETE*  [path arg & body] (restructure #'DELETE  path arg body))
+(defmacro OPTIONS* [path arg & body] (restructure #'OPTIONS path arg body))
+(defmacro POST*    [path arg & body] (restructure #'POST    path arg body))
+(defmacro PUT*     [path arg & body] (restructure #'PUT     path arg body))
