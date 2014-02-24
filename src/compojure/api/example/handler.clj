@@ -8,8 +8,8 @@
   (GET* "/ping" [] (ok {:ping "pong"})))
 
 (defapi app
-  (swagger-ui)
-  (swagger-docs
+  (swagger-ui "/")
+  (swagger-docs "/api/api-docs"
     :title "Cool api"
     :apiVersion "1.0.0"
     :description "Compojure Sample Web Api"
