@@ -6,6 +6,11 @@
             [clojure.walk :as walk]
             [clojure.java.io :as io]))
 
+;; JSON standard date format according to
+;; http://stackoverflow.com/questions/10286204/the-right-json-date-format
+(def ^{:dynamic true} *json-date-format* "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+
+
 (defn json-request?
   "Checks from request content-type weather it's JSON."
   [{:keys [content-type] :as request}]
@@ -38,7 +43,7 @@
       (if (coll? body)
         (-> response
           (content-type "application/json; charset=utf-8")
-          (update-in [:body] cheshire/generate-string))
+          (update-in [:body] cheshire/generate-string {:date-format *json-date-format*}))
         response))))
 
 (defn json-support
