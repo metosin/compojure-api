@@ -20,6 +20,14 @@
   (swaggered "ping"
     :description "Ping api"
     ping-route)
+  (swaggered "nested"
+    :description "Nested maps"
+    (POST* "/customer"
+      :return   Customer
+      :body     [customer Customer]
+      :summary  "Adds a pizza"
+      :nickname "addPizza"
+      (ok customer)))
   dates/route
   (swaggered "pizza"
     :description "Pizza api"

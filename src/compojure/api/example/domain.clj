@@ -13,6 +13,11 @@
 
 (defmodel NewPizza (dissoc Pizza :id))
 
+(defmodel Customer {:id String
+                    :address {:street String
+                              :zip Long
+                              :country {:code Long
+                                        :name String}}})
 ;; Repository
 
 (defonce id-seq (atom 0))
