@@ -30,14 +30,16 @@
       [new-lets new-parameters])
     [lets parameters]))
 
-(defn- restructure [method path arg body]
-  (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
-        [parameters body] (extract-parameters body)
+(defn- restructure [method args]
+  (let [[path & args] args
+        [arg args] (if (vector? (first args)) [(first args) (rest args)] [[] args])
+        method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
+        [parameters body] (extract-parameters args)
         request (gensym)
         [lets parameters] (restructure-body request [] parameters)]
-        `(fn [~request]
-           (let ~lets
-             ((~method-symbol ~path ~arg ~parameters ~@body) ~request)))))
+    `(fn [~request]
+       (let ~lets
+         ((~method-symbol ~path ~arg ~parameters ~@body) ~request)))))
 
 ;;
 ;; routes
@@ -60,11 +62,11 @@
 ;; Methods
 ;;
 
-(defmacro GET*     [path arg & body] (restructure #'GET     path arg body))
-(defmacro ANY*     [path arg & body] (restructure #'ANY     path arg body))
-(defmacro HEAD*    [path arg & body] (restructure #'HEAD    path arg body))
-(defmacro PATCH*   [path arg & body] (restructure #'PATCH   path arg body))
-(defmacro DELETE*  [path arg & body] (restructure #'DELETE  path arg body))
-(defmacro OPTIONS* [path arg & body] (restructure #'OPTIONS path arg body))
-(defmacro POST*    [path arg & body] (restructure #'POST    path arg body))
-(defmacro PUT*     [path arg & body] (restructure #'PUT     path arg body))
+(defmacro GET*     [& args] (restructure #'GET     args))
+(defmacro ANY*     [& args] (restructure #'ANY     args))
+(defmacro HEAD*    [& args] (restructure #'HEAD    args))
+(defmacro PATCH*   [& args] (restructure #'PATCH   args))
+(defmacro DELETE*  [& args] (restructure #'DELETE  args))
+(defmacro OPTIONS* [& args] (restructure #'OPTIONS args))
+(defmacro POST*    [& args] (restructure #'POST    args))
+(defmacro PUT*     [& args] (restructure #'PUT     args))
