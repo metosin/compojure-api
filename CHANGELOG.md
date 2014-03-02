@@ -1,3 +1,26 @@
+## 0.7.2 (2.3.2014)
+
+- date-format can be overridden in the `json-response-support`, thanks to Dmitry Balakhonskiy
+- smart body destructuring with `compojure.api.core` web methods does now automatic coercion.
+- Compojures args-vector is now optional with `compojure.api.core` web methods
+- Update `Ring-Swagger` to `0.7.1` giving support for nested Maps
+
+```
+  ;; supports nesting
+  (defmodel Customer {:id String
+                      :address {:street String
+                                :zip Long
+                                :country {:code Long
+                                          :name String}}})
+
+  ;; no need to define (empty) args-vector
+  (POST* "/customer"
+    :return   Customer
+    :body     [customer Customer]
+    (ok customer))) ;; we have a coerced customer here
+```
+
+
 ## 0.7.1 (1.3.2014)
 
 - update `ring-swagger` to `0.7.0`
