@@ -1,3 +1,10 @@
+## 0.7.1 (1.3.2014)
+
+- update `ring-swagger` to `0.7.0`
+  - support for `schema/maybe` and `schema/both`
+  - consume `Date` & `DateTime` both with and without millis: `"2014-02-18T18:25:37.456Z"` & `"2014-02-18T18:25:37Z"`
+- name-parameter of `swaggered` is stripped out of spaces.
+
 ## 0.7.0 (19.2.2014)
 
 - update `ring-swagger` to `0.6.0`

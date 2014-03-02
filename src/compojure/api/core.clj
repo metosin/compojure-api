@@ -14,7 +14,7 @@
 (defn- restructure-body [request lets parameters]
   (if-let [[body-name body-model body-meta] (:body parameters)]
     (let [model-var (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
-          new-lets (into lets [{body-name :body-params} request])
+          new-lets (into lets [body-name `(schema/coerce! ~model-var (:body-params ~request))])
           new-parameters (-> parameters
                            (dissoc :body)
                            swagger/resolve-model-vars
