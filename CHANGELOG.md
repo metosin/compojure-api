@@ -1,4 +1,4 @@
-## 0.7.2 (2.3.2014)
+## 0.7.2 (3.3.2014)
 
 - date-format can be overridden in the `json-response-support`, thanks to Dmitry Balakhonskiy
 - Update `Ring-Swagger` to `0.7.1` giving support for nested Maps:
