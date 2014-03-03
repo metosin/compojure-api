@@ -2,12 +2,12 @@
 
 [![Build Status](https://travis-ci.org/metosin/compojure-api.png?branch=0.7.0)](https://travis-ci.org/metosin/compojure-api)
 
-Helpers on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
+Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
-- Contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation, using [ring-swagger](https://github.com/metosin/ring-swagger)
-- Uses [Schema](https://github.com/Prismatic/schema) for creating and mapping data models
-- Bundled middleware for common api behavior (exception mapping, data formats & serialization)
-- Route macros for glueing everything together, also for the [Swagger-UI](https://github.com/wordnik/swagger-ui)
+- contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation, using the [ring-swagger](https://github.com/metosin/ring-swagger)
+- uses [Schema](https://github.com/Prismatic/schema) for creating and mapping data models
+- bundled middleware for common api behavior (exception mapping, data formats & serialization)
+- route macros for glueing everything together, also for the [Swagger-UI](https://github.com/wordnik/swagger-ui)
 
 ## Latest version
 
@@ -15,20 +15,20 @@ Helpers on top of [Compojure](https://github.com/weavejester/compojure) for maki
 [metosin/compojure-api "0.7.2"]
 ```
 
-## Building Documented Apis
+# Building Documented Apis
 
-### Middlewares
+## Middlewares
 
-If you targetting non-clojure clients, you most propably want to serve JSON. For this there is a modified set json-middlewares of [ring-json](https://github.com/weavejester/ring-json) in the namespace `compojure.api.json`.
+If you targetting non-clojure clients, you most propably want to serve JSON. Compojure-Api has it's own modifications of [ring-json middlewares](https://github.com/weavejester/ring-json) in the namespace `compojure.api.json`.
 
-There is also `compojure.api.middleware/api-middleware`, which packages many common middlewares needed with web apis:
+There is also `compojure.api.middleware/api-middleware`, which packages many common middlewares:
 
-- `ring.middleware.http-response/catch-response` for catching thrown error response
+- `ring.middleware.http-response/catch-response` for catching erronous http responses
 - `ring.swagger.middleware/catch-validation-errors` for catching model validation errors
 - `compojure.api.json/json-support` for json request & response parsing
 - `compojure.handler/api` for normal parameter handling
 
-To set up middlewares, one can use the `with-middleware` macro:
+### `with-middleware` to set up the middlewares
 
 ```clojure
 (require '[compojure.api.core :refer [with-middleware]])
@@ -42,7 +42,7 @@ To set up middlewares, one can use the `with-middleware` macro:
       (GET "/ping" [] (ok {:ping "pong"}})))))
 ```
 
-Or the short form `defapi`:
+### same in short form `defapi`
 
 ```clojure
 (require '[compojure.api.middleware :refer [defapi]])
@@ -54,13 +54,13 @@ Or the short form `defapi`:
     (GET "/ping" [] (ok {:ping "pong"}}))))
 ```
 
-### Routes
+## Routes
 
-Instead of using [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki), one can use enchanced versions found in `compojure.api.routes` and `compojure.api.core` namespaces. The latter has tuned versions of Compojure's http-method functions with `*` in the end (`GET*`, `POST*` etc.) to denote that they are not interchangable with the original Compojure versions.
+You can use either [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or the enchanced versions found from this lib. Enchanced versions work as an drop-in-replacement from their Compojure counterparts. Some macros have `*` in their name (`GET*`, `POST*`) denoting a special syntax not compatible with the original version.
 
-For ease of development there is a `compojure.api.sweet` namespace acting as a public entry point for all of the stuff mentioned earlier.
+For ease of development there is a `compojure.api.sweet` namespace acting as a entry point for most of the functions and macros in this lib.
 
-A sample application with `compojure.api.sweet`:
+### sample application using `compojure.api.sweet`
 
 ```clojure
 (require '[ring.util.http-response :refer :all])
@@ -72,17 +72,17 @@ A sample application with `compojure.api.sweet`:
     (POST* "/echo" [{body :body-params}] (ok body))))
 ```
 
-### Route documentation
+## Route documentation
 
 Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for route documentation.
 
-Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your api. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree (would have been easier with [Bidi](https://github.com/juxt/bidi, right). It also can follow `defroutes`.
+Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your api. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. It also follows `defroutes`.
 
-You also need to mount the `swagger-docs` route to publish the api definitions.
+`swagger-docs` mounts the api definitions.
 
-There is also a portable [Swagger-UI](https://github.com/wordnik/swagger-ui) pre-integrated in form of `swagger-ui` route. To use this, you just need to add a dependency to latest `metosin/ring-swagger-ui` to your project.
+There is also a `swagger-ui` route for mounting the external [Swagger-UI](https://github.com/wordnik/swagger-ui).
 
-a full sample app:
+### full sample swaggered app
 
 ```clojure
 (require '[ring.util.http-response :refer :all])
@@ -113,19 +113,17 @@ Most route functions & macros have a loose (DSLy) syntax taking optional paramet
     :licenseUrl "http://www.eclipse.org/legal/epl-v10.html")
 ```
 
+See source code & [examples](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/example/handler.clj#) for more details.
 
-See source code & examples for more details.
+## Models
 
-### Models
+Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based [ring-swagger](https://github.com/metosin/ring-swagger) for managing it's data models.
 
-To describe an Api one needs to describe it's datas. Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based [ring-swagger](https://github.com/metosin/ring-swagger) for managing api data models.
-
-Ring-Swagger add some JSON-goodies on top of the vanilla Schema, naming a few:
-- mappings from Schema to JSON Schema (not yet feature complete)
-  - basic types, nested maps, arrays, references, enums etc.
+Ring-Swagger add some JSON-goodies on top of the Schema, naming a few:
+- mappings from Schema to JSON Schema (basic types, nested maps, arrays, references, enums etc. not yet feature complete)
 - symmetic serialization and coercion of `Set`, `Keyword`, `java.lang.Date`, `org.joda.time.DateTime` and `org.joda.time.LocalDate`
 
-a sample schema:
+### sample schema
 
 ```clojure
 (require '[ring.swagger.schema :refer :all])
@@ -140,9 +138,9 @@ a sample schema:
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags #{(not (#{:kikka :kukka} :kakka))}}}  ring.swagger.schema/coerce! (schema.clj:85)
 ```
 
-### Models and routes
+## Models and routes
 
-Models are integrated into endpoint-macros, allowing one to easily define input and return models. There is also smart schema-aware destructuring and automatic coersion for the data.
+Models can be used from extended route endpoint macros. You can define both input models & return models. Input models have smart schema-aware destructuring and do automatic data coersion.
 
 ```clojure
   (POST* "/echo"
@@ -153,11 +151,11 @@ Models are integrated into endpoint-macros, allowing one to easily define input 
     (ok thingie)) ;; gets called only if the thingie is valid
 ```
 
-See the [examples](https://github.com/metosin/compojure-api/tree/master/src/compojure/api/example/handler.clj) for more samples.
-
 ## Quickstart for a new project
 
-Clone the [examples-repo](https://github.com/metosin/compojure-api-examples). A Leiningen template coming sooner or later.
+Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
+
+A Leiningen template coming sooner or later.
 
 ## Running the embedded example(s)
 
