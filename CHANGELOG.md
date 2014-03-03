@@ -16,7 +16,7 @@
 
 
 ```clojure
-  (POST* "/customer" 
+  (POST* "/customer"
     :return   Customer
     :body     [customer Customer]
     (ok customer))) ;; we have a coerced customer here

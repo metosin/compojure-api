@@ -1,5 +1,5 @@
 (ns compojure.api.json
-  "Pimped version of https://github.com/weavejester/lein-ring.
+  "Pimped version of https://github.com/weavejester/ring-json (C) weavejester.
    Might use https://github.com/ngrunwald/ring-middleware-format later."
   (:require [ring.util.response :refer [content-type]]
             [cheshire.core :as cheshire]
