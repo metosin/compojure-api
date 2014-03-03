@@ -11,11 +11,7 @@ Utility belt on top of the awesome [Compojure](https://github.com/weavejester/co
 
 ## Latest version
 
-[![Latest version](https://clojars.org/metosin/compojure-api/latest-version.svg)](https://clojars.org/metosin/compojure-api)
-
-See also:
-- [Swagger-UI](https://github.com/wordnik/swagger-ui).
-- [Ring-http-response](https://github.com/metosin/ring-http-response)
+`[metosin/compojure-api "0.7.2"]`
 
 # Building Documented Apis
 
