@@ -187,6 +187,11 @@ Clone the [examples-repo](https://github.com/metosin/compojure-api-examples). A 
 - support for AOT compilation with uberjars (by persisting route definitions)
 - collect routes from root, not from `swaggered`
 - include external common use middlewares (ring-middleware-format, ring-cors etc.)
+- websockets
+
+## Contributing
+
+Pull Requests welcome. Please run the tests (`lein midje`) and make sure they pass before you submit one.
 
 ## License
 
