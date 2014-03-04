@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.7.2"]
+[metosin/compojure-api "0.7.3"]
 ```
 
 # Building Documented Apis
@@ -70,8 +70,8 @@ Namespace `compojure.api.sweet` acts as a entry point for most of the functions 
 
 (defapi app
   (context "/api" []
-    (GET* "/user/:id" [id] (ok {:id id}))
-    (POST* "/echo" [{body :body-params}] (ok body))))
+    (GET "/user/:id" [id] (ok {:id id}))
+    (POST "/echo" [{body :body-params}] (ok body))))
 ```
 
 ## Route documentation
@@ -96,8 +96,8 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
   (swaggered "test"
     :description "Swagger test api"
     (context "/api" []
-      (GET* "/user/:id" [id] (ok {:id id}))
-      (POST* "/echo" [{body :body-params}] (ok body)))))
+      (GET "/user/:id" [id] (ok {:id id}))
+      (POST "/echo" [{body :body-params}] (ok body)))))
 ```
 
 By default, Swagger-UI is mounted to the root `/` and api-listing to `/api/api-docs`.
@@ -160,8 +160,9 @@ Route-macros with special syntax (`*`) manage you models. You can define both in
     (ok thingie)) ;; gets called only if the thingie is valid
 ```
 
+you can also wrap models in containers and add extra metadata:
+
 ```clojure
-  ; echoing a consumed set of thingies with meta-data
   (POST* "/echos"
     :return   [Thingie]
     :body     [thingies #{Thingie} {:description "set on thingies"}]
@@ -173,6 +174,11 @@ Route-macros with special syntax (`*`) manage you models. You can define both in
 ```clojure
 (require '[ring.util.http-response :refer :all])
 (require '[compojure.api.sweet :refer :all])
+(require '[ring.swagger.schema :refer :all])
+(require '[schema.core :as s])
+
+(defmodel Thingie {:id Long
+	               :tags #{(s/enum :kikka :kukka)}})
 
 (defapi app
   (swagger-ui)
@@ -210,9 +216,6 @@ A Leiningen template coming sooner or later.
   - all runtime code between route-macros are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
   - `swaggered` peels the macros until it reaches `compojure.core` Vars. You should be able to write your own DSL-macros on top of those
 - Collected routes are stored in an Atom after compilation => AOT from swaggered apps should be disabled when Uberjarring => routes should be written to file for allowing route precompilation
-- Compojure doesn't have a decent support adding meta-data to routes
-  - There is a way, but it's not nice (see 'Describing your Apis'))
-  - This library does a [dirty deed](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/pimp.clj) to overcome this
 
 ## TODO
 

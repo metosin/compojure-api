@@ -6,6 +6,7 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.common :refer :all]
             [compojure.api.common :refer :all]
+            [compojure.api.core :as core]
             [compojure.route :as route]
             [compojure.core :refer :all]))
 
@@ -35,7 +36,9 @@
         (seq? x)    (let [sym (first x)]
                       (if (and
                             (symbol? sym)
-                            (compojure-macro? (eval-re-resolve sym)))
+                            (or
+                              (compojure-macro? (eval-re-resolve sym))
+                              (meta-container? (eval-re-resolve sym))))
                         (filter (comp not nil?) x)
                         (macroexpand-1 x)))
         :else       x))
@@ -94,7 +97,7 @@
 
 (defn route-metadata [body]
   (remove-empty-keys
-    (let [{:keys [body return parameters] :as meta} (or (meta (first body)) {})]
+    (let [{:keys [body return parameters] :as meta} (unwrap-meta-container (last (second body)))]
       (merge meta {:parameters (transform-parameters parameters)
                    :return (some-> return swagger/resolve-model-vars)}))))
 
@@ -173,4 +176,4 @@
         name (s/replace (str (eval name)) #" " "")
         models (swagger/extract-models details)]
     (swap! swagger assoc name details)
-    `(with-meta (routes ~@body) {:swagger '~details})))
+    `(routes ~@body)))

@@ -1,3 +1,7 @@
+## 0.7.3 (4.3.2014)
+
+- removed the Compojure Var pimp. Extended meta-data syntax no longer works with vanilla Compojure but requires the extended macros from `compojure.api.core`.
+
 ## 0.7.2 (3.3.2014)
 
 - date-format can be overridden in the `json-response-support`, thanks to Dmitry Balakhonskiy

@@ -57,3 +57,11 @@
   (->Long 12.3) => (throws IllegalArgumentException)
   (->Long "123") => 123
   (->Long "12.3") => (throws NumberFormatException))
+
+(fact "unwrapping meta-container"
+  (fact "meta-data is returned"
+    (unwrap-meta-container '(meta-container {:a 1} identity)) => {:a 1})
+  (fact "non-map meta-data can't be unwrapped"
+    (unwrap-meta-container '(meta-container :abba identity)) => (throws AssertionError))
+  (fact "unwrapping non-meta-container returns empty map"
+    (unwrap-meta-container 'identity) => {}))

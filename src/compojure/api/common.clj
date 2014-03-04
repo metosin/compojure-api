@@ -38,3 +38,23 @@
 (defn eval-re-resolve [x] (eval `(re-resolve ~x)))
 
 (defn ->Long [s] (if (string? s) (java.lang.Long/parseLong s) (Long. s)))
+
+;;
+;; meta-data-container
+;;
+
+(defmacro meta-container [meta & form]
+  `(do ~@form))
+
+(defn unwrap-meta-container [container]
+  {:post [(map? %)]}
+  (or
+    (if (sequential? container)
+      (let [[sym meta-data] container]
+        (if (and (symbol? sym) (= #'meta-container (resolve sym)))
+          meta-data)))
+    {}))
+
+(def meta-container? #{#'meta-container})
+
+

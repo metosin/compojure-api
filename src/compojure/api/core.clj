@@ -1,7 +1,7 @@
 (ns compojure.api.core
   (:require [compojure.core :refer :all]
-            [compojure.api.pimp]
             [compojure.api.middleware :as mw]
+            [compojure.api.common :refer :all]
             [ring.util.response :as response]
             [ring.swagger.core :as swagger]
             [ring.swagger.schema :as schema]
@@ -39,7 +39,7 @@
         [lets parameters] (restructure-body request [] parameters)]
     `(fn [~request]
        (let ~lets
-         ((~method-symbol ~path ~arg ~parameters ~@body) ~request)))))
+         ((~method-symbol ~path ~arg (meta-container ~parameters ~@body)) ~request)))))
 
 ;;
 ;; routes
