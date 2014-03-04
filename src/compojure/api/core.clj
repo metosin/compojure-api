@@ -30,9 +30,8 @@
       [new-lets new-parameters])
     [lets parameters]))
 
-(defn- restructure [method args]
-  (let [[path & args] args
-        [arg args] (if (vector? (first args)) [(first args) (rest args)] [[] args])
+(defn- restructure [method [path & args]]
+  (let [[arg args] (if (vector? (first args)) [(first args) (rest args)] [[] args])
         method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         request (gensym)
