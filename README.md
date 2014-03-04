@@ -28,7 +28,9 @@ There is also `compojure.api.middleware/api-middleware`, which packages many com
 - `compojure.api.json/json-support` for json request & response parsing
 - `compojure.handler/api` for normal parameter handling
 
-### `with-middleware` to set up the middlewares
+### Mounting middlewars
+
+`with-middleware` to set up the middlewares:
 
 ```clojure
 (require '[compojure.api.core :refer [with-middleware]])
@@ -42,7 +44,7 @@ There is also `compojure.api.middleware/api-middleware`, which packages many com
       (GET "/ping" [] (ok {:ping "pong"}})))))
 ```
 
-### same in short form `defapi`
+same in short form `defapi`:
 
 ```clojure
 (require '[compojure.api.middleware :refer [defapi]])
@@ -56,11 +58,11 @@ There is also `compojure.api.middleware/api-middleware`, which packages many com
 
 ## Routes
 
-You can use either [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or the enchanced versions found from this lib. Enchanced versions work as an drop-in-replacement from their Compojure counterparts. Some macros have `*` in their name (`GET*`, `POST*`) denoting a special syntax not compatible with the original version.
+You can use either [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enchanced versions found from this lib. Enchanced versions can be used mostly as an drop-in-replacement from their Compojure counterparts. Macros with `*` in their name (`GET*`, `POST*`) denotes it can handle special syntax that would not work with the original counterparts.
 
-For ease of development there is a `compojure.api.sweet` namespace acting as a entry point for most of the functions and macros in this lib.
+Namespace `compojure.api.sweet` acts as a entry point for most of the functions and macros in this lib.
 
-### sample application using `compojure.api.sweet`
+### sample sweet application
 
 ```clojure
 (require '[ring.util.http-response :refer :all])
@@ -76,13 +78,13 @@ For ease of development there is a `compojure.api.sweet` namespace acting as a e
 
 Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for route documentation.
 
-Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your api. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. It also follows `defroutes`.
+Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your app. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. It can also follows `defroutes`.
 
 `swagger-docs` mounts the api definitions.
 
 There is also a `swagger-ui` route for mounting the external [Swagger-UI](https://github.com/wordnik/swagger-ui).
 
-### full sample swaggered app
+### sample swaggered app
 
 ```clojure
 (require '[ring.util.http-response :refer :all])
@@ -98,11 +100,15 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
       (POST* "/echo" [{body :body-params}] (ok body)))))
 ```
 
-By default, Swagger-UI is mounted to the root '/' and api-listing to `/api/api-docs`.
+By default, Swagger-UI is mounted to the root `/` and api-listing to `/api/api-docs`.
 
-Most route functions & macros have a loose (DSLy) syntax taking optional parameters and having an easy way to add meta-data.
+Most route functions & macros have a loose (DSL) syntax taking optional parameters and having an easy way to add meta-data.
 
 ```clojure
+  ; with defaults
+  (swagger-docs)
+
+  ; all said
   (swagger-docs "/api/api-docs"
     :title "Cool api"
     :apiVersion "1.0.0"
@@ -117,10 +123,10 @@ See source code & [examples](https://github.com/metosin/compojure-api/blob/maste
 
 ## Models
 
-Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based [ring-swagger](https://github.com/metosin/ring-swagger) for managing it's data models.
+Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based [ring-swagger](https://github.com/metosin/ring-swagger) for managing it's data models. Models are presented as hererogenous Schema-maps defined by `defmodel`.
 
 Ring-Swagger add some JSON-goodies on top of the Schema, naming a few:
-- mappings from Schema to JSON Schema (basic types, nested maps, arrays, references, enums etc. not yet feature complete)
+- mappings from Schema to JSON Schema (basic types, maps, nested maps, arrays, references, enums etc.)
 - symmetic serialization and coercion of `Set`, `Keyword`, `java.lang.Date`, `org.joda.time.DateTime` and `org.joda.time.LocalDate`
 
 ### sample schema
@@ -129,18 +135,21 @@ Ring-Swagger add some JSON-goodies on top of the Schema, naming a few:
 (require '[ring.swagger.schema :refer :all])
 (require '[schema.core :as s])
 
-(defmodel Thingie {:id Long :tags #{(s/enum :kikka :kukka)}})
+(defmodel Thingie {:id Long
+	               :tags #{(s/enum :kikka :kukka)}})
 
-(coerce! Thingie {:id 123 :tags ["kikka" "kikka"]})
+(coerce! Thingie {:id 123
+	              :tags ["kikka" "kikka"]})
 ; => {:id 123 :tags #{:kikka}}
 
-(coerce! Thingie {:id 123 :tags ["kakka"]})
+(coerce! Thingie {:id 123
+	              :tags ["kakka"]})
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags #{(not (#{:kikka :kukka} :kakka))}}}  ring.swagger.schema/coerce! (schema.clj:85)
 ```
 
 ## Models and routes
 
-Models can be used from extended route endpoint macros. You can define both input models & return models. Input models have smart schema-aware destructuring and do automatic data coersion.
+Route-macros with special syntax (`*`) manage you models. You can define both input models & return models. Input models have smart schema-aware destructuring and do automatic data coersion.
 
 ```clojure
   (POST* "/echo"
@@ -149,6 +158,38 @@ Models can be used from extended route endpoint macros. You can define both inpu
     :summary  "echos a thingie"
     :nickname "echoThingie"
     (ok thingie)) ;; gets called only if the thingie is valid
+```
+
+```clojure
+  ; echoing a consumed set of thingies with meta-data
+  (POST* "/echos"
+    :return   [Thingie]
+    :body     [thingies #{Thingie} {:description "set on thingies"}]
+    (ok thingies))
+```
+
+### Full sample app
+
+```clojure
+(require '[ring.util.http-response :refer :all])
+(require '[compojure.api.sweet :refer :all])
+
+(defapi app
+  (swagger-ui)
+  (swagger-docs)
+  (swaggered "test"
+    :description "Swagger test api"
+    (context "/api" []
+      (POST* "/echo"
+        :return   Thingie
+        :body     [thingie Thingie]
+        :summary  "echos a thingie"
+        :nickname "echoThingie"
+        (ok thingie)) ;; gets called only if the thingie is valid
+      (POST* "/echos"
+        :return   [Thingie]
+        :body     [thingies #{Thingie} {:description "set on thingies"}]
+        (ok thingies))))
 ```
 
 ## Quickstart for a new project
@@ -175,7 +216,7 @@ A Leiningen template coming sooner or later.
 
 ## TODO
 
-- `url-for` for endpoints
+- `url-for` for endpoints (bidi, bidi, bidi)
 - smart destructuring & coarcing of any parameters (`:query-params`, `:path-params`)
 - parametrizable automatic coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - support for swagger error messages
