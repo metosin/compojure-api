@@ -1,6 +1,7 @@
 ## 0.7.3 (4.3.2014)
 
 - removed the Compojure Var pimp. Extended meta-data syntax no longer works with vanilla Compojure but requires the extended macros from `compojure.api.core`.
+- update to `Ring-Swagger` to `0.7.2`
 
 ## 0.7.2 (3.3.2014)
 
