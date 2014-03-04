@@ -38,8 +38,7 @@
         request (gensym)
         [lets parameters] (restructure-body request [] parameters)]
     `(fn [~request]
-       (let ~lets
-         ((~method-symbol ~path ~arg (meta-container ~parameters ~@body)) ~request)))))
+       ((~method-symbol ~path ~arg (meta-container ~parameters (let ~lets ~@body))) ~request))))
 
 ;;
 ;; routes
