@@ -1,3 +1,7 @@
+## 0.8.0
+
+- Breaking change: `compojure.api.routes/defroutes` is now `compojure.api.core/defroutes*`
+
 ## 0.7.3 (4.3.2014)
 
 - removed the Compojure Var pimp. Extended meta-data syntax no longer works with vanilla Compojure but requires the extended macros from `compojure.api.core`.

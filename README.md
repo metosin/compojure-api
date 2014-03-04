@@ -78,7 +78,7 @@ Namespace `compojure.api.sweet` acts as a entry point for most of the functions 
 
 Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for route documentation.
 
-Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your app. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. It can also follows `defroutes`.
+Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your app. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. To follow defined routes, use `defroutes*`.
 
 `swagger-docs` mounts the api definitions.
 
@@ -90,13 +90,16 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
 (require '[ring.util.http-response :refer :all])
 (require '[compojure.api.sweet :refer :all])
 
+(defroutes* ping-route
+  (GET "/user/:id" [id] (ok {:id id})))
+
 (defapi app
   (swagger-ui)
   (swagger-docs)
   (swaggered "test"
     :description "Swagger test api"
     (context "/api" []
-      (GET "/user/:id" [id] (ok {:id id}))
+      ping-route
       (POST "/echo" [{body :body-params}] (ok body)))))
 ```
 
@@ -212,7 +215,7 @@ A Leiningen template coming sooner or later.
 
 - All routes are collected at compile-time
   - there is basically no runtime penalty for describing your apis
-  - nested routes composed via vanilla Compojure `defroutes` is not supported, but there is a `compojure.api.routes/defroutes` which has the needed meta-data to enable the auto-wiring needed. `compojure.api.sweet` used the latter by default.
+  - nested routes composed via vanilla Compojure `defroutes` is not supported, but there is a `compojure.api.routes/defroutes*` which has the needed meta-data to enable the auto-wiring needed. `compojure.api.sweet` includes the latter.
   - all runtime code between route-macros are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
   - `swaggered` peels the macros until it reaches `compojure.core` Vars. You should be able to write your own DSL-macros on top of those
 - Collected routes are stored in an Atom after compilation => AOT from swaggered apps should be disabled when Uberjarring => routes should be written to file for allowing route precompilation

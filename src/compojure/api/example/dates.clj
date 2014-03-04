@@ -8,7 +8,7 @@
                  :local-date org.joda.time.LocalDate})
 
 ;; one can have swaggered defined elsewhere (as long it's mounted on root)
-(defroutes route
+(defroutes* route
   (swaggered "dates"
     :description "Roundrobin of Dates"
     (POST* "/dates" []

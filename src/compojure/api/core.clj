@@ -5,7 +5,8 @@
             [ring.util.response :as response]
             [ring.swagger.core :as swagger]
             [ring.swagger.schema :as schema]
-            [ring.swagger.common :refer :all]))
+            [ring.swagger.common :refer :all]
+            [clojure.tools.macro :refer [name-with-attributes]]))
 
 ;;
 ;; Smart Destructuring
@@ -55,6 +56,15 @@
          (middleware# handler#))
        (routes ~@body)
        ~middlewares)))
+
+(defmacro defroutes*
+  "Define a Ring handler function from a sequence of routes. The name may
+  optionally be followed by a doc-string and metadata map."
+  [name & routes]
+  (let [source (drop 2 &form)
+        [name routes] (name-with-attributes name routes)]
+    `(def ~name (with-meta (routes ~@routes) {:source '~source
+                                              :inline true}))))
 
 ;;
 ;; Methods

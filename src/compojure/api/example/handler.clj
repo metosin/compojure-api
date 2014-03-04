@@ -4,7 +4,7 @@
             [compojure.api.example.dates :as dates]
             [compojure.api.example.domain :refer :all]))
 
-(defroutes ping-route
+(defroutes* ping-route
   (GET* "/ping" [] (ok {:ping "pong"})))
 
 (defapi app

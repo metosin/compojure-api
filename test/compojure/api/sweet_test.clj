@@ -5,6 +5,7 @@
             [compojure.api.swagger :as swagger]
             [ring.mock.request :refer :all]
             [cheshire.core :as cheshire]
+            [compojure.core :as compojure]
             [compojure.api.sweet :refer :all]))
 
 (defmodel Band {:id s/Int
@@ -16,7 +17,7 @@
 
 (def app-name (str (gensym)))
 
-(defroutes ping-routes (GET* "/ping" [] identity))
+(defroutes* ping-routes (GET* "/ping" [] identity))
 
 (defapi api
   (swagger-docs)
