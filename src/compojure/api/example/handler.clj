@@ -22,7 +22,7 @@
     ping-route)
   (swaggered "nested"
     :description "Nested maps"
-    (POST* "/customer"
+    (POST* "/customer" []
       :return   Customer
       :body     [customer Customer]
       :summary  "Adds a pizza"
