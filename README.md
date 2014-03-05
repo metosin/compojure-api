@@ -33,9 +33,9 @@ There is also `compojure.api.middleware/api-middleware`, which packages many com
 `with-middleware` to set up the middlewares:
 
 ```clojure
-(require '[compojure.api.core :refer [with-middleware]])
-(require '[compojure.api.middleware :refer [api-middleware]])
 (require '[ring.util.http-response :refer [ok]])
+(require '[compojure.api.middleware :refer [api-middleware]])
+(require '[compojure.api.core :refer [with-middleware]])
 (require '[compojure.core :refer :all)
 
 (defroutes app
@@ -47,8 +47,8 @@ There is also `compojure.api.middleware/api-middleware`, which packages many com
 same in short form `defapi`:
 
 ```clojure
-(require '[compojure.api.middleware :refer [defapi]])
 (require '[ring.util.http-response :refer [ok]])
+(require '[compojure.api.core :refer [defapi]])
 (require '[compojure.core :refer :all)
 
 (defapi app
@@ -58,9 +58,9 @@ same in short form `defapi`:
 
 ## Routes
 
-You can use either [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enchanced versions found from this lib. Enchanced versions can be used mostly as an drop-in-replacement from their Compojure counterparts. Macros with `*` in their name (`GET*`, `POST*`) denotes it can handle special syntax that would not work with the original counterparts.
+You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enchanced versions from `compojure.api.core`. Enchanced versions have `*` in their name (`GET*`, `POST*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enchanced version can be used exactly as their ancestors but have also new behavior, more on that later.
 
-Namespace `compojure.api.sweet` acts as a entry point for most of the functions and macros in this lib.
+Namespace `compojure.api.sweet` is a public entry point for all routing, importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`. If ignoring the `*`s with some macros, it can be used as a drop-in-place replacement for `compojure.core`.
 
 ### sample sweet application
 
@@ -70,15 +70,15 @@ Namespace `compojure.api.sweet` acts as a entry point for most of the functions 
 
 (defapi app
   (context "/api" []
-    (GET "/user/:id" [id] (ok {:id id}))
-    (POST "/echo" [{body :body-params}] (ok body))))
+    (GET* "/user/:id" [id] (ok {:id id}))
+    (POST* "/echo" [{body :body-params}] (ok body))))
 ```
 
 ## Route documentation
 
 Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for route documentation.
 
-Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your app. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. To follow defined routes, use `defroutes*`.
+Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your app. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. If you intend to split your route-tree with `defroutes`, use `defroutes*` instead so that their routes get also collected.
 
 `swagger-docs` mounts the api definitions.
 
@@ -91,7 +91,7 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
 (require '[compojure.api.sweet :refer :all])
 
 (defroutes* ping-route
-  (GET "/user/:id" [id] (ok {:id id})))
+  (GET* "/user/:id" [id] (ok {:id id})))
 
 (defapi app
   (swagger-ui)
@@ -100,7 +100,7 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
     :description "Swagger test api"
     (context "/api" []
       ping-route
-      (POST "/echo" [{body :body-params}] (ok body)))))
+      (POST* "/echo" [{body :body-params}] (ok body)))))
 ```
 
 By default, Swagger-UI is mounted to the root `/` and api-listing to `/api/api-docs`.
@@ -150,23 +150,22 @@ Ring-Swagger add some JSON-goodies on top of the Schema, naming a few:
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags #{(not (#{:kikka :kukka} :kakka))}}}  ring.swagger.schema/coerce! (schema.clj:85)
 ```
 
-## Models and routes
+## Models, routes and meta-data
 
-Route-macros with special syntax (`*`) manage you models. You can define both input models & return models. Input models have smart schema-aware destructuring and do automatic data coersion.
+The enchanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-spesific data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coersion.
 
 ```clojure
-  (POST* "/echo"
+  (POST* "/echo" []
     :return   Thingie
     :body     [thingie Thingie]
     :summary  "echos a thingie"
     :nickname "echoThingie"
     (ok thingie)) ;; gets called only if the thingie is valid
 ```
-
 you can also wrap models in containers and add extra metadata:
 
 ```clojure
-  (POST* "/echos"
+  (POST* "/echos" []
     :return   [Thingie]
     :body     [thingies #{Thingie} {:description "set on thingies"}]
     (ok thingies))
@@ -183,22 +182,25 @@ you can also wrap models in containers and add extra metadata:
 (defmodel Thingie {:id Long
 	               :tags #{(s/enum :kikka :kukka)}})
 
+(defroutes* post-thingies
+  (POST* "/echos" []
+    :return   [Thingie]
+    :body     [thingies #{Thingie} {:description "set on thingies"}]
+    (ok thingies)))
+
 (defapi app
   (swagger-ui)
   (swagger-docs)
   (swaggered "test"
     :description "Swagger test api"
     (context "/api" []
-      (POST* "/echo"
+      post-thingies
+      (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
         :summary  "echos a thingie"
         :nickname "echoThingie"
-        (ok thingie))
-      (POST* "/echos"
-        :return   [Thingie]
-        :body     [thingies #{Thingie} {:description "set on thingies"}]
-        (ok thingies))))
+        (ok thingie)))))
 ```
 
 ## Quickstart for a new project
@@ -216,9 +218,10 @@ A Leiningen template coming sooner or later.
 - All routes are collected at compile-time
   - there is basically no runtime penalty for describing your apis
   - nested routes composed via vanilla Compojure `defroutes` is not supported, but there is a `compojure.api.routes/defroutes*` which has the needed meta-data to enable the auto-wiring needed. `compojure.api.sweet` includes the latter.
-  - all runtime code between route-macros are ignored in route collections. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
-  - `swaggered` peels the macros until it reaches `compojure.core` Vars. You should be able to write your own DSL-macros on top of those
-- Collected routes are stored in an Atom after compilation => AOT from swaggered apps should be disabled when Uberjarring => routes should be written to file for allowing route precompilation
+  - all runtime code between route-macros are ignored when macro-peeling route-trees. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
+  - `swaggered` peels the macros until it reaches `compojure.core` Vars. You can write your own DSL-macros on top of those
+- Collected routes are stored in an Atom after compilation => AOT from swaggered apps should be disabled when Uberjarring
+  - routes could be written to file for allowing route precompilation?
 
 ## TODO
 
