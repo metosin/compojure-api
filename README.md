@@ -217,7 +217,6 @@ A Leiningen template coming sooner or later.
 
 - All routes are collected at compile-time
   - there is basically no runtime penalty for describing your apis
-  - nested routes composed via vanilla Compojure `defroutes` is not supported, but there is a `compojure.api.routes/defroutes*` which has the needed meta-data to enable the auto-wiring needed. `compojure.api.sweet` includes the latter.
   - all runtime code between route-macros are ignored when macro-peeling route-trees. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
   - `swaggered` peels the macros until it reaches `compojure.core` Vars. You can write your own DSL-macros on top of those
 - Collected routes are stored in an Atom after compilation => AOT from swaggered apps should be disabled when Uberjarring
