@@ -1,6 +1,8 @@
 ## 0.8.0
 
-- Breaking change: `compojure.api.routes/defroutes` is now `compojure.api.core/defroutes*`
+- Breaking change: `compojure.api.routes/defroutes` is now `compojure.api.core/defroutes*` to avoid namespace clashes & promote it's different.
+- FIXED https://github.com/metosin/compojure-api/issues/4
+  - reverted "Compojures args-vector is now optional with `compojure.api.core` web methods"
 
 ## 0.7.3 (4.3.2014)
 
@@ -23,14 +25,12 @@
 - schema-aware body destructuring with `compojure.api.core` web methods does now automatic coercion for the body
 - Compojures args-vector is now optional with `compojure.api.core` web methods
 
-
 ```clojure
   (POST* "/customer"
     :return   Customer
     :body     [customer Customer]
     (ok customer))) ;; we have a coerced customer here
 ```
-
 
 ## 0.7.1 (1.3.2014)
 
