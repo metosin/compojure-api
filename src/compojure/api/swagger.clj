@@ -91,14 +91,10 @@
                         [[p (extract-method b)] new-body])
       CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
 
-(defn transform-parameters [parameters]
-  (let [parameters (map swagger/resolve-model-vars parameters)]
-    (if-not (empty? parameters) parameters)))
-
 (defn route-metadata [body]
   (remove-empty-keys
     (let [{:keys [body return parameters] :as meta} (unwrap-meta-container (last (second body)))]
-      (merge meta {:parameters (transform-parameters parameters)
+      (merge meta {:parameters parameters
                    :return (some-> return swagger/resolve-model-vars)}))))
 
 (defn attach-meta-data-to-route [[route body]]
