@@ -6,6 +6,8 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.schema :as schema]
             [ring.swagger.common :refer :all]
+            [schema.core :as s]
+            [clojure.walk :refer [keywordize-keys]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
 ;;
@@ -13,9 +15,9 @@
 ;;
 
 (defn- restructure-body [request lets parameters]
-  (if-let [[body-name body-model body-meta] (:body parameters)]
-    (let [model-var (swagger/resolve-model-var (if (sequential? body-model) (first body-model) body-model))
-          new-lets (into lets [body-name `(schema/coerce! ~model-var (:body-params ~request))])
+  (if-let [[value model model-meta] (:body parameters)]
+    (let [model-var (swagger/resolve-model-var (if (sequential? model) (first model) model))
+          new-lets (into lets [value `(schema/coerce! ~model-var (:body-params ~request) :json)])
           new-parameters (-> parameters
                            (dissoc :body)
                            swagger/resolve-model-vars
@@ -24,9 +26,34 @@
                                {:name (-> model-var name-of .toLowerCase)
                                 :description ""
                                 :required "true"}
-                               body-meta
+                               model-meta
                                {:paramType "body"
-                                :type (if (sequential? body-model) [model-var] model-var)}))
+                                :type (if (sequential? model) [model-var] model-var)}))
+                           (update-in [:parameters] vec))]
+      [new-lets new-parameters])
+    [lets parameters]))
+
+;; TODO: generates bad arrays
+(defn- query-model-parameters [model]
+  (doall
+    (for [[k v ] model
+          :let [rk (s/explicit-schema-key k)]]
+      (merge
+        (swagger/type-of v)
+        {:name (name rk)
+         :description ""
+         :required (s/required-key? k)
+         :paramType "query"}))))
+
+(defn- restructure-query-params [request lets parameters]
+  (if-let [[value model model-meta] (:query parameters)]
+    (let [model-var (swagger/resolve-model-var (if (sequential? model) (first model) model))
+          new-lets (into lets [value `(schema/coerce! ~model-var (keywordize-keys (:query-params ~request)) :query)])
+          new-parameters (-> parameters
+                           (dissoc :query)
+                           swagger/resolve-model-vars
+                           (update-in [:parameters] concat
+                             (query-model-parameters (value-of model-var)))
                            (update-in [:parameters] vec))]
       [new-lets new-parameters])
     [lets parameters]))
@@ -35,7 +62,8 @@
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         request (gensym)
-        [lets parameters] (restructure-body request [] parameters)]
+        [lets parameters] (restructure-body request [] parameters)
+        [lets parameters] (restructure-query-params request lets parameters)]
     `(fn [~request]
        ((~method-symbol ~path ~arg (meta-container ~parameters (let ~lets ~@body))) ~request))))
 
