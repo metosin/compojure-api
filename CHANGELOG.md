@@ -1,4 +1,16 @@
-## 0.8.0
+## 0.8.1 (6.3.2104)
+
+- update `ring-swagger` to `0.7.3`
+- initial support for smart query parameter destruction (arrays and nested params don't get swagger-ui love yet - but work otherwise ok)
+
+```clojure
+  (GET* "/echo" []
+    :return Thingie
+    :query  [thingie Thingie]
+    (ok thingie)) ;; here be coerced thingie
+```
+
+## 0.8.0 (5.3.2014)
 
 - Breaking change: `compojure.api.routes/defroutes` is now `compojure.api.core/defroutes*` to avoid namespace clashes & promote it's different.
 - FIXED https://github.com/metosin/compojure-api/issues/4

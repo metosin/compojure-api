@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.7.3"]
+[metosin/compojure-api "0.8.1"]
 ```
 
 # Building Documented Apis
@@ -128,9 +128,7 @@ See source code & [examples](https://github.com/metosin/compojure-api/blob/maste
 
 Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based [ring-swagger](https://github.com/metosin/ring-swagger) for managing it's data models. Models are presented as hererogenous Schema-maps defined by `defmodel`.
 
-Ring-Swagger add some JSON-goodies on top of the Schema, naming a few:
-- mappings from Schema to JSON Schema (basic types, maps, nested maps, arrays, references, enums etc.)
-- symmetic serialization and coercion of `Set`, `Keyword`, `java.lang.Date`, `org.joda.time.DateTime` and `org.joda.time.LocalDate`
+Two coercers are available (and automatically selected with smart destucturing): one for json and another for string-based formats (query-parameters & path-parameters). See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
 
 ### sample schema
 
@@ -139,15 +137,15 @@ Ring-Swagger add some JSON-goodies on top of the Schema, naming a few:
 (require '[schema.core :as s])
 
 (defmodel Thingie {:id Long
-	               :tags #{(s/enum :kikka :kukka)}})
+                   :tag (s/enum :kikka :kukka)})
 
 (coerce! Thingie {:id 123
-	              :tags ["kikka" "kikka"]})
-; => {:id 123 :tags #{:kikka}}
+                  :tag "kikka"})
+; => {:id 123 :tag :kikka}
 
 (coerce! Thingie {:id 123
-	              :tags ["kakka"]})
-; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags #{(not (#{:kikka :kukka} :kakka))}}}  ring.swagger.schema/coerce! (schema.clj:85)
+                  :tags "kakka"})
+; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags disallowed-key, :tag missing-required-key}}  ring.swagger.schema/coerce! (schema.clj:88)
 ```
 
 ## Models, routes and meta-data
@@ -156,12 +154,18 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
 
 ```clojure
   (POST* "/echo" []
-    :return   Thingie
-    :body     [thingie Thingie]
-    :summary  "echos a thingie"
-    :nickname "echoThingie"
-    (ok thingie)) ;; gets called only if the thingie is valid
+    :return Thingie
+    :body   [thingie Thingie]
+    (ok thingie)) ;; here be coerced thingie
 ```
+
+```clojure
+  (GET* "/echo" []
+    :return Thingie
+    :query  [thingie Thingie]
+    (ok thingie)) ;; here be coerced thingie
+```
+
 you can also wrap models in containers and add extra metadata:
 
 ```clojure
@@ -180,7 +184,7 @@ you can also wrap models in containers and add extra metadata:
 (require '[schema.core :as s])
 
 (defmodel Thingie {:id Long
-	               :tags #{(s/enum :kikka :kukka)}})
+                   :tag (s/enum :kikka :kukka)})
 
 (defroutes* post-thingies
   (POST* "/echos" []
@@ -195,11 +199,13 @@ you can also wrap models in containers and add extra metadata:
     :description "Swagger test api"
     (context "/api" []
       post-thingies
+      (GET* "/echo" []
+        :return Thingie
+        :query  [thingie Thingie]
+        (ok thingie))
       (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
-        :summary  "echos a thingie"
-        :nickname "echoThingie"
         (ok thingie)))))
 ```
 
@@ -225,7 +231,7 @@ A Leiningen template coming sooner or later.
 ## TODO
 
 - `url-for` for endpoints (bidi, bidi, bidi)
-- smart destructuring & coarcing of any parameters (`:query-params`, `:path-params`)
+- smart destructuring & coarcing of any parameters (`:path-params`)
 - parametrizable automatic coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - support for swagger error messages
 - support for swagger consumes
