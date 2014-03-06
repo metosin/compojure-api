@@ -12,7 +12,7 @@
 
 (defn wrap-json-date-format [handler date-format]
   (fn [request]
-    (binding [compojure.api.json/*json-date-format* date-format]
+    (binding [*json-date-format* date-format]
       (let [response (handler request)]
         response))))
 
