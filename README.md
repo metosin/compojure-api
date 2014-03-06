@@ -26,6 +26,7 @@ There is also `compojure.api.middleware/api-middleware`, which packages many com
 - `ring.middleware.http-response/catch-response` for catching erronous http responses
 - `ring.swagger.middleware/catch-validation-errors` for catching model validation errors
 - `compojure.api.json/json-support` for json request & response parsing
+- `compojure.api.json/wrap-json-date-format` for json output date format specification
 - `compojure.handler/api` for normal parameter handling
 
 ### Mounting middlewars
