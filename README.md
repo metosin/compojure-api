@@ -154,15 +154,19 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
 
 ```clojure
   (POST* "/echo" []
-    :return Thingie
-    :body   [thingie Thingie]
+    :return   Thingie
+    :body     [thingie Thingie]
+    :summary  "echos a thingie from json-body"
+    :nickname "echoThingiePost"
     (ok thingie)) ;; here be coerced thingie
 ```
 
 ```clojure
   (GET* "/echo" []
-    :return Thingie
-    :query  [thingie Thingie]
+    :return   Thingie
+    :query    [thingie Thingie]
+    :summary  "echos a thingie from query-params"
+    :nickname "echoThingieQuery"
     (ok thingie)) ;; here be coerced thingie
 ```
 
@@ -200,13 +204,17 @@ you can also wrap models in containers and add extra metadata:
     (context "/api" []
       post-thingies
       (GET* "/echo" []
-        :return Thingie
-        :query  [thingie Thingie]
-        (ok thingie))
+        :return   Thingie
+        :query    [thingie Thingie]
+        :summary  "echos a thingie from query-params"
+        :nickname "echoThingieQuery"
+        (ok thingie)) ;; here be coerced thingie
       (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
-        (ok thingie)))))
+        :summary  "echos a thingie from json-body"
+        :nickname "echoThingiePost"
+        (ok thingie))))) ;; here be coerced thingie
 ```
 
 ## Quickstart for a new project
