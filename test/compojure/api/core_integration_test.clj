@@ -24,9 +24,13 @@
     (swagger-docs)
     (swaggered app-name
       (context "/api" []
-        (GET* "/user" []
+        (GET* "/pertti" []
           :return User
           (ok pertti))
+        (GET* "/user" []
+          :return User
+          :query  [user User]
+          (ok user))
         (POST* "/user" []
           :return User
           :body   [user User]
@@ -36,18 +40,24 @@
           (ok user)))))
 
   (fact "GET*"
-    (let [{:keys [body status]} (api (mock/request :get "/api/user"))
+    (let [{:keys [body status]} (api (mock/request :get "/api/pertti"))
           body (cheshire/parse-string body true)]
       status => 200
       body => pertti))
 
-  (fact "POST* with smart descructuring"
+  (fact "GET* with smart destructuring"
+    (let [{:keys [body status]} (api (assoc (mock/request :get "/api/user") :query-params pertti))
+          body (cheshire/parse-string body true)]
+      status => 200
+      body => pertti))
+
+  (fact "POST* with smart destructuring"
     (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user") :body-params pertti))
           body (cheshire/parse-string body true)]
       status => 200
       body => pertti))
 
-  (fact "POST* with compojure destructuing"
+  (fact "POST* with compojure destructuring"
     (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user2") :body-params pertti))
           body (cheshire/parse-string body true)]
       status => 200
