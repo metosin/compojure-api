@@ -20,8 +20,12 @@
   (swaggered "ping"
     :description "Ping api"
     ping-route)
-  (swaggered "nested"
-    :description "Nested maps"
+  (swaggered "models"
+    :description "Model mappings"
+    (GET* "/echo" []
+      :return   [QueryParams]
+      :query    [query QueryParams]
+      (ok query))
     (POST* "/customer" []
       :return   Customer
       :body     [customer Customer]

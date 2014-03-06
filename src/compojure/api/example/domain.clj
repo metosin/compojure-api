@@ -2,7 +2,23 @@
   (:require [schema.core :as s]
             [ring.swagger.schema :refer :all]))
 
+;;
 ;; Domain
+;;
+
+(defmodel QueryParams {:long Long
+                       :bool Boolean
+                       :enum (s/enum "kikka" "kakka")})
+
+(defmodel Customer {:id String
+                    :address {:street String
+                              :zip Long
+                              :country {:code Long
+                                        :name String}}})
+
+;;
+;; Pizza Store
+;;
 
 (defmodel Pizza {:id    Long
                  :name  String
@@ -13,11 +29,6 @@
 
 (defmodel NewPizza (dissoc Pizza :id))
 
-(defmodel Customer {:id String
-                    :address {:street String
-                              :zip Long
-                              :country {:code Long
-                                        :name String}}})
 ;; Repository
 
 (defonce id-seq (atom 0))
