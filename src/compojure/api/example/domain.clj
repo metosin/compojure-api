@@ -7,6 +7,7 @@
 ;;
 
 (defmodel QueryParams {:long Long
+                       (s/optional-key :string) String
                        :bool Boolean
                        :enum (s/enum "kikka" "kakka")})
 

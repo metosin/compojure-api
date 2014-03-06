@@ -19,4 +19,4 @@
                    :dependencies [[ring-mock "0.1.5"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.2"]
-                                  [metosin/ring-swagger-ui "2.0.10-1"]]}})
+                                  [metosin/ring-swagger-ui "2.0.12-1"]]}})
