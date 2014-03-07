@@ -17,8 +17,6 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 ## Sample application
 
-To try it yourself, clone this repo and hit `lein start-thingie`.
-
 ```clojure
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
@@ -51,7 +49,9 @@ To try it yourself, clone this repo and hit `lein start-thingie`.
         :body     [thingie Thingie]
         :summary  "echos a thingie from json-body"
         (ok thingie))))) ;; here be coerced thingie
-``
+```
+
+To try it yourself, clone this repo and hit `lein start-thingie`.
 
 # Building Documented Apis
 
