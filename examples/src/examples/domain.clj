@@ -1,4 +1,4 @@
-(ns compojure.api.example.domain
+(ns examples.domain
   (:require [schema.core :as s]
             [ring.swagger.schema :refer :all]))
 

@@ -1,8 +1,8 @@
-(ns compojure.api.example.handler
+(ns examples.handler
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [compojure.api.example.dates :as dates]
-            [compojure.api.example.domain :refer :all]))
+            [examples.dates :as dates]
+            [examples.domain :refer :all]))
 
 (defroutes* ping-route
   (GET* "/ping" [] (ok {:ping "pong"})))

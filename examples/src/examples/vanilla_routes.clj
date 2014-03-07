@@ -1,11 +1,11 @@
-(ns compojure.api.example.vanilla-routes
+(ns examples.vanilla-routes
   (:require [compojure.core :refer :all]
             [ring.util.http-response :refer :all]
             [compojure.api.core :refer :all]
             [compojure.api.common :refer [->Long]]
             [compojure.api.swagger :refer :all]
             [compojure.api.middleware :refer [api-middleware]]
-            [compojure.api.example.domain :refer :all]))
+            [examples.domain :refer :all]))
 
 (defroutes app
   (with-middleware [api-middleware]

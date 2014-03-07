@@ -1,4 +1,4 @@
-(ns compojure.api.example.dates
+(ns examples.dates
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [ring.swagger.schema :refer :all]))

@@ -12,11 +12,14 @@
                  [prismatic/schema "0.2.1"]
                  [metosin/ring-http-response "0.3.0"]
                  [metosin/ring-swagger "0.7.3"]]
-  :profiles {:dev {:ring {:handler compojure.api.example.handler/app}
+  :profiles {:thingie {:ring {:handler examples.thingie/app}}
+             :dev {:ring {:handler examples.handler/app}
+                   :source-paths ["examples/src"]
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
                              [lein-ring "0.8.10"]]
                    :dependencies [[ring-mock "0.1.5"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.2"]
-                                  [metosin/ring-swagger-ui "2.0.12-1"]]}})
+                                  [metosin/ring-swagger-ui "2.0.12-1"]]}}
+  :aliases {"start-thingie" ["with-profile" "dev,thingie" "ring" "server"]})
