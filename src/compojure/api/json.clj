@@ -10,6 +10,11 @@
 ;; http://stackoverflow.com/questions/10286204/the-right-json-date-format
 (def ^{:dynamic true} *json-date-format* "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
+(defn wrap-json-date-format [handler date-format]
+  (fn [request]
+    (binding [*json-date-format* date-format]
+      (let [response (handler request)]
+        response))))
 
 (defn json-request?
   "Checks from request content-type weather it's JSON."
