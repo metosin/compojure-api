@@ -69,7 +69,12 @@
          more-routes*)) => [{:method :get
                             :uri ["/api/true"]}
                            {:method :get
-                            :uri ["/api/more/even"]}]))
+                            :uri ["/api/more/even"]}])
+
+  (fact "Parameter regular expressions are discarded"
+    (extract-routes '(context "/api" []
+                       (GET ["/:param" :param #"[a-z]+"] [] identity))) => [{:method :get
+                                                                           :uri ["/api/" :param]}]))
 
 (fact "path-to-index"
   (path-to-index "/")    => "/index.html"
