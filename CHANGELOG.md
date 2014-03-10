@@ -1,3 +1,14 @@
+## 0.8.2 (10.3.2104)
+
+- Swagger path resolution works now with Compojure [regular expression matching in URL parameters](https://github.com/weavejester/compojure/wiki/Routes-In-Detail). Thanks to [Arttu Kaipiainen](https://github.com/arttuka).
+
+```clojure
+(context "/api" []
+  (GET* ["/item/:name" :name #"[a-z/]+"] [name] identity))
+```
+
+- Sets really work now with smart destructuring of `GET*` and `POST*`. Addeds tests to verify.
+
 ## 0.8.1 (6.3.2104)
 
 - update `ring-swagger` to `0.7.3`

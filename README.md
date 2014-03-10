@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.8.1"]
+[metosin/compojure-api "0.8.2"]
 ```
 
 ## Sample application
@@ -53,45 +53,50 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 To try it yourself, clone this repo and hit `lein start-thingie`.
 
+## Quickstart for a new project
+
+Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
+
+A Leiningen template coming sooner or later.
+
 # Building Documented Apis
 
 ## Middlewares
 
-If you targetting non-clojure clients, you most propably want to serve JSON. Compojure-Api has it's own modifications of [ring-json middlewares](https://github.com/weavejester/ring-json) in the namespace `compojure.api.json`.
+There is pre-packaged middleware `api-middleware` for common web api usage, found in`compojure.api.middleware`. It's a enchanced version of `compojure.handler/api` adding the following:
 
-There is also `compojure.api.middleware/api-middleware`, which packages many common middlewares:
-
-- `ring.middleware.http-response/catch-response` for catching erronous http responses
-- `ring.swagger.middleware/catch-validation-errors` for catching model validation errors
-- `compojure.api.json/json-support` for json request & response parsing
-- `compojure.handler/api` for normal parameter handling
+- catching slinghotted http-errors (`ring.middleware.http-response/catch-response`)
+- catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
+- json request & response parsing (`compojure.api.json/json-support`)
 
 ### Mounting middlewars
 
-`with-middleware` to set up the middlewares:
+To help setting up custom middleware there is a `with-middleware` macro:
 
 ```clojure
-(require '[ring.util.http-response :refer [ok]])
-(require '[compojure.api.middleware :refer [api-middleware]])
-(require '[compojure.api.core :refer [with-middleware]])
-(require '[compojure.core :refer :all)
+(ns example
+  (:require [ring.util.http-response :refer [ok]]
+            [compojure.api.middleware :refer [api-middleware]]
+            [compojure.api.core :as ac]
+            [compojure.core :refer :all]))
 
 (defroutes app
-  (with-middleware [api-middleware]
+  (ac/with-middleware [api-middleware]
     (context "/api" []
-      (GET "/ping" [] (ok {:ping "pong"}})))))
+      (GET "/ping" [] (ok {:ping "pong"})))))
 ```
 
-same in short form `defapi`:
+There is also a short form for the common case of `api-middleware`:
 
 ```clojure
-(require '[ring.util.http-response :refer [ok]])
-(require '[compojure.api.core :refer [defapi]])
-(require '[compojure.core :refer :all)
+(ns example2
+  (:require [ring.util.http-response :refer [ok]]
+            [compojure.api.core :as ac]
+            [compojure.core :refer :all]))
 
 (defapi app
   (context "/api" []
-    (GET "/ping" [] (ok {:ping "pong"}}))))
+    (GET "/ping" [] (ok {:ping "pong"}))))
 ```
 
 ## Routes
@@ -103,13 +108,14 @@ Namespace `compojure.api.sweet` is a public entry point for all routing, importi
 ### sample sweet application
 
 ```clojure
-(require '[ring.util.http-response :refer :all])
-(require '[compojure.api.sweet :refer :all])
+(ns example3
+  (:require [ring.util.http-response :refer [ok]]
+            [compojure.api.sweet :refer :all]))
 
 (defapi app
   (context "/api" []
     (GET* "/user/:id" [id] (ok {:id id}))
-    (POST* "/echo" [{body :body-params}] (ok body))))
+    (POST* "/echo" {body :body-params} (ok body))))
 ```
 
 ## Route documentation
@@ -125,11 +131,14 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
 ### sample swaggered app
 
 ```clojure
-(require '[ring.util.http-response :refer :all])
-(require '[compojure.api.sweet :refer :all])
+(ns example4
+  (:require [ring.util.http-response :refer [ok]]
+            [compojure.api.sweet :refer :all]))
 
-(defroutes* ping-route
-  (GET* "/user/:id" [id] (ok {:id id})))
+
+(defroutes* legacy-route
+  (GET* "/ping/:id" [id]
+    (ok {:id id})))
 
 (defapi app
   (swagger-ui)
@@ -137,8 +146,8 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
   (swaggered "test"
     :description "Swagger test api"
     (context "/api" []
-      ping-route
-      (POST* "/echo" [{body :body-params}] (ok body)))))
+      legacy-route
+      (POST* "/echo" {body :body-params} (ok body)))))
 ```
 
 By default, Swagger-UI is mounted to the root `/` and api-listing to `/api/api-docs`.
@@ -208,7 +217,7 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
     (ok thingie)) ;; here be coerced thingie
 ```
 
-you can also wrap models in containers and add extra metadata:
+you can also wrap models in containers (`Vector`, `List`, `Set`) and add extra metadata:
 
 ```clojure
   (POST* "/echos" []
@@ -216,50 +225,6 @@ you can also wrap models in containers and add extra metadata:
     :body     [thingies #{Thingie} {:description "set on thingies"}]
     (ok thingies))
 ```
-
-### Full sample app
-
-```clojure
-(require '[ring.util.http-response :refer :all])
-(require '[compojure.api.sweet :refer :all])
-(require '[ring.swagger.schema :refer :all])
-(require '[schema.core :as s])
-
-(defmodel Thingie {:id Long
-                   :tag (s/enum :kikka :kukka)})
-
-(defroutes* post-thingies
-  (POST* "/echos" []
-    :return   [Thingie]
-    :body     [thingies #{Thingie} {:description "set on thingies"}]
-    (ok thingies)))
-
-(defapi app
-  (swagger-ui)
-  (swagger-docs)
-  (swaggered "test"
-    :description "Swagger test api"
-    (context "/api" []
-      post-thingies
-      (GET* "/echo" []
-        :return   Thingie
-        :query    [thingie Thingie]
-        :summary  "echos a thingie from query-params"
-        :nickname "echoThingieQuery"
-        (ok thingie)) ;; here be coerced thingie
-      (POST* "/echo" []
-        :return   Thingie
-        :body     [thingie Thingie]
-        :summary  "echos a thingie from json-body"
-        :nickname "echoThingiePost"
-        (ok thingie))))) ;; here be coerced thingie
-```
-
-## Quickstart for a new project
-
-Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
-
-A Leiningen template coming sooner or later.
 
 ## Running the embedded example(s)
 
