@@ -16,8 +16,8 @@
 
 (defn- restructure-body [request lets parameters]
   (if-let [[value model model-meta] (:body parameters)]
-    (let [model-var (swagger/resolve-model-var (if (sequential? model) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model-var (:body-params ~request) :json)])
+    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
+          new-lets (into lets [value `(schema/coerce! ~model (:body-params ~request) :json)])
           new-parameters (-> parameters
                            (dissoc :body)
                            swagger/resolve-model-vars
@@ -28,7 +28,7 @@
                                 :required "true"}
                                model-meta
                                {:paramType "body"
-                                :type (if (sequential? model) [model-var] model-var)}))
+                                :type (swagger/resolve-model-vars model)}))
                            (update-in [:parameters] vec))]
       [new-lets new-parameters])
     [lets parameters]))
@@ -47,8 +47,8 @@
 
 (defn- restructure-query-params [request lets parameters]
   (if-let [[value model model-meta] (:query parameters)]
-    (let [model-var (swagger/resolve-model-var (if (sequential? model) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model-var (keywordize-keys (:query-params ~request)) :query)])
+    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
+          new-lets (into lets [value `(schema/coerce! ~model (keywordize-keys (:query-params ~request)) :query)])
           new-parameters (-> parameters
                            (dissoc :query)
                            swagger/resolve-model-vars

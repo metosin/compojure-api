@@ -21,7 +21,6 @@
     (after :contents (swap! swagger/swagger dissoc app-name)))
 
   (defapi api
-    (swagger-docs)
     (swaggered app-name
       (context "/api" []
         (GET* "/pertti" []
@@ -31,35 +30,75 @@
           :return User
           :query  [user User]
           (ok user))
+        (GET* "/user_list" []
+          :return [User]
+          :query  [user [User]]
+          (ok user))
+        (GET* "/user_set" []
+          :return #{User}
+          :query  [user #{User}]
+          (ok user))
         (POST* "/user" []
           :return User
           :body   [user User]
           (ok user))
-        (POST* "/user2" {user :body-params}
+        (POST* "/user_list" []
+          :return [User]
+          :body   [users [User]]
+          (ok users))
+        (POST* "/user_set" []
+          :return #{User}
+          :body   [users #{User}]
+          (ok users))
+        (POST* "/user_legacy" {user :body-params}
           :return User
           (ok user)))))
 
   (fact "GET*"
     (let [{:keys [body status]} (api (mock/request :get "/api/pertti"))
-          body (cheshire/parse-string body true)]
+          body-parsed (cheshire/parse-string body true)]
       status => 200
-      body => pertti))
+      body-parsed => pertti))
 
   (fact "GET* with smart destructuring"
     (let [{:keys [body status]} (api (assoc (mock/request :get "/api/user") :query-params pertti))
-          body (cheshire/parse-string body true)]
+          body-parsed (cheshire/parse-string body true)]
       status => 200
-      body => pertti))
+      body-parsed => pertti))
+
+  (fact "GET* with smart destructuring - lists"
+    (let [{:keys [body status]} (api (assoc (mock/request :get "/api/user_list") :query-params [pertti]))
+          body-parsed (cheshire/parse-string body true)]
+      status => 200
+      body-parsed => [pertti]))
+
+  (fact "GET* with smart destructuring - sets"
+    (let [{:keys [body status]} (api (assoc (mock/request :get "/api/user_set") :query-params #{pertti}))
+          body-parsed (cheshire/parse-string body true)]
+      status => 200
+      body-parsed => [pertti]))
 
   (fact "POST* with smart destructuring"
     (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user") :body-params pertti))
-          body (cheshire/parse-string body true)]
+          body-parsed (cheshire/parse-string body true)]
       status => 200
-      body => pertti))
+      body-parsed => pertti))
+
+  (fact "POST* with smart destructuring - lists"
+    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user_list") :body-params [pertti]))
+          body-parsed (cheshire/parse-string body true)]
+      status => 200
+      body-parsed => [pertti]))
+
+  (fact "POST* with smart destructuring - sets"
+    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user_set") :body-params #{pertti}))
+          body-parsed (cheshire/parse-string body true)]
+      status => 200
+      body-parsed => [pertti]))
 
   (fact "POST* with compojure destructuring"
-    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user2") :body-params pertti))
-          body (cheshire/parse-string body true)]
+    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user_legacy") :body-params pertti))
+          body-parsed (cheshire/parse-string body true)]
       status => 200
-      body => pertti)))
+      body-parsed => pertti)))
 
