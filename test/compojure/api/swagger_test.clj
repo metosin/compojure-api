@@ -74,7 +74,7 @@
   (fact "Parameter regular expressions are discarded"
     (extract-routes '(context "/api" []
                        (GET ["/:param" :param #"[a-z]+"] [] identity))) => [{:method :get
-                                                                           :uri ["/api/" :param]}]))
+                                                                             :uri ["/api/" :param]}]))
 
 (fact "path-to-index"
   (path-to-index "/")    => "/index.html"
