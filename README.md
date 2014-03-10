@@ -77,11 +77,11 @@ To help setting up custom middleware there is a `with-middleware` macro:
 (ns example
   (:require [ring.util.http-response :refer [ok]]
             [compojure.api.middleware :refer [api-middleware]]
-            [compojure.api.core :as ac]
+            [compojure.api.core :refer [with-middleware]]
             [compojure.core :refer :all]))
 
 (defroutes app
-  (ac/with-middleware [api-middleware]
+  (with-middleware [api-middleware]
     (context "/api" []
       (GET "/ping" [] (ok {:ping "pong"})))))
 ```
@@ -91,7 +91,7 @@ There is also a short form for the common case of `api-middleware`:
 ```clojure
 (ns example2
   (:require [ring.util.http-response :refer [ok]]
-            [compojure.api.core :as ac]
+            [compojure.api.core :refer [defapi]]
             [compojure.core :refer :all]))
 
 (defapi app
