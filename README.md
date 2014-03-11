@@ -135,7 +135,6 @@ There is also a `swagger-ui` route for mounting the external [Swagger-UI](https:
   (:require [ring.util.http-response :refer [ok]]
             [compojure.api.sweet :refer :all]))
 
-
 (defroutes* legacy-route
   (GET* "/ping/:id" [id]
     (ok {:id id})))
