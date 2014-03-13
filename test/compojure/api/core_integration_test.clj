@@ -14,6 +14,8 @@
 
 (def pertti {:id 1 :name "Pertti"})
 
+(def invalid-user {:id 1 :name "Jorma" :age 50})
+
 (def app-name (str (gensym)))
 
 (facts "for a compojure-api app"
@@ -38,6 +40,11 @@
           :return #{User}
           :query  [user #{User}]
           (ok user))
+        (GET* "/invalid-user" []
+          :return User
+          (ok invalid-user))
+        (GET* "/not-validated" []
+          (ok invalid-user))
         (POST* "/user" []
           :return User
           :body   [user User]
@@ -100,5 +107,14 @@
     (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user_legacy") :body-params pertti))
           body-parsed (cheshire/parse-string body true)]
       status => 200
-      body-parsed => pertti)))
+      body-parsed => pertti))
+
+  (fact "Validation of returned data"
+    (:status (api (mock/request :get "/api/invalid-user"))) => 400)
+
+  (fact "Routes without a :return parameter aren't validated"
+    (let [{:keys [body status]} (api (mock/request :get "/api/not-validated"))
+          body-parsed (cheshire/parse-string body true)]
+      status => 200
+      body-parsed => invalid-user)))
 

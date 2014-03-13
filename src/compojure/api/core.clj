@@ -58,9 +58,22 @@
       [new-lets new-parameters])
     [lets parameters]))
 
+(defn- restructure-validation [parameters body]
+  (if-let [model (:return parameters)]
+    (let [returned-form (last body)
+          body (butlast body)
+          validated-return-form `(let [validator# (partial s/validate ~model)
+                                       return-value# ~returned-form]
+                                   (if (response/response? return-value#)
+                                     (update-in return-value# [:body] validator#)
+                                     (validator# return-value#)))]
+      (concat body [validated-return-form]))
+    body))
+
 (defn- restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
+        body (restructure-validation parameters body)
         request (gensym)
         [lets parameters] (restructure-body request [] parameters)
         [lets parameters] (restructure-query-params request lets parameters)]

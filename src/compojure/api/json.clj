@@ -3,6 +3,7 @@
    Might use https://github.com/ngrunwald/ring-middleware-format later."
   (:require [ring.util.response :refer [content-type]]
             [cheshire.core :as cheshire]
+            cheshire.generate
             [clojure.walk :as walk]
             [clojure.java.io :as io]))
 
@@ -48,4 +49,7 @@
 
 (defn json-support
   [handler]
+  (cheshire.generate/add-encoder java.lang.Class
+    (fn [c g]
+      (.writeString g (.getName c))))
   (-> handler json-request-support json-response-support))
