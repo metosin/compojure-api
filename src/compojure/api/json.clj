@@ -49,7 +49,4 @@
 
 (defn json-support
   [handler]
-  (cheshire.generate/add-encoder java.lang.Class
-    (fn [c g]
-      (.writeString g (.getName c))))
   (-> handler json-request-support json-response-support))

@@ -62,7 +62,7 @@
   (if-let [model (:return parameters)]
     (let [returned-form (last body)
           body (butlast body)
-          validated-return-form `(let [validator# (partial s/validate ~model)
+          validated-return-form `(let [validator# (partial schema/coerce! ~model)
                                        return-value# ~returned-form]
                                    (if (response/response? return-value#)
                                      (update-in return-value# [:body] validator#)
