@@ -47,9 +47,34 @@
           (update-in [:body] cheshire/generate-string {:date-format *json-date-format*}))
         response))))
 
+(defn encode-with-pr-str
+  [cls]
+  (cheshire.generate/add-encoder cls
+    (fn [c g]
+      (.writeString g (pr-str c)))))
+
+(defn add-schema-encoders []
+  (doseq [cls [java.lang.Class
+               schema.core.AnythingSchema
+               schema.core.EqSchema
+               schema.core.EnumSchema
+               schema.core.Predicate
+               schema.core.Protocol
+               schema.core.Maybe
+               schema.core.NamedSchema
+               schema.core.Either
+               schema.core.Both
+               schema.core.ConditionalSchema
+               schema.core.Recursive
+               schema.core.MapEntry
+               schema.core.Record
+               schema.core.FnSchema
+               schema.core.OptionalKey
+               schema.core.RequiredKey
+               schema.core.One]]
+    (encode-with-pr-str cls)))
+
 (defn json-support
   [handler]
-  (cheshire.generate/add-encoder java.lang.Class
-    (fn [c g]
-      (.writeString g (.getName c))))
+  (add-schema-encoders)
   (-> handler json-request-support json-response-support))
