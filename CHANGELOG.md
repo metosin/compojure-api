@@ -1,4 +1,10 @@
-## 0.8.2 (10.3.2104)
+## 0.8.3 (15.3.2014)
+
+- coerce return values with smart destructuring, thanks to [Arttu Kaipiainen](https://github.com/arttuka).
+- update `ring-http-response` to `0.4.0`
+- handle json-parse-errors by returning json
+
+## 0.8.2 (10.3.2014)
 
 - Swagger path resolution works now with Compojure [regular expression matching in URL parameters](https://github.com/weavejester/compojure/wiki/Routes-In-Detail). Thanks to [Arttu Kaipiainen](https://github.com/arttuka).
 
@@ -12,7 +18,7 @@
 ## 0.8.1 (6.3.2104)
 
 - update `ring-swagger` to `0.7.3`
-- initial support for smart query parameter destruction (arrays and nested params don't get swagger-ui love yet - but work otherwise ok)
+- initial support for smart query parameter destructuring (arrays and nested params don't get swagger-ui love yet - but work otherwise ok)
 
 ```clojure
   (GET* "/echo" []
