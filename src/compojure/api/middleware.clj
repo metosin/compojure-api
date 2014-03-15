@@ -45,6 +45,6 @@
   (-> handler
     ring.middleware.http-response/catch-response
     ring.swagger.middleware/catch-validation-errors
-    ex-info-support
     json-support
+    ex-info-support
     compojure/api))

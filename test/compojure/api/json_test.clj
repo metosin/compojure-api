@@ -43,5 +43,4 @@
         (:json-params request)  => nil
         (:params request)       => nil)))
 
-  (fact "json-response-support"
-    ))
+  (fact "json-response-support"))
