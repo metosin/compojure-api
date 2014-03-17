@@ -18,7 +18,7 @@
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
                              [lein-ring "0.8.10"]]
-                   :dependencies [[ring-mock "0.1.5"]
+                   :dependencies [[peridot "0.2.2"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.3"]
                                   [metosin/ring-swagger-ui "2.0.12-1"]]}}

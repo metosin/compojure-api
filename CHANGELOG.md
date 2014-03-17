@@ -3,6 +3,7 @@
 - coerce return values with smart destructuring, thanks to [Arttu Kaipiainen](https://github.com/arttuka).
 - update `ring-http-response` to `0.4.0`
 - handle json-parse-errors by returning json
+- rewrite `compojure.api.core-integration-test` using `peridot.core`
 
 ## 0.8.2 (10.3.2014)
 

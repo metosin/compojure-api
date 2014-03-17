@@ -4,10 +4,39 @@
             [ring.swagger.schema :refer :all]
             [compojure.api.swagger :as swagger]
             [ring.util.http-response :refer :all]
-            [ring.mock.request :as mock]
+            [peridot.core :as p]
             [cheshire.core :as cheshire]
             [compojure.core :as compojure]
-            [compojure.api.sweet :refer :all]))
+            [clojure.java.io :as io]
+            [compojure.api.sweet :refer :all])
+  (:import [java.io ByteArrayInputStream]))
+
+;;
+;; common
+;;
+
+(defn get* [app uri & [params]]
+  (let [{{:keys [status body]} :response}
+        (-> (p/session app)
+          (p/request uri
+            :request-method :get
+            :params (or params {})))]
+    [status (cheshire/parse-string body true)]))
+
+(defn json [x] (cheshire/generate-string x))
+
+(defn post* [app uri & [data]]
+  (let [{{:keys [status body]} :response}
+        (-> (p/session app)
+          (p/request uri
+            :request-method :post
+            :content-type "application/json"
+            :body (.getBytes data)))]
+    [status (cheshire/parse-string body true)]))
+
+;;
+;; Data
+;;
 
 (defmodel User {:id   Long
                 :name String})
@@ -17,6 +46,10 @@
 (def invalid-user {:id 1 :name "Jorma" :age 50})
 
 (def app-name (str (gensym)))
+
+;;
+;; Facts
+;;
 
 (facts "for a compojure-api app"
   (background
@@ -62,59 +95,46 @@
           (ok user)))))
 
   (fact "GET*"
-    (let [{:keys [body status]} (api (mock/request :get "/api/pertti"))
-          body-parsed (cheshire/parse-string body true)]
+    (let [[status body] (get* api "/api/pertti")]
       status => 200
-      body-parsed => pertti))
+      body => pertti))
 
   (fact "GET* with smart destructuring"
-    (let [{:keys [body status]} (api (assoc (mock/request :get "/api/user") :query-params pertti))
-          body-parsed (cheshire/parse-string body true)]
+    (let [[status body] (get* api "/api/user" pertti)]
       status => 200
-      body-parsed => pertti))
-
-  (fact "GET* with smart destructuring - lists"
-    (let [{:keys [body status]} (api (assoc (mock/request :get "/api/user_list") :query-params [pertti]))
-          body-parsed (cheshire/parse-string body true)]
-      status => 200
-      body-parsed => [pertti]))
-
-  (fact "GET* with smart destructuring - sets"
-    (let [{:keys [body status]} (api (assoc (mock/request :get "/api/user_set") :query-params #{pertti}))
-          body-parsed (cheshire/parse-string body true)]
-      status => 200
-      body-parsed => [pertti]))
+      body => pertti))
 
   (fact "POST* with smart destructuring"
-    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user") :body-params pertti))
-          body-parsed (cheshire/parse-string body true)]
+    (let [[status body] (post* api "/api/user" (json pertti))]
       status => 200
-      body-parsed => pertti))
+      body => pertti))
 
   (fact "POST* with smart destructuring - lists"
-    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user_list") :body-params [pertti]))
-          body-parsed (cheshire/parse-string body true)]
+    (let [[status body] (post* api "/api/user_list" (json [pertti]))]
       status => 200
-      body-parsed => [pertti]))
+      body => [pertti]))
 
   (fact "POST* with smart destructuring - sets"
-    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user_set") :body-params #{pertti}))
-          body-parsed (cheshire/parse-string body true)]
+    (let [[status body] (post* api "/api/user_set" (json #{pertti}))]
       status => 200
-      body-parsed => [pertti]))
+      body => [pertti]))
 
   (fact "POST* with compojure destructuring"
-    (let [{:keys [body status]} (api (assoc (mock/request :post "/api/user_legacy") :body-params pertti))
-          body-parsed (cheshire/parse-string body true)]
+    (let [[status body] (post* api "/api/user_legacy" (json pertti))]
       status => 200
-      body-parsed => pertti))
+      body => pertti))
 
   (fact "Validation of returned data"
-    (:status (api (mock/request :get "/api/invalid-user"))) => 400)
+    (let [[status body] (get* api "/api/invalid-user")]
+      status => 400))
 
   (fact "Routes without a :return parameter aren't validated"
-    (let [{:keys [body status]} (api (mock/request :get "/api/not-validated"))
-          body-parsed (cheshire/parse-string body true)]
+    (let [[status body] (get* api "/api/not-validated")]
       status => 200
-      body-parsed => invalid-user)))
+      body => invalid-user))
 
+  (fact "Invalid json in body causes 400 with error message in json"
+    (let [[status body] (post* api "/api/user" "{INVALID}")]
+      status => 400
+      (:type body) => "json-parse-exception"
+      (:message body) => truthy)))
