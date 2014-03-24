@@ -39,7 +39,7 @@
     (for [[k v ] model
           :let [rk (s/explicit-schema-key k)]]
       (merge
-        (swagger/type-of v)
+        (swagger/->json v)
         {:name (name rk)
          :description ""
          :required (s/required-key? k)

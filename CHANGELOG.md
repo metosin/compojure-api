@@ -1,3 +1,7 @@
+## 0.8.4 (25.3.2014)
+
+- update `ring-swagger` to `0.8.0`
+
 ## 0.8.3 (15.3.2014)
 
 - coerce return values with smart destructuring, thanks to [Arttu Kaipiainen](https://github.com/arttuka).

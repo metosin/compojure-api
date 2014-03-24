@@ -67,20 +67,11 @@
         x))
     form))
 
-(defn create-uri [s]
-  (-> s
-    (s/replace #":(.[^:|/]*)" " :$1 ")
-    (s/split #" ")
-    (->> (map #(if (.startsWith % ":") (keyword (.substring % 1)) %)))))
-
-(defn remove-param-regexes [p]
-  (if (vector? p)
-    (first p)
-    p))
+(defn remove-param-regexes [p] (if (vector? p) (first p) p))
 
 (defn create-api-route [[ks v]]
   [{:method (first (keep second ks))
-    :uri (->> ks (map first) (map remove-param-regexes) s/join create-uri)} v])
+    :uri (->> ks (map first) (map remove-param-regexes) s/join)} v])
 
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))

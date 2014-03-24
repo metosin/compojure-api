@@ -52,21 +52,21 @@
 
     => {:description "sample api"
         :routes [{:method :compojure.core/get
-                  :uri ["/ping"]}
+                  :uri "/ping"}
                  {:method :compojure.core/get
-                  :uri ["/api/ping"]}
+                  :uri "/api/ping"}
                  {:method :compojure.core/get ;; should be plain :get
-                  :uri ["/api/bands"]
+                  :uri "/api/bands"
                   :metadata {:nickname "getBands"
                              :return [#'Band]
                              :summary "Gets all Bands"}}
                  {:method :compojure.core/get ;; should be plain :get
-                  :uri ["/api/bands/" :id]
+                  :uri "/api/bands/:id"
                   :metadata {:nickname "getBand"
                              :return #'Band
                              :summary "Gets a Band"}}
                  {:method :compojure.core/post ;; should be plain :post
-                  :uri ["/api/bands"]
+                  :uri "/api/bands"
                   :metadata {:nickname "addBand"
                              :parameters [{:description "new Band"
                                            :name "newband"
