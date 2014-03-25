@@ -64,7 +64,9 @@
                   :uri "/api/bands/:id"
                   :metadata {:nickname "getBand"
                              :return #'Band
-                             :summary "Gets a Band"}}
+                             :summary "Gets a Band"
+                             :parameters [{:type :path
+                                           :model {:id String}}]}}
                  {:method :compojure.core/post ;; should be plain :post
                   :uri "/api/bands"
                   :metadata {:nickname "addBand"

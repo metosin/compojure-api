@@ -5,6 +5,7 @@
             [compojure.api.swagger :refer :all]))
 
 (fact "extracting compojure paths"
+
   (fact "all compojure.core macros are interpreted"
     (extract-routes
       '(context "/a" []
@@ -18,20 +19,28 @@
                (OPTIONS "/g" [] identity)
                (PATCH   "/h" [] identity)))
            (context "/:i/:j" []
-             (GET "/k/:l/m/:n" [] identity))))) => [{:method :get
-                                                     :uri "/a/b/c"}
-                                                    {:method :post
-                                                     :uri "/a/b/d"}
-                                                    {:method :put
-                                                     :uri "/a/b/e"}
-                                                    {:method :delete
-                                                     :uri "/a/b/f"}
-                                                    {:method :options
-                                                     :uri "/a/b/g"}
-                                                    {:method :patch
-                                                     :uri "/a/b/h"}
-                                                    {:method :get
-                                                     :uri "/a/:i/:j/k/:l/m/:n"}])
+             (GET "/k/:l/m/:n" [] identity)))))
+
+    => [{:method :get
+         :uri "/a/b/c"}
+        {:method :post
+         :uri "/a/b/d"}
+        {:method :put
+         :uri "/a/b/e"}
+        {:method :delete
+         :uri "/a/b/f"}
+        {:method :options
+         :uri "/a/b/g"}
+        {:method :patch
+         :uri "/a/b/h"}
+        {:method :get
+         :uri "/a/:i/:j/k/:l/m/:n"
+         :metadata {:parameters [{:type :path
+                                  :model {:i String
+                                          :j String
+                                          :l String
+                                          :n String}}]}}])
+
   (fact "runtime code in route is ignored"
     (extract-routes
       '(context "/api" []
@@ -41,6 +50,7 @@
                                               :uri "/api/true"}
                                              {:method :put
                                               :uri "/api/false"}])
+
   (fact "macros are expanded"
     (defmacro optional-routes [p & body] (when p `(routes ~@body)))
     (extract-routes
@@ -73,8 +83,12 @@
 
   (fact "Parameter regular expressions are discarded"
     (extract-routes '(context "/api" []
-                       (GET ["/:param" :param #"[a-z]+"] [] identity))) => [{:method :get
-                                                                             :uri "/api/:param"}]))
+                       (GET ["/:param" :param #"[a-z]+"] [] identity)))
+
+    => [{:method :get
+         :uri "/api/:param"
+         :metadata {:parameters [{:type :path
+                                  :model {:param String}}]}}]))
 
 (fact "path-to-index"
   (path-to-index "/")    => "/index.html"
@@ -90,10 +104,15 @@
           :description ..description..
           :routes ..overridded..
           (context "/api"
-            (GET "/user/:id" [] identity))))) => {:title  ..title..
-                                                  :description ..description..
-                                                  :routes [{:method :get
-                                                            :uri "/api/user/:id"}]})
+            (GET "/user/:id" [] identity)))))
+
+    => {:title  ..title..
+        :description ..description..
+        :routes [{:method :get
+                  :uri "/api/user/:id"
+                  :metadata {:parameters [{:type :path
+                                           :model {:id String}}]}}]})
+
   (fact "with map-parameters"
     (first
       (swagger-info
@@ -101,9 +120,11 @@
            :description ..description..
            :routes ..overridded..}
           (context "/api"
-            (GET "/user/:id" [] identity))))) => {:title  ..title..
-                                                  :description ..description..
-                                                  :routes [{:method :get
-                                                            :uri "/api/user/:id"}]}))
+            (GET "/user/:id" [] identity)))))
 
-
+    => {:title  ..title..
+        :description ..description..
+        :routes [{:method :get
+                  :uri "/api/user/:id"
+                  :metadata {:parameters [{:type :path
+                                           :model {:id String}}]}}]}))

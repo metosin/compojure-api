@@ -1,3 +1,7 @@
+## 0.8.5 (25.3.2014)
+
+- update `ring-swagger` to `0.8.3`, generate path-parameters on client side
+
 ## 0.8.4 (25.3.2014)
 
 - update `ring-swagger` to `0.8.1`, all json-schema generation now done there.
