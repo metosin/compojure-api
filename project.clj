@@ -11,7 +11,7 @@
                  [compojure "1.1.6"]
                  [prismatic/schema "0.2.1"]
                  [metosin/ring-http-response "0.4.0"]
-                 [metosin/ring-swagger "0.8.0"]]
+                 [metosin/ring-swagger "0.8.1"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app}}
              :dev {:ring {:handler examples.handler/app}
                    :source-paths ["examples/src"]

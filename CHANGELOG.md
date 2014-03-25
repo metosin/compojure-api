@@ -1,6 +1,6 @@
 ## 0.8.4 (25.3.2014)
 
-- update `ring-swagger` to `0.8.0`
+- update `ring-swagger` to `0.8.1`, all json-schema generation now done there.
 
 ## 0.8.3 (15.3.2014)
 
