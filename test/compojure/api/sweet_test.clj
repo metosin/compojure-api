@@ -68,11 +68,9 @@
                  {:method :compojure.core/post ;; should be plain :post
                   :uri "/api/bands"
                   :metadata {:nickname "addBand"
-                             :parameters [{:description "new Band"
-                                           :name "newband"
-                                           :paramType "body"
-                                           :required "true"
-                                           :type [#'NewBand]}]
+                             :parameters [{:type :body
+                                           :model [#'NewBand]
+                                           :meta {:description "new Band"}}]
                              :return #'Band
                              :summary "Adds a Band"}}]})
 

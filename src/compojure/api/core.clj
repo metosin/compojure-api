@@ -22,28 +22,12 @@
                            (dissoc :body)
                            swagger/resolve-model-vars
                            (update-in [:parameters] conj
-                             (merge
-                               {:name (-> model-var name-of .toLowerCase)
-                                :description ""
-                                :required "true"}
-                               model-meta
-                               {:paramType "body"
-                                :type (swagger/resolve-model-vars model)}))
+                             {:type :body
+                              :model (swagger/resolve-model-vars model)
+                              :meta model-meta})
                            (update-in [:parameters] vec))]
       [new-lets new-parameters])
     [lets parameters]))
-
-;; TODO: generates bad arrays
-(defn- query-model-parameters [model]
-  (doall
-    (for [[k v ] model
-          :let [rk (s/explicit-schema-key k)]]
-      (merge
-        (swagger/->json v)
-        {:name (name rk)
-         :description ""
-         :required (s/required-key? k)
-         :paramType "query"}))))
 
 (defn- restructure-query-params [request lets parameters]
   (if-let [[value model model-meta] (:query parameters)]
@@ -52,8 +36,10 @@
           new-parameters (-> parameters
                            (dissoc :query)
                            swagger/resolve-model-vars
-                           (update-in [:parameters] concat
-                             (query-model-parameters (value-of model-var)))
+                           (update-in [:parameters] conj
+                             {:type :query
+                              :model (swagger/resolve-model-vars model)
+                              :meta model-meta})
                            (update-in [:parameters] vec))]
       [new-lets new-parameters])
     [lets parameters]))
