@@ -23,7 +23,7 @@
   (swaggered "models"
     :description "Model mappings"
     (GET* "/echo" []
-      :return   [QueryParams]
+      :return   QueryParams
       :query    [query QueryParams]
       (ok query))
     (POST* "/customer" []
