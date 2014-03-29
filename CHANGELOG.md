@@ -1,3 +1,7 @@
+## 0.8.6 (29.3.2014)
+
+- use `instanceof?` to match records instead of `=` with class. Apps can now be uberwarred with `lein ring uberwar`.
+
 ## 0.8.5 (25.3.2014)
 
 - update `ring-swagger` to `0.8.3`, generate path-parameters on client side
