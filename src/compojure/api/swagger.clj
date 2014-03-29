@@ -78,14 +78,14 @@
 
 (defn create-paths [{:keys [p b c] :as r}]
   (apply array-map
-    (condp = (class r)
-      CompojureRoute  (let [route-meta (meta r)
-                            method-meta (meta (first b))
-                            parameter-meta (first (extract-parameters (drop 3 b)))
-                            metadata (merge route-meta method-meta parameter-meta)
-                            new-body [(with-meta (first b) metadata) (rest b)]]
-                        [[p (extract-method b)] new-body])
-      CompojureRoutes [[p nil] (->> c (map create-paths) ->map)])))
+    (cond
+      (instance? CompojureRoute r)  (let [route-meta (meta r)
+                                          method-meta (meta (first b))
+                                          parameter-meta (first (extract-parameters (drop 3 b)))
+                                          metadata (merge route-meta method-meta parameter-meta)
+                                          new-body [(with-meta (first b) metadata) (rest b)]]
+                                      [[p (extract-method b)] new-body])
+      (instance? CompojureRoutes r) [[p nil] (->> c (map create-paths) ->map)])))
 
 (defn route-metadata [body]
   (remove-empty-keys
