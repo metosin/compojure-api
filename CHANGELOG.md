@@ -1,3 +1,7 @@
+## 0.8.7 (30.3.2014)
+
+- `swagger-ui` index-redirect work also under a context when running in an legacy app-server. Thanks to [Juha Syrjälä](https://github.com/jsyrjala) for the PR.
+
 ## 0.8.6 (29.3.2014)
 
 - use `instanceof?` to match records instead of `=` with class. Apps can now be uberwarred with `lein ring uberwar`.

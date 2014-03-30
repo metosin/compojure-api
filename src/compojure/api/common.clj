@@ -1,5 +1,4 @@
-(ns compojure.api.common
-  (:use [clojure.walk :as walk]))
+(ns compojure.api.common)
 
 (defn path-vals
   "Returns vector of tuples containing path vector to the value and the value."
