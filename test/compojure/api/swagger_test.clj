@@ -91,9 +91,9 @@
                                   :model {:param String}}]}}]))
 
 (fact "path-to-index"
-  (path-to-index "/")    => "/index.html"
-  (path-to-index "/ui")  => "/ui/index.html"
-  (path-to-index "/ui/") => "/ui/index.html")
+  (path-to-index {} "/")    => "/index.html"
+  (path-to-index {} "/ui")  => "/ui/index.html"
+  (path-to-index {} "/ui/") => "/ui/index.html")
 
 (facts "swagger-info"
 

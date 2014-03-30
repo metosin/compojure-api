@@ -121,7 +121,12 @@
     (map attach-meta-data-to-route)
     reverse))
 
-(defn path-to-index [path] (s/replace (str path "/index.html") #"//" "/"))
+(defn path-to-index [req path]
+  (let [servlet-context (:servlet-context req)
+        context (if servlet-context
+                  (.getContextPath servlet-context)
+                  "")]
+    (s/replace (str context path "/index.html") #"//" "/")))
 
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
@@ -138,7 +143,7 @@
   ([] (swagger-ui "/"))
   ([path]
     (routes
-      (GET path [] (redirect (path-to-index path)))
+      (GET path req (redirect (path-to-index req path)))
       (route/resources path {:root "swagger-ui"}))))
 
 (defn swagger-docs
