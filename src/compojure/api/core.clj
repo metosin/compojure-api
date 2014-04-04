@@ -3,6 +3,8 @@
             [compojure.api.middleware :as mw]
             [compojure.api.common :refer :all]
             [ring.util.response :as response]
+            [plumbing.core :refer [letk]]
+            [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.core :as swagger]
             [ring.swagger.schema :as schema]
             [ring.swagger.common :refer :all]
@@ -13,36 +15,6 @@
 ;;
 ;; Smart Destructuring
 ;;
-
-(defn- restructure-body [request lets parameters]
-  (if-let [[value model model-meta] (:body parameters)]
-    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model (:body-params ~request) :json)])
-          new-parameters (-> parameters
-                           (dissoc :body)
-                           swagger/resolve-model-vars
-                           (update-in [:parameters] conj
-                             {:type :body
-                              :model (swagger/resolve-model-vars model)
-                              :meta model-meta})
-                           (update-in [:parameters] vec))]
-      [new-lets new-parameters])
-    [lets parameters]))
-
-(defn- restructure-query-params [request lets parameters]
-  (if-let [[value model model-meta] (:query parameters)]
-    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model (keywordize-keys (:query-params ~request)) :query)])
-          new-parameters (-> parameters
-                           (dissoc :query)
-                           swagger/resolve-model-vars
-                           (update-in [:parameters] conj
-                             {:type :query
-                              :model (swagger/resolve-model-vars model)
-                              :meta model-meta})
-                           (update-in [:parameters] vec))]
-      [new-lets new-parameters])
-    [lets parameters]))
 
 (defn- restructure-validation [parameters body]
   (if-let [model (:return parameters)]
@@ -56,13 +28,86 @@
       (concat body [validated-return-form]))
     body))
 
+(defn- restructure-body [request lets letks parameters]
+  (if-let [[value model model-meta] (:body parameters)]
+    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
+          new-lets (into lets [value `(schema/coerce! ~model (:body-params ~request) :json)])
+          new-parameters (-> parameters
+                           (dissoc :body)
+                           (update-in [:parameters] conj
+                             {:type :body
+                              :model (swagger/resolve-model-vars model)
+                              :meta model-meta}))]
+      [new-lets letks new-parameters])
+    [lets letks parameters]))
+
+(defn- restructure-query [request lets letks parameters]
+  (if-let [[value model model-meta] (:query parameters)]
+    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
+          new-lets (into lets [value `(schema/coerce! ~model (keywordize-keys (:query-params ~request)) :query)])
+          new-parameters (-> parameters
+                           (dissoc :query)
+                           (update-in [:parameters] conj
+                             {:type :query
+                              :model (swagger/resolve-model-vars model)
+                              :meta model-meta}))]
+      [new-lets letks new-parameters])
+    [lets letks parameters]))
+
+(defn fnk-schema [bind]
+  (:input-schema
+    (fnk-impl/letk-input-schema-and-body-form
+      nil (with-meta bind {:schema s/Any}) [] nil)))
+
+(defn- restructure-query-params [request lets letks parameters]
+  (if-let [query-params (:query-params parameters)]
+    (let [schema (fnk-schema query-params)
+          model-name (gensym "query-params-")
+          _ (eval `(def ~model-name ~schema))
+          new-lets (into lets ['_ `(schema/coerce! ~schema (keywordize-keys (:query-params ~request)) :query)])
+          new-parameters (-> parameters
+                           (dissoc :query-params)
+                           (update-in [:parameters] conj
+                              {:type :query
+                               :model (eval `(var ~model-name))}))]
+      [new-lets letks new-parameters])
+    [lets letks parameters]))
+
+(defn- restructure-path-params [request lets letks parameters]
+  (if-let [path-params (:path-params parameters)]
+    (let [schema (fnk-schema path-params)
+          model-name (gensym "path-params-")
+          _ (eval `(def ~model-name ~schema))
+          new-lets (into lets ['_ `(schema/coerce! ~schema (keywordize-keys (:path-params ~request)) :query)])
+          new-parameters (-> parameters
+                           (dissoc :path-params)
+                           (update-in [:parameters] conj
+                              {:type :path
+                               :model (eval `(var ~model-name))}))]
+      [new-lets letks new-parameters])
+    [lets letks parameters]))
+
+(defn- restructure-return [request lets letks parameters]
+  [lets letks (update-in parameters [:return] swagger/resolve-model-vars)])
+
+(defn- vectorize-parameters [request lets letks parameters]
+  [lets letks (update-in parameters [:parameters] vec)])
+
 (defn- restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         body (restructure-validation parameters body)
         request (gensym)
-        [lets parameters] (restructure-body request [] parameters)
-        [lets parameters] (restructure-query-params request lets parameters)]
+        [lets letks parameters] (reduce
+                                  (fn [[lets letks parameters] f]
+                                    (f request lets letks parameters))
+                                  [[] [] parameters]
+                                  [restructure-return
+                                   restructure-body
+                                   restructure-query
+                                   restructure-query-params
+                                   restructure-path-params
+                                   vectorize-parameters])]
     `(fn [~request]
        ((~method-symbol ~path ~arg (meta-container ~parameters (let ~lets ~@body))) ~request))))
 

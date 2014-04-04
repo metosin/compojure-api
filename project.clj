@@ -6,6 +6,7 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [prismatic/plumbing "0.2.2"]
                  [potemkin "0.3.4"]
                  [cheshire "5.3.1"]
                  [compojure "1.1.6"]

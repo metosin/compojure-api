@@ -39,7 +39,7 @@
                             (or
                               (compojure-macro? (eval-re-resolve sym))
                               (meta-container? (eval-re-resolve sym))))
-                        (filter (comp not nil?) x)
+                          (filter (comp not nil?) x)
                         (macroexpand-1 x)))
         :else       x))
     form))
@@ -96,9 +96,23 @@
 (defn attach-meta-data-to-route [[route body]]
   (let [meta (route-metadata body)
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)
-        string-path-parameters (swagger/string-path-parameters (:uri route))]
-    (if string-path-parameters
-      (update-in route-with-meta [:metadata :parameters] conj string-path-parameters)
+        uri (:uri route)
+        path-parameters (swagger/path-params uri)]
+    (if (seq path-parameters)
+      (let [all-parameters (get-in route-with-meta [:metadata :parameters])
+            path-parameter? (fn-> :type (= :path))
+            existing-path-parameters (some->> all-parameters
+                                              (filter path-parameter?)
+                                              first
+                                              :model
+                                              value-of
+                                              swagger/strict-schema)
+            string-path-parameters (swagger/string-path-parameters uri)
+            all-path-parameters (update-in string-path-parameters [:model]
+                                           merge (or existing-path-parameters {}))
+            new-parameters (conj (remove path-parameter? all-parameters)
+                                 all-path-parameters)]
+        (assoc-in route-with-meta [:metadata :parameters] new-parameters))
       route-with-meta)))
 
 (defn peel [x]
