@@ -80,17 +80,18 @@
    synthetic defs for the models. Example:
    :path-params [id :- Long name :- String]"
   [request lets letks parameters]
-  (if-let [path-params (:route-params parameters)]
+  (if-let [path-params (:path-params parameters)]
     (let [schema (fnk-schema path-params)
           model-name (gensym "path-params-")
           _ (eval `(def ~model-name ~schema))
-          new-lets (into lets ['_ `(schema/coerce! ~schema (:route-params ~request) :query)])
+          coerced-model (gensym)
+          new-lets (into lets [coerced-model `(schema/coerce! ~schema (:route-params ~request) :query)])
           new-parameters (-> parameters
                            (dissoc :route-params)
                            (update-in [:parameters] conj
                               {:type :path
                                :model (eval `(var ~model-name))}))]
-      [new-lets letks new-parameters])
+      [new-lets (into letks [path-params coerced-model]) new-parameters])
     [lets letks parameters]))
 
 (defn- restructure-return [request lets letks parameters]
@@ -118,10 +119,9 @@
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         body (restructure-validation parameters body)
-        request (gensym)
         [lets letks parameters] (reduce
                                   (fn [[lets letks parameters] f]
-                                    (f request lets letks parameters))
+                                    (f +compojure-api-request+ lets letks parameters))
                                   [[] [] parameters]
                                   [restructure-return
                                    restructure-body
@@ -130,13 +130,13 @@
                                    restructure-path-params
                                    vectorize-parameters])
         [lets args-with-request] (destructure-compojure-api-request lets arg)]
-    `(fn [~request]
-       ((~method-symbol
-          ~path
-          ~args-with-request
-          (meta-container ~parameters
-            (let ~lets ~@body)))
-         ~request))))
+    `(~method-symbol
+       ~path
+       ~args-with-request
+       (meta-container ~parameters
+         (let ~lets
+           (letk ~letks
+             ~@body))))))
 
 ;;
 ;; routes
