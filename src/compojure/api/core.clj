@@ -66,13 +66,14 @@
     (let [schema (fnk-schema query-params)
           model-name (gensym "query-params-")
           _ (eval `(def ~model-name ~schema))
-          new-lets (into lets ['_ `(schema/coerce! ~schema (keywordize-keys (:query-params ~request)) :query)])
+          coerced-model (gensym)
+          new-lets (into lets [coerced-model `(schema/coerce! ~schema (keywordize-keys (:query-params ~request)) :query)])
           new-parameters (-> parameters
                            (dissoc :query-params)
                            (update-in [:parameters] conj
                               {:type :query
                                :model (eval `(var ~model-name))}))]
-      [new-lets letks new-parameters])
+      [new-lets (into letks [query-params coerced-model]) new-parameters])
     [lets letks parameters]))
 
 (defn- restructure-path-params
