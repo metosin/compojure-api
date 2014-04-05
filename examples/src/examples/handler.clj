@@ -23,8 +23,8 @@
   (swaggered "models"
     :description "Model mappings"
     (GET* "/echo" []
-      :return   QueryParams
-      :query    [query QueryParams]
+      :return QueryParams
+      :query  [query QueryParams]
       (ok query))
     (GET* "/sum" []
       :query-params [x :- Long y :- Long]
@@ -33,10 +33,8 @@
       :path-params [x :- Long y :- Long]
       (ok {:total (* x y)}))
     (POST* "/customer" []
-      :return   Customer
-      :body     [customer Customer]
-      :summary  "Adds a pizza"
-      :nickname "addPizza"
+      :return Customer
+      :body   [customer Customer]
       (ok customer)))
   dates/route
   (swaggered "pizza"
