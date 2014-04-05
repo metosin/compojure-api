@@ -12,11 +12,16 @@
             [clojure.walk :refer [keywordize-keys]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
-;;
-;; Smart Destructuring
-;;
-
 (def +compojure-api-request+ '+compojure-api-request+)
+
+(defn fnk-schema [bind]
+  (:input-schema
+    (fnk-impl/letk-input-schema-and-body-form
+      nil (with-meta bind {:schema s/Any}) [] nil)))
+
+;;
+;; Smart Destructurors
+;;
 
 (defn- restructure-validation [parameters body]
   (if-let [model (:return parameters)]
@@ -56,12 +61,11 @@
       [new-lets letks new-parameters])
     [lets letks parameters]))
 
-(defn fnk-schema [bind]
-  (:input-schema
-    (fnk-impl/letk-input-schema-and-body-form
-      nil (with-meta bind {:schema s/Any}) [] nil)))
-
-(defn- restructure-query-params [request lets letks parameters]
+(defn- restructure-query-params
+  "restructures query-params by plumbing letk notation. Generates
+   synthetic defs for the models. Example:
+   :query-params [id :- Long name :- String]"
+  [request lets letks parameters]
   (if-let [query-params (:query-params parameters)]
     (let [schema (fnk-schema query-params)
           model-name (gensym "query-params-")
@@ -105,6 +109,7 @@
 ;; Main
 ;;
 
+; test me
 (defn- destructure-compojure-api-request [lets arg]
   (cond
    (vector? arg) [lets (into arg [:as +compojure-api-request+])]
@@ -116,6 +121,7 @@
            (RuntimeException.
              (str "unknown compojure destruction synxax: " arg)))))
 
+; test me
 (defn- restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)

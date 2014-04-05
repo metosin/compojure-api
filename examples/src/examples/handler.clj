@@ -28,9 +28,11 @@
       (ok query))
     (GET* "/sum" []
       :query-params [x :- Long y :- Long]
+      :summary      "sums x & y query-parameters"
       (ok {:total (+ x y)}))
     (GET* "/times/:x/:y" []
       :path-params [x :- Long y :- Long]
+      :summary      "multiplies x & y path-parameters"
       (ok {:total (* x y)}))
     (POST* "/customer" []
       :return Customer

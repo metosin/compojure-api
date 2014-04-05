@@ -1,3 +1,19 @@
+## 0.9.0 (???)
+
+- support for Schema-aware `:path-parameters` and `query-parameters`:
+
+```clojure
+(GET* "/sum" []
+  :query-params [x :- Long y :- Long]
+  :summary      "sums x & y query-parameters"
+  (ok {:total (+ x y)}))
+
+(GET* "/times/:x/:y" []
+  :path-params [x :- Long y :- Long]
+  :summary      "multiplies x & y path-parameters"
+  (ok {:total (* x y)}))
+```
+
 ## 0.8.7 (30.3.2014)
 
 - `swagger-ui` index-redirect work also under a context when running in an legacy app-server. Thanks to [Juha Syrjälä](https://github.com/jsyrjala) for the PR.

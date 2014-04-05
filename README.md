@@ -7,12 +7,12 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation, using the [ring-swagger](https://github.com/metosin/ring-swagger)
 - uses [Schema](https://github.com/Prismatic/schema) for creating and mapping data models
 - bundled middleware for common api behavior (exception mapping, data formats & serialization)
-- route macros for glueing everything together, also for the [Swagger-UI](https://github.com/wordnik/swagger-ui)
+- route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui)
 
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.8.7"]
+[metosin/compojure-api "0.9.0"]
 ```
 
 ## Sample application
@@ -29,21 +29,34 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
                    :tag (s/enum :kikka :kukka)})
 
 (defroutes* legacy-route
-  (GET* "/ping/:id" [id]
-    (ok {:id id})))
+  (GET* "/legacy/:value" [value]
+    (ok {:value value})))
 
 (defapi app
   (swagger-ui)
-  (swagger-docs)
+  (swagger-docs
+    :title "Sample api")
   (swaggered "thingie"
-    :description "Sample swaggered app"
+    :description "There be thingies"
     (context "/api" []
       legacy-route
+
+      (GET* "/sum" []
+        :query-params [x :- Long y :- Long]
+        :summary      "sums x & y query-paramters"
+        (ok {:total (+ x y)}))
+
+      (GET* "/times/:x/:y" []
+        :path-params [x :- Long y :- Long]
+        :summary      "multiplies x & y path-paramters"
+        (ok {:total (* x y)}))
+
       (GET* "/echo" []
         :return   Thingie
         :query    [thingie Thingie]
         :summary  "echos a thingie from query-params"
         (ok thingie)) ;; here be coerced thingie
+
       (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
@@ -241,7 +254,6 @@ you can also wrap models in containers (`Vector`, `List`, `Set`) and add extra m
 ## TODO
 
 - `url-for` for endpoints (bidi, bidi, bidi)
-- smart destructuring & coarcing of any parameters (`:path-params`)
 - parametrizable automatic coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - support for swagger error messages
 - support for swagger consumes
