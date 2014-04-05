@@ -99,6 +99,21 @@
 (defn- vectorize-parameters [request lets letks parameters]
   [lets letks (update-in parameters [:parameters] vec)])
 
+;;
+;; Main
+;;
+
+(defn- destructure-compojure-api-request [lets arg]
+  (cond
+   (vector? arg) [lets (into arg [:as +compojure-api-request+])]
+   (map? arg) (if-let [as (:as arg)]
+                [(conj lets +compojure-api-request+ as) arg]
+                [lets (merge arg [:as +compojure-api-request+])])
+   (symbol? arg) [(conj lets +compojure-api-request+ arg) arg]
+   :else (throw
+           (RuntimeException.
+             (str "unknown compojure destruction synxax: " arg)))))
+
 (defn- restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
@@ -114,15 +129,7 @@
                                    restructure-query-params
                                    restructure-path-params
                                    vectorize-parameters])
-        [lets args-with-request] (cond
-                                    (vector? arg) [lets (into arg [:as +compojure-api-request+])]
-                                    (map? arg) (if-let [as (:as arg)]
-                                                 [(conj lets +compojure-api-request+ as) arg]
-                                                 [lets (merge arg [:as +compojure-api-request+])])
-                                    (symbol? arg) [(conj lets +compojure-api-request+ arg) arg]
-                                    :else (throw
-                                            (RuntimeException.
-                                              (str "unknown compojure destruction synxax: " arg))))]
+        [lets args-with-request] (destructure-compojure-api-request lets arg)]
     `(fn [~request]
        ((~method-symbol
           ~path
