@@ -103,7 +103,9 @@
   [lets letks (update-in parameters [:return] swagger/resolve-model-vars)])
 
 (defn- vectorize-parameters [request lets letks parameters]
-  [lets letks (update-in parameters [:parameters] vec)])
+  [lets letks (if (:parameters parameters)
+                  (update-in parameters [:parameters] vec)
+                  parameters)])
 
 ;;
 ;; Main
