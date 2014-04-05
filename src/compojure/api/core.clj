@@ -16,7 +16,7 @@
 ;; Smart Destructuring
 ;;
 
-(def compojure-api-request 'compojure-api-request)
+(def +compojure-api-request+ '+compojure-api-request+)
 
 (defn- restructure-validation [parameters body]
   (if-let [model (:return parameters)]
@@ -114,10 +114,15 @@
                                    restructure-query-params
                                    restructure-path-params
                                    vectorize-parameters])
-        args-with-request (cond
-                             (vector? arg) (into arg [:as compojure-api-request])
-                             (map? arg) (merge arg [:as compojure-api-request])
-                             :else (throw (RuntimeException. (str "can't pimp args: " arg))))]
+        [lets args-with-request] (cond
+                                    (vector? arg) [lets (into arg [:as +compojure-api-request+])]
+                                    (map? arg) (if-let [as (:as arg)]
+                                                 [(conj lets +compojure-api-request+ as) arg]
+                                                 [lets (merge arg [:as +compojure-api-request+])])
+                                    (symbol? arg) [(conj lets +compojure-api-request+ arg) arg]
+                                    :else (throw
+                                            (RuntimeException.
+                                              (str "unknown compojure destruction synxax: " arg))))]
     `(fn [~request]
        ((~method-symbol
           ~path
