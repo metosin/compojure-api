@@ -26,6 +26,12 @@
       :return   QueryParams
       :query    [query QueryParams]
       (ok query))
+    (GET* "/sum" []
+      :query-params [x :- Long y :- Long]
+      (ok {:total (+ x y)}))
+    (GET* "/times/:x/:y" []
+      :path-params [x :- Long y :- Long]
+      (ok {:total (* x y)}))
     (POST* "/customer" []
       :return   Customer
       :body     [customer Customer]
@@ -41,11 +47,12 @@
         :summary  "Gets all Pizzas"
         :nickname "getPizzas"
         (ok (get-pizzas)))
-      (GET* "/pizzas/:id" [id]
+      (GET* "/pizzas/:id" []
+        :path-params [id :- Long]
         :return   Pizza
         :summary  "Gets a pizza"
         :nickname "getPizza"
-        (ok (get-pizza (->Long id))))
+        (ok (get-pizza id)))
       (POST* "/pizzas" []
         :return   Pizza
         :body     [pizza NewPizza {:description "new pizza"}]
@@ -58,8 +65,9 @@
         :summary  "Updates a pizza"
         :nickname "updatePizza"
         (ok (update! pizza)))
-      (DELETE* "/pizzas/:id" [id]
+      (DELETE* "/pizzas/:id" []
+        :path-params [id :- Long]
         :return   Pizza
         :summary  "Deletes a Pizza"
         :nickname "deletePizza"
-        (ok (delete! (->Long id)))))))
+        (ok (delete! id))))))
