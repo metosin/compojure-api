@@ -111,10 +111,25 @@
       (assoc-in route-with-meta [:metadata :parameters] new-parameters))
     route-with-meta))
 
+(defn un-var-query-parameters [route-with-meta]
+  (let [all-parameters (get-in route-with-meta [:metadata :parameters])
+        query-parameter? (fn-> :type (= :query))
+        merged-query-parameters (some->> all-parameters
+                                         (filter query-parameter?)
+                                         (map :model)
+                                         (map value-of)
+                                         (apply concat)
+                                         (into {})
+                                         (assoc {:type :query} :model))
+        new-parameters (conj (remove query-parameter? all-parameters)
+                         merged-query-parameters)]
+    (assoc-in route-with-meta [:metadata :parameters] new-parameters)))
+
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
   (let [meta (route-metadata body)
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)
-        route-with-meta (ensure-path-parameters route-with-meta uri)]
+        route-with-meta (ensure-path-parameters route-with-meta uri)
+        route-with-meta (un-var-query-parameters route-with-meta)]
     route-with-meta))
 
 (defn peel [x]
