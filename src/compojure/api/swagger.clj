@@ -123,7 +123,9 @@
                                          (assoc {:type :query} :model))
         new-parameters (conj (remove query-parameter? all-parameters)
                          merged-query-parameters)]
-    (assoc-in route-with-meta [:metadata :parameters] new-parameters)))
+    (if merged-query-parameters
+       (assoc-in route-with-meta [:metadata :parameters] new-parameters)
+       route-with-meta)))
 
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
   (let [meta (route-metadata body)
