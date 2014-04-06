@@ -93,7 +93,7 @@
       (merge meta {:parameters parameters
                    :return (some-> return swagger/resolve-model-vars)}))))
 
-(defn ensure-path-parameters [route-with-meta uri]
+(defn ensure-path-parameters [uri route-with-meta]
   (if (seq (swagger/path-params uri))
     (let [all-parameters (get-in route-with-meta [:metadata :parameters])
           path-parameter? (fn-> :type (= :path))
@@ -127,10 +127,10 @@
 
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
   (let [meta (route-metadata body)
-        route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)
-        route-with-meta (ensure-path-parameters route-with-meta uri)
-        route-with-meta (un-var-query-parameters route-with-meta)]
-    route-with-meta))
+        route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
+    (->> route-with-meta
+         (ensure-path-parameters uri)
+         un-var-query-parameters)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
