@@ -65,14 +65,6 @@
           :return User
           :query  [user User]
           (ok user))
-        (GET* "/user_list" []
-          :return [User]
-          :query  [user [User]]
-          (ok user))
-        (GET* "/user_set" []
-          :return #{User}
-          :query  [user #{User}]
-          (ok user))
         (GET* "/invalid-user" []
           :return User
           (ok invalid-user))
