@@ -20,23 +20,19 @@
     :description "There be thingies"
     (context "/api" []
       legacy-route
-
       (GET* "/sum" []
         :query-params [x :- Long y :- Long]
         :summary      "sums x & y query-parameters"
         (ok {:total (+ x y)}))
-
       (GET* "/times/:x/:y" []
         :path-params [x :- Long y :- Long]
         :summary      "multiplies x & y path-parameters"
         (ok {:total (* x y)}))
-
       (GET* "/echo" []
         :return   Thingie
         :query    [thingie Thingie]
         :summary  "echos a thingie from query-params"
         (ok thingie)) ;; here be coerced thingie
-
       (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
