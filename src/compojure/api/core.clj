@@ -109,7 +109,7 @@
           coerced-model (gensym)
           new-lets (into lets [coerced-model `(schema/coerce!
                                                 ~schema
-                                                (:route-param ~+compojure-api-request+)
+                                                (:route-params ~+compojure-api-request+)
                                                 :query)])
           new-parameters (-> parameters
                            (dissoc :path-params)
