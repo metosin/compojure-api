@@ -35,10 +35,10 @@
       (concat body [validated-return-form]))
     body))
 
-(defn- restructure-body [request lets letks parameters]
+(defn- restructure-body [lets letks parameters]
   (if-let [[value model model-meta] (:body parameters)]
     (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model (:body-params ~request) :json)])
+          new-lets (into lets [value `(schema/coerce! ~model (:body-params ~+compojure-api-request+) :json)])
           new-parameters (-> parameters
                            (dissoc :body)
                            (update-in [:parameters] conj
@@ -48,10 +48,10 @@
       [new-lets letks new-parameters])
     [lets letks parameters]))
 
-(defn- restructure-query [request lets letks parameters]
+(defn- restructure-query [lets letks parameters]
   (if-let [[value model model-meta] (:query parameters)]
     (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model (keywordize-keys (:query-params ~request)) :query)])
+          new-lets (into lets [value `(schema/coerce! ~model (keywordize-keys (:query-params ~+compojure-api-request+)) :query)])
           new-parameters (-> parameters
                            (dissoc :query)
                            (update-in [:parameters] conj
@@ -65,13 +65,13 @@
   "restructures query-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :query-params [id :- Long name :- String]"
-  [request lets letks parameters]
+  [lets letks parameters]
   (if-let [query-params (:query-params parameters)]
     (let [schema (fnk-schema query-params)
           model-name (gensym "query-params-")
           _ (eval `(def ~model-name ~schema))
           coerced-model (gensym)
-          new-lets (into lets [coerced-model `(schema/coerce! ~schema (keywordize-keys (:query-params ~request)) :query)])
+          new-lets (into lets [coerced-model `(schema/coerce! ~schema (keywordize-keys (:query-params ~+compojure-api-request+)) :query)])
           new-parameters (-> parameters
                            (dissoc :query-params)
                            (update-in [:parameters] conj
@@ -84,13 +84,13 @@
   "restructures path-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :path-params [id :- Long name :- String]"
-  [request lets letks parameters]
+  [lets letks parameters]
   (if-let [path-params (:path-params parameters)]
     (let [schema (fnk-schema path-params)
           model-name (gensym "path-params-")
           _ (eval `(def ~model-name ~schema))
           coerced-model (gensym)
-          new-lets (into lets [coerced-model `(schema/coerce! ~schema (:route-params ~request) :query)])
+          new-lets (into lets [coerced-model `(schema/coerce! ~schema (:route-param ~+compojure-api-request+) :query)])
           new-parameters (-> parameters
                            (dissoc :path-params)
                            (update-in [:parameters] conj
@@ -99,10 +99,10 @@
       [new-lets (into letks [path-params coerced-model]) new-parameters])
     [lets letks parameters]))
 
-(defn- restructure-return [request lets letks parameters]
+(defn- restructure-return [lets letks parameters]
   [lets letks (update-in parameters [:return] swagger/resolve-model-vars)])
 
-(defn- vectorize-parameters [request lets letks parameters]
+(defn- vectorize-parameters [lets letks parameters]
   [lets letks (if (:parameters parameters)
                   (update-in parameters [:parameters] vec)
                   parameters)])
@@ -130,7 +130,7 @@
         body (restructure-validation parameters body)
         [lets letks parameters] (reduce
                                   (fn [[lets letks parameters] f]
-                                    (f +compojure-api-request+ lets letks parameters))
+                                    (f lets letks parameters))
                                   [[] [] parameters]
                                   [restructure-return
                                    restructure-body
