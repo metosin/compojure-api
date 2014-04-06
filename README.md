@@ -48,7 +48,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
       (GET* "/times/:x/:y" []
         :path-params [x :- Long y :- Long]
-        :summary      "multiplies x & y path-paramters"
+        :summary     "multiplies x & y path-paramters"
         (ok {:total (* x y)}))
 
       (GET* "/echo" []
