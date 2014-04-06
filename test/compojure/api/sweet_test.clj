@@ -87,7 +87,8 @@
                                            :model {:a Long
                                                    :b String}}
                                           {:type :query
-                                           :model {:all Boolean}}]}}]})
+                                           :model {:all Boolean
+                                                   s/Keyword s/Any}}]}}]})
 
   (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))

@@ -121,9 +121,11 @@
                                          (apply concat)
                                          (into {})
                                          (assoc {:type :query} :model))
+        query-params-found (and merged-query-parameters
+                                (not (empty? (:model merged-query-parameters))))
         new-parameters (conj (remove query-parameter? all-parameters)
                          merged-query-parameters)]
-    (if merged-query-parameters
+    (if query-params-found
        (assoc-in route-with-meta [:metadata :parameters] new-parameters)
        route-with-meta)))
 
@@ -131,8 +133,8 @@
   (let [meta (route-metadata body)
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
-         (ensure-path-parameters uri)
-         un-var-query-parameters)))
+         un-var-query-parameters
+         (ensure-path-parameters uri))))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
