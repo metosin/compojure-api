@@ -131,7 +131,6 @@
 ;; Main
 ;;
 
-; test me
 (defn- destructure-compojure-api-request [lets arg]
   (cond
    (vector? arg) [lets (into arg [:as +compojure-api-request+])]
@@ -143,7 +142,6 @@
            (RuntimeException.
              (str "unknown compojure destruction synxax: " arg)))))
 
-; test me
 (defn- restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
