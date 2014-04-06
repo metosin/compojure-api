@@ -41,6 +41,11 @@
         :body     [band [NewBand] {:description "new Band"}]
         :summary  "Adds a Band"
         :nickname "addBand"
+        identity)
+      (GET* "/path-and-query-parameters/:a/:b" []
+        :path-params [a :- Long]
+        :query-params [all :- Boolean]
+        :nickname "pathAndQueryParameters"
         identity))))
 
 (facts "swaggered"
@@ -74,7 +79,15 @@
                                            :model [#'NewBand]
                                            :meta {:description "new Band"}}]
                              :return #'Band
-                             :summary "Adds a Band"}}]})
+                             :summary "Adds a Band"}}
+                 {:method :compojure.core/get ;; should be plain :get
+                  :uri "/api/path-and-query-parameters/:a/:b"
+                  :metadata {:nickname "pathAndQueryParameters"
+                             :parameters [{:type :path
+                                           :model {:a Long
+                                                   :b String}}
+                                          {:type :query
+                                           :model {:all Boolean}}]}}]})
 
   (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))

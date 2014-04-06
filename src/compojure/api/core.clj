@@ -92,7 +92,7 @@
           coerced-model (gensym)
           new-lets (into lets [coerced-model `(schema/coerce! ~schema (:route-params ~request) :query)])
           new-parameters (-> parameters
-                           (dissoc :route-params)
+                           (dissoc :path-params)
                            (update-in [:parameters] conj
                               {:type :path
                                :model (eval `(var ~model-name))}))]
