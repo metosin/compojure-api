@@ -19,6 +19,12 @@
     (fnk-impl/letk-input-schema-and-body-form
       nil (with-meta bind {:schema s/Any}) [] nil)))
 
+(defn resolve-model-var [model]
+  (swagger/resolve-model-var
+    (if (or (set? model) (sequential? model))
+        (first model)
+        model)))
+
 ;;
 ;; Smart Destructurors
 ;;
@@ -37,8 +43,11 @@
 
 (defn- restructure-body [lets letks parameters]
   (if-let [[value model model-meta] (:body parameters)]
-    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model (:body-params ~+compojure-api-request+) :json)])
+    (let [model-var (resolve-model-var model)
+          new-lets (into lets [value `(schema/coerce!
+                                        ~model
+                                        (:body-params ~+compojure-api-request+)
+                                        :json)])
           new-parameters (-> parameters
                            (dissoc :body)
                            (update-in [:parameters] conj
@@ -50,8 +59,12 @@
 
 (defn- restructure-query [lets letks parameters]
   (if-let [[value model model-meta] (:query parameters)]
-    (let [model-var (swagger/resolve-model-var (if (or (set? model) (sequential? model)) (first model) model))
-          new-lets (into lets [value `(schema/coerce! ~model (keywordize-keys (:query-params ~+compojure-api-request+)) :query)])
+    (let [model-var (resolve-model-var model)
+          new-lets (into lets [value `(schema/coerce!
+                                        ~model
+                                        (keywordize-keys
+                                          (:query-params ~+compojure-api-request+))
+                                        :query)])
           new-parameters (-> parameters
                            (dissoc :query)
                            (update-in [:parameters] conj
@@ -71,7 +84,11 @@
           model-name (gensym "query-params-")
           _ (eval `(def ~model-name ~schema))
           coerced-model (gensym)
-          new-lets (into lets [coerced-model `(schema/coerce! ~schema (keywordize-keys (:query-params ~+compojure-api-request+)) :query)])
+          new-lets (into lets [coerced-model `(schema/coerce!
+                                                ~schema
+                                                (keywordize-keys
+                                                  (:query-params ~+compojure-api-request+))
+                                                :query)])
           new-parameters (-> parameters
                            (dissoc :query-params)
                            (update-in [:parameters] conj
@@ -90,7 +107,10 @@
           model-name (gensym "path-params-")
           _ (eval `(def ~model-name ~schema))
           coerced-model (gensym)
-          new-lets (into lets [coerced-model `(schema/coerce! ~schema (:route-param ~+compojure-api-request+) :query)])
+          new-lets (into lets [coerced-model `(schema/coerce!
+                                                ~schema
+                                                (:route-param ~+compojure-api-request+)
+                                                :query)])
           new-parameters (-> parameters
                            (dissoc :path-params)
                            (update-in [:parameters] conj
