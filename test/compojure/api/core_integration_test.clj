@@ -113,33 +113,11 @@
                :b (-> +compojure-api-request+ :params :b)})))))
 
   (facts "compojure destucturing"
-
-    (fact "regular"
-      (let [[status body] (get* api "/destructuring/regular" {:a "a" :b "b"})]
-          status => 200
-          body => {:a "a" :b "b"}))
-
-    (fact "regular2"
-      (let [[status body] (get* api "/destructuring/regular2" {:a "a" :b "b"})]
-          status => 200
-          body => {:a "a" :b "b"}))
-
-    (fact "vector"
-      (let [[status body] (get* api "/destructuring/vector" {:a "a" :b "b"})]
-          status => 200
-          body => {:a "a" :b "b"}))
-
-    (fact "vector2"
-      (let [[status body] (get* api "/destructuring/vector2" {:a "a" :b "b"})]
-          status => 200
-          body => {:a "a" :b "b"}))
-
-    (fact "symbol"
-      (let [[status body] (get* api "/destructuring/symbol" {:a "a" :b "b"})]
-          status => 200
-          body => {:a "a" :b "b"}))
-
-    )
+    (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol"]]
+      (fact {:midje/description uri}
+        (let [[status body] (get* api (str "/destructuring/" uri) {:a "a" :b "b"})]
+            status => 200
+            body => {:a "a" :b "b"}))))
 
   (facts "query and path parameters"
 
