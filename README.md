@@ -238,6 +238,24 @@ you can also wrap models in containers (`Vector`, `List`, `Set`) and add extra m
     (ok thingies))
 ```
 
+## Query and Path parameters
+
+Both query- and path-parameters can also be destructured using the [Plumbing](https://github.com/Prismatic/plumbing) syntax with optional type-annotations:
+
+```clojure
+(GET* "/sum" []
+  :query-params [x :- Long
+                 y :- Long]
+  :summary      "sums x & y query-parameters"
+  (ok {:total (+ x y)}))
+
+(GET* "/times/:x/:y" []
+  :path-params [x :- Long
+                y :- Long]
+  :summary      "multiplies x & y path-parameters"
+  (ok {:total (* x y)}))
+```
+
 ## Running the embedded example(s)
 
 `lein ring server`
