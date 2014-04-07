@@ -269,8 +269,11 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 - Collected routes are stored in an Atom after compilation => AOT from swaggered apps should be disabled when Uberjarring
   - routes could be written to file for allowing route precompilation?
 
-## TODO
+## Roadmap
 
+- type-safe `:body-params` destructuring
+- type-safe `:params` destructuring
+- allow anonymous models with `:return`, `:body` and `:query`
 - `url-for` for endpoints (bidi, bidi, bidi)
 - parametrizable automatic coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - support for swagger error messages
