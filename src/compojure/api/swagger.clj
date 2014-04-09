@@ -157,11 +157,7 @@
     reverse))
 
 (defn path-to-index [req path]
-  (let [servlet-context (:servlet-context req)
-        context (if servlet-context
-                  (.getContextPath servlet-context)
-                  "")]
-    (s/replace (str context path "/index.html") #"//" "/")))
+  (s/replace (str (swagger/context req) path "/index.html") #"//" "/"))
 
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
@@ -198,7 +194,7 @@
       (GET path []
         (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
-        (swagger/api-declaration parameters @swagger api (swagger/extract-basepath request))))))
+        (swagger/api-declaration parameters @swagger api (swagger/basepath request))))))
 
 (defmacro swaggered
    "Defines a swagger-api. Takes api-name, optional
