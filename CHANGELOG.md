@@ -1,3 +1,7 @@
+## 0.9.1 (9.4.2014)
+
+- update `ring-swagger` to `0.8.4` to get better basepath-resolution (with reverse-proxys)
+
 ## 0.9.0 (6.4.2014)
 
 - support for Schema-aware `:path-parameters` and `query-parameters`:
