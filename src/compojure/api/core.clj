@@ -12,7 +12,9 @@
             [clojure.walk :refer [keywordize-keys]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
-(def +compojure-api-request+ '+compojure-api-request+)
+(def +compojure-api-request+
+  "lexically bound ring-request for handlers."
+  '+compojure-api-request+)
 
 (defn strict [schema]
   (dissoc schema 'schema.core/Keyword))
