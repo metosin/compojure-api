@@ -14,6 +14,9 @@
 
 (def +compojure-api-request+ '+compojure-api-request+)
 
+(defn strict [schema]
+  (dissoc schema 'schema.core/Keyword))
+
 (defn fnk-schema [bind]
   (:input-schema
     (fnk-impl/letk-input-schema-and-body-form
@@ -72,6 +75,28 @@
                               :model (swagger/resolve-model-vars model)
                               :meta model-meta}))]
       [new-lets letks new-parameters])
+    [lets letks parameters]))
+
+(defn- restructure-body-params
+  "restructures body-params by plumbing letk notation. Generates
+   synthetic defs for the models. Example:
+   :body-params [id :- Long name :- String]"
+  [lets letks parameters]
+  (if-let [body-params (:body-params parameters)]
+    (let [schema (strict (fnk-schema body-params))
+          model-name (gensym "body-")
+          _ (eval `(schema/defmodel ~model-name ~schema))
+          coerced-model (gensym)
+          new-lets (into lets [coerced-model `(schema/coerce!
+                                                ~schema
+                                                (:body-params ~+compojure-api-request+)
+                                                :json)])
+          new-parameters (-> parameters
+                           (dissoc :body-params)
+                           (update-in [:parameters] conj
+                              {:type :body
+                               :model (eval `(var ~model-name))}))]
+      [new-lets (into letks [body-params coerced-model]) new-parameters])
     [lets letks parameters]))
 
 (defn- restructure-query-params
@@ -146,20 +171,22 @@
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         body (restructure-validation parameters body)
+        [lets letks] [[] []]
+        [lets arg-with-request] (destructure-compojure-api-request lets arg)
         [lets letks parameters] (reduce
                                   (fn [[lets letks parameters] f]
                                     (f lets letks parameters))
-                                  [[] [] parameters]
+                                  [lets letks parameters]
                                   [restructure-return
                                    restructure-body
                                    restructure-query
+                                   restructure-body-params
                                    restructure-query-params
                                    restructure-path-params
-                                   vectorize-parameters])
-        [lets args-with-request] (destructure-compojure-api-request lets arg)]
+                                   vectorize-parameters])]
     `(~method-symbol
        ~path
-       ~args-with-request
+       ~arg-with-request
        (meta-container ~parameters
          (let ~lets
            (letk ~letks

@@ -87,13 +87,16 @@
           :return User
           (ok user)))
 
-      (context "/query-and-path" []
-        (GET* "/sum" []
+      (context "/smart" []
+        (GET* "/plus" []
           :query-params [x :- Long y :- Long]
           (ok {:total (+ x y)}))
         (GET* "/multiply/:x/:y" []
           :path-params [x :- Long y :- Long]
-          (ok {:total (* x y)})))
+          (ok {:total (* x y)}))
+        (POST* "/minus" []
+          :body-params [x :- Long y :- Long]
+          (ok {:total (- x y)})))
 
       (context "/destructuring" []
         (GET* "/regular" {{:keys [a]} :params}
@@ -110,26 +113,34 @@
                :b (-> +compojure-api-request+ :params :b)}))
         (GET* "/symbol" req
           (ok {:a (-> req :params :a)
-               :b (-> +compojure-api-request+ :params :b)})))))
+               :b (-> +compojure-api-request+ :params :b)}))
+        (GET* "/integrated" [a] :query-params [b]
+          (ok {:a a
+               :b b})))))
 
   (facts "compojure destucturing"
-    (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol"]]
+    (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol" "integrated"]]
       (fact {:midje/description uri}
         (let [[status body] (get* api (str "/destructuring/" uri) {:a "a" :b "b"})]
             status => 200
             body => {:a "a" :b "b"}))))
 
-  (facts "query and path parameters"
+  (facts "query, path and body parameter smart destucturing"
 
     (fact "query-parameters"
-      (let [[status body] (get* api "/query-and-path/sum" {:x 1 :y 2})]
+      (let [[status body] (get* api "/smart/plus" {:x 2 :y 3})]
           status => 200
-          body => {:total 3}))
+          body => {:total 5}))
 
     (fact "query-parameters"
-      (let [[status body] (get* api "/query-and-path/multiply/3/5")]
+      (let [[status body] (get* api "/smart/multiply/2/3")]
           status => 200
-          body => {:total 15})))
+          body => {:total 6}))
+
+    (fact "body-parameters"
+      (let [[status body] (post* api "/smart/minus" (json {:x 2 :y 3}))]
+          status => 200
+          body => {:total -1})))
 
   (facts "models"
 
