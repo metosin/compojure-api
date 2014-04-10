@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.9.1"]
+[metosin/compojure-api "0.10.0"]
 ```
 
 ## Sample application
@@ -41,14 +41,19 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
     (context "/api" []
       legacy-route
 
-      (GET* "/sum" []
-        :query-params [x :- Long, y :- Long]
-        :summary      "sums x & y query-parameters"
+      (GET* "/plus" []
+        :query-params [x :- Long y :- Long]
+        :summary      "x+y with query-parameters"
         (ok {:total (+ x y)}))
 
+      (POST* "/minus" []
+        :body-params [x :- Long y :- Long]
+        :summary      "x-y with body-parameters"
+        (ok {:total (- x y)}))
+
       (GET* "/times/:x/:y" []
-        :path-params [x :- Long, y :- Long]
-        :summary      "multiplies x & y path-parameters"
+        :path-params [x :- Long y :- Long]
+        :summary      "x*y with path-parameters"
         (ok {:total (* x y)}))
 
       (GET* "/echo" []
@@ -271,7 +276,7 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 
 ## Roadmap
 
-- type-safe `:body-params` destructuring
+- refactor for extendable keyword-handlers
 - type-safe `:params` destructuring
 - allow anonymous models with `:return`, `:body` and `:query`
 - `url-for` for endpoints (bidi, bidi, bidi)
@@ -281,7 +286,8 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 - support for AOT compilation with uberjars (by persisting route definitions)
 - collect routes from root, not from `swaggered`
 - include external common use middlewares (ring-middleware-format, ring-cors etc.)
-- websockets
+- `FILE*`
+
 
 ## Contributing
 

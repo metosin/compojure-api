@@ -1,3 +1,15 @@
+## 0.10.0 (10.4.2014)
+
+- fixed bug with missing `+compojure-api-request+` when having both compojure descruction & compojure-api desruction in place
+- added support for `:body-params` (with strict schema):
+
+```clojure
+(POST* "/minus" []
+  :body-params [x :- Long y :- Long]
+  :summary      "x-y with body-parameters"
+  (ok {:total (- x y)}))
+```
+
 ## 0.9.1 (9.4.2014)
 
 - update `ring-swagger` to `0.8.4` to get better basepath-resolution (with reverse-proxys)
