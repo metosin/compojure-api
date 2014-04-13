@@ -183,7 +183,7 @@
                 body]} (reduce
                          (fn [acc [k _]]
                            (or (restructure-param k acc) acc))
-                         {:lets lets :letks letks :parameters parameters :body body}
+                         (map-of lets letks parameters body)
                          parameters)]
     `(~method-symbol
        ~path

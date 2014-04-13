@@ -64,6 +64,10 @@
   (fact "assoc-map-ordered for array-map retains its order"
     (keys (reduce (partial apply assoc-map-ordered) (array-map) (map-indexed vector (range 100)))) => (range 100)))
 
+(fact "map-of"
+  (let [a 1 b true c [:abba :jabba]]
+    (map-of a b c) => {:a 1 :b true :c [:abba :jabba]}))
+
 (fact "unwrapping meta-container"
   (fact "meta-data is returned"
     (unwrap-meta-container '(meta-container {:a 1} identity)) => {:a 1})

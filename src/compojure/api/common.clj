@@ -44,6 +44,12 @@
    thus retaining the insertion order. O(n)."
   [m k v] (apply array-map (into (vec (apply concat m)) [k v])))
 
+(defmacro map-of
+  "creates map with symbol names as keywords as keys and
+   symbol values as values."
+  [& syms]
+  `(zipmap ~(vec (map keyword syms)) ~(vec syms)))
+
 ;;
 ;; meta-data-container
 ;;
