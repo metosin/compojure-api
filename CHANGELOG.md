@@ -1,3 +1,7 @@
+## 0.10.2 (14.4.2014)
+
+- All `compojure.api.core` restructuring are now using `restructure-param` multimethod to allow external extensions. ALPHA.
+
 ## 0.10.1 (13.4.2014)
 
 - FIXED https://github.com/metosin/compojure-api/issues/9
