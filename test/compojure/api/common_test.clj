@@ -58,6 +58,12 @@
   (->Long "123") => 123
   (->Long "12.3") => (throws NumberFormatException))
 
+(fact "assoc-map"
+  (fact "assoc for array-map loses its order"
+    (keys (reduce (partial apply assoc) (array-map) (map-indexed vector (range 100)))) =not=> (range 100))
+  (fact "assoc-map-ordered for array-map retains its order"
+    (keys (reduce (partial apply assoc-map-ordered) (array-map) (map-indexed vector (range 100)))) => (range 100)))
+
 (fact "unwrapping meta-container"
   (fact "meta-data is returned"
     (unwrap-meta-container '(meta-container {:a 1} identity)) => {:a 1})

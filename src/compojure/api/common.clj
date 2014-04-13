@@ -38,6 +38,12 @@
 
 (defn ->Long [s] (if (string? s) (java.lang.Long/parseLong s) (Long. s)))
 
+(defn assoc-map-ordered
+  "assocs a value into a map forcing the implementation to be
+   clojure.lang.PersistentArrayMap instead of clojure.lang.PersistentHashMap,
+   thus retaining the insertion order. O(n)."
+  [m k v] (apply array-map (into (vec (apply concat m)) [k v])))
+
 ;;
 ;; meta-data-container
 ;;

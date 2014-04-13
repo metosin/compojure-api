@@ -14,7 +14,7 @@
 ;; Evil Global State
 ;;
 
-(defonce swagger (atom {}))
+(defonce swagger (atom (array-map)))
 
 ;;
 ;; Route peeling
@@ -205,5 +205,5 @@
   (let [[details body] (swagger-info body)
         name (s/replace (str (eval name)) #" " "")
         models (swagger/extract-models details)]
-    (swap! swagger assoc name details)
+    (swap! swagger assoc-map-ordered name details)
     `(routes ~@body)))
