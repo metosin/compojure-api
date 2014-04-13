@@ -34,25 +34,25 @@
 ;; Smart Destructurors
 ;;
 
-(defn- restructure-validation [parameters body]
-  (if-let [model (:return parameters)]
-    (let [returned-form (last body)
-          body (butlast body)
-          validated-return-form `(let [validator# (partial schema/coerce! ~model)
-                                       return-value# ~returned-form]
-                                   (if (response/response? return-value#)
-                                     (update-in return-value# [:body] validator#)
-                                     (validator# return-value#)))]
-      (concat body [validated-return-form]))
-    body))
-
 (defmulti restructure-param :key)
 
 (defmethod restructure-param :default [_]
   "Some parameters don't need restructuring so default action is to do nothing."
   nil)
 
-(defmethod restructure-param :body [{:keys [lets letks parameters]}]
+(defmethod restructure-param :return [{:keys [lets letks parameters body]}]
+  (if-let [model (:return parameters)]
+    (let [returned-form (last body)
+          body (butlast body)
+          new-parameters (update-in parameters [:return] swagger/resolve-model-vars)
+          validated-return-form `(let [validator# (partial schema/coerce! ~model)
+                                       return-value# ~returned-form]
+                                   (if (response/response? return-value#)
+                                     (update-in return-value# [:body] validator#)
+                                     (validator# return-value#)))]
+      [lets letks new-parameters (concat body [validated-return-form])])))
+
+(defmethod restructure-param :body [{:keys [lets letks parameters body]}]
   (if-let [[value model model-meta] (:body parameters)]
     (let [model-var (resolve-model-var model)
           new-lets (into lets [value `(schema/coerce!
@@ -65,9 +65,9 @@
                              {:type :body
                               :model (swagger/resolve-model-vars model)
                               :meta model-meta}))]
-      [new-lets letks new-parameters])))
+      [new-lets letks new-parameters body])))
 
-(defmethod restructure-param :query [{:keys [lets letks parameters]}]
+(defmethod restructure-param :query [{:keys [lets letks parameters body]}]
   (if-let [[value model model-meta] (:query parameters)]
     (let [model-var (resolve-model-var model)
           new-lets (into lets [value `(schema/coerce!
@@ -81,10 +81,10 @@
                              {:type :query
                               :model (swagger/resolve-model-vars model)
                               :meta model-meta}))]
-      [new-lets letks new-parameters])))
+      [new-lets letks new-parameters body])))
 
 (defmethod restructure-param :body-params
-  [{:keys [lets letks parameters]}]
+  [{:keys [lets letks parameters body]}]
   "restructures body-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :body-params [id :- Long name :- String]"
@@ -102,10 +102,10 @@
                            (update-in [:parameters] conj
                               {:type :body
                                :model (eval `(var ~model-name))}))]
-      [new-lets (into letks [body-params coerced-model]) new-parameters])))
+      [new-lets (into letks [body-params coerced-model]) new-parameters body])))
 
 (defmethod restructure-param :query-params
-  [{:keys [lets letks parameters]}]
+  [{:keys [lets letks parameters body]}]
   "restructures query-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :query-params [id :- Long name :- String]"
@@ -124,10 +124,10 @@
                            (update-in [:parameters] conj
                               {:type :query
                                :model (eval `(var ~model-name))}))]
-      [new-lets (into letks [query-params coerced-model]) new-parameters])))
+      [new-lets (into letks [query-params coerced-model]) new-parameters body])))
 
 (defmethod restructure-param :path-params
-  [{:keys [lets letks parameters]}]
+  [{:keys [lets letks parameters body]}]
   "restructures path-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :path-params [id :- Long name :- String]"
@@ -145,14 +145,11 @@
                            (update-in [:parameters] conj
                               {:type :path
                                :model (eval `(var ~model-name))}))]
-      [new-lets (into letks [path-params coerced-model]) new-parameters])))
+      [new-lets (into letks [path-params coerced-model]) new-parameters body])))
 
-(defmethod restructure-param :return [{:keys [lets letks parameters]}]
-  [lets letks (update-in parameters [:return] swagger/resolve-model-vars)])
-
-(defmethod restructure-param :parameters [{:keys [lets letks parameters]}]
+(defmethod restructure-param :parameters [{:keys [lets letks parameters body]}]
   (if (:parameters parameters)
-    [lets letks (update-in parameters [:parameters] vec)]))
+    [lets letks (update-in parameters [:parameters] vec) body]))
 
 ;;
 ;; Main
@@ -172,14 +169,13 @@
 (defn- restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
-        body (restructure-validation parameters body)
         [lets letks] [[] []]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
-        [lets letks parameters] (reduce
-                                  (fn [[lets letks parameters :as acc] [k v]]
-                                    (or (restructure-param {:key k :lets lets :letks letks :parameters parameters}) acc))
-                                  [lets letks parameters]
-                                  parameters)]
+        [lets letks parameters body] (reduce
+                                       (fn [[lets letks parameters :as acc] [k v]]
+                                         (or (restructure-param {:key k :lets lets :letks letks :parameters parameters :body body}) acc))
+                                       [lets letks parameters body]
+                                       parameters)]
     `(~method-symbol
        ~path
        ~arg-with-request
