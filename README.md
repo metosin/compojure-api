@@ -48,12 +48,12 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
       (POST* "/minus" []
         :body-params [x :- Long y :- Long]
-        :summary      "x-y with body-parameters"
+        :summary     "x-y with body-parameters"
         (ok {:total (- x y)}))
 
       (GET* "/times/:x/:y" []
         :path-params [x :- Long y :- Long]
-        :summary      "x*y with path-parameters"
+        :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
       (GET* "/echo" []
