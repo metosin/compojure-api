@@ -1,3 +1,8 @@
+## 0.10.1 (13.4.2014)
+
+- FIXED https://github.com/metosin/compojure-api/issues/9
+  - `swaggered` resources are now collected in order
+
 ## 0.10.0 (10.4.2014)
 
 - fixed bug with missing `+compojure-api-request+` when having both compojure descruction & compojure-api desruction in place

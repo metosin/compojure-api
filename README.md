@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.10.0"]
+[metosin/compojure-api "0.10.1"]
 ```
 
 ## Sample application
@@ -277,7 +277,10 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 ## Roadmap
 
 - refactor for extendable keyword-handlers
+- extract all Smart Destructurors into own namespace (fully extensible api dsl lib)
+- macroextend only once (now twice: once with the peeling, second time with the real code)
 - type-safe `:params` destructuring
+- allow vanilla schemas instead of defmodels
 - allow anonymous models with `:return`, `:body` and `:query`
 - `url-for` for endpoints (bidi, bidi, bidi)
 - parametrizable automatic coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
