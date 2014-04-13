@@ -1,7 +1,7 @@
 (ns examples.handler
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [examples.dates :as dates]
+            [examples.dates :refer :all]
             [examples.domain :refer :all]))
 
 (defroutes* ping-route
@@ -38,36 +38,38 @@
       :return Customer
       :body   [customer Customer]
       (ok customer)))
-  dates/route
+  (swaggered "dates"
+    :description "Roundrobin of Dates"
+    date-routes)
   (swaggered "pizza"
-    :description "Pizza api"
-    (context "/api" []
-      (GET* "/pizzas" []
-        :return   [Pizza]
-        :summary  "Gets all Pizzas"
-        :nickname "getPizzas"
-        (ok (get-pizzas)))
-      (GET* "/pizzas/:id" []
-        :path-params [id :- Long]
-        :return   Pizza
-        :summary  "Gets a pizza"
-        :nickname "getPizza"
-        (ok (get-pizza id)))
-      (POST* "/pizzas" []
-        :return   Pizza
-        :body     [pizza NewPizza {:description "new pizza"}]
-        :summary  "Adds a pizza"
-        :nickname "addPizza"
-        (ok (add! pizza)))
-      (PUT* "/pizzas" []
-        :return   Pizza
-        :body     [pizza Pizza]
-        :summary  "Updates a pizza"
-        :nickname "updatePizza"
-        (ok (update! pizza)))
-      (DELETE* "/pizzas/:id" []
-        :path-params [id :- Long]
-        :return   Pizza
-        :summary  "Deletes a Pizza"
-        :nickname "deletePizza"
-        (ok (delete! id))))))
+   :description "Pizza api"
+   (context "/api" []
+     (GET* "/pizzas" []
+       :return   [Pizza]
+       :summary  "Gets all Pizzas"
+       :nickname "getPizzas"
+       (ok (get-pizzas)))
+     (GET* "/pizzas/:id" []
+       :path-params [id :- Long]
+       :return   Pizza
+       :summary  "Gets a pizza"
+       :nickname "getPizza"
+       (ok (get-pizza id)))
+     (POST* "/pizzas" []
+       :return   Pizza
+       :body     [pizza NewPizza {:description "new pizza"}]
+       :summary  "Adds a pizza"
+       :nickname "addPizza"
+       (ok (add! pizza)))
+     (PUT* "/pizzas" []
+       :return   Pizza
+       :body     [pizza Pizza]
+       :summary  "Updates a pizza"
+       :nickname "updatePizza"
+       (ok (update! pizza)))
+     (DELETE* "/pizzas/:id" []
+       :path-params [id :- Long]
+       :return   Pizza
+       :summary  "Deletes a Pizza"
+       :nickname "deletePizza"
+       (ok (delete! id))))))
