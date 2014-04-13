@@ -46,7 +46,9 @@
       (concat body [validated-return-form]))
     body))
 
-(defn- restructure-body [lets letks parameters]
+(defmulti restructure-param :key)
+
+(defmethod restructure-param :body [{:keys [lets letks parameters]}]
   (if-let [[value model model-meta] (:body parameters)]
     (let [model-var (resolve-model-var model)
           new-lets (into lets [value `(schema/coerce!
@@ -62,7 +64,7 @@
       [new-lets letks new-parameters])
     [lets letks parameters]))
 
-(defn- restructure-query [lets letks parameters]
+(defmethod restructure-param :query [{:keys [lets letks parameters]}]
   (if-let [[value model model-meta] (:query parameters)]
     (let [model-var (resolve-model-var model)
           new-lets (into lets [value `(schema/coerce!
@@ -79,11 +81,11 @@
       [new-lets letks new-parameters])
     [lets letks parameters]))
 
-(defn- restructure-body-params
+(defmethod restructure-param :body-params
+  [{:keys [lets letks parameters]}]
   "restructures body-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :body-params [id :- Long name :- String]"
-  [lets letks parameters]
   (if-let [body-params (:body-params parameters)]
     (let [schema (strict (fnk-schema body-params))
           model-name (gensym "body-")
@@ -101,11 +103,11 @@
       [new-lets (into letks [body-params coerced-model]) new-parameters])
     [lets letks parameters]))
 
-(defn- restructure-query-params
+(defmethod restructure-param :query-params
+  [{:keys [lets letks parameters]}]
   "restructures query-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :query-params [id :- Long name :- String]"
-  [lets letks parameters]
   (if-let [query-params (:query-params parameters)]
     (let [schema (fnk-schema query-params)
           model-name (gensym "query-params-")
@@ -124,11 +126,11 @@
       [new-lets (into letks [query-params coerced-model]) new-parameters])
     [lets letks parameters]))
 
-(defn- restructure-path-params
+(defmethod restructure-param :path-params
+  [{:keys [lets letks parameters]}]
   "restructures path-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :path-params [id :- Long name :- String]"
-  [lets letks parameters]
   (if-let [path-params (:path-params parameters)]
     (let [schema (fnk-schema path-params)
           model-name (gensym "path-params-")
@@ -146,10 +148,10 @@
       [new-lets (into letks [path-params coerced-model]) new-parameters])
     [lets letks parameters]))
 
-(defn- restructure-return [lets letks parameters]
+(defmethod restructure-param :return [{:keys [lets letks parameters]}]
   [lets letks (update-in parameters [:return] swagger/resolve-model-vars)])
 
-(defn- vectorize-parameters [lets letks parameters]
+(defmethod restructure-param :parameters [{:keys [lets letks parameters]}]
   [lets letks (if (:parameters parameters)
                   (update-in parameters [:parameters] vec)
                   parameters)])
@@ -176,16 +178,10 @@
         [lets letks] [[] []]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
         [lets letks parameters] (reduce
-                                  (fn [[lets letks parameters] f]
-                                    (f lets letks parameters))
+                                  (fn [[lets letks parameters] [k v]]
+                                    (restructure-param {:key k :lets lets :letks letks :parameters parameters}))
                                   [lets letks parameters]
-                                  [restructure-return
-                                   restructure-body
-                                   restructure-query
-                                   restructure-body-params
-                                   restructure-query-params
-                                   restructure-path-params
-                                   vectorize-parameters])]
+                                  parameters)]
     `(~method-symbol
        ~path
        ~arg-with-request
