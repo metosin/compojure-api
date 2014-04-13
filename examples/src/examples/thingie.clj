@@ -27,12 +27,12 @@
         (ok {:total (+ x y)}))
 
       (POST* "/minus" []
-        :body-params [x :- Long y :- Long]
+        :body-params  [x :- Long y :- Long]
         :summary      "x-y with body-parameters"
         (ok {:total (- x y)}))
 
       (GET* "/times/:x/:y" []
-        :path-params [x :- Long y :- Long]
+        :path-params  [x :- Long y :- Long]
         :summary      "x*y with path-parameters"
         (ok {:total (* x y)}))
 
