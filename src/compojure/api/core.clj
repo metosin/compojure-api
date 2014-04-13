@@ -27,8 +27,8 @@
 (defn resolve-model-var [model]
   (swagger/resolve-model-var
     (if (or (set? model) (sequential? model))
-        (first model)
-        model)))
+      (first model)
+      model)))
 
 ;;
 ;; Smart Destructurors
@@ -62,11 +62,11 @@
                                         (:body-params ~+compojure-api-request+)
                                         :json)])
              :parameters (-> parameters
-                           (dissoc :body)
-                           (update-in [:parameters] conj
-                             {:type :body
-                              :model (swagger/resolve-model-vars model)
-                              :meta model-meta}))))))
+                             (dissoc :body)
+                             (update-in [:parameters] conj
+                                        {:type :body
+                                         :model (swagger/resolve-model-vars model)
+                                         :meta model-meta}))))))
 
 (defmethod restructure-param :query [_ {:keys [lets parameters] :as acc}]
   (if-let [[value model model-meta] (:query parameters)]
@@ -78,11 +78,11 @@
                                           (:query-params ~+compojure-api-request+))
                                         :query)])
              :parameters (-> parameters
-                           (dissoc :query)
-                           (update-in [:parameters] conj
-                             {:type :query
-                              :model (swagger/resolve-model-vars model)
-                              :meta model-meta}))))))
+                             (dissoc :query)
+                             (update-in [:parameters] conj
+                                        {:type :query
+                                         :model (swagger/resolve-model-vars model)
+                                         :meta model-meta}))))))
 
 (defmethod restructure-param :body-params
   [_ {:keys [lets letks parameters] :as acc}]
@@ -100,10 +100,10 @@
                                                 (:body-params ~+compojure-api-request+)
                                                 :json)])
              :parameters (-> parameters
-                           (dissoc :body-params)
-                           (update-in [:parameters] conj
-                              {:type :body
-                               :model (eval `(var ~model-name))}))
+                             (dissoc :body-params)
+                             (update-in [:parameters] conj
+                                        {:type :body
+                                         :model (eval `(var ~model-name))}))
              :letks (into letks [body-params coerced-model])))))
 
 (defmethod restructure-param :query-params
@@ -123,10 +123,10 @@
                                                   (:query-params ~+compojure-api-request+))
                                                 :query)])
              :parameters (-> parameters
-                           (dissoc :query-params)
-                           (update-in [:parameters] conj
-                              {:type :query
-                               :model (eval `(var ~model-name))}))
+                             (dissoc :query-params)
+                             (update-in [:parameters] conj
+                                        {:type :query
+                                         :model (eval `(var ~model-name))}))
              :letks (into letks [query-params coerced-model])))))
 
 (defmethod restructure-param :path-params
@@ -145,10 +145,10 @@
                                                 (:route-params ~+compojure-api-request+)
                                                 :query)])
              :parameters (-> parameters
-                           (dissoc :path-params)
-                           (update-in [:parameters] conj
-                              {:type :path
-                               :model (eval `(var ~model-name))}))
+                             (dissoc :path-params)
+                             (update-in [:parameters] conj
+                                        {:type :path
+                                         :model (eval `(var ~model-name))}))
              :letks (into letks [path-params coerced-model])))))
 
 (defmethod restructure-param :parameters [{:keys [parameters] :as acc}]
@@ -161,34 +161,35 @@
 
 (defn- destructure-compojure-api-request [lets arg]
   (cond
-   (vector? arg) [lets (into arg [:as +compojure-api-request+])]
-   (map? arg) (if-let [as (:as arg)]
-                [(conj lets +compojure-api-request+ as) arg]
-                [lets (merge arg [:as +compojure-api-request+])])
-   (symbol? arg) [(conj lets +compojure-api-request+ arg) arg]
-   :else (throw
-           (RuntimeException.
-             (str "unknown compojure destruction synxax: " arg)))))
+    (vector? arg) [lets (into arg [:as +compojure-api-request+])]
+    (map? arg) (if-let [as (:as arg)]
+                 [(conj lets +compojure-api-request+ as) arg]
+                 [lets (merge arg [:as +compojure-api-request+])])
+    (symbol? arg) [(conj lets +compojure-api-request+ arg) arg]
+    :else (throw
+            (RuntimeException.
+              (str "unknown compojure destruction synxax: " arg)))))
 
 (defn- restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         [lets letks] [[] []]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
-
-        {:keys [lets letks parameters body]}
-        (reduce
-          (fn [acc [k _]]
-            (or (restructure-param k acc) acc))
-          {:lets lets :letks letks :parameters parameters :body body}
-          parameters)]
+        {:keys [lets
+                letks
+                parameters
+                body]} (reduce
+                         (fn [acc [k _]]
+                           (or (restructure-param k acc) acc))
+                         {:lets lets :letks letks :parameters parameters :body body}
+                         parameters)]
     `(~method-symbol
        ~path
        ~arg-with-request
        (meta-container ~parameters
-         (let ~lets
-           (letk ~letks
-             ~@body))))))
+                       (let ~lets
+                         (letk ~letks
+                           ~@body))))))
 
 ;;
 ;; routes
