@@ -34,7 +34,9 @@
 ;; Smart Destructurors
 ;;
 
-(defmulti restructure-param (fn [k _] k))
+(defmulti restructure-param
+  "alpha. subject to change. be warned."
+  (fn [k _] k))
 
 (defmethod restructure-param :default [_ _]
   "Some parameters don't need restructuring so default action is to do nothing."
