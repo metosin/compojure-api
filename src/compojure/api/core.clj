@@ -48,6 +48,10 @@
 
 (defmulti restructure-param :key)
 
+(defmethod restructure-param :default [_]
+  "Some parameters don't need restructuring so default action is to do nothing."
+  nil)
+
 (defmethod restructure-param :body [{:keys [lets letks parameters]}]
   (if-let [[value model model-meta] (:body parameters)]
     (let [model-var (resolve-model-var model)
@@ -61,8 +65,7 @@
                              {:type :body
                               :model (swagger/resolve-model-vars model)
                               :meta model-meta}))]
-      [new-lets letks new-parameters])
-    [lets letks parameters]))
+      [new-lets letks new-parameters])))
 
 (defmethod restructure-param :query [{:keys [lets letks parameters]}]
   (if-let [[value model model-meta] (:query parameters)]
@@ -78,8 +81,7 @@
                              {:type :query
                               :model (swagger/resolve-model-vars model)
                               :meta model-meta}))]
-      [new-lets letks new-parameters])
-    [lets letks parameters]))
+      [new-lets letks new-parameters])))
 
 (defmethod restructure-param :body-params
   [{:keys [lets letks parameters]}]
@@ -100,8 +102,7 @@
                            (update-in [:parameters] conj
                               {:type :body
                                :model (eval `(var ~model-name))}))]
-      [new-lets (into letks [body-params coerced-model]) new-parameters])
-    [lets letks parameters]))
+      [new-lets (into letks [body-params coerced-model]) new-parameters])))
 
 (defmethod restructure-param :query-params
   [{:keys [lets letks parameters]}]
@@ -123,8 +124,7 @@
                            (update-in [:parameters] conj
                               {:type :query
                                :model (eval `(var ~model-name))}))]
-      [new-lets (into letks [query-params coerced-model]) new-parameters])
-    [lets letks parameters]))
+      [new-lets (into letks [query-params coerced-model]) new-parameters])))
 
 (defmethod restructure-param :path-params
   [{:keys [lets letks parameters]}]
@@ -145,16 +145,14 @@
                            (update-in [:parameters] conj
                               {:type :path
                                :model (eval `(var ~model-name))}))]
-      [new-lets (into letks [path-params coerced-model]) new-parameters])
-    [lets letks parameters]))
+      [new-lets (into letks [path-params coerced-model]) new-parameters])))
 
 (defmethod restructure-param :return [{:keys [lets letks parameters]}]
   [lets letks (update-in parameters [:return] swagger/resolve-model-vars)])
 
 (defmethod restructure-param :parameters [{:keys [lets letks parameters]}]
-  [lets letks (if (:parameters parameters)
-                  (update-in parameters [:parameters] vec)
-                  parameters)])
+  (if (:parameters parameters)
+    [lets letks (update-in parameters [:parameters] vec)]))
 
 ;;
 ;; Main
@@ -178,8 +176,8 @@
         [lets letks] [[] []]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
         [lets letks parameters] (reduce
-                                  (fn [[lets letks parameters] [k v]]
-                                    (restructure-param {:key k :lets lets :letks letks :parameters parameters}))
+                                  (fn [[lets letks parameters :as acc] [k v]]
+                                    (or (restructure-param {:key k :lets lets :letks letks :parameters parameters}) acc))
                                   [lets letks parameters]
                                   parameters)]
     `(~method-symbol
