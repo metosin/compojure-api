@@ -284,8 +284,8 @@ One can use the same API to define own properties, for example for authenticatio
     (assoc acc
            :lets (into lets [{{'request-token "x-accesstoken"} :headers} '+compojure-api-request+])
            :body (list `(if (= ~'request-token "123")
-                                   (do ~@body)
-                                   (ring.util.http-response/forbidden "Auth required"))))))
+                          (do ~@body)
+                          (ring.util.http-response/forbidden "Auth required"))))))
 
 (GET* "/current-session" []
   :return [User]
