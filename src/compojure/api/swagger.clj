@@ -205,5 +205,6 @@
   (let [[details body] (swagger-info body)
         name (s/replace (str (eval name)) #" " "")
         models (swagger/extract-models details)]
-    (swap! swagger assoc-map-ordered name details)
-    `(routes ~@body)))
+    `(do
+       (swap! swagger assoc-map-ordered ~name '~details)
+       routes ~@body)))
