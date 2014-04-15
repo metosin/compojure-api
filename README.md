@@ -261,6 +261,38 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
   (ok {:total (* x y)}))
 ```
 
+## Extending with keyword-handlers (Alpha)
+
+API subject to change.
+
+Compojure-api goes through meta-data properties using multimethods where property keywords are used as dispatch value.
+Schema validation are implemented as multimethods for specific kewords.
+One can use the same API to define own properties, for example for authentication.
+
+- Multimethods take two parameters: keyword and a map containing keys: lets, letks, parameters and body.
+- It should return map containing the same keys or nil.
+- :lets is a binding form.
+- :letks
+- :parameters
+- :body is the route 
+
+```clojure
+(defmethod compojure.api.core/restructure-param :auth
+  [_ {:keys [parameters lets body] :as acc}]
+  "Make sure the request has X-AccessToken header and that it's value is 123."
+  (if-let [auth (:auth parameters)]
+    (assoc acc
+           :lets (into lets [{{'request-token "x-accesstoken"} :headers} '+compojure-api-request+])
+           :body (list `(if (= ~'request-token "123")
+                          (do ~@body)
+                          (ring.util.http-response/forbidden "Auth required"))))))
+
+(GET* "/current-session" []
+  :return [User]
+  :auth true
+  (ok {:token request-token}))
+```
+
 ## Running the embedded example(s)
 
 `lein ring server`
@@ -276,7 +308,6 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 
 ## Roadmap
 
-- refactor for extendable keyword-handlers
 - extract all Smart Destructurors into own namespace (fully extensible api dsl lib)
 - macroextend only once (now twice: once with the peeling, second time with the real code)
 - type-safe `:params` destructuring
