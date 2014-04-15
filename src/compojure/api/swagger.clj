@@ -207,4 +207,4 @@
         models (swagger/extract-models details)]
     `(do
        (swap! swagger assoc-map-ordered ~name '~details)
-       routes ~@body)))
+       (routes ~@body))))

@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.10.2"]
+[metosin/compojure-api "0.10.3"]
 ```
 
 ## Sample application
@@ -274,7 +274,7 @@ One can use the same API to define own properties, for example for authenticatio
 - :lets is a binding form.
 - :letks
 - :parameters
-- :body is the route 
+- :body is the route
 
 ```clojure
 (defmethod compojure.api.core/restructure-param :auth

@@ -1,3 +1,8 @@
+## 0.10.3 (15.4.2014)
+
+- renamed `clojure.walk` to `clojure.walk16`
+- writing routes to `swagger` atom happens now at runtime, not compile-time. Works with AOT.
+
 ## 0.10.2 (14.4.2014)
 
 - All `compojure.api.core` restructuring are now using `restructure-param` multimethod to allow external extensions. ALPHA.
