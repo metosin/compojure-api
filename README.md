@@ -69,7 +69,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         (ok thingie))))) ;; here be coerced thingie
 ```
 
-To try it yourself, clone this repo and hit `lein start-thingie`.
+To try it yourself, clone this repo and hit `lein start-thingie` (Jetty) or `lein http-kit-thingie` (Http-kit).
 
 ## Quickstart for a new project
 
@@ -303,8 +303,6 @@ One can use the same API to define own properties, for example for authenticatio
   - there is basically no runtime penalty for describing your apis
   - all runtime code between route-macros are ignored when macro-peeling route-trees. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
   - `swaggered` peels the macros until it reaches `compojure.core` Vars. You can write your own DSL-macros on top of those
-- Collected routes are stored in an Atom after compilation => AOT from swaggered apps should be disabled when Uberjarring
-  - routes could be written to file for allowing route precompilation?
 
 ## Roadmap
 
@@ -317,11 +315,9 @@ One can use the same API to define own properties, for example for authenticatio
 - parametrizable automatic coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - support for swagger error messages
 - support for swagger consumes
-- support for AOT compilation with uberjars (by persisting route definitions)
 - collect routes from root, not from `swaggered`
 - include external common use middlewares (ring-middleware-format, ring-cors etc.)
 - `FILE*`
-
 
 ## Contributing
 

@@ -1,3 +1,8 @@
+## 0.10.4 (16.4.2014)
+
+- fixed https://github.com/metosin/compojure-api/issues/12
+- added http-kit example
+
 ## 0.10.3 (15.4.2014)
 
 - renamed `clojure.walk` to `clojure.walk16`
