@@ -39,16 +39,20 @@
                             (or
                               (compojure-macro? (eval-re-resolve sym))
                               (meta-container? (eval-re-resolve sym))))
-                          (filter (comp not nil?) x)
+                        (filter (comp not nil?) x)
                         (macroexpand-1 x)))
-        :else       x))
+        :else x))
     form))
 
 (defrecord CompojureRoute [p b])
 (defrecord CompojureRoutes [p c])
 
+(defn is-a?
+  "like instanceof? but compares .toString of a classes"
+  [c x] (= (str c) (str (class x))))
+
 (defn filter-routes [c]
-  (filter #(#{CompojureRoute CompojureRoutes} (class %)) (flatten c)))
+  (filter #(or (is-a? CompojureRoute %) (is-a? CompojureRoutes %)) (flatten c)))
 
 (defn collect-compojure-routes [form]
   (walk/postwalk
@@ -79,13 +83,13 @@
 (defn create-paths [{:keys [p b c] :as r}]
   (apply array-map
     (cond
-      (instance? CompojureRoute r)  (let [route-meta (meta r)
-                                          method-meta (meta (first b))
-                                          parameter-meta (first (extract-parameters (drop 3 b)))
-                                          metadata (merge route-meta method-meta parameter-meta)
-                                          new-body [(with-meta (first b) metadata) (rest b)]]
-                                      [[p (extract-method b)] new-body])
-      (instance? CompojureRoutes r) [[p nil] (->> c (map create-paths) ->map)])))
+      (is-a? CompojureRoute r)  (let [route-meta (meta r)
+                                    method-meta (meta (first b))
+                                    parameter-meta (first (extract-parameters (drop 3 b)))
+                                    metadata (merge route-meta method-meta parameter-meta)
+                                    new-body [(with-meta (first b) metadata) (rest b)]]
+                                [[p (extract-method b)] new-body])
+      (is-a? CompojureRoutes r) [[p nil] (->> c (map create-paths) ->map)])))
 
 (defn route-metadata [body]
   (remove-empty-keys
