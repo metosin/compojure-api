@@ -63,7 +63,6 @@
           (let [[m p] x
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
-              (with-meta? rm)           (eval x)
               (compojure-route? rm)     (->CompojureRoute p x)
               (compojure-context? rm)   (->CompojureRoutes p  (filter-routes x))
               (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x))

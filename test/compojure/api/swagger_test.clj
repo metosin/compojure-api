@@ -44,7 +44,7 @@
   (fact "runtime code in route is ignored"
     (extract-routes
       '(context "/api" []
-         (if true
+         (if false
            (GET "/true" [] identity)
            (PUT "/false" [] identity)))) => [{:method :get
                                               :uri "/api/true"}
