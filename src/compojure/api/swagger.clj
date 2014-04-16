@@ -206,8 +206,7 @@
    extracts route, model and endpoint meta-datas."
   [name & body]
   (let [[details body] (swagger-info body)
-        name (s/replace (str (eval name)) #" " "")
-        models (swagger/extract-models details)]
+        name (s/replace (str (eval name)) #" " "")]
     `(do
        (swap! swagger assoc-map-ordered ~name '~details)
        (routes ~@body))))
