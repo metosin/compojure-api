@@ -9,7 +9,7 @@
             [ring.swagger.schema :as schema]
             [ring.swagger.common :refer :all]
             [schema.core :as s]
-            [clojure.walk :refer [keywordize-keys]]
+            [clojure.walk16 :refer [keywordize-keys]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
 (def +compojure-api-request+

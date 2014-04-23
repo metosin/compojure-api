@@ -1,5 +1,5 @@
 (ns compojure.api.middleware
-  (:require [clojure.walk :as walk]
+  (:require [clojure.walk16 :as walk]
             [compojure.handler :as compojure]
             [ring.util.response :refer [response content-type redirect]]
             [cheshire.core :as cheshire]

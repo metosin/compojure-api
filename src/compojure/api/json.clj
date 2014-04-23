@@ -3,7 +3,7 @@
    Might use https://github.com/ngrunwald/ring-middleware-format later."
   (:require [ring.util.http-response :refer [content-type bad-request]]
             [cheshire.core :as cheshire]
-            [clojure.walk :as walk]
+            [clojure.walk16 :as walk]
             [clojure.java.io :as io])
   (:import [com.fasterxml.jackson.core JsonParseException]))
 

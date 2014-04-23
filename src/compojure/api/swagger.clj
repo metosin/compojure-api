@@ -1,6 +1,6 @@
 (ns compojure.api.swagger
   (:require [clojure.string :as s]
-            [clojure.walk :as walk]
+            [clojure.walk16 :as walk]
             [clojure.set :refer [union]]
             [ring.util.response :refer :all]
             [ring.swagger.core :as swagger]
