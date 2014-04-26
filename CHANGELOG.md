@@ -1,3 +1,9 @@
+## 0.11.0 (???)
+
+- change signature of `restructure-param` to receive key, value and the accumulator. Remove the key from accumulator parameters by default. Remove alpha-tag.
+- more docs on creating own metadata DSLs
+- use `clojure.walk16` internally
+
 ## 0.10.4 (16.4.2014)
 
 - fixed https://github.com/metosin/compojure-api/issues/12
