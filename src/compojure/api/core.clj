@@ -40,11 +40,10 @@
   (fn [k v acc] k))
 
 (defmethod restructure-param :default
-  "Defaulting to pushing back the parameter"
   [k v acc] (update-in acc [:parameters] assoc k v))
 
 (defmethod restructure-param :return
-  [k model {:keys [parameters body] :as acc}]
+  [k model {:keys [body] :as acc}]
   (let [returned-form (last body)
         body (butlast body)
         validated-return-form `(let [validator# (partial schema/coerce! ~model)
@@ -52,39 +51,37 @@
                                  (if (response/response? return-value#)
                                    (update-in return-value# [:body] validator#)
                                    (validator# return-value#)))]
-    (assoc acc
-           :parameters (assoc parameters k (swagger/resolve-model-vars model))
-           :body (concat body [validated-return-form]))))
+    (-> acc
+        (update-in [:parameters] assoc k (swagger/resolve-model-vars model))
+        (update-in [:body] conj validated-return-form))))
 
 (defmethod restructure-param :body
-  [k [value model model-meta] {:keys [lets parameters] :as acc}]
+  [k [value model model-meta] acc]
   (let [model-var (resolve-model-var model)]
-    (assoc acc
-           :lets (into lets [value `(schema/coerce!
-                                      ~model
-                                      (:body-params ~+compojure-api-request+)
-                                      :json)])
-           :parameters (update-in parameters [:parameters] conj
-                                  {:type :body
-                                   :model (swagger/resolve-model-vars model)
-                                   :meta model-meta}))))
+    (-> acc
+        (update-in [:lets] into [value `(schema/coerce!
+                                          ~model
+                                          (:body-params ~+compojure-api-request+)
+                                          :json)])
+        (update-in [:parameters :parameters] conj {:type :body
+                                              :model (swagger/resolve-model-vars model)
+                                              :meta model-meta}))))
 
 (defmethod restructure-param :query
-  [k [value model model-meta] {:keys [lets parameters] :as acc}]
+  [k [value model model-meta] acc]
   (let [model-var (resolve-model-var model)]
-    (assoc acc
-           :lets (into lets [value `(schema/coerce!
-                                      ~model
-                                      (keywordize-keys
-                                        (:query-params ~+compojure-api-request+))
-                                      :query)])
-           :parameters (update-in parameters [:parameters] conj
-                                  {:type :query
-                                   :model (swagger/resolve-model-vars model)
-                                   :meta model-meta}))))
+    (-> acc
+        (update-in [:lets] into [value `(schema/coerce!
+                                          ~model
+                                          (keywordize-keys
+                                            (:query-params ~+compojure-api-request+))
+                                          :query)])
+        (update-in [:parameters :parameters] conj {:type :query
+                                                   :model (swagger/resolve-model-vars model)
+                                                   :meta model-meta}))))
 
 (defmethod restructure-param :body-params
-  [k body-params {:keys [lets letks parameters] :as acc}]
+  [k body-params acc]
   "restructures body-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :body-params [id :- Long name :- String]"
@@ -92,18 +89,17 @@
         model-name (gensym "body-")
         _ (eval `(schema/defmodel ~model-name ~schema))
         coerced-model (gensym)]
-    (assoc acc
-           :lets (into lets [coerced-model `(schema/coerce!
-                                              ~schema
-                                              (:body-params ~+compojure-api-request+)
-                                              :json)])
-           :parameters (update-in parameters [:parameters] conj
-                                  {:type :body
-                                   :model (eval `(var ~model-name))})
-           :letks (into letks [body-params coerced-model]))))
+    (-> acc
+        (update-in [:lets] into [coerced-model `(schema/coerce!
+                                                  ~schema
+                                                  (:body-params ~+compojure-api-request+)
+                                                  :json)])
+        (update-in [:parameters :parameters] conj {:type :body
+                                                   :model (eval `(var ~model-name))})
+        (update-in [:letks] into [body-params coerced-model]))))
 
 (defmethod restructure-param :query-params
-  [k query-params {:keys [lets letks parameters] :as acc}]
+  [k query-params acc]
   "restructures query-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :query-params [id :- Long name :- String]"
@@ -111,19 +107,18 @@
         model-name (gensym "query-params-")
         _ (eval `(def ~model-name ~schema))
         coerced-model (gensym)]
-    (assoc acc
-           :lets (into lets [coerced-model `(schema/coerce!
-                                              ~schema
-                                              (keywordize-keys
-                                                (:query-params ~+compojure-api-request+))
-                                              :query)])
-           :parameters (update-in parameters [:parameters] conj
-                                  {:type :query
-                                   :model (eval `(var ~model-name))})
-           :letks (into letks [query-params coerced-model]))))
+    (-> acc
+        (update-in [:lets] into [coerced-model `(schema/coerce!
+                                                  ~schema
+                                                  (keywordize-keys
+                                                    (:query-params ~+compojure-api-request+))
+                                                  :query)])
+        (update-in [:parameters :parameters] conj {:type :query
+                                                   :model (eval `(var ~model-name))})
+        (update-in [:letks] into [query-params coerced-model]))))
 
 (defmethod restructure-param :path-params
-  [k path-params {:keys [lets letks parameters] :as acc}]
+  [k path-params acc]
   "restructures path-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :path-params [id :- Long name :- String]"
@@ -131,15 +126,14 @@
         model-name (gensym "path-params-")
         _ (eval `(def ~model-name ~schema))
         coerced-model (gensym)]
-    (assoc acc
-           :lets (into lets [coerced-model `(schema/coerce!
-                                              ~schema
-                                              (:route-params ~+compojure-api-request+)
-                                              :query)])
-           :parameters (update-in parameters [:parameters] conj
-                                  {:type :path
-                                   :model (eval `(var ~model-name))})
-           :letks (into letks [path-params coerced-model]))))
+    (-> acc
+        (update-in [:lets] into [coerced-model `(schema/coerce!
+                                                  ~schema
+                                                  (:route-params ~+compojure-api-request+)
+                                                  :query)])
+        (update-in [:parameters :parameters] conj {:type :path
+                                                   :model (eval `(var ~model-name))})
+        (update-in [:letks] into [path-params coerced-model]))))
 
 ;;
 ;; Main
