@@ -1,7 +1,5 @@
 (ns compojure.api.meta
-  (:require [compojure.core :refer :all]
-            [compojure.api.middleware :as mw]
-            [compojure.api.common :refer :all]
+  (:require [compojure.api.common :refer :all]
             [ring.util.response :as response]
             [plumbing.core :refer [letk]]
             [plumbing.fnk.impl :as fnk-impl]

@@ -1,9 +1,7 @@
 (ns compojure.api.core
   (:require [compojure.core :refer :all]
             [compojure.api.middleware :refer [api-middleware]]
-            [compojure.api.common :refer :all]
             [compojure.api.meta :refer :all]
-            [ring.swagger.common :refer :all]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
 (defmacro defapi [name & body]
