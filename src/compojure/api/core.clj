@@ -40,23 +40,31 @@
   (fn [k v acc] k))
 
 (defmethod restructure-param :default
-  [k v acc] (update-in acc [:parameters] assoc k v))
+  [k v acc]
+  "By default assoc in the k v to acc"
+  (update-in acc [:parameters] assoc k v))
 
 (defmethod restructure-param :return
   [k model {:keys [body] :as acc}]
+  "Defines a return type and coerced the return value of a body against it."
   (let [returned-form (last body)
         body (butlast body)
-        validated-return-form `(let [validator# (partial schema/coerce! ~model)
+        validated-return-form `(let [coercer# (partial schema/coerce! ~model)
                                      return-value# ~returned-form]
                                  (if (response/response? return-value#)
-                                   (update-in return-value# [:body] validator#)
-                                   (validator# return-value#)))]
+                                   (update-in return-value# [:body] coercer#)
+                                   (coercer# return-value#)))]
     (-> acc
         (update-in [:parameters] assoc k (swagger/resolve-model-vars model))
         (update-in [:body] conj validated-return-form))))
 
 (defmethod restructure-param :body
   [k [value model model-meta] acc]
+  "reads body-params into a enchanced let. First parameter is the let symbol,
+   second is the Model to coerced! against, third parameter is optional meta-
+   data for the model. Examples:
+   :body [user User]
+   :body [user User {:key \"value\""
   (let [model-var (resolve-model-var model)]
     (-> acc
         (update-in [:lets] into [value `(schema/coerce!
@@ -69,6 +77,11 @@
 
 (defmethod restructure-param :query
   [k [value model model-meta] acc]
+  "reads query-params into a enchanced let. First parameter is the let symbol,
+   second is the Model to coerced! against, third parameter is optional meta-
+   data for the model. Examples:
+   :query [user User]
+   :query [user User {:key \"value\""
   (let [model-var (resolve-model-var model)]
     (-> acc
         (update-in [:lets] into [value `(schema/coerce!
@@ -82,7 +95,7 @@
 
 (defmethod restructure-param :body-params
   [k body-params acc]
-  "restructures body-params by plumbing letk notation. Generates
+  "restructures body-params with plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :body-params [id :- Long name :- String]"
   (let [schema (strict (fnk-schema body-params))
@@ -100,7 +113,7 @@
 
 (defmethod restructure-param :query-params
   [k query-params acc]
-  "restructures query-params by plumbing letk notation. Generates
+  "restructures query-params with plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :query-params [id :- Long name :- String]"
   (let [schema (fnk-schema query-params)
