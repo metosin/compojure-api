@@ -61,7 +61,7 @@
         (update-in [:body] conj validated-return-form))))
 
 (defmethod restructure-param :body
-  [k [value model model-meta] acc]
+  [_ [value model model-meta] acc]
   "reads body-params into a enchanced let. First parameter is the let symbol,
    second is the Model to coerced! against, third parameter is optional meta-
    data for the model. Examples:
@@ -74,11 +74,11 @@
                                           (:body-params ~+compojure-api-request+)
                                           :json)])
         (update-in [:parameters :parameters] conj {:type :body
-                                              :model (swagger/resolve-model-vars model)
-                                              :meta model-meta}))))
+                                                   :model (swagger/resolve-model-vars model)
+                                                   :meta model-meta}))))
 
 (defmethod restructure-param :query
-  [k [value model model-meta] acc]
+  [_ [value model model-meta] acc]
   "reads query-params into a enchanced let. First parameter is the let symbol,
    second is the Model to coerced! against, third parameter is optional meta-
    data for the model. Examples:
@@ -96,7 +96,7 @@
                                                    :meta model-meta}))))
 
 (defmethod restructure-param :body-params
-  [k body-params acc]
+  [_ body-params acc]
   "restructures body-params with plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :body-params [id :- Long name :- String]"
@@ -114,7 +114,7 @@
         (update-in [:letks] into [body-params coerced-model]))))
 
 (defmethod restructure-param :query-params
-  [k query-params acc]
+  [_ query-params acc]
   "restructures query-params with plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :query-params [id :- Long name :- String]"
@@ -133,7 +133,7 @@
         (update-in [:letks] into [query-params coerced-model]))))
 
 (defmethod restructure-param :path-params
-  [k path-params acc]
+  [_ path-params acc]
   "restructures path-params by plumbing letk notation. Generates
    synthetic defs for the models. Example:
    :path-params [id :- Long name :- String]"
