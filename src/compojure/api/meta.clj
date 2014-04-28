@@ -150,6 +150,16 @@
                                                    :model (eval `(var ~model-name))})
         (update-in [:letks] into [path-params coerced-model]))))
 
+(defmethod restructure-param :middlewares
+  [k middlewares {:keys [body] :as acc}]
+  "Applies the given vector of middlewares for the route from left to right"
+  (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
+  (assoc acc :body `((reduce
+                       (fn [handler# middleware#]
+                         (middleware# handler#))
+                       (constantly (do ~@body))
+                       ~middlewares))))
+
 ;;
 ;; Api
 ;;
