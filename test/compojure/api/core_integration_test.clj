@@ -16,12 +16,12 @@
 ;;
 
 (defn get* [app uri & [params]]
-  (let [{{:keys [status body]} :response}
+  (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
           (p/request uri
             :request-method :get
             :params (or params {})))]
-    [status (cheshire/parse-string body true)]))
+    [status (cheshire/parse-string body true) headers]))
 
 (defn json [x] (cheshire/generate-string x))
 
@@ -95,7 +95,7 @@
           :path-params [x :- Long y :- Long]
           (ok {:total (* x y)}))
         (POST* "/minus" []
-          :body-params [x :- Long y :- Long]
+             :body-params [x :- Long {y :- Long 1}]
           (ok {:total (- x y)})))
 
       (context "/destructuring" []
@@ -140,7 +140,12 @@
     (fact "body-parameters"
       (let [[status body] (post* api "/smart/minus" (json {:x 2 :y 3}))]
           status => 200
-          body => {:total -1})))
+         body => {:total -1}))
+
+     (fact "default parameters"
+       (let [[status body] (post* api "/smart/minus" (json {:x 2}))]
+         status => 200
+         body => {:total 1})))
 
   (facts "models"
 
