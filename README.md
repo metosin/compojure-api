@@ -341,7 +341,6 @@ macroexpanding-1 it too see what's get generated:
 ## Roadmap
 
 - collect routes from root, not from `swaggered` => removes the global swagger-atom
-- extract all Smart Destructurors into own namespace (fully extensible api dsl lib)
 - macroextend only once (now twice: once with the peeling, second time with the real code)
 - type-safe `:params` destructuring
 - allow vanilla schemas instead of defmodels
