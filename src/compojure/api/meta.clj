@@ -1,5 +1,6 @@
 (ns compojure.api.meta
   (:require [compojure.api.common :refer :all]
+            [compojure.core :refer [routes]]
             [ring.util.response :as response]
             [plumbing.core :refer [letk]]
             [plumbing.fnk.impl :as fnk-impl]
@@ -151,18 +152,22 @@
         (update-in [:letks] into [path-params coerced-model]))))
 
 (defmethod restructure-param :middlewares
-  [k middlewares {:keys [body] :as acc}]
+  [k middlewares acc]
   "Applies the given vector of middlewares for the route from left to right"
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
-  (assoc acc :body `((reduce
-                       (fn [handler# middleware#]
-                         (middleware# handler#))
-                       (constantly (do ~@body))
-                       ~middlewares))))
+  (update-in acc [:middlewares] into (reverse middlewares)))
 
 ;;
 ;; Api
 ;;
+
+(defmacro with-middlewares [middlewares & body]
+  `(routes
+     (reduce
+       (fn [handler# middleware#]
+         (middleware# handler#))
+       (routes ~@body)
+       (reverse ~middlewares))))
 
 (defn- destructure-compojure-api-request [lets arg]
   (cond
@@ -178,22 +183,24 @@
 (defn restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
-        [lets letks] [[] []]
+        [lets letks middlewares] [[] [] []]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
         {:keys [lets
                 letks
+                middlewares
                 parameters
                 body]} (reduce
-                         (fn [{:keys [lets letks parameters body]} [k v]]
+                         (fn [{:keys [lets letks middlewares parameters body]} [k v]]
                            (let [parameters (dissoc parameters k)
-                                 acc (map-of lets letks parameters body)]
+                                 acc (map-of lets letks middlewares parameters body)]
                              (restructure-param k v acc)))
                          (map-of lets letks parameters body)
                          parameters)]
-    `(~method-symbol
-       ~path
-       ~arg-with-request
-       (meta-container ~parameters
-                       (let ~lets
-                         (letk ~letks
-                           ~@body))))))
+    `(with-middlewares [~@middlewares]
+       (~method-symbol
+         ~path
+         ~arg-with-request
+         (meta-container ~parameters
+                         (let ~lets
+                           (letk ~letks
+                             ~@body)))))))
