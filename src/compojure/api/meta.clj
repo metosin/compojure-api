@@ -162,12 +162,11 @@
 ;;
 
 (defmacro with-middlewares [middlewares & body]
-  `(routes
-     (reduce
-       (fn [handler# middleware#]
-         (middleware# handler#))
-       (routes ~@body)
-       (reverse ~middlewares))))
+  `(reduce
+     (fn [handler# middleware#]
+       (middleware# handler#))
+     (routes ~@body)
+     (reverse ~middlewares)))
 
 (defn- destructure-compojure-api-request [lets arg]
   (cond
@@ -195,12 +194,14 @@
                                  acc (map-of lets letks middlewares parameters body)]
                              (restructure-param k v acc)))
                          (map-of lets letks parameters body)
-                         parameters)]
-    `(with-middlewares [~@middlewares]
-       (~method-symbol
-         ~path
-         ~arg-with-request
-         (meta-container ~parameters
-                         (let ~lets
-                           (letk ~letks
-                             ~@body)))))))
+                         parameters)
+        body `(~method-symbol
+                ~path
+                ~arg-with-request
+                (meta-container ~parameters
+                                (let ~lets
+                                  (letk ~letks
+                                    ~@body))))]
+    (if (empty? middlewares)
+      body
+      `(with-middlewares [~@middlewares] ~body))))
