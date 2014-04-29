@@ -214,7 +214,7 @@ Two coercers are available (and automatically selected with smart destucturing):
 
 ## Models, routes and meta-data
 
-The enchanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-spesific data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coersion.
+The enchanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-specific data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coersion.
 
 ```clojure
   (POST* "/echo" []
@@ -261,7 +261,7 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
   (ok {:total (- x y)}))
 ```
 
-## Route-spesific middlewares
+## Route-specific middlewares
 
 Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds and by so are more reusable.
 
@@ -282,7 +282,7 @@ Multimethods take three parameters:
 3. accumulator map with keys
     - `:lets`, a vector of let bindings applied first before the actual body
     - `:letks`, a vector of letk bindings applied second before the actual body
-    - `:middlewares`, a vector of route spesific middlewares (applied from left to right)
+    - `:middlewares`, a vector of route specific middlewares (applied from left to right)
     - `:parameters`, meta-data of a route (without the key & value for the current multimethod)
     - `:body`, a sequence of the actual route body
 
