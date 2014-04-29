@@ -89,17 +89,17 @@ There is pre-packaged middleware `api-middleware` for common web api usage, foun
 
 ### Mounting middlewars
 
-To help setting up custom middleware there is a `with-middleware` macro:
+To help setting up custom middleware there is a `middlewares` macro:
 
 ```clojure
 (ns example
   (:require [ring.util.http-response :refer [ok]]
             [compojure.api.middleware :refer [api-middleware]]
-            [compojure.api.core :refer [with-middleware]]
+            [compojure.api.core :refer [middlewares]]
             [compojure.core :refer :all]))
 
 (defroutes app
-  (with-middleware [api-middleware]
+  (middlewares [api-middleware]
     (context "/api" []
       (GET "/ping" [] (ok {:ping "pong"})))))
 ```
@@ -243,27 +243,37 @@ you can also wrap models in containers (`Vector`, `List`, `Set`) and add extra m
     (ok thingies))
 ```
 
-## Query and Path parameters
+## Query, Path and Body parameters
 
 Both query- and path-parameters can also be destructured using the [Plumbing](https://github.com/Prismatic/plumbing) syntax with optional type-annotations:
 
 ```clojure
 (GET* "/sum" []
-  :query-params [x :- Long
-                 y :- Long]
-  :summary      "sums x & y query-parameters"
+  :query-params [x :- Long, y :- Long]
   (ok {:total (+ x y)}))
 
 (GET* "/times/:x/:y" []
-  :path-params [x :- Long
-                y :- Long]
-  :summary      "multiplies x & y path-parameters"
+  :path-params [x :- Long, y :- Long]
   (ok {:total (* x y)}))
+
+(POST* "/minus" []
+  :body-params [x :- Long, y :- Long]
+  (ok {:total (- x y)}))
 ```
 
-## Creating your own metadata-driven route DSL
+## Route-spesific middlewares
 
-Compojure-api handles the route metadatas by calling the multimethod `compojure.api.core/restructure-param` with metadata key as a dispatch value.
+Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds and by so are more reusable.
+
+```clojure
+ (DELETE* "/user/:id" []
+   :middlewares [audit-support (for-roles :admin)]
+   (ok {:name "Pertti"})))
+```
+
+## Creating your own metadata handlers
+
+Compojure-api handles the route metadatas by calling the multimethod `compojure.api.meta/restructure-param` with metadata key as a dispatch value.
 
 Multimethods take three parameters:
 
@@ -272,6 +282,7 @@ Multimethods take three parameters:
 3. accumulator map with keys
     - `:lets`, a vector of let bindings applied first before the actual body
     - `:letks`, a vector of letk bindings applied second before the actual body
+    - `:middlewares`, a vector of route spesific middlewares (applied from left to right)
     - `:parameters`, meta-data of a route (without the key & value for the current multimethod)
     - `:body`, a sequence of the actual route body
 
@@ -280,8 +291,8 @@ Multimethods take three parameters:
 You can add your own metadata-handlers by implementing the multimethod:
 
 ```clojure
-(defmethod compojure.api.core/restructure-param :auth
-  [_ token {:keys [parameters lets body] :as acc}]
+(defmethod compojure.api.meta/restructure-param :auth
+  [_ token {:keys [parameters lets body middlewares] :as acc}]
   "Make sure the request has X-AccessToken header and that it's value is 123. Binds the value into a variable"
   (-> acc
       (update-in [:lets] into [{{token "x-accesstoken"} :headers} '+compojure-api-request+])
