@@ -19,7 +19,7 @@
   [compojure.api.core
 
    defapi
-   with-middleware
+   middlewares
 
    defroutes*
 

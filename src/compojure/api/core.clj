@@ -9,13 +9,8 @@
      (api-middleware
        (routes ~@body))))
 
-(defmacro with-middleware [middlewares & body]
-  `(routes
-     (reduce
-       (fn [handler# middleware#]
-         (middleware# handler#))
-       (routes ~@body)
-       ~middlewares)))
+(defmacro middlewares [middlewares & body]
+  `(with-middlewares ~middlewares ~@body))
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may

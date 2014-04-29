@@ -56,11 +56,13 @@
 (defn middleware* [value]
   (fn [handler]
     (fn [request]
-      (let [response (handler request)]
+      (let [response (handler (update-in request [:headers mw*] (fn [x] (str x value))))]
         (update-in response [:headers mw*]
                    (fn [x] (str x value)))))))
 
-(def reply-mw* (header (ok "true") mw* "1"))
+(defn reply-mw* [request]
+  (header (ok "true") mw*
+          (str (get-in request [:headers mw*]) 7)))
 
 ;;
 ;; Facts
@@ -71,16 +73,16 @@
      (after :contents (swap! swagger/swagger dissoc app-name)))
 
    (defapi api
-     (with-middleware [(middleware* 6) (middleware* 7)]
+     (middlewares [(middleware* 1) (middleware* 2)]
        (swaggered app-name
 
          (context "/middlewares" []
-           (GET* "/simple" [] reply-mw*)
-           (with-middleware [(middleware* 4) (middleware* 5)]
-             (GET* "/nested" [] reply-mw*)
-             (GET* "/nested-declared" []
-               :middlewares [(middleware* 2) (middleware* 3)]
-               reply-mw*)))
+           (GET* "/simple" req (reply-mw* req))
+           (middlewares [(middleware* 3) (middleware* 4)]
+             (GET* "/nested" req (reply-mw* req))
+             (GET* "/nested-declared" req
+               :middlewares [(middleware* 5) (middleware* 6)]
+               (reply-mw* req))))
 
          (context "/models" []
            (GET* "/pertti" []
@@ -142,22 +144,22 @@
              (ok {:a a
                   :b b}))))))
 
-   (facts "with-middleware"
+   (facts "middlewares"
 
      (fact "applies middlewares left-to-right"
        (let [[status body headers] (get* api "/middlewares/simple" {})]
          status => 200
-         (get headers mw*) => "167"))
+         (get headers mw*) => "12721"))
 
      (fact "applies nested middlewares left-to-right closest one first"
        (let [[status body headers] (get* api "/middlewares/nested" {})]
          status => 200
-         (get headers mw*) => "14567"))
+         (get headers mw*) => "123474321"))
 
      (fact "applies nested & declared middlewares left-to-right closest one first"
        (let [[status body headers] (get* api "/middlewares/nested-declared" {})]
          status => 200
-         (get headers mw*) => "1234567"))
+         (get headers mw*) => "1234567654321"))
 
      )
 
