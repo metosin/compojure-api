@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.10.4"]
+[metosin/compojure-api "0.11.0"]
 ```
 
 ## Sample application
@@ -89,17 +89,17 @@ There is pre-packaged middleware `api-middleware` for common web api usage, foun
 
 ### Mounting middlewars
 
-To help setting up custom middleware there is a `with-middleware` macro:
+To help setting up custom middleware there is a `middlewares` macro:
 
 ```clojure
 (ns example
   (:require [ring.util.http-response :refer [ok]]
             [compojure.api.middleware :refer [api-middleware]]
-            [compojure.api.core :refer [with-middleware]]
+            [compojure.api.core :refer [middlewares]]
             [compojure.core :refer :all]))
 
 (defroutes app
-  (with-middleware [api-middleware]
+  (middlewares [api-middleware]
     (context "/api" []
       (GET "/ping" [] (ok {:ping "pong"})))))
 ```
@@ -243,54 +243,88 @@ you can also wrap models in containers (`Vector`, `List`, `Set`) and add extra m
     (ok thingies))
 ```
 
-## Query and Path parameters
+## Query, Path and Body parameters
 
 Both query- and path-parameters can also be destructured using the [Plumbing](https://github.com/Prismatic/plumbing) syntax with optional type-annotations:
 
 ```clojure
 (GET* "/sum" []
-  :query-params [x :- Long
-                 y :- Long]
-  :summary      "sums x & y query-parameters"
+  :query-params [x :- Long, y :- Long]
   (ok {:total (+ x y)}))
 
 (GET* "/times/:x/:y" []
-  :path-params [x :- Long
-                y :- Long]
-  :summary      "multiplies x & y path-parameters"
+  :path-params [x :- Long, y :- Long]
   (ok {:total (* x y)}))
+
+(POST* "/minus" []
+  :body-params [x :- Long, y :- Long]
+  (ok {:total (- x y)}))
 ```
 
-## Extending with keyword-handlers (Alpha)
+## Route-spesific middlewares
 
-API subject to change.
-
-Compojure-api goes through meta-data properties using multimethods where property keywords are used as dispatch value.
-Schema validation are implemented as multimethods for specific kewords.
-One can use the same API to define own properties, for example for authentication.
-
-- Multimethods take two parameters: keyword and a map containing keys: lets, letks, parameters and body.
-- It should return map containing the same keys or nil.
-- :lets is a binding form.
-- :letks
-- :parameters
-- :body is the route
+Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds and by so are more reusable.
 
 ```clojure
-(defmethod compojure.api.core/restructure-param :auth
-  [_ {:keys [parameters lets body] :as acc}]
-  "Make sure the request has X-AccessToken header and that it's value is 123."
-  (if-let [auth (:auth parameters)]
-    (assoc acc
-           :lets (into lets [{{'request-token "x-accesstoken"} :headers} '+compojure-api-request+])
-           :body (list `(if (= ~'request-token "123")
-                          (do ~@body)
-                          (ring.util.http-response/forbidden "Auth required"))))))
+ (DELETE* "/user/:id" []
+   :middlewares [audit-support (for-roles :admin)]
+   (ok {:name "Pertti"})))
+```
 
+## Creating your own metadata handlers
+
+Compojure-api handles the route metadatas by calling the multimethod `compojure.api.meta/restructure-param` with metadata key as a dispatch value.
+
+Multimethods take three parameters:
+
+1. metadata key
+2. metadata value
+3. accumulator map with keys
+    - `:lets`, a vector of let bindings applied first before the actual body
+    - `:letks`, a vector of letk bindings applied second before the actual body
+    - `:middlewares`, a vector of route spesific middlewares (applied from left to right)
+    - `:parameters`, meta-data of a route (without the key & value for the current multimethod)
+    - `:body`, a sequence of the actual route body
+
+.. and should return the modified accumulator. Multimethod calls are reduced to produce the final accumulator for code generation. Defined key-value -based metadatas for routes are guaranteed to run on top-to-bottom order of the so all the potential `let` and `letk` variable overrides can be solved by the client. Default implementation is to keep the key & value as a route metadata.
+
+You can add your own metadata-handlers by implementing the multimethod:
+
+```clojure
+(defmethod compojure.api.meta/restructure-param :auth
+  [_ token {:keys [parameters lets body middlewares] :as acc}]
+  "Make sure the request has X-AccessToken header and that it's value is 123. Binds the value into a variable"
+  (-> acc
+      (update-in [:lets] into [{{token "x-accesstoken"} :headers} '+compojure-api-request+])
+      (assoc :body `((if (= ~token "123")
+                      (do ~@body)
+                      (ring.util.http-response/forbidden "Auth required"))))))
+```
+
+using it:
+
+```clojure
 (GET* "/current-session" []
-  :return [User]
-  :auth true
-  (ok {:token request-token}))
+  :auth token
+  (ok {:token token}))
+ ```
+
+macroexpanding-1 it too see what's get generated:
+
+```clojure
+(compojure.core/GET
+ "/current-session"
+ [:as +compojure-api-request+]
+ (compojure.api.common/meta-container
+  {}
+  (clojure.core/let
+   [{{token "x-accesstoken"} :headers} +compojure-api-request+]
+   (plumbing.core/letk
+    []
+    (if
+     (clojure.core/= token "123")
+     (do (ok {:token token}))
+     (ring.util.http-response/forbidden "Auth required"))))))
 ```
 
 ## Running the embedded example(s)
@@ -306,18 +340,17 @@ One can use the same API to define own properties, for example for authenticatio
 
 ## Roadmap
 
-- extract all Smart Destructurors into own namespace (fully extensible api dsl lib)
+- collect routes from root, not from `swaggered` => removes the global swagger-atom
 - macroextend only once (now twice: once with the peeling, second time with the real code)
 - type-safe `:params` destructuring
 - allow vanilla schemas instead of defmodels
 - allow anonymous models with `:return`, `:body` and `:query`
 - `url-for` for endpoints (bidi, bidi, bidi)
-- parametrizable automatic coercing: **no** (no coercing), **loose** (allow extra keys), **strict** (disallow extra keys)
 - support for swagger error messages
 - support for swagger consumes
-- collect routes from root, not from `swaggered`
 - include external common use middlewares (ring-middleware-format, ring-cors etc.)
 - `FILE*`
+- `WS*`
 
 ## Contributing
 

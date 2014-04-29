@@ -1,3 +1,19 @@
+## 0.11.0 (29.04.2014)
+
+- change signature of `restructure-param` to receive key, value and the accumulator. Remove the key from accumulator parameters by default. No more alpha.
+- separate restructuring into own namespace `meta`
+- **new**: `:middlewares` restructuring to support adding middlewares to routes:
+
+```clojure
+ (DELETE* "/user/:id" []
+   :middlewares [audit-support (for-roles :admin)]
+   (ok {:name "Pertti"})))
+```
+
+- **breaking change**: `with-middleware` is renamed to `middlewares` & it applies middlewares in reverse order
+- more docs on creating own metadata DSLs
+- use `clojure.walk16` internally
+
 ## 0.10.4 (16.4.2014)
 
 - fixed https://github.com/metosin/compojure-api/issues/12

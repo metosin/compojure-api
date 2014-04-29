@@ -8,7 +8,7 @@
             [examples.domain :refer :all]))
 
 (defroutes app
-  (with-middleware [api-middleware]
+  (middlewares [api-middleware]
     (swagger-ui)
     (swagger-docs
       :title "Cool api"

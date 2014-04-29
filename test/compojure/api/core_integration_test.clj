@@ -16,12 +16,12 @@
 ;;
 
 (defn get* [app uri & [params]]
-  (let [{{:keys [status body]} :response}
+  (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
           (p/request uri
             :request-method :get
             :params (or params {})))]
-    [status (cheshire/parse-string body true)]))
+    [status (cheshire/parse-string body true) headers]))
 
 (defn json [x] (cheshire/generate-string x))
 
@@ -48,143 +48,193 @@
 (def app-name (str (gensym)))
 
 ;;
+;; Middleware setup
+;;
+
+(def mw* "mw")
+
+(defn middleware* [value]
+  (fn [handler]
+    (fn [request]
+      (let [response (handler (update-in request [:headers mw*] (fn [x] (str x value))))]
+        (update-in response [:headers mw*]
+                   (fn [x] (str x value)))))))
+
+(defn reply-mw* [request]
+  (header (ok "true") mw*
+          (str (get-in request [:headers mw*]) 7)))
+
+;;
 ;; Facts
 ;;
 
 (facts "for a compojure-api app"
-  (background
-    (after :contents (swap! swagger/swagger dissoc app-name)))
+   (background
+     (after :contents (swap! swagger/swagger dissoc app-name)))
 
-  (defapi api
-    (swaggered app-name
+   (defapi api
+     (middlewares [(middleware* 1) (middleware* 2)]
+       (swaggered app-name
 
-      (context "/models" []
-        (GET* "/pertti" []
-          :return User
-          (ok pertti))
-        (GET* "/user" []
-          :return User
-          :query  [user User]
-          (ok user))
-        (GET* "/invalid-user" []
-          :return User
-          (ok invalid-user))
-        (GET* "/not-validated" []
-          (ok invalid-user))
-        (POST* "/user" []
-          :return User
-          :body   [user User]
-          (ok user))
-        (POST* "/user_list" []
-          :return [User]
-          :body   [users [User]]
-          (ok users))
-        (POST* "/user_set" []
-          :return #{User}
-          :body   [users #{User}]
-          (ok users))
-        (POST* "/user_legacy" {user :body-params}
-          :return User
-          (ok user)))
+         (context "/middlewares" []
+           (GET* "/simple" req (reply-mw* req))
+           (middlewares [(middleware* 3) (middleware* 4)]
+             (GET* "/nested" req (reply-mw* req))
+             (GET* "/nested-declared" req
+               :middlewares [(middleware* 5) (middleware* 6)]
+               (reply-mw* req))))
 
-      (context "/smart" []
-        (GET* "/plus" []
-          :query-params [x :- Long y :- Long]
-          (ok {:total (+ x y)}))
-        (GET* "/multiply/:x/:y" []
-          :path-params [x :- Long y :- Long]
-          (ok {:total (* x y)}))
-        (POST* "/minus" []
-          :body-params [x :- Long y :- Long]
-          (ok {:total (- x y)})))
+         (context "/models" []
+           (GET* "/pertti" []
+             :return User
+             (ok pertti))
+           (GET* "/user" []
+             :return User
+             :query  [user User]
+             (ok user))
+           (GET* "/invalid-user" []
+             :return User
+             (ok invalid-user))
+           (GET* "/not-validated" []
+             (ok invalid-user))
+           (POST* "/user" []
+             :return User
+             :body   [user User]
+             (ok user))
+           (POST* "/user_list" []
+             :return [User]
+             :body   [users [User]]
+             (ok users))
+           (POST* "/user_set" []
+             :return #{User}
+             :body   [users #{User}]
+             (ok users))
+           (POST* "/user_legacy" {user :body-params}
+             :return User
+             (ok user)))
 
-      (context "/destructuring" []
-        (GET* "/regular" {{:keys [a]} :params}
-          (ok {:a a
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/regular2" {:as req}
-          (ok {:a (-> req :params :a)
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/vector" [a]
-          (ok {:a a
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/vector2" [:as req]
-          (ok {:a (-> req :params :a)
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/symbol" req
-          (ok {:a (-> req :params :a)
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/integrated" [a] :query-params [b]
-          (ok {:a a
-               :b b})))))
+         (context "/smart" []
+           (GET* "/plus" []
+             :query-params [x :- Long y :- Long]
+             (ok {:total (+ x y)}))
+           (GET* "/multiply/:x/:y" []
+             :path-params [x :- Long y :- Long]
+             (ok {:total (* x y)}))
+           (POST* "/minus" []
+             :body-params [x :- Long {y :- Long 1}]
+             (ok {:total (- x y)})))
 
-  (facts "compojure destucturing"
-    (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol" "integrated"]]
-      (fact {:midje/description uri}
-        (let [[status body] (get* api (str "/destructuring/" uri) {:a "a" :b "b"})]
-            status => 200
-            body => {:a "a" :b "b"}))))
+         (context "/destructuring" []
+           (GET* "/regular" {{:keys [a]} :params}
+             (ok {:a a
+                  :b (-> +compojure-api-request+ :params :b)}))
+           (GET* "/regular2" {:as req}
+             (ok {:a (-> req :params :a)
+                  :b (-> +compojure-api-request+ :params :b)}))
+           (GET* "/vector" [a]
+             (ok {:a a
+                  :b (-> +compojure-api-request+ :params :b)}))
+           (GET* "/vector2" [:as req]
+             (ok {:a (-> req :params :a)
+                  :b (-> +compojure-api-request+ :params :b)}))
+           (GET* "/symbol" req
+             (ok {:a (-> req :params :a)
+                  :b (-> +compojure-api-request+ :params :b)}))
+           (GET* "/integrated" [a] :query-params [b]
+             (ok {:a a
+                  :b b}))))))
 
-  (facts "query, path and body parameter smart destucturing"
+   (facts "middlewares"
 
-    (fact "query-parameters"
-      (let [[status body] (get* api "/smart/plus" {:x 2 :y 3})]
-          status => 200
-          body => {:total 5}))
+     (fact "applies middlewares left-to-right"
+       (let [[status body headers] (get* api "/middlewares/simple" {})]
+         status => 200
+         (get headers mw*) => "12721"))
 
-    (fact "query-parameters"
-      (let [[status body] (get* api "/smart/multiply/2/3")]
-          status => 200
-          body => {:total 6}))
+     (fact "applies nested middlewares left-to-right closest one first"
+       (let [[status body headers] (get* api "/middlewares/nested" {})]
+         status => 200
+         (get headers mw*) => "123474321"))
 
-    (fact "body-parameters"
-      (let [[status body] (post* api "/smart/minus" (json {:x 2 :y 3}))]
-          status => 200
-          body => {:total -1})))
+     (fact "applies nested & declared middlewares left-to-right closest one first"
+       (let [[status body headers] (get* api "/middlewares/nested-declared" {})]
+         status => 200
+         (get headers mw*) => "1234567654321"))
 
-  (facts "models"
+     )
 
-    (fact "GET*"
-      (let [[status body] (get* api "/models/pertti")]
-        status => 200
-        body => pertti))
+   (facts "compojure destucturing"
+     (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol" "integrated"]]
+       (fact {:midje/description uri}
+         (let [[status body] (get* api (str "/destructuring/" uri) {:a "a" :b "b"})]
+           status => 200
+           body => {:a "a" :b "b"}))))
 
-    (fact "GET* with smart destructuring"
-      (let [[status body] (get* api "/models/user" pertti)]
-        status => 200
-        body => pertti))
+   (facts "query, path and body parameter smart destucturing"
 
-    (fact "POST* with smart destructuring"
-      (let [[status body] (post* api "/models/user" (json pertti))]
-        status => 200
-        body => pertti))
+     (fact "query-parameters"
+       (let [[status body] (get* api "/smart/plus" {:x 2 :y 3})]
+         status => 200
+         body => {:total 5}))
 
-    (fact "POST* with smart destructuring - lists"
-      (let [[status body] (post* api "/models/user_list" (json [pertti]))]
-        status => 200
-        body => [pertti]))
+     (fact "query-parameters"
+       (let [[status body] (get* api "/smart/multiply/2/3")]
+         status => 200
+         body => {:total 6}))
 
-    (fact "POST* with smart destructuring - sets"
-      (let [[status body] (post* api "/models/user_set" (json #{pertti}))]
-        status => 200
-        body => [pertti]))
+     (fact "body-parameters"
+       (let [[status body] (post* api "/smart/minus" (json {:x 2 :y 3}))]
+         status => 200
+         body => {:total -1}))
 
-    (fact "POST* with compojure destructuring"
-      (let [[status body] (post* api "/models/user_legacy" (json pertti))]
-        status => 200
-        body => pertti))
+     (fact "default parameters"
+       (let [[status body] (post* api "/smart/minus" (json {:x 2}))]
+         status => 200
+         body => {:total 1})))
 
-    (fact "Validation of returned data"
-      (let [[status body] (get* api "/models/invalid-user")]
-        status => 400))
+   (facts "models"
 
-    (fact "Routes without a :return parameter aren't validated"
-      (let [[status body] (get* api "/models/not-validated")]
-        status => 200
-        body => invalid-user))
+     (fact "GET*"
+       (let [[status body] (get* api "/models/pertti")]
+         status => 200
+         body => pertti))
 
-    (fact "Invalid json in body causes 400 with error message in json"
-      (let [[status body] (post* api "/models/user" "{INVALID}")]
-        status => 400
-        (:type body) => "json-parse-exception"
-        (:message body) => truthy))))
+     (fact "GET* with smart destructuring"
+       (let [[status body] (get* api "/models/user" pertti)]
+         status => 200
+         body => pertti))
+
+     (fact "POST* with smart destructuring"
+       (let [[status body] (post* api "/models/user" (json pertti))]
+         status => 200
+         body => pertti))
+
+     (fact "POST* with smart destructuring - lists"
+       (let [[status body] (post* api "/models/user_list" (json [pertti]))]
+         status => 200
+         body => [pertti]))
+
+     (fact "POST* with smart destructuring - sets"
+       (let [[status body] (post* api "/models/user_set" (json #{pertti}))]
+         status => 200
+         body => [pertti]))
+
+     (fact "POST* with compojure destructuring"
+       (let [[status body] (post* api "/models/user_legacy" (json pertti))]
+         status => 200
+         body => pertti))
+
+     (fact "Validation of returned data"
+       (let [[status body] (get* api "/models/invalid-user")]
+         status => 400))
+
+     (fact "Routes without a :return parameter aren't validated"
+       (let [[status body] (get* api "/models/not-validated")]
+         status => 200
+         body => invalid-user))
+
+     (fact "Invalid json in body causes 400 with error message in json"
+       (let [[status body] (post* api "/models/user" "{INVALID}")]
+         status => 400
+         (:type body) => "json-parse-exception"
+         (:message body) => truthy))))
