@@ -159,9 +159,7 @@
      (fact "applies nested & declared middlewares left-to-right closest one first"
        (let [[status body headers] (get* api "/middlewares/nested-declared" {})]
          status => 200
-         (get headers mw*) => "1234567654321"))
-
-     )
+        (get headers mw*) => "1234567654321")))
 
    (facts "compojure destucturing"
      (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol" "integrated"]]
