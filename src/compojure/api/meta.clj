@@ -29,6 +29,12 @@
       (first model)
       model)))
 
+(defn body-coercer-middleware [model]
+  (fn [handler]
+    (fn [request]
+      (if-let [response (handler request)]
+        (assoc response :body (schema/coerce! model (:body response)))))))
+
 ;;
 ;; Extension point
 ;;
@@ -50,16 +56,9 @@
 (defmethod restructure-param :return
   [k model {:keys [body] :as acc}]
   "Defines a return type and coerced the return value of a body against it."
-  (let [returned-form (last body)
-        body (butlast body)
-        validated-return-form `(let [coercer# (partial schema/coerce! ~model)
-                                     return-value# ~returned-form]
-                                 (if (response/response? return-value#)
-                                   (update-in return-value# [:body] coercer#)
-                                   (coercer# return-value#)))]
-    (-> acc
-        (update-in [:parameters] assoc k (swagger/resolve-model-vars model))
-        (update-in [:body] conj validated-return-form))))
+  (-> acc
+      (update-in [:parameters] assoc k (swagger/resolve-model-vars model))
+      (update-in [:middlewares] conj `(body-coercer-middleware ~model))))
 
 (defmethod restructure-param :body
   [_ [value model model-meta] acc]
