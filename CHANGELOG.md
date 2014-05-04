@@ -1,4 +1,8 @@
-## 0.11.0 (29.04.2014)
+## 0.11.1 (4.5.2014)
+
+- fix for https://github.com/metosin/compojure-api/issues/19
+
+## 0.11.0 (29.4.2014)
 
 - change signature of `restructure-param` to receive key, value and the accumulator. Remove the key from accumulator parameters by default. No more alpha.
 - separate restructuring into own namespace `meta`
