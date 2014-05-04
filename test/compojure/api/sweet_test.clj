@@ -52,10 +52,10 @@
         :nickname "pathAndQueryParameters"
         identity)
       ;; To make sure route order is kept with more than 8 routes
-      (GET* "/testing-ordering1" [] identity)
-      (GET* "/testing-ordering2" [] identity)
-      (GET* "/testing-ordering3" [] identity)
-      (GET* "/testing-ordering4" [] identity)
+;      (GET* "/testing-ordering1" [] identity)
+;      (GET* "/testing-ordering2" [] identity)
+;      (GET* "/testing-ordering3" [] identity)
+;      (GET* "/testing-ordering4" [] identity)
       )))
 
 ;; (fact foo
@@ -102,12 +102,12 @@
                                           {:type :query
                                            :model {:all Boolean
                                                    s/Keyword s/Any}}]}}
-                 {:method :compojure.core/get
-                  :uri "/api/testing-ordering1"}
-                 {:method :compojure.core/get
-                  :uri "/api/testing-ordering2"}
-                 {:method :compojure.core/get
-                  :uri "/api/testing-ordering3"}
+;                 {:method :compojure.core/get
+;                  :uri "/api/testing-ordering1"}
+;                 {:method :compojure.core/get
+;                  :uri "/api/testing-ordering2"}
+;                 {:method :compojure.core/get
+;                  :uri "/api/testing-ordering3"}
                  ;; {:method :compojure.core/get
                  ;;  :uri "/api/testing-ordering4"}
                  ]})
