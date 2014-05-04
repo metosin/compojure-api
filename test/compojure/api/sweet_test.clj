@@ -15,6 +15,10 @@
 
 (defmodel NewBand (dissoc Band :id))
 
+;; Make sure defapis from other namespaces are reset
+;; (eg. midje autotest will load examples.thingie which would break tests)
+(reset! swagger/swagger (array-map))
+
 (def app-name (str (gensym)))
 
 (defroutes* ping-routes (GET* "/ping" [] identity))
