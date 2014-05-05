@@ -50,16 +50,7 @@
         :path-params [a :- Long]
         :query-params [all :- Boolean]
         :nickname "pathAndQueryParameters"
-        identity)
-      ;; To make sure route order is kept with more than 8 routes
-;      (GET* "/testing-ordering1" [] identity)
-;      (GET* "/testing-ordering2" [] identity)
-;      (GET* "/testing-ordering3" [] identity)
-;      (GET* "/testing-ordering4" [] identity)
-      )))
-
-;; (fact foo
-;;   (swagger/collect-compojure-routes (swagger/macroexpand-to-compojure ping-routes)) => {})
+        identity))))
 
 (facts "swaggered"
   (background
@@ -101,16 +92,7 @@
                                                    :b String}}
                                           {:type :query
                                            :model {:all Boolean
-                                                   s/Keyword s/Any}}]}}
-;                 {:method :compojure.core/get
-;                  :uri "/api/testing-ordering1"}
-;                 {:method :compojure.core/get
-;                  :uri "/api/testing-ordering2"}
-;                 {:method :compojure.core/get
-;                  :uri "/api/testing-ordering3"}
-                 ;; {:method :compojure.core/get
-                 ;;  :uri "/api/testing-ordering4"}
-                 ]})
+                                                   s/Keyword s/Any}}]}}]})
 
   (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))

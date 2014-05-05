@@ -52,7 +52,8 @@
   [c x] (= (str c) (str (class x))))
 
 (defn filter-routes [c]
-  (filter #(or (is-a? CompojureRoute %) (is-a? CompojureRoutes %)) (flatten c)))
+  (filter #(or (is-a? CompojureRoute %)
+               (is-a? CompojureRoutes %)) (flatten c)))
 
 (defn collect-compojure-routes [form]
   (walk/postwalk
@@ -80,15 +81,14 @@
   (-> body first str .toLowerCase keyword))
 
 (defn create-paths [{:keys [p b c] :as r}]
-  (apply array-map
-    (cond
-      (is-a? CompojureRoute r)  (let [route-meta (meta r)
+  (cond
+    (is-a? CompojureRoute r)  (let [route-meta (meta r)
                                     method-meta (meta (first b))
                                     parameter-meta (first (extract-parameters (drop 3 b)))
                                     metadata (merge route-meta method-meta parameter-meta)
                                     new-body [(with-meta (first b) metadata) (rest b)]]
                                 [[p (extract-method b)] new-body])
-      (is-a? CompojureRoutes r) [[p nil] (->> c (map create-paths) ->map)])))
+    (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {} (map create-paths c))]))
 
 (defn route-metadata [body]
   (remove-empty-keys
@@ -108,9 +108,9 @@
                                             swagger/strict-schema)
           string-path-parameters (swagger/string-path-parameters uri)
           all-path-parameters (update-in string-path-parameters [:model]
-                                merge (or existing-path-parameters {}))
+                                         merge (or existing-path-parameters {}))
           new-parameters (conj (remove path-parameter? all-parameters)
-                           all-path-parameters)]
+                               all-path-parameters)]
       (assoc-in route-with-meta [:metadata :parameters] new-parameters))
     route-with-meta))
 
@@ -127,10 +127,10 @@
         query-params-found (and merged-query-parameters
                                 (not (empty? (:model merged-query-parameters))))
         new-parameters (conj (remove query-parameter? all-parameters)
-                         merged-query-parameters)]
+                             merged-query-parameters)]
     (if query-params-found
-       (assoc-in route-with-meta [:metadata :parameters] new-parameters)
-       route-with-meta)))
+      (assoc-in route-with-meta [:metadata :parameters] new-parameters)
+      route-with-meta)))
 
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
   (let [meta (route-metadata body)
@@ -149,15 +149,16 @@
 
 (defn extract-routes [body]
   (->> body
-    peel
-    macroexpand-to-compojure
-    collect-compojure-routes
-    ensure-routes-in-root
-    create-paths
-    path-vals
-    (map create-api-route)
-    (map attach-meta-data-to-route)
-    reverse))
+       peel
+       macroexpand-to-compojure
+       collect-compojure-routes
+       ensure-routes-in-root
+       create-paths
+       (apply array-map)
+       path-vals
+       (map create-api-route)
+       (map attach-meta-data-to-route)
+       reverse))
 
 (defn path-to-index [req path]
   (s/replace (str (swagger/context req) path "/index.html") #"//" "/"))
@@ -195,12 +196,12 @@
         parameters (apply hash-map key-values)]
     (routes
       (GET path []
-        (swagger/api-listing parameters @swagger))
+           (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
-        (swagger/api-declaration parameters @swagger api (swagger/basepath request))))))
+           (swagger/api-declaration parameters @swagger api (swagger/basepath request))))))
 
 (defmacro swaggered
-   "Defines a swagger-api. Takes api-name, optional
+  "Defines a swagger-api. Takes api-name, optional
    Keyword value pairs or a single Map for meta-data
    and a normal route body. Macropeels the body and
    extracts route, model and endpoint meta-datas."
