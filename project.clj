@@ -9,10 +9,10 @@
                  [prismatic/plumbing "0.2.2"]
                  [potemkin "0.3.4"]
                  [cheshire "5.3.1"]
-                 [compojure "1.1.6"]
-                 [prismatic/schema "0.2.1"]
+                 [compojure "1.1.7"]
+                 [prismatic/schema "0.2.2"]
                  [metosin/ring-http-response "0.4.0"]
-                 [metosin/ring-swagger "0.8.4"]]
+                 [metosin/ring-swagger "0.8.5"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app}
                        :main examples.server}
              :dev {:ring {:handler examples.handler/app}
