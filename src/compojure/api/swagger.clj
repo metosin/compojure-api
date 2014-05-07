@@ -198,7 +198,11 @@
       (GET path []
            (swagger/api-listing parameters @swagger))
       (GET (str path "/:api") {{api :api} :route-params :as request}
-           (swagger/api-declaration parameters @swagger api (swagger/basepath request))))))
+           (let [produces (-> request :meta :produces (or []))
+                 consumes (-> request :meta :consumes (or []))
+                 parameters (merge parameters {:produces produces
+                                               :consumes consumes})]
+             (swagger/api-declaration parameters @swagger api (swagger/basepath request)))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional

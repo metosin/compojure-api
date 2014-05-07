@@ -30,20 +30,21 @@
   [handler & [{:keys [keywords?] :or {keywords? true}}]]
   (fn [{:keys [character-encoding content-type body] :as request}]
     (try
-      (handler
-        (if-not (and body (json-request? request))
-          request
-          (let [json (cheshire/parse-stream (io/reader body :encoding (or character-encoding "utf-8")) keywords?)]
-            (cond
-              (sequential? json) (-> request
-                                   (assoc :body (vec json))
-                                   (assoc :body-params (vec json)))
-              (map? json) (-> request
-                            (assoc :body json)
-                            (assoc :body-params json)
-                            (assoc :json-params json)
-                            (update-in [:params] merge json))
-              :else request))))
+      (let [request (if-not (and body (json-request? request))
+                      request
+                      (let [json (cheshire/parse-stream (io/reader body :encoding (or character-encoding "utf-8")) keywords?)]
+                        (cond
+                          (sequential? json) (-> request
+                                               (assoc :body (vec json))
+                                               (assoc :body-params (vec json)))
+                          (map? json) (-> request
+                                        (assoc :body json)
+                                        (assoc :body-params json)
+                                        (assoc :json-params json)
+                                        (update-in [:params] merge json))
+                          :else request)))
+            request (update-in request [:meta :consumes] conj "application/json")]
+        (handler request))
       (catch JsonParseException jpe
         (->json-response (bad-request {:type "json-parse-exception"
                                        :message (.getMessage jpe)}))))))
@@ -51,10 +52,11 @@
 (defn json-response-support
   [handler]
   (fn [request]
-    (let [response (handler request)]
-      (if (coll? (:body response))
-        (->json-response response)
-        response))))
+    (let [request (update-in request [:meta :produces] conj "application/json")]
+      (let [response (handler request)]
+        (if (coll? (:body response))
+          (->json-response response)
+          response)))))
 
 (defn json-support
   [handler]

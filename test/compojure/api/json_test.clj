@@ -11,7 +11,7 @@
   {:content-type "application/json"
    :body (stream s)})
 
-(def handler (json-support identity))
+(def with-json-support (json-support identity))
 
 (fact "json-request?"
   (json-request? {:content-type "application/xml"}) => false
@@ -23,24 +23,29 @@
   (fact "json-request-support"
 
     (fact "json-list"
-      (let [request (handler (json-request "[1,2,3]"))]
+      (let [request (with-json-support (json-request "[1,2,3]"))]
         (:body request)         => "[1,2,3]"
         (:body-params request)  => [1 2 3]
         (:json-params request)  => nil
         (:params request)       => nil))
 
     (fact "json-map"
-      (let [request (handler (json-request "{\"a\":1,\"b\":\"value\"}" ))]
+      (let [request (with-json-support (json-request "{\"a\":1,\"b\":\"value\"}" ))]
         (:body request)         => "{\"a\":1,\"b\":\"value\"}"
         (:body-params request)  => {:a 1, :b "value"}
         (:json-params request)  => {:a 1, :b "value"}
         (:params request)       => {:a 1, :b "value"}))
 
     (fact "json-primitive"
-      (let [request (handler (json-request "true" ))]
+      (let [request (with-json-support (json-request "true" ))]
         (:body request)         => (checker [x] (instance? ByteArrayInputStream x))
         (:body-params request)  => nil
         (:json-params request)  => nil
-        (:params request)       => nil)))
+        (:params request)       => nil))
+
+    (fact "json capability"
+      (let [request (with-json-support (json-request "true" ))]
+        (-> request :meta :consumes) => ["application/json"]
+        (-> request :meta :produces) => ["application/json"])))
 
   (fact "json-response-support"))

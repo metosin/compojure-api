@@ -70,7 +70,7 @@
          more-routes)) => [{:method :get
                             :uri "/api/true"}])
 
-  (fact "Compojure Api defroutes _ARE_ followed"
+  (fact "Compojure Api defroutes are followed"
     (defroutes* even-more-routes* (GET "/even" [] identity))
     (defroutes* more-routes* (context "/more" [] even-more-routes*))
     (extract-routes

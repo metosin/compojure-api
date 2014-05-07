@@ -265,4 +265,41 @@
         (let [[status body] (get* api "/user" pertti)]
           status => 200
           body => pertti)
-        @execution-times => 1))))
+        @execution-times => 1)))
+
+
+
+  (fact "swagger-docs"
+    (defapi api
+      (swagger-docs)
+      (swaggered +name+
+        (GET* "/user" []
+          (continue))))
+
+    (fact "api-listing"
+      (let [[status body] (get* api "/api/api-docs" {})]
+        status => 200
+        body => {:swaggerVersion "1.2"
+                 :apiVersion "0.0.1"
+                 :info {}
+                 :apis [{:description ""
+                         :path (str "/" +name+)}]}))
+
+    (fact "api-docs"
+      (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+        status => 200
+        body => {:swaggerVersion "1.2"
+                 :apiVersion "0.0.1"
+                 :resourcePath ""
+                 :models {}
+                 :basePath "http://localhost"
+                 :consumes ["application/json"]
+                 :produces ["application/json"]
+                 :apis [{:operations [{:method "GET"
+                                       :nickname "getUser"
+                                       :notes ""
+                                       :parameters []
+                                       :responseMessages []
+                                       :summary ""
+                                       :type "void"}]
+                         :path "/user"}]}))))
