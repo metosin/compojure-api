@@ -1,3 +1,12 @@
+## 0.11.2 (7.5.2014)
+
+- updated dependencies:
+  - `[compojure "1.1.7"]`
+  - `[prismatic/schema "0.2.2"]`
+  - `[metosin/ring-swagger "0.8.5"]`
+
+- `consumes` and `produces` are now feed to `ring-swagger` based on the installed middlewares.
+
 ## 0.11.1 (4.5.2014)
 
 - fix for https://github.com/metosin/compojure-api/issues/19

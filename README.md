@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.11.1"]
+[metosin/compojure-api "0.11.2"]
 ```
 
 ## Sample application
@@ -116,6 +116,12 @@ There is also a short form for the common case of `api-middleware`:
   (context "/api" []
     (GET "/ping" [] (ok {:ping "pong"}))))
 ```
+
+## Request & response formats
+
+Middlewares (and other handlers) can publish their capabilities to consume & produce different wire-formats. This information is passed to `ring-swagger` and added to swagger-docs & is available in the swagger-ui.
+
+One can add own format middlewares (XML, EDN etc.) and add expose their capabilities by adding the supported content-type into request under keys `[:meta :consumes]` and `[:meta :produces]` accordingly.
 
 ## Routes
 
