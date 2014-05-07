@@ -56,6 +56,12 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
+      (GET* "/increment/:x" []
+        :path-params [x :- Long]
+        :query-params [{y :- Long 1}]
+        :summary "x++, with optional parameter y to use other than default value 1 increment"
+        (ok {:total (+ x y)}))
+
       (GET* "/echo" []
         :return   Thingie
         :query    [thingie Thingie]
