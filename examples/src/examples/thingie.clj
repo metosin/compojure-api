@@ -22,25 +22,19 @@
       legacy-route
 
       (GET* "/plus" []
-        :query-params [x :- Long y :- Long]
-        :summary      "x+y with query-parameters"
+        :query-params [x :- Long {y :- Long 1}]
+        :summary      "x+y with query-parameters. y defaults to 1."
         (ok {:total (+ x y)}))
 
       (POST* "/minus" []
         :body-params  [x :- Long y :- Long]
-        :summary      "x-y with body-parameters"
+        :summary      "x-y with body-parameters."
         (ok {:total (- x y)}))
 
       (GET* "/times/:x/:y" []
         :path-params  [x :- Long y :- Long]
         :summary      "x*y with path-parameters"
         (ok {:total (* x y)}))
-
-      (GET* "/increment/:x" []
-        :path-params [x :- Long]
-        :query-params [{y :- Long 1}]
-        :summary "x++, with optional parameter y to use other than default value 1 increment"
-        (ok {:total (+ x y)}))
 
       (GET* "/echo" []
         :return   Thingie
