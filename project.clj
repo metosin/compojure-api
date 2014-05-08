@@ -12,7 +12,7 @@
                  [compojure "1.1.7"]
                  [prismatic/schema "0.2.2"]
                  [metosin/ring-http-response "0.4.0"]
-                 [metosin/ring-swagger "0.8.5"]]
+                 [metosin/ring-swagger "0.8.6"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app}
                        :main examples.server}
              :dev {:ring {:handler examples.handler/app}
@@ -24,6 +24,6 @@
                                   [http-kit "2.1.18"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.3"]
-                                  [metosin/ring-swagger-ui "2.0.12-1"]]}}
+                                  [metosin/ring-swagger-ui "2.0.16-2"]]}}
   :aliases {"start-thingie"    ["with-profile" "dev,thingie" "ring" "server"]
             "http-kit-thingie" ["with-profile" "dev,thingie" "run"]})
