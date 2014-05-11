@@ -302,4 +302,43 @@
                                        :responseMessages []
                                        :summary ""
                                        :type "void"}]
-                         :path "/user"}]}))))
+                         :path "/user"}]})))
+
+  (fact "sub-context paths"
+    (let [response {:ping "pong"}
+          ok (ok response)
+          ok? (fn [[status body]]
+                (and (= status 200)
+                     (= body response)))
+          not-ok? (comp not ok?)]
+      (defapi api
+        (swagger-docs)
+        (swaggered +name+
+          (GET* "/" [] ok)
+          (GET* "/a" [] ok)
+          (context "/b" []
+            (context "/b1" []
+              (GET* "/" [] ok))
+            (context "/" []
+              (GET* "/" [] ok)
+              (GET* "/b2" [] ok)))))
+
+    (fact "valid routes"
+      (get* api "/") => ok?
+      (get* api "/a") => ok?
+      (get* api "/b/b1") => ok?
+      (get* api "/b/b1/") => ok?
+      (get* api "/b") => ok?
+      (get* api "/b/") => ok?
+      (get* api "/b//") => ok?
+      (get* api "/b//b2") => ok?)
+
+    (fact "invalid routes"
+      (get* api "/b/b2") => not-ok?)
+
+    (fact "swagger-docs have trailing slashes removed"
+      (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+        status => 200
+        (->> body
+             :apis
+             (map :path)) => ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
