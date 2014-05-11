@@ -44,32 +44,33 @@
   (swaggered "pizza"
     :description "Pizza api"
     (context "/api" []
-      (GET* "/pizzas" []
-        :return   [Pizza]
-        :summary  "Gets all Pizzas"
-        :nickname "getPizzas"
-        (ok (get-pizzas)))
-      (GET* "/pizzas/:id" []
-        :path-params [id :- Long]
-        :return   Pizza
-        :summary  "Gets a pizza"
-        :nickname "getPizza"
-        (ok (get-pizza id)))
-      (POST* "/pizzas" []
-        :return   Pizza
-        :body     [pizza NewPizza {:description "new pizza"}]
-        :summary  "Adds a pizza"
-        :nickname "addPizza"
-        (ok (add! pizza)))
-      (PUT* "/pizzas" []
-        :return   Pizza
-        :body     [pizza Pizza]
-        :summary  "Updates a pizza"
-        :nickname "updatePizza"
-        (ok (update! pizza)))
-      (DELETE* "/pizzas/:id" []
-        :path-params [id :- Long]
-        :return   Pizza
-        :summary  "Deletes a Pizza"
-        :nickname "deletePizza"
-        (ok (delete! id))))))
+      (context "/pizzas" []
+        (GET* "/" []
+          :return   [Pizza]
+          :summary  "Gets all Pizzas"
+          :nickname "getPizzas"
+          (ok (get-pizzas)))
+        (GET* "/:id" []
+          :path-params [id :- Long]
+          :return   Pizza
+          :summary  "Gets a pizza"
+          :nickname "getPizza"
+          (ok (get-pizza id)))
+        (POST* "/" []
+          :return   Pizza
+          :body     [pizza NewPizza {:description "new pizza"}]
+          :summary  "Adds a pizza"
+          :nickname "addPizza"
+          (ok (add! pizza)))
+        (PUT* "/" []
+          :return   Pizza
+          :body     [pizza Pizza]
+          :summary  "Updates a pizza"
+          :nickname "updatePizza"
+          (ok (update! pizza)))
+        (DELETE* "/:id" []
+          :path-params [id :- Long]
+          :return   Pizza
+          :summary  "Deletes a Pizza"
+          :nickname "deletePizza"
+          (ok (delete! id)))))))

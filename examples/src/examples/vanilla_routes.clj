@@ -16,13 +16,14 @@
     (swaggered "sample"
       :description "sample api"
       (context "/api" []
-        (GET "/pizzas" []
-          (ok (get-pizzas)))
-        (GET "/pizzas/:id" [id]
-          (ok (get-pizza (->Long id))))
-        (POST "/pizzas" {pizza :params}
-          (ok (add! pizza)))
-        (PUT "/pizzas" {pizza :params}
-          (ok (update! pizza)))
-        (DELETE "/pizzas/:id" [id]
-          (ok (delete! (->Long id))))))))
+        (context "/pizzas" []
+          (GET "/" []
+            (ok (get-pizzas)))
+          (GET "/:id" [id]
+            (ok (get-pizza (->Long id))))
+          (POST "/" {pizza :params}
+            (ok (add! pizza)))
+          (PUT "/" {pizza :params}
+            (ok (update! pizza)))
+          (DELETE "/:id" [id]
+            (ok (delete! (->Long id)))))))))
