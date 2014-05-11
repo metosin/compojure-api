@@ -1,3 +1,7 @@
+## x.x.x (x.x.xxxx)
+
+- remove non-first trailing spaces from compojure-routes for swagger-docs.
+
 ## 0.11.2 (7.5.2014)
 
 - updated dependencies:
