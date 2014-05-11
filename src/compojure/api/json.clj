@@ -43,7 +43,7 @@
                                         (assoc :json-params json)
                                         (update-in [:params] merge json))
                           :else request)))
-            request (update-in request [:meta :consumes] conj "application/json")]
+            request (update-in request [:meta :consumes] concat ["application/json"])]
         (handler request))
       (catch JsonParseException jpe
         (->json-response (bad-request {:type "json-parse-exception"
@@ -52,7 +52,7 @@
 (defn json-response-support
   [handler]
   (fn [request]
-    (let [request (update-in request [:meta :produces] conj "application/json")]
+    (let [request (update-in request [:meta :produces] concat ["application/json"])]
       (let [response (handler request)]
         (if (coll? (:body response))
           (->json-response response)
