@@ -1,6 +1,10 @@
-## x.x.x (x.x.xxxx)
+## 0.11.3 (12.5.2014)
 
 - remove non-first trailing spaces from compojure-routes for swagger-docs.
+- updated depedencies:
+  - `[metosin/ring-swagger "0.8.7"]`
+  - `[metosin/ring-swagger-ui "2.6.16-2"]`
+- Moved swagger-ui handler to ring-swagger
 
 ## 0.11.2 (7.5.2014)
 
