@@ -90,16 +90,6 @@
          :metadata {:parameters [{:type :path
                                   :model {:param String}}]}}]))
 
-(defn fake-servlet-context [context]
- (proxy [javax.servlet.ServletContext] []
-   (getContextPath [] context)))
-
-(fact "path-to-index"
-  (path-to-index {} "/")    => "/index.html"
-  (path-to-index {} "/ui")  => "/ui/index.html"
-  (path-to-index {} "/ui/") => "/ui/index.html"
-  (path-to-index {:servlet-context (fake-servlet-context "/kikka")} "/ui") => "/kikka/ui/index.html")
-
 (facts "swagger-info"
 
   (fact "with keyword-parameters"

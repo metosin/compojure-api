@@ -2,9 +2,11 @@
   (:require [clojure.string :as s]
             [clojure.walk16 :as walk]
             [clojure.set :refer [union]]
+            [potemkin :refer [import-vars]]
             [ring.util.response :refer :all]
             [ring.swagger.core :as swagger]
             [ring.swagger.common :refer :all]
+            ring.swagger.ui
             [compojure.api.common :refer :all]
             [compojure.api.core :as core]
             [compojure.route :as route]
@@ -162,9 +164,6 @@
        (map attach-meta-data-to-route)
        reverse))
 
-(defn path-to-index [req path]
-  (s/replace (str (swagger/context req) path "/index.html") #"//" "/"))
-
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
         routes  (extract-routes body)
@@ -175,13 +174,7 @@
 ;; Public api
 ;;
 
-(defn swagger-ui
-  "Bind the swagger-ui to the given path. defaults to \"/\""
-  ([] (swagger-ui "/"))
-  ([path]
-    (routes
-      (GET path req (redirect (path-to-index req path)))
-      (route/resources path {:root "swagger-ui"}))))
+(import-vars [ring.swagger.ui swagger-ui])
 
 (defn swagger-docs
   "Route to serve the swagger api-docs. If the first
