@@ -1,3 +1,7 @@
+## 0.11.4 (19.5.2014)
+
+- Really updated ring-swagger dependancy as I forgot that last with previous release
+
 ## 0.11.3 (12.5.2014)
 
 - remove non-first trailing spaces from compojure-routes for swagger-docs.
