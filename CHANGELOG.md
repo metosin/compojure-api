@@ -1,3 +1,15 @@
+## 0.11.5 (1.6.2014)
+
+- Update dependencies:
+
+```
+[prismatic/plumbing "0.3.1"] is available but we use "0.2.2"
+[compojure "1.1.8"] is available but we use "1.1.7"
+[prismatic/schema "0.2.3"] is available but we use "0.2.2"
+[metosin/ring-swagger "0.8.8"] is available but we use "0.8.7"
+[peridot "0.3.0"] is available but we use "0.2.2"
+```
+
 ## 0.11.4 (19.5.2014)
 
 - Really updated ring-swagger dependancy as I forgot that last with previous release
