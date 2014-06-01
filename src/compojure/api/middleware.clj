@@ -47,8 +47,8 @@
   (-> handler
       ring.middleware.http-response/catch-response
       ring.swagger.middleware/catch-validation-errors
-      json-support
       ex-info-support
+      json-support
       wrap-keyword-params
       wrap-nested-params
       wrap-params))
