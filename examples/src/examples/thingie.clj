@@ -4,6 +4,7 @@
             [ring.swagger.schema :refer [defmodel]]
             [schema.core :as s]))
 
+(defmodel Total {:total Long})
 (defmodel Thingie {:id Long
                    :hot Boolean
                    :tag (s/enum :kikka :kukka)})
@@ -19,22 +20,26 @@
   (swaggered "thingie"
     :description "There be thingies"
     (context "/api" []
-      legacy-route
 
       (GET* "/plus" []
+        :return Total
         :query-params [x :- Long {y :- Long 1}]
         :summary      "x+y with query-parameters. y defaults to 1."
         (ok {:total (+ x y)}))
 
       (POST* "/minus" []
+        :return Total
         :body-params  [x :- Long y :- Long]
         :summary      "x-y with body-parameters."
         (ok {:total (- x y)}))
 
       (GET* "/times/:x/:y" []
+        :return Total
         :path-params  [x :- Long y :- Long]
         :summary      "x*y with path-parameters"
         (ok {:total (* x y)}))
+
+      legacy-route
 
       (GET* "/echo" []
         :return   Thingie
