@@ -87,7 +87,7 @@ There is pre-packaged middleware `api-middleware` for common web api usage, foun
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
 - json request & response parsing (`compojure.api.json/json-support`)
 
-### Mounting middlewars
+### Mounting middlewares
 
 To help setting up custom middleware there is a `middlewares` macro:
 
