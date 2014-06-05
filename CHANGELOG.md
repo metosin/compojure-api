@@ -1,3 +1,7 @@
+## 0.11.6 (5.6.2014)
+
+- added `compojure.api.legacy` ns to have the old Compojure http-method macros (`GET`, `POST`,...)
+
 ## 0.11.5 (1.6.2014)
 
 - Update dependencies:
