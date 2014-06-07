@@ -81,7 +81,7 @@
       (update-in [:lets] into [value (src-coerce! model :body-params :json)])
       (update-in [:parameters :parameters] conj {:type :body
                                                  :model (swagger/resolve-model-vars model)
-                                                 :meta model-meta}))))
+                                                 :meta model-meta})))
 
 (defmethod restructure-param :query
   [_ [value model model-meta] acc]
@@ -176,7 +176,7 @@
                            (let [parameters (dissoc parameters k)
                                  acc (map-of lets letks middlewares parameters body)]
                              (restructure-param k v acc)))
-                         (map-of lets letks parameters body)
+                         (map-of lets letks #_middlewares parameters body)
                          parameters)
         body `(~method-symbol
                 ~path
