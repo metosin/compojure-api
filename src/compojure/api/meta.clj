@@ -64,7 +64,7 @@
 ;;
 
 (defmethod restructure-param :return
-  [k model {:keys [body] :as acc}]
+  [k model acc]
   "Defines a return type and coerced the return value of a body against it."
   (-> acc
       (update-in [:parameters] assoc k (swagger/resolve-model-vars model))
@@ -77,12 +77,11 @@
    data for the model. Examples:
    :body [user User]
    :body [user User {:key \"value\""
-  (let [model-var (resolve-model-var model)]
-    (-> acc
-        (update-in [:lets] into [value (src-coerce! model :body-params :json)])
-        (update-in [:parameters :parameters] conj {:type :body
-                                                   :model (swagger/resolve-model-vars model)
-                                                   :meta model-meta}))))
+  (-> acc
+      (update-in [:lets] into [value (src-coerce! model :body-params :json)])
+      (update-in [:parameters :parameters] conj {:type :body
+                                                 :model (swagger/resolve-model-vars model)
+                                                 :meta model-meta}))))
 
 (defmethod restructure-param :query
   [_ [value model model-meta] acc]
@@ -91,12 +90,11 @@
    data for the model. Examples:
    :query [user User]
    :query [user User {:key \"value\""
-  (let [model-var (resolve-model-var model)]
-    (-> acc
-        (update-in [:lets] into [value (src-coerce! model :query-params :query)])
-        (update-in [:parameters :parameters] conj {:type :query
-                                                   :model (swagger/resolve-model-vars model)
-                                                   :meta model-meta}))))
+  (-> acc
+      (update-in [:lets] into [value (src-coerce! model :query-params :query)])
+      (update-in [:parameters :parameters] conj {:type :query
+                                                 :model (swagger/resolve-model-vars model)
+                                                 :meta model-meta})))
 
 (defmethod restructure-param :body-params
   [_ body-params acc]
