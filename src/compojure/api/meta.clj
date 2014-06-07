@@ -109,8 +109,7 @@
                                                   ~schema
                                                   (:body-params ~+compojure-api-request+)
                                                   :json)])
-        (update-in [:parameters :parameters] conj {:type :body
-                                                   :model (eval `(var ~model-name))})
+        (update-in [:parameters :parameters] conj {:type :body :model (eval `(var ~model-name))})
         (update-in [:letks] into [body-params coerced-model]))))
 
 (defmethod restructure-param :query-params
@@ -119,8 +118,6 @@
    synthetic defs for the models. Example:
    :query-params [id :- Long name :- String]"
   (let [schema (fnk-schema query-params)
-        model-name (gensym "query-params-")
-        _ (eval `(def ~model-name ~schema))
         coerced-model (gensym)]
     (-> acc
         (update-in [:lets] into [coerced-model `(schema/coerce!
@@ -128,8 +125,7 @@
                                                   (keywordize-keys
                                                     (:query-params ~+compojure-api-request+))
                                                   :query)])
-        (update-in [:parameters :parameters] conj {:type :query
-                                                   :model (eval `(var ~model-name))})
+        (update-in [:parameters :parameters] conj {:type :query :model (eval schema)})
         (update-in [:letks] into [query-params coerced-model]))))
 
 (defmethod restructure-param :path-params
@@ -138,16 +134,13 @@
    synthetic defs for the models. Example:
    :path-params [id :- Long name :- String]"
   (let [schema (fnk-schema path-params)
-        model-name (gensym "path-params-")
-        _ (eval `(def ~model-name ~schema))
         coerced-model (gensym)]
     (-> acc
         (update-in [:lets] into [coerced-model `(schema/coerce!
                                                   ~schema
                                                   (:route-params ~+compojure-api-request+)
                                                   :query)])
-        (update-in [:parameters :parameters] conj {:type :path
-                                                   :model (eval `(var ~model-name))})
+        (update-in [:parameters :parameters] conj {:type :path :model (eval schema)})
         (update-in [:letks] into [path-params coerced-model]))))
 
 (defmethod restructure-param :middlewares
