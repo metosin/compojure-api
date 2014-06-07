@@ -35,6 +35,16 @@
       (if-let [response (handler request)]
         (assoc response :body (schema/coerce! model (:body response)))))))
 
+(defn src-coerce!
+  "Return source code for coerce! for a schema with coercer type, extracted from a
+   key in a ring request."
+  [schema key type]
+  `(schema/coerce!
+     ~schema
+     (keywordize-keys
+       (~key ~+compojure-api-request+))
+     ~type))
+
 ;;
 ;; Extension point
 ;;
@@ -69,10 +79,7 @@
    :body [user User {:key \"value\""
   (let [model-var (resolve-model-var model)]
     (-> acc
-        (update-in [:lets] into [value `(schema/coerce!
-                                          ~model
-                                          (:body-params ~+compojure-api-request+)
-                                          :json)])
+        (update-in [:lets] into [value (src-coerce! model :body-params :json)])
         (update-in [:parameters :parameters] conj {:type :body
                                                    :model (swagger/resolve-model-vars model)
                                                    :meta model-meta}))))
@@ -86,11 +93,7 @@
    :query [user User {:key \"value\""
   (let [model-var (resolve-model-var model)]
     (-> acc
-        (update-in [:lets] into [value `(schema/coerce!
-                                          ~model
-                                          (keywordize-keys
-                                            (:query-params ~+compojure-api-request+))
-                                          :query)])
+        (update-in [:lets] into [value (src-coerce! model :query-params :query)])
         (update-in [:parameters :parameters] conj {:type :query
                                                    :model (swagger/resolve-model-vars model)
                                                    :meta model-meta}))))
@@ -105,10 +108,7 @@
         _ (eval `(schema/defmodel ~model-name ~schema))
         coerced-model (gensym)]
     (-> acc
-        (update-in [:lets] into [coerced-model `(schema/coerce!
-                                                  ~schema
-                                                  (:body-params ~+compojure-api-request+)
-                                                  :json)])
+        (update-in [:lets] into [coerced-model (src-coerce! schema :body-params :json)])
         (update-in [:parameters :parameters] conj {:type :body :model (eval `(var ~model-name))})
         (update-in [:letks] into [body-params coerced-model]))))
 
@@ -120,11 +120,7 @@
   (let [schema (fnk-schema query-params)
         coerced-model (gensym)]
     (-> acc
-        (update-in [:lets] into [coerced-model `(schema/coerce!
-                                                  ~schema
-                                                  (keywordize-keys
-                                                    (:query-params ~+compojure-api-request+))
-                                                  :query)])
+        (update-in [:lets] into [coerced-model (src-coerce! schema :query-params :query)])
         (update-in [:parameters :parameters] conj {:type :query :model (eval schema)})
         (update-in [:letks] into [query-params coerced-model]))))
 
@@ -136,10 +132,7 @@
   (let [schema (fnk-schema path-params)
         coerced-model (gensym)]
     (-> acc
-        (update-in [:lets] into [coerced-model `(schema/coerce!
-                                                  ~schema
-                                                  (:route-params ~+compojure-api-request+)
-                                                  :query)])
+        (update-in [:lets] into [coerced-model (src-coerce! schema :route-params :query)])
         (update-in [:parameters :parameters] conj {:type :path :model (eval schema)})
         (update-in [:letks] into [path-params coerced-model]))))
 
