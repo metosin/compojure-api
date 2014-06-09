@@ -135,7 +135,7 @@
         (update-in [:letks] into [path-params coerced-model]))))
 
 (defmethod restructure-param :middlewares
-  [k middlewares acc]
+  [_ middlewares acc]
   "Applies the given vector of middlewares for the route from left to right"
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
