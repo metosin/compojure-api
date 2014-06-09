@@ -102,7 +102,6 @@
         (get headers mw*) => "1234567654321")))
 
 
-
   (fact ":body, :query and :return"
     (defapi api
       (swaggered +name+

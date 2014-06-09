@@ -30,6 +30,7 @@
 
 (defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
 
+;; TODO: stop expanding when compojure-route is found. recur instead of walk?
 (defn macroexpand-to-compojure [form]
   (walk/prewalk
     (fn [x]
@@ -42,7 +43,9 @@
                               (compojure-macro? (eval-re-resolve sym))
                               (meta-container? (eval-re-resolve sym))))
                         (filter (comp not nil?) x)
-                        (macroexpand-1 x)))
+                        (let [result (macroexpand-1 x)]
+                          ;; stop if macro expands to itself
+                          (if (= result x) result (list result)))))
         :else x))
     form))
 
@@ -78,7 +81,7 @@
 (defn strip-trailing-spaces [s] (s/replace-first s #"(.)\/+$" "$1"))
 
 (defn create-api-route [[ks v]]
-  [{:method (first (keep second ks))
+  [{:method (keyword (.getName (first (keep second ks))))
     :uri (->> ks (map first) (map remove-param-regexes) s/join strip-trailing-spaces)} v])
 
 (defn extract-method [body]

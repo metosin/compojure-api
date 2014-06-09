@@ -51,7 +51,7 @@
                                              {:method :put
                                               :uri "/api/false"}])
 
-  (fact "macros are expanded"
+  (fact "route-macros are expanded"
     (defmacro optional-routes [p & body] (when p `(routes ~@body)))
     (extract-routes
       '(context "/api" []
@@ -60,6 +60,13 @@
          (optional-routes false
            (PUT "/false" [] identity)))) => [{:method :get
                                               :uri "/api/true"}])
+
+  (fact "endpoint-macros are expanded"
+    (defmacro GET+ [p & body] `(GET* ~(str "/xxx" p) ~@body))
+    (extract-routes
+      '(context "/api" []
+         (GET+ "/true" [] identity))) => [{:method :get
+                                           :uri "/api/xxx/true"}])
 
   (fact "Vanilla Compojure defroutes are NOT followed"
     (defroutes even-more-routes (GET "/even" [] identity))

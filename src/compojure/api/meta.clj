@@ -135,7 +135,7 @@
         (update-in [:letks] into [path-params coerced-model]))))
 
 (defmethod restructure-param :middlewares
-  [k middlewares acc]
+  [_ middlewares acc]
   "Applies the given vector of middlewares for the route from left to right"
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
@@ -165,7 +165,7 @@
 (defn restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
-        [lets letks middlewares] [[] [] []]
+        [lets letks middlewares] [[] [] nil]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
         {:keys [lets
                 letks
@@ -176,7 +176,7 @@
                            (let [parameters (dissoc parameters k)
                                  acc (map-of lets letks middlewares parameters body)]
                              (restructure-param k v acc)))
-                         (map-of lets letks #_middlewares parameters body)
+                         (map-of lets letks middlewares parameters body)
                          parameters)
         body `(~method-symbol
                 ~path
