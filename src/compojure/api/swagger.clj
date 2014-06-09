@@ -30,6 +30,7 @@
 
 (defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
 
+;; TODO: stop expanding when compojure-route is found. recur instead of walk?
 (defn macroexpand-to-compojure [form]
   (walk/prewalk
     (fn [x]
