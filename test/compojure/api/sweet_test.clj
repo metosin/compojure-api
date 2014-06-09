@@ -60,23 +60,23 @@
     (@swagger/swagger app-name)
 
     => {:description "sample api"
-        :routes [{:method :compojure.core/get
+        :routes [{:method :get
                   :uri "/ping"}
-                 {:method :compojure.core/get
+                 {:method :get
                   :uri "/api/ping"}
-                 {:method :compojure.core/get ;; should be plain :get
+                 {:method :get
                   :uri "/api/bands"
                   :metadata {:nickname "getBands"
                              :return [#'Band]
                              :summary "Gets all Bands"}}
-                 {:method :compojure.core/get ;; should be plain :get
+                 {:method :get
                   :uri "/api/bands/:id"
                   :metadata {:nickname "getBand"
                              :return #'Band
                              :summary "Gets a Band"
                              :parameters [{:type :path
                                            :model {:id String}}]}}
-                 {:method :compojure.core/post ;; should be plain :post
+                 {:method :post
                   :uri "/api/bands"
                   :metadata {:nickname "addBand"
                              :parameters [{:type :body
@@ -84,7 +84,7 @@
                                            :meta {:description "new Band"}}]
                              :return #'Band
                              :summary "Adds a Band"}}
-                 {:method :compojure.core/get ;; should be plain :get
+                 {:method :get
                   :uri "/api/path-and-query-parameters/:a/:b"
                   :metadata {:nickname "pathAndQueryParameters"
                              :parameters [{:type :path

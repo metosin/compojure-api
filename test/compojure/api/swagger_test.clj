@@ -51,7 +51,7 @@
                                              {:method :put
                                               :uri "/api/false"}])
 
-  (fact "macros are expanded"
+  (fact "route-macros are expanded"
     (defmacro optional-routes [p & body] (when p `(routes ~@body)))
     (extract-routes
       '(context "/api" []

@@ -78,7 +78,7 @@
 (defn strip-trailing-spaces [s] (s/replace-first s #"(.)\/+$" "$1"))
 
 (defn create-api-route [[ks v]]
-  [{:method (first (keep second ks))
+  [{:method (keyword (.getName (first (keep second ks))))
     :uri (->> ks (map first) (map remove-param-regexes) s/join strip-trailing-spaces)} v])
 
 (defn extract-method [body]
