@@ -42,7 +42,9 @@
                               (compojure-macro? (eval-re-resolve sym))
                               (meta-container? (eval-re-resolve sym))))
                         (filter (comp not nil?) x)
-                        (macroexpand-1 x)))
+                        (let [result (macroexpand-1 x)]
+                          ;; stop if macro expands to itself
+                          (if (= result x) result (list result)))))
         :else x))
     form))
 
