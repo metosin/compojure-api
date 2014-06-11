@@ -1,7 +1,8 @@
 (ns compojure.api.core
-  (:require [compojure.core :refer :all]
+  (:require [potemkin :refer [import-vars]]
+            [compojure.core :refer :all]
             [compojure.api.middleware :refer [api-middleware]]
-            [compojure.api.meta :refer :all]
+            [compojure.api.meta :refer [restructure]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
 (defmacro defapi [name & body]
@@ -9,8 +10,7 @@
      (api-middleware
        (routes ~@body))))
 
-(defmacro middlewares [middlewares & body]
-  `(with-middlewares ~middlewares ~@body))
+(import-vars [compojure.api.meta middlewares])
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may

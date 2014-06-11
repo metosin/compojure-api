@@ -159,7 +159,9 @@
 ;; Api
 ;;
 
-(defmacro with-middlewares [middlewares & body]
+(defmacro middlewares
+  "Wraps routes with given middlewares using thread-first macro."
+  [middlewares & body]
   (let [middlewares (reverse middlewares)]
     `(-> (routes ~@body)
          ~@middlewares)))
@@ -200,4 +202,4 @@
                                     ~@body))))]
     (if (empty? middlewares)
       body
-      `(with-middlewares [~@middlewares] ~body))))
+      `(middlewares [~@middlewares] ~body))))
