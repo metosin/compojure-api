@@ -29,11 +29,10 @@
       (first model)
       model)))
 
-(defn body-coercer-middleware [model]
-  (fn [handler]
-    (fn [request]
-      (if-let [response (handler request)]
-        (assoc response :body (schema/coerce! model (:body response)))))))
+(defn body-coercer-middleware [handler model]
+  (fn [request]
+    (if-let [response (handler request)]
+      (assoc response :body (schema/coerce! model (:body response))))))
 
 ;;
 ;; Extension point
@@ -161,11 +160,9 @@
 ;;
 
 (defmacro with-middlewares [middlewares & body]
-  `(reduce
-     (fn [handler# middleware#]
-       (middleware# handler#))
-     (routes ~@body)
-     (reverse ~middlewares)))
+  (let [middlewares (reverse middlewares)]
+    `(-> (routes ~@body)
+         ~@middlewares)))
 
 (defn- destructure-compojure-api-request [lets arg]
   (cond
