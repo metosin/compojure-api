@@ -29,11 +29,10 @@
       (first model)
       model)))
 
-(defn body-coercer-middleware [model]
-  (fn [handler]
-    (fn [request]
-      (if-let [response (handler request)]
-        (assoc response :body (schema/coerce! model (:body response)))))))
+(defn body-coercer-middleware [handler model]
+  (fn [request]
+    (if-let [response (handler request)]
+      (assoc response :body (schema/coerce! model (:body response))))))
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type, extracted from a
@@ -144,12 +143,12 @@
 ;; Api
 ;;
 
-(defmacro with-middlewares [middlewares & body]
-  `(reduce
-     (fn [handler# middleware#]
-       (middleware# handler#))
-     (routes ~@body)
-     (reverse ~middlewares)))
+(defmacro middlewares
+  "Wraps routes with given middlewares using thread-first macro."
+  [middlewares & body]
+  (let [middlewares (reverse middlewares)]
+    `(-> (routes ~@body)
+         ~@middlewares)))
 
 (defn- destructure-compojure-api-request [lets arg]
   (cond
@@ -187,4 +186,4 @@
                                     ~@body))))]
     (if (empty? middlewares)
       body
-      `(with-middlewares [~@middlewares] ~body))))
+      `(middlewares [~@middlewares] ~body))))

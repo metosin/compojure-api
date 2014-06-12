@@ -53,16 +53,21 @@
 
 (def mw* "mw")
 
-(defn middleware* [value]
-  (fn [handler]
-    (fn [request]
-      (let [response (handler (update-in request [:headers mw*] (fn [x] (str x value))))]
-        (update-in response [:headers mw*]
-                   (fn [x] (str x value)))))))
+(defn middleware*
+  "This middleware appends given value or 1 to a header in request and response."
+  [handler & [value]]
+  (fn [request]
+    (let [append #(str % (or value 1))
+          request (update-in request [:headers mw*] append)
+          response (handler request)]
+      (update-in response [:headers mw*] append))))
 
-(defn reply-mw* [request]
-  (header (ok "true") mw*
-          (str (get-in request [:headers mw*]) 7)))
+(defn reply-mw*
+  "Handler which replies with response where a header contains copy
+   of the headers value from request and 7"
+  [request]
+  (-> (ok "true")
+      (header mw* (str (get-in request [:headers mw*]) 7))))
 
 ;;
 ;; Facts
@@ -72,11 +77,9 @@
   (background
     (after :contents (swap! swagger/swagger dissoc +name+)))
 
-
-
   (facts "middlewares"
     (defapi api
-      (middlewares [(middleware* 1) (middleware* 2)]
+      (middlewares [middleware* (middleware* 2)]
         (swaggered +name+
           (context "/middlewares" []
             (GET* "/simple" req (reply-mw* req))
