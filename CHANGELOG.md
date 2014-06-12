@@ -1,3 +1,7 @@
+## 0.x.x (x.x.2014)
+
+- **possibly breaking change**: `middlewares` macro and `:middlewares` restructuring now use thread-first to apply middlewares.
+
 ## 0.11.6 (5.6.2014)
 
 - added `compojure.api.legacy` ns to have the old Compojure http-method macros (`GET`, `POST`,...)
