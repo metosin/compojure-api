@@ -23,12 +23,6 @@
     (fnk-impl/letk-input-schema-and-body-form
       nil (with-meta bind {:schema s/Any}) [] nil)))
 
-(defn resolve-model-var [model]
-  (swagger/resolve-model-var
-    (if (or (set? model) (sequential? model))
-      (first model)
-      model)))
-
 (defn body-coercer-middleware [handler model]
   (fn [request]
     (if-let [response (handler request)]
@@ -66,7 +60,7 @@
   [k model acc]
   "Defines a return type and coerced the return value of a body against it."
   (-> acc
-      (update-in [:parameters] assoc k (swagger/resolve-model-vars model))
+      (update-in [:parameters] assoc k (eval model))
       (update-in [:middlewares] conj `(body-coercer-middleware ~model))))
 
 (defmethod restructure-param :body
@@ -79,7 +73,7 @@
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :body-params :json)])
       (update-in [:parameters :parameters] conj {:type :body
-                                                 :model (swagger/resolve-model-vars model)
+                                                 :model (eval model)
                                                  :meta model-meta})))
 
 (defmethod restructure-param :query
@@ -92,7 +86,7 @@
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :query-params :query)])
       (update-in [:parameters :parameters] conj {:type :query
-                                                 :model (swagger/resolve-model-vars model)
+                                                 :model (eval model)
                                                  :meta model-meta})))
 
 (defmethod restructure-param :body-params

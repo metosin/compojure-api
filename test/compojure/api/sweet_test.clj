@@ -67,12 +67,12 @@
                  {:method :get
                   :uri "/api/bands"
                   :metadata {:nickname "getBands"
-                             :return [#'Band]
+                             :return [Band]
                              :summary "Gets all Bands"}}
                  {:method :get
                   :uri "/api/bands/:id"
                   :metadata {:nickname "getBand"
-                             :return #'Band
+                             :return Band
                              :summary "Gets a Band"
                              :parameters [{:type :path
                                            :model {:id String}}]}}
@@ -80,9 +80,9 @@
                   :uri "/api/bands"
                   :metadata {:nickname "addBand"
                              :parameters [{:type :body
-                                           :model [#'NewBand]
+                                           :model [NewBand]
                                            :meta {:description "new Band"}}]
-                             :return #'Band
+                             :return Band
                              :summary "Adds a Band"}}
                  {:method :get
                   :uri "/api/path-and-query-parameters/:a/:b"

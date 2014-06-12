@@ -101,7 +101,7 @@
   (remove-empty-keys
     (let [{:keys [body return parameters] :as meta} (unwrap-meta-container (last (second body)))]
       (merge meta {:parameters parameters
-                   :return (some-> return swagger/resolve-model-vars)}))))
+                   :return return}))))
 
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (swagger/path-params uri))
