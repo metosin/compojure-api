@@ -26,7 +26,6 @@
 (def compojure-context?   #{#'context})
 (def compojure-letroutes? #{#'let-routes})
 (def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
-(def with-meta?           #{#'with-meta})
 
 (defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
 
@@ -35,7 +34,7 @@
   (walk/prewalk
     (fn [x]
       (cond
-        (inline? x) (-> x value-of meta :source)
+        (inline? x) (-> x value-of meta :source)            ;; resolve the syms!
         (seq? x)    (let [sym (first x)]
                       (if (and
                             (symbol? sym)
