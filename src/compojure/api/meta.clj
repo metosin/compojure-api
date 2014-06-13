@@ -170,13 +170,9 @@
                              (restructure-param k v acc)))
                          (map-of lets letks middlewares parameters body)
                          parameters)
-        body `(~method-symbol
-                ~path
-                ~arg-with-request
-                (meta-container ~parameters
-                                (let ~lets
-                                  (letk ~letks
-                                    ~@body))))]
-    (if (empty? middlewares)
-      body
-      `(middlewares [~@middlewares] ~body))))
+        body `(do ~@body)
+        body (if (seq letks) `(letk ~letks ~body) body)
+        body (if (seq lets) `(let ~lets ~body) body)
+        body (if (seq parameters) `(meta-container ~parameters ~body) body)
+        body `(~method-symbol ~path ~arg-with-request ~body)]
+    (if (seq middlewares) `(with-middlewares [~@middlewares] ~body) body)))
