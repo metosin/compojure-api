@@ -95,11 +95,10 @@
    synthetic defs for the models. Example:
    :body-params [id :- Long name :- String]"
   (let [schema (eval (strict (fnk-schema body-params)))
-        schema (with-meta schema {:name (name (gensym "body"))}) ;; should be a symbol?
         coerced-model (gensym)]
     (-> acc
         (update-in [:lets] into [coerced-model (src-coerce! schema :body-params :json)])
-        (update-in [:parameters :parameters] conj {:type :body :model schema})
+        (update-in [:parameters :parameters] conj {:type :body :model (with-meta schema {:name (gensym "body")})})
         (update-in [:letks] into [body-params coerced-model]))))
 
 (defmethod restructure-param :query-params
