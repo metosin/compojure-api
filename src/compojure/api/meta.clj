@@ -175,4 +175,4 @@
         body (if (seq lets) `(let ~lets ~body) body)
         body (if (seq parameters) `(meta-container ~parameters ~body) body)
         body `(~method-symbol ~path ~arg-with-request ~body)]
-    (if (seq middlewares) `(with-middlewares [~@middlewares] ~body) body)))
+    (if (seq middlewares) `(middlewares [~@middlewares] ~body) body)))
