@@ -1,5 +1,6 @@
 (ns compojure.api.swagger
-  (:require [clojure.string :as s]
+  (:require [clojure.string :as st]
+            [schema.core :as s]
             [clojure.walk16 :as walk]
             [clojure.set :refer [union]]
             [potemkin :refer [import-vars]]
@@ -76,11 +77,11 @@
 
 (defn remove-param-regexes [p] (if (vector? p) (first p) p))
 
-(defn strip-trailing-spaces [s] (s/replace-first s #"(.)\/+$" "$1"))
+(defn strip-trailing-spaces [s] (st/replace-first s #"(.)\/+$" "$1"))
 
 (defn create-api-route [[ks v]]
   [{:method (keyword (.getName (first (keep second ks))))
-    :uri (->> ks (map first) (map remove-param-regexes) s/join strip-trailing-spaces)} v])
+    :uri (->> ks (map first) (map remove-param-regexes) st/join strip-trailing-spaces)} v])
 
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
@@ -97,7 +98,7 @@
 
 (defn route-metadata [body]
   (remove-empty-keys
-    (let [{:keys [body return parameters] :as meta} (unwrap-meta-container (last (second body)))]
+    (let [{:keys [return parameters] :as meta} (unwrap-meta-container (last (second body)))]
       (merge meta {:parameters parameters
                    :return return}))))
 
@@ -188,7 +189,7 @@
    extracts route, model and endpoint meta-datas."
   [name & body]
   (let [[details body] (swagger-info body)
-        name (s/replace (str (eval name)) #" " "")]
+        name (st/replace (str (eval name)) #" " "")]
     `(do
        (swap! swagger assoc-map-ordered ~name '~details)
        (routes ~@body))))
