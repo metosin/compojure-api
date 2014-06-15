@@ -120,12 +120,44 @@
       (assoc-in route-with-meta [:metadata :parameters] new-parameters))
     route-with-meta))
 
+(defn named-schema? [x]
+  (boolean (s/schema-name x)))
+
+(defn verify-container [x]
+  (assert (= (count x) 1) "schema containers can only one element.")
+  x)
+
+(defn valid-container? [x]
+  (and (or (sequential? x)
+           (set? x))
+       (verify-container x)))
+
+(defn direct-or-contained-named-schema? [x]
+  (if (valid-container? x)
+    (named-schema? (first x))
+    (named-schema? x)))
+
+(defn contain [x y]
+  (verify-container x)
+  (cond
+    (set? x) #{y}
+    (sequential? x) [y]))
+
+(defn update-schema [x f]
+  (if (valid-container? x)
+    (contain x (f (first x)))
+    (f x)))
+
 (defn ensure-parameter-schema-names [route-with-meta]
   (if-let [all-parameters (get-in route-with-meta [:metadata :parameters])]
     (->> all-parameters
          (map (fn [{:keys [model type] :as parameter}]
-                (if-not (s/schema-name model)
-                  (assoc parameter :model (with-meta model {:name (gensym (name type))}))
+                (if-not (direct-or-contained-named-schema? model)
+                  (update-in parameter [:model]
+                             update-schema (fn [schema]
+                                             (s/schema-with-name
+                                               schema
+                                               (gensym (name type)))))
                   parameter)))
          (assoc-in route-with-meta [:metadata :parameters]))
     route-with-meta))
