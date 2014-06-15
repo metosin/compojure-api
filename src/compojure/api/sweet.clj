@@ -37,10 +37,4 @@
 
    swagger-ui
    swagger-docs
-   swaggered]
-
-  ;; common stuff
-  [compojure.api.common
-
-   ->Long])
-
+   swaggered])

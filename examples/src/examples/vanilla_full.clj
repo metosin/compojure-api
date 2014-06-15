@@ -2,7 +2,6 @@
   (:require [compojure.core :refer :all]
             [ring.util.http-response :refer :all]
             [compojure.api.core :refer :all]
-            [compojure.api.common :refer [->Long]]
             [compojure.api.swagger :refer :all]
             [compojure.api.middleware :refer [api-middleware]]
             [examples.domain :refer :all]))
@@ -21,7 +20,7 @@
            :nickname "getPizzas"} GET "/pizzas" [] (ok (get-pizzas)))
         (^{:return   Pizza
          :summary  "Gets a pizza"
-         :nickname "getPizza"} GET "/pizzas/:id" [id] (ok (get-pizza (->Long id))))
+         :nickname "getPizza"} GET "/pizzas/:id" [id] (ok (get-pizza (Long/parseLong id))))
         (^{:return   Pizza
            :parameters [{:paramType   :body
                          :name        "pizza"
@@ -42,4 +41,4 @@
            :nickname "updatePizza"} PUT "/pizzas" {pizza :params} (ok (update! pizza)))
         (^{:return   Pizza
            :summary  "Deletes a Pizza"
-           :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (ok (delete! (->Long id))))))))
+           :nickname "deletePizza"} DELETE "/pizzas/:id" [id] (ok (delete! (Long/parseLong id))))))))
