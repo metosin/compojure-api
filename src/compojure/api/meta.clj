@@ -98,7 +98,7 @@
         coerced-model (gensym)]
     (-> acc
         (update-in [:lets] into [coerced-model (src-coerce! schema :body-params :json)])
-        (update-in [:parameters :parameters] conj {:type :body :model (with-meta schema {:name (gensym "body")})})
+        (update-in [:parameters :parameters] conj {:type :body :model schema})
         (update-in [:letks] into [body-params coerced-model]))))
 
 (defmethod restructure-param :query-params

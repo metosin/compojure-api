@@ -120,11 +120,22 @@
       (assoc-in route-with-meta [:metadata :parameters] new-parameters))
     route-with-meta))
 
+(defn ensure-parameter-schema-names [route-with-meta]
+  (if-let [all-parameters (get-in route-with-meta [:metadata :parameters])]
+    (->> all-parameters
+         (map (fn [{:keys [model type] :as parameter}]
+                (if-not (s/schema-name model)
+                  (assoc parameter :model (with-meta model {:name (gensym (name type))}))
+                  parameter)))
+         (assoc-in route-with-meta [:metadata :parameters]))
+    route-with-meta))
+
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
   (let [meta (route-metadata body)
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
-         (ensure-path-parameters uri))))
+         (ensure-path-parameters uri)
+         ensure-parameter-schema-names)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
