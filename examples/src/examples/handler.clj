@@ -70,7 +70,6 @@
           (ok (update! pizza)))
         (DELETE* "/:id" []
           :path-params [id :- Long]
-          :return   Pizza
           :summary  "Deletes a Pizza"
           :nickname "deletePizza"
           (ok (delete! id)))))))
