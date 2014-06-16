@@ -163,12 +163,24 @@
          (assoc-in route-with-meta [:metadata :parameters]))
     route-with-meta))
 
+(defn ensure-return-schema-names [route-with-meta]
+  (if-let [return (get-in route-with-meta [:metadata :return])]
+    (if-not (direct-or-contained-named-schema? return)
+      (update-in route-with-meta [:metadata :return]
+                 update-schema (fn [schema]
+                                 (s/schema-with-name
+                                   schema
+                                   (gensym "return"))))
+      route-with-meta)
+    route-with-meta))
+
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
   (let [meta (route-metadata body)
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
          (ensure-path-parameters uri)
-         ensure-parameter-schema-names)))
+         ensure-parameter-schema-names
+         ensure-return-schema-names)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
