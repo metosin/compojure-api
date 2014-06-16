@@ -1,11 +1,13 @@
 (ns compojure.api.swagger
   (:require [clojure.string :as st]
             [schema.core :as s]
+            [plumbing.core :refer [fn->]]
             [clojure.walk16 :as walk]
             [clojure.set :refer [union]]
             [potemkin :refer [import-vars]]
             [ring.util.response :refer :all]
             [ring.swagger.core :as swagger]
+            [ring.swagger.impl :as swagger-impl]
             [ring.swagger.common :refer :all]
             [ring.swagger.schema :as schema]
             ring.swagger.ui
@@ -24,28 +26,10 @@
 ;; Schema helpers
 ;;
 
-(defn asserted-container [x]
-  (assert (= (count x) 1) "schema containers can only one element.") x)
-
-(defn valid-container? [x]
-  (and (or (sequential? x) (set? x))
-       (asserted-container x)))
-
 (defn direct-or-contained-named-schema? [x]
-  (if (valid-container? x)
+  (if (swagger-impl/valid-container? x)
     (schema/named-schema? (first x))
     (schema/named-schema? x)))
-
-(defn contain [x y]
-  (asserted-container x)
-  (cond
-    (set? x) #{y}
-    (sequential? x) [y]))
-
-(defn update-schema [x f]
-  (if (valid-container? x)
-    (contain x (f (first x)))
-    (f x)))
 
 ;;
 ;; Route peeling
@@ -139,7 +123,7 @@
                                             first
                                             :model
                                             value-of
-                                            swagger/strict-schema)
+                                            swagger-impl/strict-schema)
           string-path-parameters (swagger/string-path-parameters uri)
           all-path-parameters (update-in string-path-parameters [:model]
                                          merge (or existing-path-parameters {}))
@@ -155,7 +139,7 @@
          (map (fn [{:keys [model type] :as parameter}]
                 (if-not (direct-or-contained-named-schema? model)
                   (update-in parameter [:model]
-                             update-schema (fn-> (s/schema-with-name (gensym (name type)))))
+                             swagger-impl/update-schema (fn-> (s/schema-with-name (gensym (name type)))))
                   parameter)))
          (assoc-in route-with-meta [:metadata :parameters]))
     route-with-meta))
@@ -164,7 +148,7 @@
   (if-let [return (get-in route-with-meta [:metadata :return])]
     (if-not (direct-or-contained-named-schema? return)
       (update-in route-with-meta [:metadata :return]
-                 update-schema (fn-> (s/schema-with-name (gensym "return"))))
+                 swagger-impl/update-schema (fn-> (s/schema-with-name (gensym "return"))))
       route-with-meta)
     route-with-meta))
 
