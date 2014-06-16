@@ -47,8 +47,7 @@
    is consumed form the :parameters map in acc. k = given key, v = value."
   (fn [k v acc] k))
 
-(defmethod restructure-param :default
-  [k v acc]
+(defmethod restructure-param :default [k v acc]
   "By default assoc in the k v to acc"
   (update-in acc [:parameters] assoc k v))
 
@@ -56,43 +55,38 @@
 ;; Default implementation
 ;;
 
-(defmethod restructure-param :return
-  [k model acc]
+(defmethod restructure-param :return [k model acc]
   "Defines a return type and coerced the return value of a body against it."
   (-> acc
       (update-in [:parameters] assoc k (eval model))
       (update-in [:middlewares] conj `(body-coercer-middleware ~model))))
 
-(defmethod restructure-param :body
-  [_ [value model model-meta] acc]
+(defmethod restructure-param :body [_ [value model model-meta] acc]
   "reads body-params into a enchanced let. First parameter is the let symbol,
    second is the Model to coerced! against, third parameter is optional meta-
    data for the model. Examples:
    :body [user User]
-   :body [user User {:key \"value\""
+   :body [user User {:key \"value\"}]"
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :body-params :json)])
       (update-in [:parameters :parameters] conj {:type :body
                                                  :model (eval model)
                                                  :meta model-meta})))
 
-(defmethod restructure-param :query
-  [_ [value model model-meta] acc]
+(defmethod restructure-param :query [_ [value model model-meta] acc]
   "reads query-params into a enchanced let. First parameter is the let symbol,
    second is the Model to coerced! against, third parameter is optional meta-
    data for the model. Examples:
    :query [user User]
-   :query [user User {:key \"value\""
+   :query [user User {:key \"value\"}]"
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :query-params :query)])
       (update-in [:parameters :parameters] conj {:type :query
                                                  :model (eval model)
                                                  :meta model-meta})))
 
-(defmethod restructure-param :body-params
-  [_ body-params acc]
-  "restructures body-params with plumbing letk notation. Generates
-   synthetic defs for the models. Example:
+(defmethod restructure-param :body-params [_ body-params acc]
+  "restructures body-params with plumbing letk notation. Example:
    :body-params [id :- Long name :- String]"
   (let [schema (eval (strict (fnk-schema body-params)))
         coerced-model (gensym)]
@@ -101,10 +95,8 @@
         (update-in [:parameters :parameters] conj {:type :body :model schema})
         (update-in [:letks] into [body-params coerced-model]))))
 
-(defmethod restructure-param :query-params
-  [_ query-params acc]
-  "restructures query-params with plumbing letk notation. Generates
-   synthetic defs for the models. Example:
+(defmethod restructure-param :query-params [_ query-params acc]
+  "restructures query-params with plumbing letk notation. Example:
    :query-params [id :- Long name :- String]"
   (let [schema (eval (fnk-schema query-params))
         coerced-model (gensym)]
@@ -113,10 +105,8 @@
         (update-in [:parameters :parameters] conj {:type :query :model schema})
         (update-in [:letks] into [query-params coerced-model]))))
 
-(defmethod restructure-param :path-params
-  [_ path-params acc]
-  "restructures path-params by plumbing letk notation. Generates
-   synthetic defs for the models. Example:
+(defmethod restructure-param :path-params [_ path-params acc]
+  "restructures path-params by plumbing letk notation. Example:
    :path-params [id :- Long name :- String]"
   (let [schema (eval (fnk-schema path-params))
         coerced-model (gensym)]
@@ -125,8 +115,7 @@
         (update-in [:parameters :parameters] conj {:type :path :model schema})
         (update-in [:letks] into [path-params coerced-model]))))
 
-(defmethod restructure-param :middlewares
-  [_ middlewares acc]
+(defmethod restructure-param :middlewares [_ middlewares acc]
   "Applies the given vector of middlewares for the route from left to right"
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
