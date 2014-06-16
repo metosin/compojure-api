@@ -1,13 +1,12 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
-            [ring.swagger.schema :refer [defmodel]]
             [schema.core :as s]))
 
-(defmodel Total {:total Long})
-(defmodel Thingie {:id Long
-                   :hot Boolean
-                   :tag (s/enum :kikka :kukka)})
+(s/defschema Total {:total Long})
+(s/defschema Thingie {:id Long
+                      :hot Boolean
+                      :tag (s/enum :kikka :kukka)})
 
 (defroutes* legacy-route
   (GET* "/legacy/:value" [value]
