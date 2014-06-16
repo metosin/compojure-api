@@ -6,7 +6,10 @@
 (s/defschema Total {:total Long})
 (s/defschema Thingie {:id Long
                       :hot Boolean
-                      :tag (s/enum :kikka :kukka)})
+                      :tag (s/enum :kikka :kukka)
+                      :chief [{:name String
+                               :type #{{:id String}}}]})
+(s/defschema FlatThingie (dissoc Thingie :chief))
 
 (defroutes* legacy-route
   (GET* "/legacy/:value" [value]
@@ -41,13 +44,13 @@
       legacy-route
 
       (GET* "/echo" []
-        :return   Thingie
-        :query    [thingie Thingie]
-        :summary  "echos a thingie from query-params"
-        (ok thingie)) ;; here be coerced thingie
+        :return   FlatThingie
+        :query    [thingie FlatThingie]
+        :summary  "echos a FlatThingie from query-params"
+        (ok thingie))
 
       (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
-        :summary  "echos a thingie from json-body"
-        (ok thingie))))) ;; here be coerced thingie
+        :summary  "echos a Thingie from json-body"
+        (ok thingie)))))
