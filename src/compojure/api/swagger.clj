@@ -155,10 +155,7 @@
          (map (fn [{:keys [model type] :as parameter}]
                 (if-not (direct-or-contained-named-schema? model)
                   (update-in parameter [:model]
-                             update-schema (fn [schema]
-                                                     (s/schema-with-name
-                                                       schema
-                                                       (gensym (name type)))))
+                             update-schema (fn-> (s/schema-with-name (gensym (name type)))))
                   parameter)))
          (assoc-in route-with-meta [:metadata :parameters]))
     route-with-meta))
@@ -167,10 +164,7 @@
   (if-let [return (get-in route-with-meta [:metadata :return])]
     (if-not (direct-or-contained-named-schema? return)
       (update-in route-with-meta [:metadata :return]
-                 update-schema (fn [schema]
-                                 (s/schema-with-name
-                                   schema
-                                   (gensym "return"))))
+                 update-schema (fn-> (s/schema-with-name (gensym "return"))))
       route-with-meta)
     route-with-meta))
 
