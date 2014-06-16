@@ -105,6 +105,15 @@
         (update-in [:parameters :parameters] conj {:type :query :model schema})
         (update-in [:letks] into [query-params coerced-model]))))
 
+#_(defmethod compojure.api.meta/restructure-param :header-params [_ header-params acc]
+  "restructures headers with plumbing letk notation. Example:
+   :query-params [id :- Long name :- String]"
+  (let [schema (eval (fnk-schema header-params))
+        coerced-model (gensym)]
+    (-> acc
+        (update-in [:lets] into [coerced-model (src-coerce! schema :headers :query)])
+        (update-in [:letks] into [header-params coerced-model]))))
+
 (defmethod restructure-param :path-params [_ path-params acc]
   "restructures path-params by plumbing letk notation. Example:
    :path-params [id :- Long name :- String]"
