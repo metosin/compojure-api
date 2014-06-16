@@ -2,7 +2,7 @@
   (:require [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
             [ring.util.response :as response]
-            [plumbing.core :refer [letk]]
+            [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.core :as swagger]
             [ring.swagger.schema :as schema]
@@ -29,8 +29,8 @@
       (assoc response :body (schema/coerce! model (:body response))))))
 
 (defn src-coerce!
-  "Return source code for coerce! for a schema with coercer type, extracted from a
-   key in a ring request."
+  "Return source code for coerce! for a schema with coercer type,
+   extracted from a key in a ring request."
   [schema key type]
   `(schema/coerce!
      ~schema
