@@ -1,7 +1,7 @@
 ## 0.12.0 (17.6.2014)
 
 - **possibly breaking change**: `middlewares` macro and `:middlewares` restructuring now use thread-first to apply middlewares
-- update ring-swagger to `0.9.0` with support for vanila `schema.core/defschema` schemas
+- update ring-swagger to `0.9.1` with support for vanila `schema.core/defschema` schemas
   - big internal cleanup, removing model var-resolutions, lot's of internal fn's removed
 - added `defroutes` to `compojure.api.legacy`
 
