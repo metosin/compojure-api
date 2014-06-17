@@ -4,6 +4,8 @@
 - update ring-swagger to `0.9.1` with support for vanila `schema.core/defschema` schemas
   - big internal cleanup, removing model var-resolutions, lot's of internal fn's removed
 - added `defroutes` to `compojure.api.legacy`
+- removed defns from `compojure.api.common`: `->Long`, `fn->`, `fn->>`
+- cleaner output from `compojure.api.meta/restructure` (doesn't generate empty `lets` & `letks`)
 
 ## 0.11.6 (5.6.2014)
 
