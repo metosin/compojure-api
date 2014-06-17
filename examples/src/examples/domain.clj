@@ -6,12 +6,12 @@
 ;; Domain
 ;;
 
-(rs/defmodel QueryParams {:long Long
+(s/defschema QueryParams {:long Long
                           (s/optional-key :string) String
                           :bool Boolean
                           :enum (s/enum "kikka" "kakka")})
 
-(rs/defmodel Customer {:id String
+(s/defschema Customer {:id String
                        :address {:street String
                                  :zip Long
                                  :country {:code Long
