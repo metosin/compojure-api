@@ -107,7 +107,7 @@
 
 #_(defmethod compojure.api.meta/restructure-param :header-params [_ header-params acc]
   "restructures headers with plumbing letk notation. Example:
-   :query-params [id :- Long name :- String]"
+   :header-params [id :- Long name :- String]"
   (let [schema (eval (fnk-schema header-params))
         coerced-model (gensym)]
     (-> acc
