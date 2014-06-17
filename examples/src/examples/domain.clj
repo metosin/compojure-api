@@ -1,34 +1,34 @@
 (ns examples.domain
   (:require [schema.core :as s]
-            [ring.swagger.schema :refer :all]))
+            [ring.swagger.schema :as rs]))
 
 ;;
 ;; Domain
 ;;
 
-(defmodel QueryParams {:long Long
-                       (s/optional-key :string) String
-                       :bool Boolean
-                       :enum (s/enum "kikka" "kakka")})
+(s/defschema QueryParams {:long Long
+                          (s/optional-key :string) String
+                          :bool Boolean
+                          :enum (s/enum "kikka" "kakka")})
 
-(defmodel Customer {:id String
-                    :address {:street String
-                              :zip Long
-                              :country {:code Long
-                                        :name String}}})
+(s/defschema Customer {:id String
+                       :address {:street String
+                                 :zip Long
+                                 :country {:code Long
+                                           :name String}}})
 
 ;;
 ;; Pizza Store
 ;;
 
-(defmodel Pizza {:id    Long
-                 :name  String
-                 :price Double
-                 :hot   Boolean
-                 (s/optional-key :description) String
-                 :toppings #{(s/enum :cheese :olives :ham :pepperoni :habanero)}})
+(s/defschema Pizza {:id    Long
+                    :name  String
+                    :price Double
+                    :hot   Boolean
+                    (s/optional-key :description) String
+                    :toppings #{(s/enum :cheese :olives :ham :pepperoni :habanero)}})
 
-(defmodel NewPizza (dissoc Pizza :id))
+(s/defschema NewPizza (dissoc Pizza :id))
 
 ;; Repository
 
@@ -41,12 +41,12 @@
 
 (defn add! [new-pizza]
   (let [id (swap! id-seq inc)
-        pizza (coerce! Pizza (assoc new-pizza :id id))]
+        pizza (rs/coerce! Pizza (assoc new-pizza :id id))]
     (swap! pizzas assoc id pizza)
     pizza))
 
 (defn update! [pizza]
-  (let [pizza (coerce! Pizza pizza)]
+  (let [pizza (rs/coerce! Pizza pizza)]
     (swap! pizzas assoc (:id pizza) pizza)
     (get-pizza (:id pizza))))
 

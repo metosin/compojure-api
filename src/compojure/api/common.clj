@@ -17,10 +17,6 @@
   "Re-created a map from it's path-vals extracted with (path-vals)."
   [c] (reduce (partial apply assoc-in) {} c))
 
-(defn ->map
-  "Converts a map-like form (list of tuples, record a map) into a map."
-  [m] (into {} m))
-
 (defmacro re-resolve
   "Extracts original var from a (potemkined) var or a symbol or returns nil"
   [x]
@@ -35,8 +31,6 @@
         `(var ~s)))))
 
 (defn eval-re-resolve [x] (eval `(re-resolve ~x)))
-
-(defn ->Long [s] (if (string? s) (java.lang.Long/parseLong s) (Long. s)))
 
 (defn assoc-map-ordered
   "assocs a value into a map forcing the implementation to be

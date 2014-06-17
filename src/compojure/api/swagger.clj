@@ -1,11 +1,15 @@
 (ns compojure.api.swagger
-  (:require [clojure.string :as s]
+  (:require [clojure.string :as st]
+            [schema.core :as s]
+            [plumbing.core :refer [fn->]]
             [clojure.walk16 :as walk]
             [clojure.set :refer [union]]
             [potemkin :refer [import-vars]]
             [ring.util.response :refer :all]
             [ring.swagger.core :as swagger]
+            [ring.swagger.impl :as swagger-impl]
             [ring.swagger.common :refer :all]
+            [ring.swagger.schema :as schema]
             ring.swagger.ui
             [compojure.api.common :refer :all]
             [compojure.api.core :as core]
@@ -19,6 +23,15 @@
 (defonce swagger (atom (array-map)))
 
 ;;
+;; Schema helpers
+;;
+
+(defn direct-or-contained-named-schema? [x]
+  (if (swagger-impl/valid-container? x)
+    (schema/named-schema? (first x))
+    (schema/named-schema? x)))
+
+;;
 ;; Route peeling
 ;;
 
@@ -26,16 +39,14 @@
 (def compojure-context?   #{#'context})
 (def compojure-letroutes? #{#'let-routes})
 (def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
-(def with-meta?           #{#'with-meta})
 
 (defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
 
-;; TODO: stop expanding when compojure-route is found. recur instead of walk?
 (defn macroexpand-to-compojure [form]
   (walk/prewalk
     (fn [x]
       (cond
-        (inline? x) (-> x value-of meta :source)
+        (inline? x) (-> x value-of meta :source)            ;; resolve the syms!
         (seq? x)    (let [sym (first x)]
                       (if (and
                             (symbol? sym)
@@ -78,11 +89,11 @@
 
 (defn remove-param-regexes [p] (if (vector? p) (first p) p))
 
-(defn strip-trailing-spaces [s] (s/replace-first s #"(.)\/+$" "$1"))
+(defn strip-trailing-spaces [s] (st/replace-first s #"(.)\/+$" "$1"))
 
 (defn create-api-route [[ks v]]
   [{:method (keyword (.getName (first (keep second ks))))
-    :uri (->> ks (map first) (map remove-param-regexes) s/join strip-trailing-spaces)} v])
+    :uri (->> ks (map first) (map remove-param-regexes) st/join strip-trailing-spaces)} v])
 
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
@@ -99,9 +110,9 @@
 
 (defn route-metadata [body]
   (remove-empty-keys
-    (let [{:keys [body return parameters] :as meta} (unwrap-meta-container (last (second body)))]
+    (let [{:keys [return parameters] :as meta} (unwrap-meta-container (last (second body)))]
       (merge meta {:parameters parameters
-                   :return (some-> return swagger/resolve-model-vars)}))))
+                   :return return}))))
 
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (swagger/path-params uri))
@@ -112,7 +123,7 @@
                                             first
                                             :model
                                             value-of
-                                            swagger/strict-schema)
+                                            swagger-impl/strict-schema)
           string-path-parameters (swagger/string-path-parameters uri)
           all-path-parameters (update-in string-path-parameters [:model]
                                          merge (or existing-path-parameters {}))
@@ -121,11 +132,37 @@
       (assoc-in route-with-meta [:metadata :parameters] new-parameters))
     route-with-meta))
 
+
+(defn ensure-parameter-schema-names [route-with-meta]
+  (if-let [all-parameters (get-in route-with-meta [:metadata :parameters])]
+    (->> all-parameters
+         (map (fn [{:keys [model type] :as parameter}]
+                (if-not (direct-or-contained-named-schema? model)
+                  (update-in parameter [:model]
+                             swagger-impl/update-schema
+                             (fn-> (s/schema-with-name
+                                     (gensym (->CamelCase (name type))))))
+                  parameter)))
+         (assoc-in route-with-meta [:metadata :parameters]))
+    route-with-meta))
+
+(defn ensure-return-schema-names [route-with-meta]
+  (if-let [return (get-in route-with-meta [:metadata :return])]
+    (if-not (direct-or-contained-named-schema? return)
+      (update-in route-with-meta [:metadata :return]
+                 swagger-impl/update-schema
+                 (fn-> (s/schema-with-name
+                         (gensym (->CamelCase "return")))))
+      route-with-meta)
+    route-with-meta))
+
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
   (let [meta (route-metadata body)
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
-         (ensure-path-parameters uri))))
+         (ensure-path-parameters uri)
+         ensure-parameter-schema-names
+         ensure-return-schema-names)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
@@ -190,7 +227,7 @@
    extracts route, model and endpoint meta-datas."
   [name & body]
   (let [[details body] (swagger-info body)
-        name (s/replace (str (eval name)) #" " "")]
+        name (st/replace (str (eval name)) #" " "")]
     `(do
        (swap! swagger assoc-map-ordered ~name '~details)
        (routes ~@body))))

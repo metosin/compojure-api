@@ -1,19 +1,18 @@
 (ns compojure.api.sweet-test
   (:require [midje.sweet :refer :all]
             [schema.core :as s]
-            [ring.swagger.schema :refer :all]
             [compojure.api.swagger :as swagger]
             [ring.mock.request :refer :all]
             [cheshire.core :as cheshire]
             [compojure.core :as compojure]
             [compojure.api.sweet :refer :all]))
 
-(defmodel Band {:id s/Int
-                :name s/Str
-                (s/optional-key :description) s/Str
-                :toppings [(s/enum :cheese :olives :ham :pepperoni :habanero)]})
+(s/defschema Band {:id s/Int
+                   :name s/Str
+                   (s/optional-key :description) s/Str
+                   :toppings [(s/enum :cheese :olives :ham :pepperoni :habanero)]})
 
-(defmodel NewBand (dissoc Band :id))
+(s/defschema NewBand (dissoc Band :id))
 
 ;; Make sure defapis from other namespaces are reset
 ;; (eg. midje autotest will load examples.thingie which would break tests)
@@ -67,12 +66,12 @@
                  {:method :get
                   :uri "/api/bands"
                   :metadata {:nickname "getBands"
-                             :return [#'Band]
+                             :return [Band]
                              :summary "Gets all Bands"}}
                  {:method :get
                   :uri "/api/bands/:id"
                   :metadata {:nickname "getBand"
-                             :return #'Band
+                             :return Band
                              :summary "Gets a Band"
                              :parameters [{:type :path
                                            :model {:id String}}]}}
@@ -80,9 +79,9 @@
                   :uri "/api/bands"
                   :metadata {:nickname "addBand"
                              :parameters [{:type :body
-                                           :model [#'NewBand]
+                                           :model [NewBand]
                                            :meta {:description "new Band"}}]
-                             :return #'Band
+                             :return Band
                              :summary "Adds a Band"}}
                  {:method :get
                   :uri "/api/path-and-query-parameters/:a/:b"

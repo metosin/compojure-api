@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.11.6"]
+[metosin/compojure-api "0.12.0"]
 ```
 
 ## Sample application
@@ -21,12 +21,15 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
-            [ring.swagger.schema :refer [defmodel]]
             [schema.core :as s]))
 
-(defmodel Thingie {:id Long
-                   :hot Boolean
-                   :tag (s/enum :kikka :kukka)})
+(s/defschema Total {:total Long})
+(s/defschema Thingie {:id Long
+                      :hot Boolean
+                      :tag (s/enum :kikka :kukka)
+                      :chief [{:name String
+                               :type #{{:id String}}}]})
+(s/defschema FlatThingie (dissoc Thingie :chief))
 
 (defroutes* legacy-route
   (GET* "/legacy/:value" [value]
@@ -39,37 +42,48 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
   (swaggered "thingie"
     :description "There be thingies"
     (context "/api" []
-      legacy-route
 
       (GET* "/plus" []
+        :return       Total
         :query-params [x :- Long {y :- Long 1}]
         :summary      "x+y with query-parameters. y defaults to 1."
         (ok {:total (+ x y)}))
 
       (POST* "/minus" []
-        :body-params  [x :- Long y :- Long]
-        :summary      "x-y with body-parameters."
+        :return      Total
+        :body-params [x :- Long y :- Long]
+        :summary     "x-y with body-parameters."
         (ok {:total (- x y)}))
 
       (GET* "/times/:x/:y" []
+        :return      Total
         :path-params [x :- Long y :- Long]
         :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
+      legacy-route
+
       (GET* "/echo" []
-        :return   Thingie
-        :query    [thingie Thingie]
-        :summary  "echos a thingie from query-params"
-        (ok thingie)) ;; here be coerced thingie
+        :return   FlatThingie
+        :query    [thingie FlatThingie]
+        :summary  "echos a FlatThingie from query-params"
+        (ok thingie))
+
+      (PUT* "/echo" []
+        :return   [{:hot Boolean}]
+        :body     [body [{:hot Boolean}]]
+        (ok body))
 
       (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
-        :summary  "echos a thingie from json-body"
-        (ok thingie))))) ;; here be coerced thingie
+        :summary  "echos a Thingie from json-body"
+        (ok thingie)))))
 ```
 
-To try it yourself, clone this repo and hit `lein start-thingie` (Jetty) or `lein http-kit-thingie` (Http-kit).
+To try it yourself, clone this repo and type
+- `lein start-thingie` (Jetty)
+- `lein http-kit-thingie` (Http-kit)
 
 ## Quickstart for a new project
 
@@ -196,24 +210,24 @@ See source code & [examples](https://github.com/metosin/compojure-api/blob/maste
 
 ## Models
 
-Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based [ring-swagger](https://github.com/metosin/ring-swagger) for managing it's data models. Models are presented as hererogenous Schema-maps defined by `defmodel`.
+Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modelling, backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
 
 Two coercers are available (and automatically selected with smart destucturing): one for json and another for string-based formats (query-parameters & path-parameters). See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
 
-### sample schema
+### sample schema and coercion
 
 ```clojure
-(require '[ring.swagger.schema :refer :all])
+(require '[ring.swagger.schema :as ss])
 (require '[schema.core :as s])
 
-(defmodel Thingie {:id Long
-                   :tag (s/enum :kikka :kukka)})
+(s/defschema Thingie {:id Long
+                      :tag (s/enum :kikka :kukka)})
 
-(coerce! Thingie {:id 123
+(ss/coerce! Thingie {:id 123
                   :tag "kikka"})
 ; => {:id 123 :tag :kikka}
 
-(coerce! Thingie {:id 123
+(ss/coerce! Thingie {:id 123
                   :tags "kakka"})
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags disallowed-key, :tag missing-required-key}}  ring.swagger.schema/coerce! (schema.clj:88)
 ```
@@ -224,11 +238,11 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
 
 ```clojure
   (POST* "/echo" []
-    :return   Thingie
-    :body     [thingie Thingie]
-    :summary  "echos a thingie from json-body"
-    :nickname "echoThingiePost"
-    (ok thingie)) ;; here be coerced thingie
+    :return   FlatThingie
+    :query    [flat-thingie FlatThingie]
+    :summary  "echos a FlatThingie from query-params"
+    :nickname "echoFlatThingiePost"
+    (ok flat-thingie)) ;; here be coerced thingie
 ```
 
 ```clojure
@@ -240,13 +254,22 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
     (ok thingie)) ;; here be coerced thingie
 ```
 
-you can also wrap models in containers (`Vector`, `List`, `Set`) and add extra metadata:
+you can also wrap models in containers (`vector`s and `set`s) and add extra metadata:
 
 ```clojure
   (POST* "/echos" []
     :return   [Thingie]
     :body     [thingies #{Thingie} {:description "set on thingies"}]
     (ok thingies))
+```
+
+From `0.12.0` on, anonoymous schemas are also supported:
+
+```clojure
+  (PUT* "/echos" []
+    :return   [{:id Long, :name String}]
+    :body     [body #{{:id Long, :name String}}]
+    (ok body))
 ```
 
 ## Query, Path and Body parameters
@@ -318,24 +341,27 @@ using it:
 macroexpanding-1 it too see what's get generated:
 
 ```clojure
+(clojure.pprint/pprint
+    (macroexpand-1 `(GET* "/current-session" []
+                          :auth token
+                          (ok {:token token}))))
+
 (compojure.core/GET
  "/current-session"
  [:as +compojure-api-request+]
- (compojure.api.common/meta-container
-  {}
-  (clojure.core/let
-   [{{token "x-accesstoken"} :headers} +compojure-api-request+]
-   (plumbing.core/letk
-    []
-    (if
-     (clojure.core/= token "123")
-     (do (ok {:token token}))
-     (ring.util.http-response/forbidden "Auth required"))))))
+ (clojure.core/let
+  [{{examples.thingie/token "x-accesstoken"} :headers}
+   +compojure-api-request+]
+  (do
+   (if
+    (clojure.core/= examples.thingie/token "123")
+    (do (ring.util.http-response/ok {:token examples.thingie/token}))
+    (ring.util.http-response/forbidden "Auth required")))))
 ```
 
 ## Running the embedded example(s)
 
-`lein ring server`
+`lein start-samples`
 
 ## Features and weird things
 
@@ -347,16 +373,12 @@ macroexpanding-1 it too see what's get generated:
 ## Roadmap
 
 - collect routes from root, not from `swaggered` => removes the global swagger-atom
-- macroextend only once (now twice: once with the peeling, second time with the real code)
 - type-safe `:params` destructuring
-- allow vanilla schemas instead of defmodels
-- allow anonymous models with `:return`, `:body` and `:query`
 - `url-for` for endpoints (bidi, bidi, bidi)
 - support for swagger error messages
-- support for swagger consumes
 - include external common use middlewares (ring-middleware-format, ring-cors etc.)
-- `FILE*`
-- `WS*`
+- file handling
+- `WS*`?
 
 ## Contributing
 

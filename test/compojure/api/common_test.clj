@@ -14,16 +14,6 @@
     (path-vals original) => target
     (assoc-in-path-vals target) => original))
 
-(defrecord Plane [x y z])
-(def *tuples [[:x 1] [:y 2] [:z 3]])
-(def *map    {:x 1 :y 2 :z 3})
-(def *record (->Plane 1 2 3))
-
-(fact "->map"
-  (->map *map) => *map
-  (->map *tuples) => *map
-  (->map *record) => *map)
-
 (potemkin/import-vars [clojure.walk walk])
 
 (fact "re-resolve"
@@ -52,12 +42,6 @@
     (re-resolve-in-compile-time 'walk) => nil)
   (fact "eval-re-resolve works with macros"
     (eval-re-resolve-in-compile-time 'walk) => #'clojure.walk/walk))
-
-(fact "->Long"
-  (->Long 123) => 123
-  (->Long 12.3) => (throws IllegalArgumentException)
-  (->Long "123") => 123
-  (->Long "12.3") => (throws NumberFormatException))
 
 (fact "assoc-map"
   (fact "assoc for array-map loses its order"

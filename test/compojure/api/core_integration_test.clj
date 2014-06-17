@@ -1,7 +1,6 @@
 (ns compojure.api.core-integration-test
   (:require [midje.sweet :refer :all]
             [schema.core :as s]
-            [ring.swagger.schema :refer :all]
             [compojure.api.swagger :as swagger]
             [ring.util.http-response :refer :all]
             [peridot.core :as p]
@@ -38,8 +37,8 @@
 ;; Data
 ;;
 
-(defmodel User {:id   Long
-                :name String})
+(s/defschema User {:id   Long
+                   :name String})
 
 (def pertti {:id 1 :name "Pertti"})
 

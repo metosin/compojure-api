@@ -2,7 +2,6 @@
   (:require [compojure.core :refer :all]
             [ring.util.http-response :refer :all]
             [compojure.api.core :refer :all]
-            [compojure.api.common :refer [->Long]]
             [compojure.api.swagger :refer :all]
             [compojure.api.middleware :refer [api-middleware]]
             [examples.domain :refer :all]))
@@ -20,10 +19,10 @@
           (GET "/" []
             (ok (get-pizzas)))
           (GET "/:id" [id]
-            (ok (get-pizza (->Long id))))
+            (ok (get-pizza (Long/parseLong id))))
           (POST "/" {pizza :params}
             (ok (add! pizza)))
           (PUT "/" {pizza :params}
             (ok (update! pizza)))
           (DELETE "/:id" [id]
-            (ok (delete! (->Long id)))))))))
+            (ok (delete! (Long/parseLong id)))))))))

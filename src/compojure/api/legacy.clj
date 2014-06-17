@@ -7,6 +7,8 @@
   ;; compojure routing
   [compojure.core
 
+   defroutes
+
    GET
    ANY
    HEAD
