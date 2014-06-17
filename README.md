@@ -66,18 +66,19 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
       (GET* "/echo" []
         :return   FlatThingie
         :query    [thingie FlatThingie]
-        :summary  "echos a FlatThingie from query-params"
+        :summary  "echoes a FlatThingie from query-params"
         (ok thingie))
 
       (PUT* "/echo" []
         :return   [{:hot Boolean}]
         :body     [body [{:hot Boolean}]]
+        :summary  "echoes a vector of anonymous hotties"
         (ok body))
 
       (POST* "/echo" []
         :return   Thingie
         :body     [thingie Thingie]
-        :summary  "echos a Thingie from json-body"
+        :summary  "echoes a Thingie from json-body"
         (ok thingie)))))
 ```
 
