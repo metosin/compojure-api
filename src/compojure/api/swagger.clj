@@ -139,7 +139,9 @@
          (map (fn [{:keys [model type] :as parameter}]
                 (if-not (direct-or-contained-named-schema? model)
                   (update-in parameter [:model]
-                             swagger-impl/update-schema (fn-> (s/schema-with-name (gensym (name type)))))
+                             swagger-impl/update-schema
+                             (fn-> (s/schema-with-name
+                                     (gensym (->CamelCase (name type))))))
                   parameter)))
          (assoc-in route-with-meta [:metadata :parameters]))
     route-with-meta))
@@ -148,7 +150,9 @@
   (if-let [return (get-in route-with-meta [:metadata :return])]
     (if-not (direct-or-contained-named-schema? return)
       (update-in route-with-meta [:metadata :return]
-                 swagger-impl/update-schema (fn-> (s/schema-with-name (gensym "return"))))
+                 swagger-impl/update-schema
+                 (fn-> (s/schema-with-name
+                         (gensym (->CamelCase "return")))))
       route-with-meta)
     route-with-meta))
 

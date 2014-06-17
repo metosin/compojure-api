@@ -24,21 +24,21 @@
     (context "/api" []
 
       (GET* "/plus" []
-        :return Total
+        :return       Total
         :query-params [x :- Long {y :- Long 1}]
         :summary      "x+y with query-parameters. y defaults to 1."
         (ok {:total (+ x y)}))
 
       (POST* "/minus" []
-        :return Total
-        :body-params  [x :- Long y :- Long]
-        :summary      "x-y with body-parameters."
+        :return      Total
+        :body-params [x :- Long y :- Long]
+        :summary     "x-y with body-parameters."
         (ok {:total (- x y)}))
 
       (GET* "/times/:x/:y" []
-        :return Total
-        :path-params  [x :- Long y :- Long]
-        :summary      "x*y with path-parameters"
+        :return      Total
+        :path-params [x :- Long y :- Long]
+        :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
       legacy-route
@@ -48,6 +48,11 @@
         :query    [thingie FlatThingie]
         :summary  "echos a FlatThingie from query-params"
         (ok thingie))
+
+      (PUT* "/echo" []
+        :return   [{:hot Boolean}]
+        :body     [body [{:hot Boolean}]]
+        (ok body))
 
       (POST* "/echo" []
         :return   Thingie
