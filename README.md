@@ -175,13 +175,17 @@ Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for r
 
 Enabling Swagger route documentation in your application is done by:
 
-- wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/with-routes`) macro. This initializes an empty route tree to your namespace
-- wrapping your web apis in a `swaggered` -route macro on to the root level of your web app. This macro reverse-engineers the route tree of routes
-- mounting `compojure.api.swagger/swagger-docs` to publish the collected routes
-- optionally mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/wordnik/swagger-ui) to the web app
+- wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/with-routes`) macro. This initializes an empty route tree to your namespace.
+- wrapping your web apis in a `swaggered` -route macro on to the root level of your web app.
+  - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penanty)
+  - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
+- mounting `compojure.api.swagger/swagger-docs` to publish the collected routes.
+- **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/wordnik/swagger-ui) to the web app
   - the ui is packaged separately at clojars with name `metosin/metosin/ring-swagger-ui`
 
-There can be only one `defapi` or `with-routes` per namespace. There can be several `swaggered` apis in one web application. Behind the scenes, `swaggered` uses macro-peeling & source linking to reconstruct the route tree from route macros. If you intend to split your route-tree via `defroutes`, use `defroutes*` instead so that their routes get also collected.
+Currently, there can be only one `defapi` or `with-routes` per namespace.
+
+There can be several `swaggered` apis in one web application.
 
 ### sample minimalistic swaggered app
 
