@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.12.0"]
+[metosin/compojure-api "0.13.0"]
 ```
 
 ## Sample application
@@ -373,7 +373,7 @@ macroexpanding-1 it too see what's get generated:
 
 ## Roadmap
 
-- collect routes from root, not from `swaggered` => removes the global swagger-atom
+- collect routes from root, not from `swaggered`
 - type-safe `:params` destructuring
 - `url-for` for endpoints (bidi, bidi, bidi)
 - support for swagger error messages

@@ -17,12 +17,6 @@
             [compojure.core :refer :all]))
 
 ;;
-;; Evil Global State
-;;
-
-(defonce swagger (atom (array-map)))
-
-;;
 ;; Schema helpers
 ;;
 
@@ -197,7 +191,7 @@
 
 (import-vars [ring.swagger.ui swagger-ui])
 
-(defn swagger-docs
+(defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
    parameter is a String, it is used as a url for the
    api-docs, othereise \"/api/api-docs\" will be used.
@@ -210,15 +204,15 @@
                             [(first body) (rest body)]
                             ["/api/api-docs" body])
         parameters (apply hash-map key-values)]
-    (routes
-      (GET path []
-           (swagger/api-listing parameters @swagger))
-      (GET (str path "/:api") {{api :api} :route-params :as request}
-           (let [produces (-> request :meta :produces (or []))
-                 consumes (-> request :meta :consumes (or []))
-                 parameters (merge parameters {:produces produces
-                                               :consumes consumes})]
-             (swagger/api-declaration parameters @swagger api (swagger/basepath request)))))))
+    `(routes
+       (GET ~path []
+            (swagger/api-listing ~parameters @~core/+routes-sym+))
+       (GET ~(str path "/:api") {{api# :api} :route-params :as request#}
+            (let [produces# (-> request# :meta :produces (or []))
+                  consumes# (-> request# :meta :consumes (or []))
+                  parameters# (merge ~parameters {:produces produces#
+                                                  :consumes consumes#})]
+              (swagger/api-declaration parameters# @~core/+routes-sym+ api# (swagger/basepath request#)))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional
@@ -229,5 +223,5 @@
   (let [[details body] (swagger-info body)
         name (st/replace (str (eval name)) #" " "")]
     `(do
-       (swap! swagger assoc-map-ordered ~name '~details)
+       (swap! ~core/+routes-sym+ assoc-map-ordered ~name '~details)
        (routes ~@body))))

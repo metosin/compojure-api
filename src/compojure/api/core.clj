@@ -5,10 +5,21 @@
             [compojure.api.meta :refer [restructure]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
+(def +routes-sym+ '+routes+)
+
+(defmacro with-routes [& body]
+  `(do (def ~+routes-sym+ (atom {}))
+       (routes ~@body)))
+
+(defmacro get-routes []
+  `(if-let [data# ~+routes-sym+]
+     @data#
+     (throw (IllegalStateException. "no +routes+ bound in this namespace."))))
+
 (defmacro defapi [name & body]
   `(defroutes ~name
      (api-middleware
-       (routes ~@body))))
+       (with-routes ~@body))))
 
 (import-vars [compojure.api.meta middlewares])
 
