@@ -245,11 +245,11 @@ Two coercers are available (and automatically selected with smart destucturing):
                       :tag (s/enum :kikka :kukka)})
 
 (ss/coerce! Thingie {:id 123
-                  :tag "kikka"})
+                     :tag "kikka"})
 ; => {:id 123 :tag :kikka}
 
 (ss/coerce! Thingie {:id 123
-                  :tags "kakka"})
+                     :tags "kakka"})
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags disallowed-key, :tag missing-required-key}}  ring.swagger.schema/coerce! (schema.clj:88)
 ```
 
@@ -275,7 +275,7 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
     (ok thingie)) ;; here be coerced thingie
 ```
 
-you can also wrap models in containers (`vector`s and `set`s) and add extra metadata:
+you can also wrap models in containers (`vector` and `set`) and add extra metadata:
 
 ```clojure
   (POST* "/echos" []
@@ -313,7 +313,7 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 
 ## Route-specific middlewares
 
-Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds and by so are more reusable.
+Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds from within the route body.
 
 ```clojure
  (DELETE* "/user/:id" []
