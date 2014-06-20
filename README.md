@@ -152,7 +152,9 @@ One can add own format middlewares (XML, EDN etc.) and add expose their capabili
 
 You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enchanced versions from `compojure.api.core`. Enchanced versions have `*` in their name (`GET*`, `POST*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enchanced version can be used exactly as their ancestors but have also new behavior, more on that later.
 
-Namespace `compojure.api.sweet` is a public entry point for all routing - importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`. It does not contain the old Compojure-route-endpoint macros (`GET`, `POST`,...), but if you need those too, you can also found them `compojure.api.legacy` namespace. `sweet` & `legacy` together can be used as a drop-in replacement for `compojure.core`.
+Namespace `compojure.api.sweet` is a public entry point for all routing - importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`.
+
+There is also `compojure.api.legacy` namespace which contains rest of the public vars from `compojure.core` (the `GET`, `POST` etc. endpoint macros which are not contained in `sweet`). Using `sweet` in conjuction with `legacy` should provide a drop-in-replacement for `compojure.core` - with new new route goodies.
 
 ### sample sweet application
 
