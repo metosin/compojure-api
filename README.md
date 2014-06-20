@@ -90,13 +90,13 @@ To try it yourself, clone this repo and type
 
 Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 
-A Leiningen template coming sooner or later.
+Use a Leiningen template: `lein new compojure-api my-api`
 
 # Building Documented Apis
 
 ## Middlewares
 
-There is pre-packaged middleware `api-middleware` for common web api usage, found in`compojure.api.middleware`. It's a enchanced version of `compojure.handler/api` adding the following:
+There is pre-packaged middleware `compojure.api.middleware/api-middleware` for common web api usage. It's a enchanced version of `compojure.handler/api` adding the following:
 
 - catching slinghotted http-errors (`ring.middleware.http-response/catch-response`)
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
@@ -119,7 +119,7 @@ To help setting up custom middleware there is a `middlewares` macro:
       (GET "/ping" [] (ok {:ping "pong"})))))
 ```
 
-There is also a short form for the common case of `api-middleware`:
+There is also `compojure.api.core/defapi` as a short form for the common case of defining routes with `api-middleware`:
 
 ```clojure
 (ns example2
@@ -161,13 +161,17 @@ Namespace `compojure.api.sweet` is a public entry point for all routing, importi
 
 Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for route documentation.
 
-Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your app. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. If you intend to split your route-tree with `defroutes`, use `defroutes*` instead so that their routes get also collected.
+Enabling Swagger route documentation in your application is done by:
 
-`swagger-docs` mounts the api definitions.
+- wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/with-routes`) macro. This initializes an empty route tree to your namespace
+- wrapping your web apis in a `swaggered` -route macro on to the root level of your web app. This macro reverse-engineers the route tree of routes
+- mounting `compojure.api.swagger/swagger-docs` to publish the collected routes
+- optionally mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/wordnik/swagger-ui) to the web app
+  - the ui is packaged separately at clojars with name `metosin/metosin/ring-swagger-ui`
 
-There is also a `swagger-ui` route for mounting the external [Swagger-UI](https://github.com/wordnik/swagger-ui).
+There can be only one `defapi` or `with-routes` per namespace. There can be several `swaggered` apis in one web application. Behind the scenes, `swaggered` uses macro-peeling & source linking to reconstruct the route tree from route macros. If you intend to split your route-tree via `defroutes`, use `defroutes*` instead so that their routes get also collected.
 
-### sample swaggered app
+### sample minimalistic swaggered app
 
 ```clojure
 (ns example4
@@ -373,6 +377,7 @@ macroexpanding-1 it too see what's get generated:
 
 ## Roadmap
 
+- don't pollute api namespases with `+routes+` var, use lexically/dynamically scoped route tree instead
 - collect routes from root, not from `swaggered`
 - type-safe `:params` destructuring
 - `url-for` for endpoints (bidi, bidi, bidi)
