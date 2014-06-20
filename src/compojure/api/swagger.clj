@@ -13,6 +13,7 @@
             ring.swagger.ui
             [compojure.api.common :refer :all]
             [compojure.api.core :as core]
+            [compojure.api.routes :as routes]
             [compojure.route :as route]
             [compojure.core :refer :all]))
 
@@ -206,13 +207,13 @@
         parameters (apply hash-map key-values)]
     `(routes
        (GET ~path []
-            (swagger/api-listing ~parameters @~core/+routes-sym+))
+            (swagger/api-listing ~parameters @~routes/+routes-sym+))
        (GET ~(str path "/:api") {{api# :api} :route-params :as request#}
             (let [produces# (-> request# :meta :produces (or []))
                   consumes# (-> request# :meta :consumes (or []))
                   parameters# (merge ~parameters {:produces produces#
                                                   :consumes consumes#})]
-              (swagger/api-declaration parameters# @~core/+routes-sym+ api# (swagger/basepath request#)))))))
+              (swagger/api-declaration parameters# @~routes/+routes-sym+ api# (swagger/basepath request#)))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional
@@ -223,5 +224,5 @@
   (let [[details body] (swagger-info body)
         name (st/replace (str (eval name)) #" " "")]
     `(do
-       (swap! ~core/+routes-sym+ assoc-map-ordered ~name '~details)
+       (swap! ~routes/+routes-sym+ assoc-map-ordered ~name '~details)
        (routes ~@body))))

@@ -1,6 +1,6 @@
 (ns compojure.api.swagger-ordering-test
   (:require [midje.sweet :refer :all]
-            [compojure.api.core :as core]
+            [compojure.api.routes :as routes]
             [compojure.api.sweet :refer :all]))
 
 (def app-name (str (gensym)))
@@ -26,7 +26,7 @@
 
   (fact "swagger-api order is maintained"
     (->> app-name
-         ((core/get-routes))
+         ((routes/get-routes))
          :routes
          (map :uri))  => ["/a/1"
                           "/a/2"

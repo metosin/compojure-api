@@ -1,7 +1,7 @@
 (ns compojure.api.sweet-test
   (:require [midje.sweet :refer :all]
             [schema.core :as s]
-            [compojure.api.core :as core]
+            [compojure.api.routes :as routes]
             [ring.mock.request :refer :all]
             [cheshire.core :as cheshire]
             [compojure.core :as compojure]
@@ -50,7 +50,7 @@
 (facts "swaggered"
 
   (fact "details are generated"
-    ((core/get-routes) app-name)
+    ((routes/get-routes) app-name)
 
     => {:description "sample api"
         :routes [{:method :get
