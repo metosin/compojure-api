@@ -1,6 +1,7 @@
 (ns compojure.api.core
   (:require [potemkin :refer [import-vars]]
             [compojure.core :refer :all]
+            [compojure.api.routes :as routes]
             [compojure.api.middleware :refer [api-middleware]]
             [compojure.api.meta :refer [restructure]]
             [clojure.tools.macro :refer [name-with-attributes]]))
@@ -8,7 +9,7 @@
 (defmacro defapi [name & body]
   `(defroutes ~name
      (api-middleware
-       (routes ~@body))))
+       (routes/with-routes ~@body))))
 
 (import-vars [compojure.api.meta middlewares])
 

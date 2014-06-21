@@ -73,8 +73,6 @@
 ;;
 
 (facts "e2e"
-  (background
-    (after :contents (swap! swagger/swagger dissoc +name+)))
 
   (facts "middlewares"
     (defapi api

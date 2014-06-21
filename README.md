@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.12.0"]
+[metosin/compojure-api "0.13.0"]
 ```
 
 ## Sample application
@@ -23,13 +23,23 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
             [compojure.api.sweet :refer :all]
             [schema.core :as s]))
 
+;;
+;; Schemas
+;;
+
 (s/defschema Total {:total Long})
+
 (s/defschema Thingie {:id Long
                       :hot Boolean
                       :tag (s/enum :kikka :kukka)
                       :chief [{:name String
                                :type #{{:id String}}}]})
+
 (s/defschema FlatThingie (dissoc Thingie :chief))
+
+;;
+;; Routes
+;;
 
 (defroutes* legacy-route
   (GET* "/legacy/:value" [value]
@@ -90,13 +100,13 @@ To try it yourself, clone this repo and type
 
 Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 
-A Leiningen template coming sooner or later.
+Use a Leiningen template: `lein new compojure-api my-api`
 
 # Building Documented Apis
 
 ## Middlewares
 
-There is pre-packaged middleware `api-middleware` for common web api usage, found in`compojure.api.middleware`. It's a enchanced version of `compojure.handler/api` adding the following:
+There is pre-packaged middleware `compojure.api.middleware/api-middleware` for common web api usage. It's a enchanced version of `compojure.handler/api` adding the following:
 
 - catching slinghotted http-errors (`ring.middleware.http-response/catch-response`)
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
@@ -119,7 +129,7 @@ To help setting up custom middleware there is a `middlewares` macro:
       (GET "/ping" [] (ok {:ping "pong"})))))
 ```
 
-There is also a short form for the common case of `api-middleware`:
+There is also `defapi` as a short form for the common case of defining routes with `api-middleware`:
 
 ```clojure
 (ns example2
@@ -142,7 +152,9 @@ One can add own format middlewares (XML, EDN etc.) and add expose their capabili
 
 You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enchanced versions from `compojure.api.core`. Enchanced versions have `*` in their name (`GET*`, `POST*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enchanced version can be used exactly as their ancestors but have also new behavior, more on that later.
 
-Namespace `compojure.api.sweet` is a public entry point for all routing, importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`. If ignoring the `*`s with some macros, it can be used as a drop-in-place replacement for `compojure.core`.
+Namespace `compojure.api.sweet` is a public entry point for all routing - importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`.
+
+There is also `compojure.api.legacy` namespace which contains rest of the public vars from `compojure.core` (the `GET`, `POST` etc. endpoint macros which are not contained in `sweet`). Using `sweet` in conjuction with `legacy` should provide a drop-in-replacement for `compojure.core` - with new new route goodies.
 
 ### sample sweet application
 
@@ -161,13 +173,21 @@ Namespace `compojure.api.sweet` is a public entry point for all routing, importi
 
 Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for route documentation.
 
-Enabling Swagger in your application is done by mounting a `swaggered` -route macro on to the root of your app. There can be multiple `swaggered` apis in one web application. Behind the scenes, `swaggered` does some heavy macro-peeling to reconstruct the route tree. If you intend to split your route-tree with `defroutes`, use `defroutes*` instead so that their routes get also collected.
+Enabling Swagger route documentation in your application is done by:
 
-`swagger-docs` mounts the api definitions.
+- wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/with-routes`) macro. This initializes an empty route tree to your namespace.
+- wrapping your web apis in a `swaggered` -route macro on to the root level of your web app.
+  - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penanty)
+  - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
+- mounting `compojure.api.swagger/swagger-docs` to publish the collected routes.
+- **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/wordnik/swagger-ui) to the web app
+  - the ui is packaged separately at clojars with name `metosin/metosin/ring-swagger-ui`
 
-There is also a `swagger-ui` route for mounting the external [Swagger-UI](https://github.com/wordnik/swagger-ui).
+Currently, there can be only one `defapi` or `with-routes` per namespace.
 
-### sample swaggered app
+There can be several `swaggered` apis in one web application.
+
+### sample minimalistic swaggered app
 
 ```clojure
 (ns example4
@@ -225,11 +245,11 @@ Two coercers are available (and automatically selected with smart destucturing):
                       :tag (s/enum :kikka :kukka)})
 
 (ss/coerce! Thingie {:id 123
-                  :tag "kikka"})
+                     :tag "kikka"})
 ; => {:id 123 :tag :kikka}
 
 (ss/coerce! Thingie {:id 123
-                  :tags "kakka"})
+                     :tags "kakka"})
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags disallowed-key, :tag missing-required-key}}  ring.swagger.schema/coerce! (schema.clj:88)
 ```
 
@@ -255,7 +275,7 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
     (ok thingie)) ;; here be coerced thingie
 ```
 
-you can also wrap models in containers (`vector`s and `set`s) and add extra metadata:
+you can also wrap models in containers (`vector` and `set`) and add extra metadata:
 
 ```clojure
   (POST* "/echos" []
@@ -293,7 +313,7 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 
 ## Route-specific middlewares
 
-Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds and by so are more reusable.
+Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds from within the route body.
 
 ```clojure
  (DELETE* "/user/:id" []
@@ -373,7 +393,8 @@ macroexpanding-1 it too see what's get generated:
 
 ## Roadmap
 
-- collect routes from root, not from `swaggered` => removes the global swagger-atom
+- don't pollute api namespases with `+routes+` var, use lexically/dynamically scoped route tree instead
+- collect routes from root, not from `swaggered`
 - type-safe `:params` destructuring
 - `url-for` for endpoints (bidi, bidi, bidi)
 - support for swagger error messages

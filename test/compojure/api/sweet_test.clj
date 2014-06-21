@@ -1,7 +1,7 @@
 (ns compojure.api.sweet-test
   (:require [midje.sweet :refer :all]
             [schema.core :as s]
-            [compojure.api.swagger :as swagger]
+            [compojure.api.routes :as routes]
             [ring.mock.request :refer :all]
             [cheshire.core :as cheshire]
             [compojure.core :as compojure]
@@ -13,10 +13,6 @@
                    :toppings [(s/enum :cheese :olives :ham :pepperoni :habanero)]})
 
 (s/defschema NewBand (dissoc Band :id))
-
-;; Make sure defapis from other namespaces are reset
-;; (eg. midje autotest will load examples.thingie which would break tests)
-(reset! swagger/swagger (array-map))
 
 (def app-name (str (gensym)))
 
@@ -52,11 +48,9 @@
         identity))))
 
 (facts "swaggered"
-  (background
-    (after :contents (swap! swagger/swagger dissoc app-name)))
 
   (fact "details are generated"
-    (@swagger/swagger app-name)
+    ((routes/get-routes) app-name)
 
     => {:description "sample api"
         :routes [{:method :get

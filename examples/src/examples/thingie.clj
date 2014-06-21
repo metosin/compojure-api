@@ -3,13 +3,23 @@
             [compojure.api.sweet :refer :all]
             [schema.core :as s]))
 
+;;
+;; Schemas
+;;
+
 (s/defschema Total {:total Long})
+
 (s/defschema Thingie {:id Long
                       :hot Boolean
                       :tag (s/enum :kikka :kukka)
                       :chief [{:name String
                                :type #{{:id String}}}]})
+
 (s/defschema FlatThingie (dissoc Thingie :chief))
+
+;;
+;; Routes
+;;
 
 (defroutes* legacy-route
   (GET* "/legacy/:value" [value]
