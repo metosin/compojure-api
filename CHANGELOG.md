@@ -1,7 +1,8 @@
-## 0.13.0 (xx.x.xxxx)
+## 0.13.0 (21.6.2014)
 
 - first take on removing the global route state => instead of global `swagger` atom, there is one defined `+routes+` var per namespace
   - requires a `compojure.api.core/with-routes` on api root to generate and hold the `+routes+` (automatically bundled with `defapi`)
+- update ring-swagger to `0.10.1` to get support for `s/Keyword` as a nested schema key.
 
 ## 0.12.0 (17.6.2014)
 
