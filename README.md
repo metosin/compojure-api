@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.13.0"]
+[metosin/compojure-api "0.13.1"]
 ```
 
 ## Sample application

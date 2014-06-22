@@ -45,6 +45,12 @@
         :path-params [a :- Long]
         :query-params [all :- Boolean]
         :nickname "pathAndQueryParameters"
+        identity)
+      (GET* "/primitive" []
+        :return String
+        identity)
+      (GET* "/primitiveArray" []
+        :return [String]
         identity))))
 
 (facts "swaggered"
@@ -85,7 +91,13 @@
                                                    :b String}}
                                           {:type :query
                                            :model {:all Boolean
-                                                   s/Keyword s/Any}}]}}]})
+                                                   s/Keyword s/Any}}]}}
+                 {:method :get
+                  :uri "/api/primitive"
+                  :metadata {:return String}}
+                 {:method :get
+                  :uri "/api/primitiveArray"
+                  :metadata {:return [String]}}]})
 
   (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))

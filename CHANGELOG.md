@@ -1,3 +1,10 @@
+## 0.13.1 (22.6.2014)
+
+- allow primitives as return types (with help of `[metosin/ring-swagger 0.10.2]`)
+  - all primitives are supported when wrapped into sequences and sets
+  - directly, only `String` is supported as [Ring](https://github.com/ring-clojure/ring/blob/master/SPEC) doesn't support others
+    - in future, there could be a special return value coercer forcing all other primitives as Strings
+
 ## 0.13.0 (21.6.2014)
 
 - first take on removing the global route state => instead of global `swagger` atom, there is one defined `+routes+` var per namespace

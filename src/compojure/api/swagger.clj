@@ -21,10 +21,8 @@
 ;; Schema helpers
 ;;
 
-(defn direct-or-contained-named-schema? [x]
-  (if (swagger-impl/valid-container? x)
-    (schema/named-schema? (first x))
-    (schema/named-schema? x)))
+(defn direct-or-contained [f x]
+  (if (swagger-impl/valid-container? x) (f (first x)) (f x)))
 
 ;;
 ;; Route peeling
@@ -132,7 +130,7 @@
   (if-let [all-parameters (get-in route-with-meta [:metadata :parameters])]
     (->> all-parameters
          (map (fn [{:keys [model type] :as parameter}]
-                (if-not (direct-or-contained-named-schema? model)
+                (if-not (direct-or-contained schema/named-schema? model)
                   (update-in parameter [:model]
                              swagger-impl/update-schema
                              (fn-> (s/schema-with-name
@@ -143,7 +141,8 @@
 
 (defn ensure-return-schema-names [route-with-meta]
   (if-let [return (get-in route-with-meta [:metadata :return])]
-    (if-not (direct-or-contained-named-schema? return)
+    (if-not (or (direct-or-contained schema/named-schema? return)
+                (direct-or-contained (comp not map?) return))
       (update-in route-with-meta [:metadata :return]
                  swagger-impl/update-schema
                  (fn-> (s/schema-with-name
