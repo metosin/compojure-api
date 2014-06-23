@@ -3,6 +3,7 @@
    Might use https://github.com/ngrunwald/ring-middleware-format later."
   (:require [ring.util.http-response :refer [content-type bad-request]]
             [cheshire.core :as cheshire]
+            [clj-time.coerce]
             [clojure.walk16 :as walk]
             [clojure.java.io :as io])
   (:import [com.fasterxml.jackson.core JsonParseException]))
@@ -54,7 +55,19 @@
   (fn [request]
     (let [request (update-in request [:meta :produces] concat ["application/json"])]
       (let [response (handler request)]
-        (if (coll? (:body response))
+        (if (and response
+                 (or ((some-fn coll?
+                               nil?
+                               true?
+                               false?
+                               ;;  string? -- will encode conf.js content → breaks swagger UI
+                               ;; Should there be some tag on the response to bypass json encoding? eg :bypass-json true?
+                               (every-pred (partial satisfies? clj-time.coerce/ICoerce)
+                                           (complement nil?)
+                                           (complement string?))
+                               (partial instance? java.util.UUID)
+                               number?)
+                      (:body response))))
           (->json-response response)
           response)))))
 
