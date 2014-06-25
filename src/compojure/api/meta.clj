@@ -58,7 +58,7 @@
 (defmethod restructure-param :return [k model acc]
   "Defines a return type and coerced the return value of a body against it."
   (-> acc
-      (update-in [:parameters] assoc k (eval model))
+      (update-in [:parameters] assoc k model)
       (update-in [:middlewares] conj `(body-coercer-middleware ~model))))
 
 (defmethod restructure-param :body [_ [value model model-meta] acc]
@@ -70,7 +70,7 @@
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :body-params :json)])
       (update-in [:parameters :parameters] conj {:type :body
-                                                 :model (eval model)
+                                                 :model model
                                                  :meta model-meta})))
 
 (defmethod restructure-param :query [_ [value model model-meta] acc]
@@ -82,13 +82,13 @@
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :query-params :query)])
       (update-in [:parameters :parameters] conj {:type :query
-                                                 :model (eval model)
+                                                 :model model
                                                  :meta model-meta})))
 
 (defmethod restructure-param :body-params [_ body-params acc]
   "restructures body-params with plumbing letk notation. Example:
    :body-params [id :- Long name :- String]"
-  (let [schema (eval (strict (fnk-schema body-params)))
+  (let [schema (strict (fnk-schema body-params))
         coerced-model (gensym)]
     (-> acc
         (update-in [:lets] into [coerced-model (src-coerce! schema :body-params :json)])
@@ -98,26 +98,17 @@
 (defmethod restructure-param :query-params [_ query-params acc]
   "restructures query-params with plumbing letk notation. Example:
    :query-params [id :- Long name :- String]"
-  (let [schema (eval (fnk-schema query-params))
+  (let [schema (fnk-schema query-params)
         coerced-model (gensym)]
     (-> acc
         (update-in [:lets] into [coerced-model (src-coerce! schema :query-params :query)])
         (update-in [:parameters :parameters] conj {:type :query :model schema})
         (update-in [:letks] into [query-params coerced-model]))))
 
-#_(defmethod compojure.api.meta/restructure-param :header-params [_ header-params acc]
-  "restructures headers with plumbing letk notation. Example:
-   :header-params [id :- Long name :- String]"
-  (let [schema (eval (fnk-schema header-params))
-        coerced-model (gensym)]
-    (-> acc
-        (update-in [:lets] into [coerced-model (src-coerce! schema :headers :query)])
-        (update-in [:letks] into [header-params coerced-model]))))
-
 (defmethod restructure-param :path-params [_ path-params acc]
   "restructures path-params by plumbing letk notation. Example:
    :path-params [id :- Long name :- String]"
-  (let [schema (eval (fnk-schema path-params))
+  (let [schema (fnk-schema path-params)
         coerced-model (gensym)]
     (-> acc
         (update-in [:lets] into [coerced-model (src-coerce! schema :route-params :query)])

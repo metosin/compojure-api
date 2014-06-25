@@ -104,8 +104,8 @@
 (defn route-metadata [body]
   (remove-empty-keys
     (let [{:keys [return parameters] :as meta} (unwrap-meta-container (last (second body)))]
-      (merge meta {:parameters parameters
-                   :return return}))))
+      (merge meta {:parameters (and parameters (map eval parameters))
+                   :return (eval return)}))))
 
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (swagger/path-params uri))
