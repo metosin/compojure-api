@@ -21,7 +21,8 @@
                                       [http-kit "2.1.18"]]}
              :samples {:ring {:handler examples.handler/app
                               :reload-paths ["src" "examples/src"]}
-                        :source-paths ["examples/src"]}
+                        :source-paths ["examples/src"]
+                        :dependencies [[metosin/ring-swagger-ui "2.0.16-2"]]}
              :dev {:ring {:handler examples.handler/app}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
