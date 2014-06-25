@@ -2,6 +2,7 @@
   (:require [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
             [ring.util.response :as response]
+            [ring.util.http-response :as http-response]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.core :as swagger]
@@ -23,12 +24,17 @@
    (fnk-impl/letk-input-schema-and-body-form
      nil (with-meta bind {:schema s/Any}) [] nil)))
 
-(defn body-coercer-middleware [handler model]
+(defn body-coercer-middleware [handler responses]
   (fn [request]
     (if-let [response (handler request)]
-      (assoc response
-        ::serializable? true
-        :body (schema/coerce! model (:body response))))))
+      (let [status (:status response)]
+        (if-let [model (responses status)]
+          (assoc response
+            ::serializable? true
+            :body (schema/coerce! model (:body response)))
+          (if (= status 200)
+            response ; if there aren't response model for 200, just let the response go thru
+            (http-response/internal-server-error (str "non-specified http status code: " status))))))))
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type,
@@ -62,15 +68,22 @@
 (defmethod restructure-param :nickname [k v acc]
   (update-in acc [:parameters] assoc k v))
 
+
+;;
+;; Pass-through :return too
+;;
+
+(defmethod restructure-param :return [k v acc]
+  (update-in acc [:parameters] assoc k v))
+
 ;;
 ;; Smart restructurings
 ;;
 
-(defmethod restructure-param :return [k model acc]
+(defmethod restructure-param :responses [k responses acc]
   "Defines a return type and coerced the return value of a body against it."
   (-> acc
-      (update-in [:parameters] assoc k model)
-      (update-in [:middlewares] conj `(body-coercer-middleware ~model))))
+      (update-in [:middlewares] conj `(body-coercer-middleware ~responses))))
 
 (defmethod restructure-param :body [_ [value model model-meta] acc]
   "reads body-params into a enchanced let. First parameter is the let symbol,
@@ -155,6 +168,11 @@
             (RuntimeException.
               (str "unknown compojure destruction synxax: " arg)))))
 
+(defn- collect-responses [{:keys [return responseMessages] :as parameters}]
+  (into {200 return}
+        (for [{:keys [code responseModel]} responseMessages]
+          [code responseModel])))
+
 (defn restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
@@ -170,7 +188,7 @@
                                  acc (map-of lets letks middlewares parameters body)]
                              (restructure-param k v acc)))
                          (map-of lets letks middlewares parameters body)
-                         parameters)
+                         (assoc parameters :responses (collect-responses parameters)))
         body `(do ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)

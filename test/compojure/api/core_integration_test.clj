@@ -22,7 +22,7 @@
                        :request-method :get
                        :params (or params {})
                        :headers (or headers {})))]
-    [status (cheshire/parse-string body true) headers]))
+    [status (if-not (= status 500) (cheshire/parse-string body true) body) headers]))
 
 (defn json [x] (cheshire/generate-string x))
 
@@ -179,7 +179,41 @@
       (:type body) => "json-parse-exception"
       (:message body) => truthy)))
 
+(fact ":responseMessages"
+    (defapi api
+      (swaggered +name+
+        (GET* "/lotto/:x" []
+          :return [Long]
+          :path-params [x :- Long]
+          :responseMessages [{:code 403 :responseModel [String]}]
+          (case x
+            1 (ok [1])
+            2 (ok ["two"])
+            3 (forbidden ["error"])
+            4 (forbidden 123)
+            (not-found "-")))))
 
+  (fact "return case"
+      (let [[status body] (get* api "/lotto/1")]
+        status => 200
+        body => [1]))
+
+  (fact "return case, non-matching model"
+      (let [[status body] (get* api "/lotto/2")]
+        status => 400))
+
+  (fact "error case"
+      (let [[status body] (get* api "/lotto/3")]
+        status => 403
+        body => ["error"]))
+
+  (fact "error case, non-matching model"
+      (let [[status body] (get* api "/lotto/4")]
+        status => 400))
+
+  (fact "non-existing return"
+      (let [[status body] (get* api "/lotto/5")]
+        status => 500)))
 
 (fact ":query-params, :path-params, :header-params & :body-params"
   (defapi api
@@ -282,7 +316,6 @@
 
 (fact "counting execution times, issue #19"
   (let [execution-times (atom 0)]
-
     (defapi api
       (swaggered +name+
         (GET* "/user" []

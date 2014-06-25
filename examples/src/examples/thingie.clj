@@ -17,6 +17,8 @@
 
 (s/defschema FlatThingie (dissoc Thingie :chief))
 
+(s/defschema ErrorEnvelope {:message String})
+
 ;;
 ;; Routes
 ;;
@@ -43,8 +45,13 @@
       (POST* "/minus" []
         :return      Total
         :body-params [x :- Long y :- Long]
+        :responseMessages [{:code 400
+                            :responseModel ErrorEnvelope}]
         :summary     "x-y with body-parameters."
-        (ok {:total (- x y)}))
+        (let [total (- x y)]
+          (if (>= total 0)
+            (ok {:total (- x y)})
+            (bad-request {:message "difference is negative"}))))
 
       (GET* "/times/:x/:y" []
         :return      Total
