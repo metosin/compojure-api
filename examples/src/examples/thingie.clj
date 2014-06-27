@@ -51,6 +51,12 @@
         :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
+      (GET* "/power" []
+        :return      Total
+        :header-params [x :- Long y :- Long]
+        :summary     "x^y with header-parameters"
+        (ok {:total (long (Math/pow x y))}))
+
       legacy-route
 
       (GET* "/echo" []

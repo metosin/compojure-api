@@ -93,6 +93,14 @@
         (update-in [:parameters :parameters] conj {:type :body :model schema})
         (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)]))))
 
+(defmethod restructure-param :header-params [_ header-params acc]
+  "restructures query-params with plumbing letk notation. Example:
+   :header-params [id :- Long name :- String]"
+  (let [schema (fnk-schema header-params)]
+    (-> acc
+        (update-in [:parameters :parameters] conj {:type :header :model schema})
+        (update-in [:letks] into [header-params (src-coerce! schema :header-params :query)]))))
+
 (defmethod restructure-param :query-params [_ query-params acc]
   "restructures query-params with plumbing letk notation. Example:
    :query-params [id :- Long name :- String]"
