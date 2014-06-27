@@ -1,3 +1,7 @@
+## 0.13.2 (xx.x.xxxx)
+
+- restructure `:header-params` (fixes #31)
+
 ## 0.13.1 (22.6.2014)
 
 - allow primitives as return types (with help of `[metosin/ring-swagger 0.10.2]`)

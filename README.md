@@ -71,6 +71,12 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
+      (GET* "/power" []
+        :return      Total
+        :header-params [x :- Long y :- Long]
+        :summary     "x^y with header-parameters"
+        (ok {:total (long (Math/pow x y))}))
+
       legacy-route
 
       (GET* "/echo" []
@@ -293,9 +299,9 @@ From `0.12.0` on, anonoymous schemas are also supported:
     (ok body))
 ```
 
-## Query, Path and Body parameters
+## Query, Path, Header and Body parameters
 
-Both query- and path-parameters can also be destructured using the [Plumbing](https://github.com/Prismatic/plumbing) syntax with optional type-annotations:
+All parameters can also be destructured using the [Plumbing](https://github.com/Prismatic/plumbing) syntax with optional type-annotations:
 
 ```clojure
 (GET* "/sum" []
@@ -309,6 +315,10 @@ Both query- and path-parameters can also be destructured using the [Plumbing](ht
 (POST* "/minus" []
   :body-params [x :- Long, y :- Long]
   (ok {:total (- x y)}))
+
+(POST* "/power" []
+  :header-params [x :- Long, y :- Long]
+  (ok {:total (long (Math/pow x y))})
 ```
 
 ## Route-specific middlewares
