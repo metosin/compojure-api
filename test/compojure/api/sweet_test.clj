@@ -41,10 +41,11 @@
         :summary  "Adds a Band"
         :nickname "addBand"
         identity)
-      (GET* "/path-and-query-parameters/:a/:b" []
+      (GET* "/path-header-and-query-parameters/:a/:b" []
         :path-params [a :- Long]
-        :query-params [all :- Boolean]
-        :nickname "pathAndQueryParameters"
+        :query-params [qp :- Boolean]
+        :header-params [hp :- Boolean]
+        :nickname "pathHeaderAndQueryParameters"
         identity)
       (GET* "/primitive" []
         :return String
@@ -84,14 +85,18 @@
                              :return Band
                              :summary "Adds a Band"}}
                  {:method :get
-                  :uri "/api/path-and-query-parameters/:a/:b"
-                  :metadata {:nickname "pathAndQueryParameters"
+                  :uri "/api/path-header-and-query-parameters/:a/:b"
+                  :metadata {:nickname "pathHeaderAndQueryParameters"
                              :parameters [{:type :path
                                            :model {:a Long
                                                    :b String}}
+                                          {:type :header
+                                           :model {:hp Boolean
+                                                   s/Keyword s/Any}}
                                           {:type :query
-                                           :model {:all Boolean
-                                                   s/Keyword s/Any}}]}}
+                                           :model {:qp Boolean
+                                                   s/Keyword s/Any}}
+                                          ]}}
                  {:method :get
                   :uri "/api/primitive"
                   :metadata {:return String}}

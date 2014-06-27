@@ -14,12 +14,13 @@
 ;; common
 ;;
 
-(defn get* [app uri & [params]]
+(defn get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :get
-                       :params (or params {})))]
+                       :params (or params {})
+                       :headers (or headers {})))]
     [status (cheshire/parse-string body true) headers]))
 
 (defn json [x] (cheshire/generate-string x))
@@ -181,7 +182,7 @@
 
 
 
-  (fact ":query-params, :path-params & :body-params"
+  (fact ":query-params, :path-params, :header-params & :body-params"
     (defapi api
       (swaggered +name+
         (context "/smart" []
@@ -191,6 +192,9 @@
           (GET* "/multiply/:x/:y" []
             :path-params [x :- Long y :- Long]
             (ok {:total (* x y)}))
+          (GET* "/power" []
+            :header-params [x :- Long y :- Long]
+            (ok {:total (long (Math/pow x y))}))
           (POST* "/minus" []
             :body-params [x :- Long {y :- Long 1}]
             (ok {:total (- x y)})))))
@@ -204,6 +208,11 @@
       (let [[status body] (get* api "/smart/multiply/2/3")]
         status => 200
         body => {:total 6}))
+
+    (fact "header-parameters"
+      (let [[status body] (get* api "/smart/power" {} {:x 2 :y 3})]
+        status => 200
+        body => {:total 8}))
 
     (fact "body-parameters"
       (let [[status body] (post* api "/smart/minus" (json {:x 2 :y 3}))]

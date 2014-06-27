@@ -99,7 +99,7 @@
   (let [schema (fnk-schema header-params)]
     (-> acc
         (update-in [:parameters :parameters] conj {:type :header :model schema})
-        (update-in [:letks] into [header-params (src-coerce! schema :header-params :query)]))))
+        (update-in [:letks] into [header-params (src-coerce! schema :headers :query)]))))
 
 (defmethod restructure-param :query-params [_ query-params acc]
   "restructures query-params with plumbing letk notation. Example:
