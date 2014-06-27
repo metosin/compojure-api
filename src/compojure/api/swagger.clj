@@ -222,6 +222,7 @@
   [name & body]
   (let [[details body] (swagger-info body)
         name (st/replace (str (eval name)) #" " "")]
+    (str details) ;woot?
     `(do
        (swap! ~routes/+routes-sym+ assoc-map-ordered ~name '~details)
        (routes ~@body))))
