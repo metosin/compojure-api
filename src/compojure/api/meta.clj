@@ -20,8 +20,8 @@
 
 (defn fnk-schema [bind]
   (:input-schema
-    (fnk-impl/letk-input-schema-and-body-form
-      nil (with-meta bind {:schema s/Any}) [] nil)))
+   (fnk-impl/letk-input-schema-and-body-form
+     nil (with-meta bind {:schema s/Any}) [] nil)))
 
 (defn body-coercer-middleware [handler model]
   (fn [request]
@@ -43,9 +43,9 @@
 ;;
 
 (defmulti restructure-param
-  "Restructures a key value pair in smart routes. By default the key
-   is consumed form the :parameters map in acc. k = given key, v = value."
-  (fn [k v acc] k))
+          "Restructures a key value pair in smart routes. By default the key
+           is consumed form the :parameters map in acc. k = given key, v = value."
+          (fn [k v acc] k))
 
 (defmethod restructure-param :default [k v acc]
   "By default assoc in the k v to acc"
@@ -88,32 +88,26 @@
 (defmethod restructure-param :body-params [_ body-params acc]
   "restructures body-params with plumbing letk notation. Example:
    :body-params [id :- Long name :- String]"
-  (let [schema (strict (fnk-schema body-params))
-        coerced-model (gensym)]
+  (let [schema (strict (fnk-schema body-params))]
     (-> acc
-        (update-in [:lets] into [coerced-model (src-coerce! schema :body-params :json)])
         (update-in [:parameters :parameters] conj {:type :body :model schema})
-        (update-in [:letks] into [body-params coerced-model]))))
+        (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)]))))
 
 (defmethod restructure-param :query-params [_ query-params acc]
   "restructures query-params with plumbing letk notation. Example:
    :query-params [id :- Long name :- String]"
-  (let [schema (fnk-schema query-params)
-        coerced-model (gensym)]
+  (let [schema (fnk-schema query-params)]
     (-> acc
-        (update-in [:lets] into [coerced-model (src-coerce! schema :query-params :query)])
         (update-in [:parameters :parameters] conj {:type :query :model schema})
-        (update-in [:letks] into [query-params coerced-model]))))
+        (update-in [:letks] into [query-params (src-coerce! schema :query-params :query)]))))
 
 (defmethod restructure-param :path-params [_ path-params acc]
   "restructures path-params by plumbing letk notation. Example:
    :path-params [id :- Long name :- String]"
-  (let [schema (fnk-schema path-params)
-        coerced-model (gensym)]
+  (let [schema (fnk-schema path-params)]
     (-> acc
-        (update-in [:lets] into [coerced-model (src-coerce! schema :route-params :query)])
         (update-in [:parameters :parameters] conj {:type :path :model schema})
-        (update-in [:letks] into [path-params coerced-model]))))
+        (update-in [:letks] into [path-params (src-coerce! schema :route-params :query)]))))
 
 (defmethod restructure-param :middlewares [_ middlewares acc]
   "Applies the given vector of middlewares for the route from left to right"
