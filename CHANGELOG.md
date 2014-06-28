@@ -1,6 +1,7 @@
-## 0.13.2 (xx.x.xxxx)
+## 0.13.2 (28.6.2014)
 
 - restructure `:header-params` (fixes #31)
+- remove vanilla compojure-examples, internal cleanup
 
 ## 0.13.1 (22.6.2014)
 
