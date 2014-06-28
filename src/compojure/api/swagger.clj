@@ -104,7 +104,7 @@
 (defn route-metadata [body]
   (remove-empty-keys
     (let [{:keys [return parameters] :as meta} (unwrap-meta-container (last (second body)))]
-      (merge meta {:parameters (and parameters (map eval parameters))
+      (merge meta {:parameters (and parameters (doall (map eval parameters)))
                    :return (eval return)}))))
 
 (defn ensure-path-parameters [uri route-with-meta]
@@ -222,7 +222,6 @@
   [name & body]
   (let [[details body] (swagger-info body)
         name (st/replace (str (eval name)) #" " "")]
-    (str details) ;woot?
     `(do
        (swap! ~routes/+routes-sym+ assoc-map-ordered ~name '~details)
        (routes ~@body))))
