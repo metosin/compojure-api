@@ -7,7 +7,8 @@
             [cheshire.core :as cheshire]
             [compojure.core :as compojure]
             [clojure.java.io :as io]
-            [compojure.api.sweet :refer :all])
+            [compojure.api.sweet :refer :all]
+            [compojure.api.test-domain :as domain])
   (:import [java.io ByteArrayInputStream]))
 
 ;;
@@ -328,8 +329,14 @@
             (context "/b1" []
               (GET* "/" [] ok))
             (context "/" []
-              (GET* "/" [] ok)
-              (GET* "/b2" [] ok)))))
+              ;; anonymous schema names
+              (GET* "/" []
+                :query-params [{x :- Long 1}]
+                ok)
+              ;; external schema names
+              (GET* "/b2" []
+                :query [q domain/Entity]
+                ok)))))
 
     (fact "valid routes"
       (get* api "/") => ok?
