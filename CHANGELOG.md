@@ -1,3 +1,7 @@
+## 0.13.3 (28.6.2014)
+
+- support for `s/Uuid` via latest `ring-swagger`.
+
 ## 0.13.2 (28.6.2014)
 
 - restructure `:header-params` (fixes #31)
