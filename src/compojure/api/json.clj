@@ -50,24 +50,22 @@
         (->json-response (bad-request {:type "json-parse-exception"
                                        :message (.getMessage jpe)}))))))
 
+(defn serializable?
+  "Predicate that returns true whenever the response body is serializable by compojure-api."
+  [_ {:keys [body] :as response}]
+  (when response
+    (or (:compojure.api.meta/serializable? response)
+        (not (or
+           (string? body)
+           (instance? java.io.File body)
+           (instance? java.io.InputStream body))))))
+
 (defn json-response-support
   [handler]
   (fn [request]
     (let [request (update-in request [:meta :produces] concat ["application/json"])]
       (let [response (handler request)]
-        (if (and response
-                 (or ((some-fn coll?
-                               nil?
-                               true?
-                               false?
-                               ;;  string? -- will encode conf.js content → breaks swagger UI
-                               ;; Should there be some tag on the response to bypass json encoding? eg :bypass-json true?
-                               (every-pred (partial satisfies? clj-time.coerce/ICoerce)
-                                           (complement nil?)
-                                           (complement string?))
-                               (partial instance? java.util.UUID)
-                               number?)
-                      (:body response))))
+        (if (serializable? request response)
           (->json-response response)
           response)))))
 
