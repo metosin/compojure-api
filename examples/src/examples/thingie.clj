@@ -1,8 +1,7 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
-            [schema.core :as s]
-            [clj-time.core :as t]))
+            [schema.core :as s]))
 
 ;;
 ;; Schemas
@@ -35,10 +34,10 @@
     (context "/api" []
 
       (GET* "/plus" []
-        :return       Long
+        :return       Total
         :query-params [x :- Long {y :- Long 1}]
         :summary      "x+y with query-parameters. y defaults to 1."
-        (ok (+ x y)))
+        (ok {:total (+ x y)}))
 
       (POST* "/minus" []
         :return      Total
@@ -57,22 +56,6 @@
         :header-params [x :- Long y :- Long]
         :summary     "x^y with header-parameters"
         (ok {:total (long (Math/pow x y))}))
-
-      (GET* "/now" []
-        :return java.util.Date
-        :summary "current time"
-        (ok (new java.util.Date)))
-
-      (GET* "/joda-now" []
-        :return org.joda.time.DateTime
-        :summary "current jodatime"
-        (ok (t/now)))
-
-      (GET* "/ping/:s" []
-        :return String
-        :path-params [s :- String]
-        :summary "echos a string from query-params"
-        (ok s))
 
       legacy-route
 

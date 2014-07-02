@@ -54,10 +54,10 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
     (context "/api" []
 
       (GET* "/plus" []
-        :return       Long
+        :return       Total
         :query-params [x :- Long {y :- Long 1}]
         :summary      "x+y with query-parameters. y defaults to 1."
-        (ok (+ x y)))
+        (ok {:total (+ x y)}))
 
       (POST* "/minus" []
         :return      Total

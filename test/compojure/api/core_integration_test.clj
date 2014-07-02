@@ -183,7 +183,7 @@
 
 
 
-  (fact ":query-params, :path-params, :header-params & :body-params (and primitive :return)"
+  (fact ":query-params, :path-params, :header-params & :body-params"
     (defapi api
       (swaggered +name+
         (context "/smart" []
@@ -192,16 +192,10 @@
             (ok {:total (+ x y)}))
           (GET* "/multiply/:x/:y" []
             :path-params [x :- Long y :- Long]
-            :return Long
-            (ok (* x y)))
+            (ok {:total (* x y)}))
           (GET* "/power" []
             :header-params [x :- Long y :- Long]
             (ok {:total (long (Math/pow x y))}))
-          (GET* "/concat/:y" []
-            :header-params [x :- String]
-            :path-params [y :- String]
-            :return String
-            (ok (str x y)))
           (POST* "/minus" []
             :body-params [x :- Long {y :- Long 1}]
             (ok {:total (- x y)})))))
@@ -214,17 +208,12 @@
     (fact "query-parameters"
       (let [[status body] (get* api "/smart/multiply/2/3")]
         status => 200
-        body => 6))
+        body => {:total 6}))
 
     (fact "header-parameters"
       (let [[status body] (get* api "/smart/power" {} {:x 2 :y 3})]
         status => 200
         body => {:total 8}))
-
-    (fact "header- and path-parameters"
-        (let [[status body] (get* api "/smart/concat/bar" {} {:x "foo"})]
-          status => 200
-          body => "foobar"))
 
     (fact "body-parameters"
       (let [[status body] (post* api "/smart/minus" (json {:x 2 :y 3}))]

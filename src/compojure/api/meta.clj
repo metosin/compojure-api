@@ -26,9 +26,7 @@
 (defn body-coercer-middleware [handler model]
   (fn [request]
     (if-let [response (handler request)]
-      (assoc response
-        ::serializable? true
-        :body (schema/coerce! model (:body response))))))
+      (assoc response :body (schema/coerce! model (:body response))))))
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type,
