@@ -3,6 +3,7 @@
    Might use https://github.com/ngrunwald/ring-middleware-format later."
   (:require [ring.util.http-response :refer [content-type bad-request]]
             [cheshire.core :as cheshire]
+            [clj-time.coerce]
             [clojure.walk16 :as walk]
             [clojure.java.io :as io])
   (:import [com.fasterxml.jackson.core JsonParseException]))
@@ -49,12 +50,22 @@
         (->json-response (bad-request {:type "json-parse-exception"
                                        :message (.getMessage jpe)}))))))
 
+(defn serializable?
+  "Predicate that returns true whenever the response body is serializable by compojure-api."
+  [_ {:keys [body] :as response}]
+  (when response
+    (or (:compojure.api.meta/serializable? response)
+        (not (or
+           (string? body)
+           (instance? java.io.File body)
+           (instance? java.io.InputStream body))))))
+
 (defn json-response-support
   [handler]
   (fn [request]
     (let [request (update-in request [:meta :produces] concat ["application/json"])]
       (let [response (handler request)]
-        (if (coll? (:body response))
+        (if (serializable? request response)
           (->json-response response)
           response)))))
 
