@@ -28,10 +28,11 @@
 (defapi app
   (swagger-ui)
   (swagger-docs
-    :title "Sample api")
-  (swaggered "thingie"
-    :description "There be thingies"
-    (context "/api" []
+    :title "Api thingies"
+    :description "playing with things")
+  (swaggered "math"
+    :description "Math with parameters"
+    (context "/math" []
 
       (GET* "/plus" []
         :return       Total
@@ -55,24 +56,51 @@
         :return      Total
         :header-params [x :- Long y :- Long]
         :summary     "x^y with header-parameters"
-        (ok {:total (long (Math/pow x y))}))
+        (ok {:total (long (Math/pow x y))}))))
 
-      legacy-route
+  (swaggered "primitives"
+    :description "returning primitive values"
+    (context "/primitives" []
+      (GET* "/date-now" []
+        :return java.util.Date
+        :summary "current date"
+        (ok (java.util.Date.)))
 
-      (GET* "/echo" []
-        :return   FlatThingie
-        :query    [thingie FlatThingie]
-        :summary  "echoes a FlatThingie from query-params"
-        (ok thingie))
+      (GET* "/datetime-now" []
+        :return org.joda.time.DateTime
+        :summary "current datetime"
+        (ok (org.joda.time.DateTime.)))
 
-      (PUT* "/echo" []
-        :return   [{:hot Boolean}]
-        :body     [body [{:hot Boolean}]]
-        :summary  "echoes a vector of anonymous hotties"
-        (ok body))
+      (GET* "/localdate-now" []
+        :return org.joda.time.LocalDate
+        :summary "current localdate"
+        (ok (org.joda.time.LocalDate.)))
 
-      (POST* "/echo" []
-        :return   Thingie
-        :body     [thingie Thingie]
-        :summary  "echoes a Thingie from json-body"
-        (ok thingie)))))
+      (GET* "/hello" []
+        :return String
+        :query-params [name :- String]
+        :notes   "<h1>hello world.</h1>"
+        :summary "echos a string from query-params"
+        (ok (str "hello, " name)))))
+
+  (swaggered "echo"
+    :description "echoes data"
+    (context "/echo" []
+
+    (GET* "/query" []
+       :return   FlatThingie
+       :query    [thingie FlatThingie]
+       :summary  "echoes a FlatThingie from query-params"
+       (ok thingie))
+
+    (POST* "/body" []
+      :return   Thingie
+      :body     [thingie Thingie]
+      :summary  "echoes a Thingie from json-body"
+      (ok thingie))
+
+    (PUT* "/anonymous" []
+      :return   [{:hot Boolean}]
+      :body     [body [{:hot Boolean}]]
+      :summary  "echoes a vector of anonymous hotties"
+      (ok body)))))

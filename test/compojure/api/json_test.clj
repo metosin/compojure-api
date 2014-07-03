@@ -1,5 +1,6 @@
 (ns compojure.api.json-test
   (:require [midje.sweet :refer :all]
+            [ring.util.http-response :refer [ok]]
             [clojure.java.io :as io]
             [compojure.api.json :refer :all])
   (:import [java.io ByteArrayInputStream]))
@@ -12,6 +13,11 @@
    :body (stream s)})
 
 (def with-json-support (json-support identity))
+
+(def serialized-primitives
+  (fn [handler]
+    (fn [request]
+      (assoc (handler request) :compojure.api.meta/serializable? true))))
 
 (fact "json-request?"
   (json-request? {:content-type "application/xml"}) => false
@@ -48,4 +54,32 @@
         (-> request :meta :consumes) => ["application/json"]
         (-> request :meta :produces) => ["application/json"])))
 
-  (fact "json-response-support"))
+  (fact "json-response-support"
+    (fact "primitives"
+      (letfn [(serialized [serialized? body]
+                          (:body (if serialized?
+                                   ((json-support
+                                      (serialized-primitives
+                                        (constantly (ok body)))) {})
+                                   ((json-support
+                                      (constantly (ok body))) {}))))]
+        (tabular
+          (fact "serialized json-primitive"
+            (serialized ?primitives ?body) => ?response)
+
+          ?body   ?primitives ?response
+          [1,2,3] true        "[1,2,3]"
+          {:a 1}  true        "{\"a\":1}"
+          true    true        "true"
+          "true"  true        "\"true\""
+          1       true        "1"
+          1.0     true        "1.0"
+
+          [1,2,3] false       "[1,2,3]"
+          {:a 1}  false       "{\"a\":1}"
+
+          ;; not serializing these - will fail later if other mws don't catch
+          true    false       true
+          "true"  false       "true"
+          1       false       1
+          1.0     false       1.0)))))

@@ -21,7 +21,7 @@
 
 (defn json-request?
   "Checks from request content-type weather it's JSON."
-  [{:keys [content-type] :as request}]
+  [{:keys [content-type]}]
   (and
     content-type
     (not (empty? (re-find #"^application/(vnd.+)?json" content-type)))))
@@ -49,12 +49,23 @@
         (->json-response (bad-request {:type "json-parse-exception"
                                        :message (.getMessage jpe)}))))))
 
+(defn serializable?
+  "Predicate that returns true whenever the response body is serializable."
+  [_ {:keys [body] :as response}]
+  (when response
+    (or (coll? body)
+        (and (:compojure.api.meta/serializable? response)
+             (not
+               (or
+                 (instance? java.io.File body)
+                 (instance? java.io.InputStream body)))))))
+
 (defn json-response-support
   [handler]
   (fn [request]
     (let [request (update-in request [:meta :produces] concat ["application/json"])]
       (let [response (handler request)]
-        (if (coll? (:body response))
+        (if (serializable? request response)
           (->json-response response)
           response)))))
 
