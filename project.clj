@@ -11,6 +11,7 @@
                  [cheshire "5.3.1"]
                  [compojure "1.1.8"]
                  [prismatic/schema "0.2.4"]
+                 [ring-middleware-format "0.3.2"]
                  [metosin/ring-http-response "0.4.0"]
                  [metosin/ring-swagger "0.10.5"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app

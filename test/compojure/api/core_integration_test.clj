@@ -9,11 +9,19 @@
             [clojure.java.io :as io]
             [compojure.api.sweet :refer :all]
             [compojure.api.test-domain :as domain])
-  (:import [java.io ByteArrayInputStream]))
+  (:import [java.io ByteArrayInputStream InputStream]))
 
 ;;
 ;; common
 ;;
+
+(defn parse-body
+  [body]
+  (cond (string? body) (cheshire/parse-string body true)
+        (instance? InputStream body) (cheshire/parse-stream (io/reader body) true)
+        (true? body) true
+        (nil? body) nil
+        :else (throw (ex-info "everything else is invalid output" {:body body}))))
 
 (defn get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
@@ -22,7 +30,7 @@
                        :request-method :get
                        :params (or params {})
                        :headers (or headers {})))]
-    [status (cheshire/parse-string body true) headers]))
+    [status (parse-body body) headers]))
 
 (defn json [x] (cheshire/generate-string x))
 
@@ -33,7 +41,7 @@
                        :request-method :post
                        :content-type "application/json"
                        :body (.getBytes data)))]
-    [status (cheshire/parse-string body true)]))
+    [status (parse-body body)]))
 
 ;;
 ;; Data

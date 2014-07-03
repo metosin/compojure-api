@@ -191,6 +191,9 @@
 
 (import-vars [ring.swagger.ui swagger-ui])
 
+(def response-content-types
+  ["application/json"])
+
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
    parameter is a String, it is used as a url for the
@@ -208,7 +211,7 @@
        (GET ~path []
             (swagger/api-listing ~parameters @~routes/+routes-sym+))
        (GET ~(str path "/:api") {{api# :api} :route-params :as request#}
-            (let [produces# (-> request# :meta :produces (or []))
+            (let [produces# (-> request# :meta :produces (or response-content-types))
                   consumes# (-> request# :meta :consumes (or []))
                   parameters# (merge ~parameters {:produces produces#
                                                   :consumes consumes#})]
