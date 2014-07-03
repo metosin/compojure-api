@@ -47,12 +47,21 @@
            is consumed form the :parameters map in acc. k = given key, v = value."
           (fn [k v acc] k))
 
-(defmethod restructure-param :default [k v acc]
-  "By default assoc in the k v to acc"
+;;
+;; Pass-through swagger metadata
+;;
+
+(defmethod restructure-param :summary [k v acc]
+  (update-in acc [:parameters] assoc k v))
+
+(defmethod restructure-param :notes [k v acc]
+  (update-in acc [:parameters] assoc k v))
+
+(defmethod restructure-param :nickname [k v acc]
   (update-in acc [:parameters] assoc k v))
 
 ;;
-;; Default implementation
+;; Smart restructurings
 ;;
 
 (defmethod restructure-param :return [k model acc]
