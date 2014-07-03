@@ -185,7 +185,7 @@
         (GET* "/lotto/:x" []
           :return [Long]
           :path-params [x :- Long]
-          :responseMessages [{:code 403 :responseModel [String]}]
+          :responses {403 [String]}
           (case x
             1 (ok [1])
             2 (ok ["two"])

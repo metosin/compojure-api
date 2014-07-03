@@ -47,6 +47,22 @@
      ~type))
 
 ;;
+;; Response messages mangling
+;;
+
+(defn- responses->messages [responses]
+  (for [[code model] responses
+        :when (not= code 200)]
+    (let [response-message {:code code :responseModel model}]
+      (if-let [message (:message (meta model))]
+        (assoc response-message :message message)
+        response-message))))
+
+
+(defn- collect-responses [{:keys [return responses] :as parameters}]
+  (into {200 return} responses))
+
+;;
 ;; Extension point
 ;;
 
@@ -82,8 +98,11 @@
 
 (defmethod restructure-param :responses [k responses acc]
   "Defines a return type and coerced the return value of a body against it."
-  (-> acc
-      (update-in [:middlewares] conj `(body-coercer-middleware ~responses))))
+  (let [messages (responses->messages responses)
+        acc' (if (empty? messages) ; if messages is empty, don't add response-messages to metadata at all
+               acc
+               (update-in acc [:parameters ] assoc :responseMessages (responses->messages responses)))]
+      (update-in acc' [:middlewares] conj `(body-coercer-middleware ~responses))))
 
 (defmethod restructure-param :body [_ [value model model-meta] acc]
   "reads body-params into a enchanced let. First parameter is the let symbol,
@@ -167,11 +186,6 @@
     :else (throw
             (RuntimeException.
               (str "unknown compojure destruction synxax: " arg)))))
-
-(defn- collect-responses [{:keys [return responseMessages] :as parameters}]
-  (into {200 return}
-        (for [{:keys [code responseModel]} responseMessages]
-          [code responseModel])))
 
 (defn restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
