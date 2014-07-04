@@ -323,7 +323,7 @@ All parameters can also be destructured using the [Plumbing](https://github.com/
 
 ## Returning raw values
 
-One can also define raw values / primitives (e.g. not sequences or maps) when a `:return` value as both Swagger, [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf) and ECMA-262 allow this (while RFC4627 forbids it).
+Raw values / primitives (e.g. not sequences or maps) can be returned when a `:return` -metadata is set. Swagger, [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf) and ECMA-262 allow this (while RFC4627 forbids it).
 
 *note* setting a `:return` value as `String` allows you to return raw strings (as JSON or whatever protocols your app supports), opposed to the [Ring Spec](https://github.com/mmcgrana/ring/blob/master/SPEC#L107-L120).
 
