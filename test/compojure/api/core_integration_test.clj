@@ -179,13 +179,14 @@
       (:type body) => "json-parse-exception"
       (:message body) => truthy)))
 
-(fact ":responseMessages"
+(fact ":responses"
     (defapi api
       (swaggered +name+
         (GET* "/lotto/:x" []
           :return [Long]
           :path-params [x :- Long]
-          :responses {403 [String]}
+          :responses {403 [String]
+                      440 [String]}
           (case x
             1 (ok [1])
             2 (ok ["two"])
@@ -214,6 +215,48 @@
   (fact "non-existing return"
       (let [[status body] (get* api "/lotto/5")]
         status => 500)))
+
+(fact ":responses 200 and :return"
+  (defapi api
+    (swaggered +name+
+      (GET* "/lotto/:x" []
+        :path-params [x :- Long]
+        :return [Long]
+        :responses {200 [String]}
+        (case x
+          1 (ok [1])
+          2 (ok ["two"])
+          (payment-required "-")))))
+
+  (fact "return case"
+    (let [[status body] (get* api "/lotto/1")]
+      status => 400))
+
+  (fact "return case"
+    (let [[status body] (get* api "/lotto/2")]
+      status => 200
+      body => ["two"])))
+
+(fact ":responses 200 and :return - other way around"
+  (defapi api
+    (swaggered +name+
+      (GET* "/lotto/:x" []
+        :path-params [x :- Long]
+        :responses {200 [String]}
+        :return [Long]
+        (case x
+          1 (ok [1])
+          2 (ok ["two"])
+          (payment-required "-")))))
+
+  (fact "return case"
+    (let [[status body] (get* api "/lotto/1")]
+      status => 200
+      body => [1]))
+
+  (fact "return case"
+    (let [[status body] (get* api "/lotto/2")]
+      status => 400)))
 
 (fact ":query-params, :path-params, :header-params & :body-params"
   (defapi api

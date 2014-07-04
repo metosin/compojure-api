@@ -58,10 +58,6 @@
         (assoc response-message :message message)
         response-message))))
 
-
-(defn- collect-responses [{:keys [return responses] :as parameters}]
-  (into {200 return} responses))
-
 ;;
 ;; Extension point
 ;;
@@ -84,17 +80,13 @@
 (defmethod restructure-param :nickname [k v acc]
   (update-in acc [:parameters] assoc k v))
 
-
-;;
-;; Pass-through :return too
-;;
-
-(defmethod restructure-param :return [k v acc]
-  (update-in acc [:parameters] assoc k v))
-
 ;;
 ;; Smart restructurings
 ;;
+(defmethod restructure-param :return [k model acc]
+  (-> acc
+      (update-in [:parameters] assoc k model)
+      (update-in [:responses] assoc 200 model)))
 
 (defmethod restructure-param :responses [k responses acc]
   "Defines a return type and coerced the return value of a body against it."
@@ -102,10 +94,10 @@
         acc' (if (empty? messages) ; if messages is empty, don't add response-messages to metadata at all
                acc
                (update-in acc [:parameters ] assoc :responseMessages (responses->messages responses)))]
-      (update-in acc' [:middlewares] conj `(body-coercer-middleware ~responses))))
+      (update-in acc' [:responses] merge responses)))
 
 (defmethod restructure-param :body [_ [value model model-meta] acc]
-  "reads body-params into a enchanced let. First parameter is the let symbol,
+  "reads body-params into a enchanced let. First parameter is the y,
    second is the Model to coerced! against, third parameter is optional meta-
    data for the model. Examples:
    :body [user User]
@@ -190,22 +182,25 @@
 (defn restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
-        [lets letks middlewares] [[] [] nil]
+        [lets letks responses middlewares] [[] [] nil nil]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
         {:keys [lets
                 letks
+                responses
                 middlewares
                 parameters
                 body]} (reduce
-                         (fn [{:keys [lets letks middlewares parameters body]} [k v]]
+                         (fn [{:keys [lets letks responses middlewares parameters body]} [k v]]
                            (let [parameters (dissoc parameters k)
-                                 acc (map-of lets letks middlewares parameters body)]
+                                 acc (map-of lets letks responses middlewares parameters body)]
                              (restructure-param k v acc)))
-                         (map-of lets letks middlewares parameters body)
-                         (assoc parameters :responses (collect-responses parameters)))
+                         (map-of lets letks responses middlewares parameters body)
+                         parameters)
         body `(do ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
         body (if (seq parameters) `(meta-container ~parameters ~body) body)
-        body `(~method-symbol ~path ~arg-with-request ~body)]
-    (if (seq middlewares) `(middlewares [~@middlewares] ~body) body)))
+        body `(~method-symbol ~path ~arg-with-request ~body)
+        body (if (seq middlewares) `(middlewares [~@middlewares] ~body) body)
+        body (if responses `(body-coercer-middleware ~body  ~responses) body)]
+    body))
