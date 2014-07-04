@@ -2,6 +2,7 @@
   (:require [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
             [ring.util.response :as response]
+            [ring.util.http-response :refer [internal-server-error]]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.core :as swagger]
@@ -26,9 +27,12 @@
 (defn body-coercer-middleware [handler model]
   (fn [request]
     (if-let [response (handler request)]
-      (assoc response
-        ::serializable? true
-        :body (schema/coerce! model (:body response))))))
+      (let [body (schema/coerce model (:body response))]
+        (if (schema/error? body)
+          (internal-server-error {:error body})
+          (assoc response
+            ::serializable? true
+            :body body))))))
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type,

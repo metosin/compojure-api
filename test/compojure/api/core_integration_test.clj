@@ -166,7 +166,7 @@
 
   (fact "Validation of returned data"
     (let [[status body] (get* api "/models/invalid-user")]
-      status => 400))
+      status => 500))
 
   (fact "Routes without a :return parameter aren't validated"
     (let [[status body] (get* api "/models/not-validated")]
