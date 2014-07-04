@@ -1,3 +1,7 @@
+## x.xx.x (xx.x.xxxx)
+
+- added support for returning primitives, thanks to @phadej!
+
 ## 0.13.3 (28.6.2014)
 
 - support for `s/Uuid` via latest `ring-swagger`.
