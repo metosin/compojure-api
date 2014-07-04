@@ -321,6 +321,37 @@ All parameters can also be destructured using the [Plumbing](https://github.com/
   (ok {:total (long (Math/pow x y))})
 ```
 
+## Returning raw values
+
+One can also define raw values / primitives (e.g. not sequences or maps) when a `:return` value as both Swagger, [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf) and ECMA-262 allow this (while RFC4627 forbids it).
+
+*note* setting a `:return` value as `String` allows you to return raw strings (as JSON or whatever protocols your app supports), opposed to the [Ring Spec](https://github.com/mmcgrana/ring/blob/master/SPEC#L107-L120).
+
+```
+(context "/primitives" []
+  (GET* "/date-now" []
+    :return java.util.Date
+    :summary "current date"
+    (ok (java.util.Date.)))
+
+  (GET* "/datetime-now" []
+    :return org.joda.time.DateTime
+    :summary "current datetime"
+    (ok (org.joda.time.DateTime.)))
+
+  (GET* "/localdate-now" []
+    :return org.joda.time.LocalDate
+    :summary "current localdate"
+    (ok (org.joda.time.LocalDate.)))
+
+  (GET* "/hello" []
+    :return String
+    :query-params [name :- String]
+    :notes   "<h1>hello world.</h1>"
+    :summary "echos a string from query-params"
+    (ok (str "hello, " name))))
+```
+
 ## Route-specific middlewares
 
 Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds from within the route body.
