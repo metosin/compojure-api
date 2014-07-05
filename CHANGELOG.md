@@ -1,6 +1,19 @@
-## x.xx.x (xx.x.xxxx)
+## 0.14.0 (x.x.xxxx)
 
 - added support for returning primitives, thanks to @phadej!
+- `:responses` restructuring to (error) return codes and models, thanks to @phadej!
+
+```clojure
+(POST* "/number" []
+  :return       Total
+  :query-params [x :- Long y :- Long]
+  :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+  :summary      "x-y with body-parameters."
+  (let [total (- x y)]
+    (if (>= total 0)
+      (ok {:total (- x y)})
+      (forbidden {:message "difference is negative"}))))
+```
 
 ## 0.13.3 (28.6.2014)
 
