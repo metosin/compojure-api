@@ -45,13 +45,8 @@
       (POST* "/minus" []
         :return      Total
         :body-params [x :- Long y :- Long]
-        :responses   {400 ^{:message "Bad request"} ErrorEnvelope
-                      403 ^{:message "Underflow"} ErrorEnvelope}
         :summary     "x-y with body-parameters."
-        (let [total (- x y)]
-          (if (>= total 0)
-            (ok {:total (- x y)})
-            (forbidden {:message "difference is negative"}))))
+        (ok {:total (- x y)}))
 
       (GET* "/times/:x/:y" []
         :return      Total
@@ -60,10 +55,23 @@
         (ok {:total (* x y)}))
 
       (GET* "/power" []
-        :return      Total
+        :return        Total
         :header-params [x :- Long y :- Long]
-        :summary     "x^y with header-parameters"
+        :summary       "x^y with header-parameters"
         (ok {:total (long (Math/pow x y))}))))
+
+  (swaggered "responses"
+    :description "responses demo"
+    (context "/responses" []
+  (POST* "/number" []
+         :return       Total
+         :query-params [x :- Long y :- Long]
+         :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+         :summary      "x-y with body-parameters."
+         (let [total (- x y)]
+              (if (>= total 0)
+                (ok {:total (- x y)})
+                (forbidden {:message "difference is negative"}))))))
 
   (swaggered "primitives"
     :description "returning primitive values"

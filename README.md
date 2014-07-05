@@ -12,7 +12,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ## Latest version
 
 ```clojure
-[metosin/compojure-api "0.13.3"]
+[metosin/compojure-api "0.14.0"]
 ```
 
 ## Sample application
@@ -351,6 +351,22 @@ Raw values / primitives (e.g. not sequences or maps) can be returned when a `:re
     :summary "echos a string from query-params"
     (ok (str "hello, " name))))
 ```
+
+## Response-models
+
+Key `:responses` takes a map of http-status-code -> model map, which translates to both return model coercion and to swagger `responseMessages` description. Models can be decorated with `:message` meta-data.
+
+```clojure
+(POST* "/number" []
+  :return       Total
+  :query-params [x :- Long y :- Long]
+  :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+  :summary      "x-y with body-parameters."
+  (let [total (- x y)]
+    (if (>= total 0)
+      (ok {:total (- x y)})
+      (forbidden {:message "difference is negative"}))))
+
 
 ## Route-specific middlewares
 

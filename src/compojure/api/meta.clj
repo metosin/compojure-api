@@ -32,9 +32,7 @@
           (assoc response
             ::serializable? true
             :body (schema/coerce! model (:body response)))
-          (if (= status 200)
-            response ; if there aren't response model for 200, just let the response go thru
-            (http-response/internal-server-error (str "non-specified http status code: " status))))))))
+          response)))))
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type,
@@ -53,10 +51,9 @@
 (defn- responses->messages [responses]
   (for [[code model] responses
         :when (not= code 200)]
-    (let [response-message {:code code :responseModel model}]
-      (if-let [message (:message (meta model))]
-        (assoc response-message :message message)
-        response-message))))
+    {:code code
+     :message (or (some-> model meta :message) "")
+     :responseModel (eval model)}))
 
 ;;
 ;; Extension point
@@ -84,20 +81,28 @@
 ;; Smart restructurings
 ;;
 (defmethod restructure-param :return [k model acc]
+  "Defines a return type and coerced the return value of a body against it.
+   Examples:
+   :return MyModel
+   :return {:value String}
+   :return #{{:key (s/maybe Long)}}"
   (-> acc
       (update-in [:parameters] assoc k model)
       (update-in [:responses] assoc 200 model)))
 
-(defmethod restructure-param :responses [k responses acc]
-  "Defines a return type and coerced the return value of a body against it."
-  (let [messages (responses->messages responses)
-        acc' (if (empty? messages) ; if messages is empty, don't add response-messages to metadata at all
-               acc
-               (update-in acc [:parameters ] assoc :responseMessages (responses->messages responses)))]
-      (update-in acc' [:responses] merge responses)))
+(defmethod restructure-param :responses [_ responses acc]
+  "value is a map of http-response-code -> Model. Translates to both swagger
+   parameters and return model coercion. Models can be decorated with meta-data.
+   Examples:
+   :responses {403 ErrorEnvelope}
+   :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}"
+  (let [messages (responses->messages responses)]
+    (-> acc
+        (update-in [:parameters :responseMessages] (comp distinct concat) messages)
+        (update-in [:responses] merge responses))))
 
 (defmethod restructure-param :body [_ [value model model-meta] acc]
-  "reads body-params into a enchanced let. First parameter is the y,
+  "reads body-params into a enchanced let. First parameter is the let symbol,
    second is the Model to coerced! against, third parameter is optional meta-
    data for the model. Examples:
    :body [user User]
