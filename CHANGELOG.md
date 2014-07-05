@@ -2,6 +2,7 @@
 
 - added support for returning primitives, thanks to @phadej!
 - `:responses` restructuring to (error) return codes and models, thanks to @phadej!
+- return model coercion returns `500` instead of `400`, thanks to @phadej!
 
 ```clojure
 (POST* "/number" []
