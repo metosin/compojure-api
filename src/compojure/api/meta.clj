@@ -62,9 +62,9 @@
 ;;
 
 (defmulti restructure-param
-          "Restructures a key value pair in smart routes. By default the key
-           is consumed form the :parameters map in acc. k = given key, v = value."
-          (fn [k v acc] k))
+  "Restructures a key value pair in smart routes. By default the key
+   is consumed form the :parameters map in acc. k = given key, v = value."
+  (fn [k v acc] k))
 
 ;;
 ;; Pass-through swagger metadata
