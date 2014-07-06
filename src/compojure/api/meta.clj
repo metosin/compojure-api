@@ -191,18 +191,21 @@
         [parameters body] (extract-parameters args)
         [lets letks responses middlewares] [[] [] nil nil]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
+
         {:keys [lets
                 letks
                 responses
                 middlewares
                 parameters
-                body]} (reduce
-                         (fn [{:keys [lets letks responses middlewares parameters body]} [k v]]
-                           (let [parameters (dissoc parameters k)
-                                 acc (map-of lets letks responses middlewares parameters body)]
-                             (restructure-param k v acc)))
-                         (map-of lets letks responses middlewares parameters body)
-                         parameters)
+                body]}
+        (reduce
+          (fn [{:keys [lets letks responses middlewares parameters body]} [k v]]
+            (let [parameters (dissoc parameters k)
+                  acc (map-of lets letks responses middlewares parameters body)]
+              (restructure-param k v acc)))
+          (map-of lets letks responses middlewares parameters body)
+          parameters)
+
         body `(do ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
