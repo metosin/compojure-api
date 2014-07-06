@@ -199,10 +199,8 @@
                 parameters
                 body]}
         (reduce
-          (fn [{:keys [lets letks responses middlewares parameters body]} [k v]]
-            (let [parameters (dissoc parameters k)
-                  acc (map-of lets letks responses middlewares parameters body)]
-              (restructure-param k v acc)))
+          (fn [acc [k v]]
+            (restructure-param k v (update-in acc [:parameters] dissoc k)))
           (map-of lets letks responses middlewares parameters body)
           parameters)
 
