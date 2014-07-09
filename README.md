@@ -363,7 +363,7 @@ Key `:responses` takes a map of http-status-code -> model map, which translates 
     (if (>= total 0)
       (ok {:total (- x y)})
       (forbidden {:message "difference is negative"}))))
-
+```
 
 ## Route-specific middlewares
 
