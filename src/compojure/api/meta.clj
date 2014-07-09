@@ -62,9 +62,9 @@
 ;;
 
 (defmulti restructure-param
-          "Restructures a key value pair in smart routes. By default the key
-           is consumed form the :parameters map in acc. k = given key, v = value."
-          (fn [k v acc] k))
+  "Restructures a key value pair in smart routes. By default the key
+   is consumed form the :parameters map in acc. k = given key, v = value."
+  (fn [k v acc] k))
 
 ;;
 ;; Pass-through swagger metadata
@@ -191,18 +191,19 @@
         [parameters body] (extract-parameters args)
         [lets letks responses middlewares] [[] [] nil nil]
         [lets arg-with-request] (destructure-compojure-api-request lets arg)
+
         {:keys [lets
                 letks
                 responses
                 middlewares
                 parameters
-                body]} (reduce
-                         (fn [{:keys [lets letks responses middlewares parameters body]} [k v]]
-                           (let [parameters (dissoc parameters k)
-                                 acc (map-of lets letks responses middlewares parameters body)]
-                             (restructure-param k v acc)))
-                         (map-of lets letks responses middlewares parameters body)
-                         parameters)
+                body]}
+        (reduce
+          (fn [acc [k v]]
+            (restructure-param k v (update-in acc [:parameters] dissoc k)))
+          (map-of lets letks responses middlewares parameters body)
+          parameters)
+
         body `(do ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
