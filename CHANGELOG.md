@@ -1,8 +1,17 @@
-## 0.14.0 (x.x.xxxx)
+## 0.14.0 (9.7.2014)
 
-- added support for returning primitives, thanks to @phadej!
-- `:responses` restructuring to (error) return codes and models, thanks to @phadej!
 - return model coercion returns `500` instead of `400`, thanks to @phadej!
+- added support for returning primitives, thanks to @phadej!
+
+```clojure
+(GET* "/plus" []
+  :return       Long
+  :query-params [x :- Long {y :- Long 1}]
+  :summary      "x+y with query-parameters. y defaults to 1."
+  (ok (+ x y)))
+```
+
+- `:responses` restructuring to (error) return codes and models, thanks to @phadej!
 
 ```clojure
 (POST* "/number" []

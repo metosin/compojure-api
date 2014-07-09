@@ -76,20 +76,18 @@
   (swaggered "primitives"
     :description "returning primitive values"
     (context "/primitives" []
-      (GET* "/date-now" []
-        :return java.util.Date
-        :summary "current date"
-        (ok (java.util.Date.)))
+
+      (GET* "/plus" []
+        :return       Long
+        :query-params [x :- Long {y :- Long 1}]
+        :summary      "x+y with query-parameters. y defaults to 1."
+        (ok (+ x y)))
 
       (GET* "/datetime-now" []
         :return org.joda.time.DateTime
         :summary "current datetime"
         (ok (org.joda.time.DateTime.)))
 
-      (GET* "/localdate-now" []
-        :return org.joda.time.LocalDate
-        :summary "current localdate"
-        (ok (org.joda.time.LocalDate.)))
 
       (GET* "/hello" []
         :return String
