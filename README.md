@@ -451,14 +451,9 @@ macroexpanding-1 it too see what's get generated:
 - collect routes from root, not from `swaggered`
 - type-safe `:params` destructuring
 - `url-for` for endpoints (bidi, bidi, bidi)
-- support for swagger error messages
 - include external common use middlewares (ring-middleware-format, ring-cors etc.)
 - file handling
 - `WS*`?
-
-## Contributing
-
-Pull Requests welcome. Please run the tests (`lein midje`) and make sure they pass before you submit one.
 
 ## License
 
