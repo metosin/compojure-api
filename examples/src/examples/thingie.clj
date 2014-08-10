@@ -1,6 +1,7 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
+            [ring.swagger.schema :refer [field describe]]
             [schema.core :as s]))
 
 ;;
@@ -9,11 +10,13 @@
 
 (s/defschema Total {:total Long})
 
-(s/defschema Thingie {:id Long
-                      :hot Boolean
+(s/defschema Thingie {:id (describe Long "A integer")
+                      :hot (describe Boolean "yes or no")
                       :tag (s/enum :kikka :kukka)
-                      :chief [{:name String
-                               :type #{{:id String}}}]})
+                      :chief (describe
+                               [{:name String
+                                 :type #{{:id String}}}]
+                               "An array")})
 
 (s/defschema FlatThingie (dissoc Thingie :chief))
 
@@ -38,13 +41,16 @@
 
       (GET* "/plus" []
         :return       Total
-        :query-params [x :- Long {y :- Long 1}]
+        ;; You can add any keys to meta-data, but Swagger-ui might not show them
+        :query-params [x :- (describe Long "description")
+                       {y :- Long 1}]
         :summary      "x+y with query-parameters. y defaults to 1."
         (ok {:total (+ x y)}))
 
       (POST* "/minus" []
         :return      Total
-        :body-params [x :- Long y :- Long]
+        :body-params [x :- (describe Long "first param")
+                      y :- (describe Long "second param")]
         :summary     "x-y with body-parameters."
         (ok {:total (- x y)}))
 
@@ -63,15 +69,15 @@
   (swaggered "responses"
     :description "responses demo"
     (context "/responses" []
-  (POST* "/number" []
-         :return       Total
-         :query-params [x :- Long y :- Long]
-         :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
-         :summary      "x-y with body-parameters."
-         (let [total (- x y)]
-              (if (>= total 0)
-                (ok {:total (- x y)})
-                (forbidden {:message "difference is negative"}))))))
+      (POST* "/number" []
+        :return       Total
+        :query-params [x :- Long y :- Long]
+        :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+        :summary      "x-y with body-parameters."
+        (let [total (- x y)]
+          (if (>= total 0)
+            (ok {:total (- x y)})
+            (forbidden {:message "difference is negative"}))))))
 
   (swaggered "primitives"
     :description "returning primitive values"
@@ -91,7 +97,7 @@
 
       (GET* "/hello" []
         :return String
-        :query-params [name :- String]
+        :query-params [name :- (describe String "foobar")]
         :notes   "<h1>hello world.</h1>"
         :summary "echos a string from query-params"
         (ok (str "hello, " name)))))
@@ -108,7 +114,7 @@
 
     (POST* "/body" []
       :return   Thingie
-      :body     [thingie Thingie]
+      :body     [thingie (describe Thingie "The request body")]
       :summary  "echoes a Thingie from json-body"
       (ok thingie))
 

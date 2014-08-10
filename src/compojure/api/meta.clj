@@ -103,29 +103,25 @@
         (update-in [:parameters :responseMessages] (comp distinct concat) messages)
         (update-in [:responses] merge responses))))
 
-(defmethod restructure-param :body [_ [value model model-meta] acc]
+(defmethod restructure-param :body [_ [value model] acc]
   "reads body-params into a enchanced let. First parameter is the let symbol,
-   second is the Model to coerced! against, third parameter is optional meta-
-   data for the model. Examples:
-   :body [user User]
-   :body [user User {:key \"value\"}]"
+   second is the Model to coerced! against.
+   Examples:
+   :body [user User]"
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :body-params :json)])
       (update-in [:parameters :parameters] conj {:type :body
-                                                 :model model
-                                                 :meta model-meta})))
+                                                 :model model})))
 
-(defmethod restructure-param :query [_ [value model model-meta] acc]
+(defmethod restructure-param :query [_ [value model] acc]
   "reads query-params into a enchanced let. First parameter is the let symbol,
-   second is the Model to coerced! against, third parameter is optional meta-
-   data for the model. Examples:
-   :query [user User]
-   :query [user User {:key \"value\"}]"
+   second is the Model to coerced! against.
+   Examples:
+   :query [user User]"
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :query-params :query)])
       (update-in [:parameters :parameters] conj {:type :query
-                                                 :model model
-                                                 :meta model-meta})))
+                                                 :model model})))
 
 (defmethod restructure-param :body-params [_ body-params acc]
   "restructures body-params with plumbing letk notation. Example:

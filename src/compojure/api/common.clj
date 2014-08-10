@@ -61,5 +61,3 @@
     {}))
 
 (def meta-container? #{#'meta-container})
-
-

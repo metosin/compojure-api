@@ -3,6 +3,7 @@
             [schema.core :as s]
             [compojure.api.routes :as routes]
             [ring.mock.request :refer :all]
+            [ring.swagger.schema :refer [describe]]
             [cheshire.core :as cheshire]
             [compojure.core :as compojure]
             [compojure.api.sweet :refer :all]))
@@ -37,7 +38,7 @@
         identity)
       (POST* "/bands" []
         :return   Band
-        :body     [band [NewBand] {:description "new Band"}]
+        :body     [band [NewBand]]
         :summary  "Adds a Band"
         :nickname "addBand"
         identity)
@@ -55,7 +56,6 @@
         identity))))
 
 (facts "swaggered"
-
   (fact "details are generated"
     ((routes/get-routes) app-name)
 
@@ -80,8 +80,7 @@
                   :uri "/api/bands"
                   :metadata {:nickname "addBand"
                              :parameters [{:type :body
-                                           :model [NewBand]
-                                           :meta {:description "new Band"}}]
+                                           :model [NewBand]}]
                              :return Band
                              :summary "Adds a Band"}}
                  {:method :get
