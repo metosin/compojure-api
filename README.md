@@ -1,6 +1,6 @@
 # Compojure-api
 
-[![Build Status](https://travis-ci.org/metosin/compojure-api.png?branch=0.7.0)](https://travis-ci.org/metosin/compojure-api)
+[![Build Status](https://travis-ci.org/metosin/compojure-api.png)](https://travis-ci.org/metosin/compojure-api)
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
@@ -286,7 +286,7 @@ you can also wrap models in containers (`vector` and `set`) and add extra metada
 ```clojure
   (POST* "/echos" []
     :return   [Thingie]
-    :body     [thingies #{Thingie} {:description "set on thingies"}]
+    :body     [thingies (describe #{Thingie} "set on thingies")]
     (ok thingies))
 ```
 

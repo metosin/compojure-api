@@ -12,7 +12,7 @@
                  [compojure "1.1.8"]
                  [prismatic/schema "0.2.4"]
                  [metosin/ring-http-response "0.4.0"]
-                 [metosin/ring-swagger "0.10.6"]]
+                 [metosin/ring-swagger "0.11.0"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
                               :reload-paths ["src" "examples/src"]}
                        :source-paths ["examples/src"]

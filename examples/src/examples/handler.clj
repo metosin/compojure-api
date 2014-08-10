@@ -1,6 +1,7 @@
 (ns examples.handler
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
+            [ring.swagger.schema :refer [describe]]
             [examples.dates :refer :all]
             [examples.domain :refer :all]))
 
@@ -27,7 +28,8 @@
       :query  [query QueryParams]
       (ok query))
     (GET* "/sum" []
-      :query-params [x :- Long y :- Long]
+      :query-params [x :- (describe Long "first param")
+                     y :- (describe Long "second param")]
       :summary      "sums x & y query-parameters"
       (ok {:total (+ x y)}))
     (GET* "/times/:x/:y" []
@@ -58,7 +60,7 @@
           (ok (get-pizza id)))
         (POST* "/" []
           :return   Pizza
-          :body     [pizza NewPizza {:description "new pizza"}]
+          :body     [pizza (describe NewPizza "new pizza")]
           :summary  "Adds a pizza"
           :nickname "addPizza"
           (ok (add! pizza)))
