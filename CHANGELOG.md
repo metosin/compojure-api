@@ -1,3 +1,10 @@
+## 0.15.0 (10.8.2014)
+
+- Use latest `ring-swagger`
+- `:body` and others no langer take description as third param, instead use `:body [body (describe Schema "The description")]`
+  - `describe` works also for Java classes `:query-params [x :- (describe Long "first-param")]`
+  - And inside defschema `(s/defschema Schema {:sub (describe [{:x Long :y String}] "Array of stuff")})`
+
 ## 0.14.0 (9.7.2014)
 
 - return model coercion returns `500` instead of `400`, thanks to @phadej!

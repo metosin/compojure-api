@@ -11,9 +11,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 ## Latest version
 
-```clojure
-[metosin/compojure-api "0.14.0"]
-```
+[![Clojars Project](http://clojars.org/metosin/compojure-api/latest-version.svg)](http://clojars.org/metosin/compojure-api)
 
 ## Sample application
 
