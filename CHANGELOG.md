@@ -1,3 +1,11 @@
+## 0.15.1 (19.8.2014)
+
+- Update to latest `ring-swagger`
+  - Fixes #16: If Schema has many properties, they are now shown in correct order on Swagger-UI
+    - `hash-map` loses the order if it has enough properties
+    - Use [flatland.ordered.map/ordered-map](https://github.com/flatland/ordered) when Schema has many properties and you want to keep the order intact
+    - `(s/defschema Thingie (ordered-map :a String ...))`
+
 ## 0.15.0 (10.8.2014)
 
 - Use latest `ring-swagger`
