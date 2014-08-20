@@ -3,7 +3,7 @@
             [ring.util.http-response :refer [ok]]
             [clojure.java.io :as io]
             [compojure.api.json :refer :all])
-  (:import [java.io ByteArrayInputStream]))
+  (:import [java.io ByteArrayInputStream InputStream]))
 
 (defn stream [s]
   (ByteArrayInputStream. (.getBytes s "utf-8")))
@@ -24,23 +24,28 @@
   (json-request? {:content-type "application/json"}) => true
   (json-request? {:content-type "application/vnd.myapp+json"}) => true)
 
+(defn slurp-if-stream [x]
+  (if (instance? InputStream x)
+    (slurp (io/reader x))
+    x))
+
 (fact "json-support"
 
   (fact "json-request-support"
 
     (fact "json-list"
       (let [request (with-json-support (json-request "[1,2,3]"))]
-        (:body request)         => "[1,2,3]"
-        (:body-params request)  => [1 2 3]
-        (:json-params request)  => nil
-        (:params request)       => nil))
+        (slurp-if-stream (:body request))  => "[1,2,3]"
+        (:body-params request)             => [1 2 3]
+        (:json-params request)             => nil
+        (:params request)                  => nil))
 
     (fact "json-map"
       (let [request (with-json-support (json-request "{\"a\":1,\"b\":\"value\"}" ))]
-        (:body request)         => "{\"a\":1,\"b\":\"value\"}"
-        (:body-params request)  => {:a 1, :b "value"}
-        (:json-params request)  => {:a 1, :b "value"}
-        (:params request)       => {:a 1, :b "value"}))
+        (slurp-if-stream (:body request))  => "{\"a\":1,\"b\":\"value\"}"
+        (:body-params request)             => {:a 1, :b "value"}
+        (:json-params request)             => {:a 1, :b "value"}
+        (:params request)                  => {:a 1, :b "value"}))
 
     (fact "json-primitive"
       (let [request (with-json-support (json-request "true" ))]
@@ -51,18 +56,18 @@
 
     (fact "json capability"
       (let [request (with-json-support (json-request "true" ))]
-        (-> request :meta :consumes) => ["application/json"]
-        (-> request :meta :produces) => ["application/json"])))
+        (-> request :meta :consumes) => ["application/json"])))
 
   (fact "json-response-support"
     (fact "primitives"
       (letfn [(serialized [serialized? body]
-                          (:body (if serialized?
-                                   ((json-support
-                                      (serialized-primitives
-                                        (constantly (ok body)))) {})
-                                   ((json-support
-                                      (constantly (ok body))) {}))))]
+                (-> (:body (if serialized?
+                              ((json-support
+                                (serialized-primitives
+                                 (constantly (ok body)))) {})
+                              ((json-support
+                                (constantly (ok body))) {})))
+                    (slurp-if-stream)))]
         (tabular
           (fact "serialized json-primitive"
             (serialized ?primitives ?body) => ?response)
