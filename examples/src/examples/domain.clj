@@ -1,32 +1,23 @@
 (ns examples.domain
   (:require [schema.core :as s]
-            [ring.swagger.schema :as rs]))
+            [compojure.api.sweet :refer :all]
+            [ring.util.http-response :refer :all]
+            [ring.swagger.schema :as rs :refer [describe]]))
 
-;;
-;; Domain
-;;
-
-(s/defschema QueryParams {:long Long
-                          (s/optional-key :string) String
-                          :bool Boolean
-                          :enum (s/enum "kikka" "kakka")})
-
-(s/defschema Customer {:id String
-                       :address {:street String
-                                 :zip Long
-                                 :country {:code Long
-                                           :name String}}})
 
 ;;
 ;; Pizza Store
 ;;
+
+(s/defschema Topping {:type (s/enum :cheese :olives :ham :pepperoni :habanero)
+                      :qty  Long})
 
 (s/defschema Pizza {:id    Long
                     :name  String
                     :price Double
                     :hot   Boolean
                     (s/optional-key :description) String
-                    :toppings #{(s/enum :cheese :olives :ham :pepperoni :habanero)}})
+                    :toppings (describe [Topping] "List of toppings of the Pizza")})
 
 (s/defschema NewPizza (dissoc Pizza :id))
 
@@ -53,5 +44,41 @@
 ;; Data
 
 (when (empty? @pizzas)
-  (add! {:name "Frutti" :price 9.50 :hot false :toppings #{:cheese :olives}})
-  (add! {:name "Il Diablo" :price 12 :hot true :toppings #{:ham :habanero}}))
+  (add! {:name "Frutti" :price 9.50 :hot false :toppings [{:type :cheese :qty 2}
+                                                          {:type :olives :qty 1}]})
+  (add! {:name "Il Diablo" :price 12 :hot true :toppings [{:type :ham :qty 3}
+                                                          {:type :habanero :qty 1}]}))
+
+;; Routes
+
+(defroutes* pizza-routes
+  (context "/api" []
+    (context "/pizzas" []
+      (GET* "/" []
+        :return   [Pizza]
+        :summary  "Gets all Pizzas"
+        :nickname "getPizzas"
+        (ok (get-pizzas)))
+      (GET* "/:id" []
+        :path-params [id :- Long]
+        :return   Pizza
+        :summary  "Gets a pizza"
+        :nickname "getPizza"
+        (ok (get-pizza id)))
+      (POST* "/" []
+        :return   Pizza
+        :body     [pizza (describe NewPizza "new pizza")]
+        :summary  "Adds a pizza"
+        :nickname "addPizza"
+        (ok (add! pizza)))
+      (PUT* "/" []
+        :return   Pizza
+        :body     [pizza Pizza]
+        :summary  "Updates a pizza"
+        :nickname "updatePizza"
+        (ok (update! pizza)))
+      (DELETE* "/:id" []
+        :path-params [id :- Long]
+        :summary  "Deletes a Pizza"
+        :nickname "deletePizza"
+        (ok (delete! id))))))

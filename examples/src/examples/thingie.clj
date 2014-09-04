@@ -1,34 +1,25 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
+            [schema.core :as s]
             [ring.swagger.schema :refer [field describe]]
-            [schema.core :as s]))
+            ring.swagger.json-schema-dirty
+            [examples.domain :refer :all]
+            [examples.dates :refer :all]))
 
 ;;
 ;; Schemas
 ;;
 
+(s/defschema Recursive {(s/optional-key :foobar) (describe (s/either (s/recursive #'Recursive) String) "Another Recursive or a String")})
+
 (s/defschema Total {:total Long})
-
-(s/defschema Thingie {:id (describe Long "A integer")
-                      :hot (describe Boolean "yes or no")
-                      :tag (s/enum :kikka :kukka)
-                      :chief (describe
-                               [{:name String
-                                 :type #{{:id String}}}]
-                               "An array")})
-
-(s/defschema FlatThingie (dissoc Thingie :chief))
 
 (s/defschema ErrorEnvelope {:message String})
 
 ;;
 ;; Routes
 ;;
-
-(defroutes* legacy-route
-  (GET* "/legacy/:value" [value]
-    (ok {:value value})))
 
 (defapi app
   (swagger-ui)
@@ -65,7 +56,12 @@
         :header-params [x :- Long y :- Long]
         :summary       "x^y with header-parameters"
         (ok {:total (long (Math/pow x y))}))))
-
+  (swaggered "pizza"
+    :description "Pizza api"
+    pizza-routes)
+  (swaggered "dates"
+    :description "Roundrobin of Dates"
+    date-routes)
   (swaggered "responses"
     :description "responses demo"
     (context "/responses" []
@@ -97,7 +93,8 @@
 
       (GET* "/hello" []
         :return String
-        :query-params [name :- (describe String "foobar")]
+        :query-params [name :- (describe String "foobar")
+                       foo :- (s/if (constantly true) String Long)]
         :notes   "<h1>hello world.</h1>"
         :summary "echos a string from query-params"
         (ok (str "hello, " name)))))
@@ -106,20 +103,14 @@
     :description "echoes data"
     (context "/echo" []
 
-    (GET* "/query" []
-       :return   FlatThingie
-       :query    [thingie FlatThingie]
-       :summary  "echoes a FlatThingie from query-params"
-       (ok thingie))
-
-    (POST* "/body" []
-      :return   Thingie
-      :body     [thingie (describe Thingie "The request body")]
-      :summary  "echoes a Thingie from json-body"
-      (ok thingie))
+    (POST* "/recursion" []
+      :return   Recursive
+      :body     [body (describe Recursive "Recursive Schema")]
+      :summary  "echoes a the json-body"
+      (ok body))
 
     (PUT* "/anonymous" []
       :return   [{:hot Boolean}]
-      :body     [body [{:hot Boolean}]]
+      :body     [body [{:hot (s/either Boolean String)}]]
       :summary  "echoes a vector of anonymous hotties"
       (ok body)))))

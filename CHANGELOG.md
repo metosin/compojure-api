@@ -1,3 +1,7 @@
+## 0.15.2 (4.9.2014)
+
+- Update to latest `ring-swagger`
+
 ## 0.15.1 (19.8.2014)
 
 - Update to latest `ring-swagger`
