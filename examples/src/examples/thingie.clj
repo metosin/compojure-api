@@ -94,7 +94,9 @@
       (GET* "/hello" []
         :return String
         :query-params [name :- (describe String "foobar")
-                       foo :- (s/if (constantly true) String Long)]
+                       ;; Broken on aot
+                       ; foo :- (s/if (constantly true) String Long)
+                       ]
         :notes   "<h1>hello world.</h1>"
         :summary "echos a string from query-params"
         (ok (str "hello, " name)))))

@@ -19,12 +19,7 @@
                        :main examples.server
                        :dependencies [[metosin/ring-swagger-ui "2.0.17"]
                                       [http-kit "2.1.18"]]}
-             :samples {:aot :all
-                       :ring {:handler examples.handler/app
-                              :reload-paths ["src" "examples/src"]}
-                       :source-paths ["examples/src"]
-                       :dependencies [[metosin/ring-swagger-ui "2.0.17"]
-                                      [http-kit "2.1.18"]]}
+             :uberjar {:aot :all}
              :dev {:ring {:handler examples.handler/app}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
@@ -32,7 +27,6 @@
                    :dependencies [[peridot "0.3.0"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.3"]]}}
-  :aliases {"start-samples"    ["with-profile" "samples" "ring" "server"]
-            "start-thingie"    ["with-profile" "thingie" "ring" "server"]
+  :aliases {"start-thingie"    ["with-profile" "thingie" "ring" "server"]
             "http-kit-thingie" ["with-profile" "thingie" "run"]
-            "aot-uberjar"      ["with-profile" "samples" "do" "clean," "ring" "uberjar"]})
+            "aot-uberjar"      ["with-profile" "thingie,uberjar" "do" "clean," "ring" "uberjar"]})
