@@ -404,7 +404,7 @@
       status => 200
       body => {:swaggerVersion "1.2"
                :apiVersion "0.0.1"
-               :resourcePath ""
+               :resourcePath "/"
                :models {}
                :basePath "http://localhost"
                :consumes ["application/json"]
