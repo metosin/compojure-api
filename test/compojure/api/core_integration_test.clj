@@ -174,12 +174,10 @@
       status => 200
       body => invalid-user))
 
-  ;; FIXME:
-  #_
   (fact "Invalid json in body causes 400 with error message in json"
     (let [[status body] (post* api "/models/user" "{INVALID}")]
       status => 400
-      (:type body) => "json-parse-exception"
+      (:type body) => "parse-exception"
       (:message body) => truthy)))
 
 (fact ":responses"
