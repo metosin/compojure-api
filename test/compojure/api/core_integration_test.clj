@@ -331,8 +331,6 @@
   (fact "when :return is not set, longs can't be returned"
     (get* api "/primitives/long") => (throws Exception))
 
-  ;; FIXME:
-  #_
   (fact "when :return is set, raw strings can be returned"
     (let [[status body] (get* api "/primitives/return-string")]
       status => 200
