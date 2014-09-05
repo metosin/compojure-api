@@ -83,11 +83,11 @@
 ;; Version with out serializable?
 (defn wrap-restful-response
   "Wrapper that tries to do the right thing with the response *:body*
-  and provide a solid basis for a RESTful API. It will serialize to
-  JSON, YAML, Clojure, Transit or HTML-wrapped YAML depending on Accept header.
-  See wrap-format-response for more details. Recognized formats are
-  *:json*, *:json-kw*, *:edn* *:yaml*, *:yaml-in-html*, *:transit-json*,
-  *:transit-msgpack*."
+   and provide a solid basis for a RESTful API. It will serialize to
+   JSON, YAML, Clojure, Transit or HTML-wrapped YAML depending on Accept header.
+   See wrap-format-response for more details. Recognized formats are
+   *:json*, *:json-kw*, *:edn* *:yaml*, *:yaml-in-html*, *:transit-json*,
+   *:transit-msgpack*."
   [handler & {:keys [handle-error formats charset binary?]
               :or {handle-error format-response/default-handle-error
                    charset format-response/default-charset-extractor
@@ -100,11 +100,11 @@
                        :when encoder]
                    encoder)]
     (format-response/wrap-format-response handler
-                          :predicate serializable?
-                          :encoders encoders
-                          :binary? binary?
-                          :charset charset
-                          :handle-error handle-error)))
+                                          :predicate serializable?
+                                          :encoders encoders
+                                          :binary? binary?
+                                          :charset charset
+                                          :handle-error handle-error)))
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
