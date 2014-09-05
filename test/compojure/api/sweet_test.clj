@@ -105,7 +105,7 @@
 
   (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))
-          body (cheshire/parse-string body true)]
+          body (cheshire/parse-stream (clojure.java.io/reader body) true)]
       status => 200
       body => {:apiVersion "0.0.1"
                :apis [{:description "sample api"
@@ -115,6 +115,6 @@
 
   (fact "api-details works"
     (let [{:keys [body status]} (api (request :get (str "/api/api-docs/" app-name)))
-          body (cheshire/parse-string body true)]
+          body (cheshire/parse-stream (clojure.java.io/reader body) true)]
       status => 200
       body => truthy)))
