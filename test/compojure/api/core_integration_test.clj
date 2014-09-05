@@ -8,18 +8,13 @@
             [compojure.core :as compojure]
             [clojure.java.io :as io]
             [compojure.api.sweet :refer :all]
-            [compojure.api.test-domain :as domain])
+            [compojure.api.test-domain :as domain]
+            [compojure.api.test-utils :refer :all])
   (:import [java.io ByteArrayInputStream]))
 
 ;;
 ;; common
 ;;
-
-(defn parse-body [body]
-  (cheshire/parse-string (if (instance? java.io.InputStream body)
-                           (slurp body)
-                           body)
-                         true))
 
 (defn get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
