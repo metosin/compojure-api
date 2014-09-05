@@ -13,7 +13,7 @@
                  [prismatic/schema "0.2.6"]
                  [metosin/ring-http-response "0.5.0"]
                  [metosin/ring-swagger "0.13.0"]
-                 [ring-middleware-format "0.4.0"]]
+                 [ring-middleware-format "0.4.1-SNAPSHOT"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
                               :reload-paths ["src" "examples/src"]}
                        :source-paths ["examples/src"]

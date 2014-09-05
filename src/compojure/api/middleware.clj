@@ -40,11 +40,9 @@
                                   [k (str (:type t) "/" (:sub-type t))]))
                               format-response/format-encoders)))
 
-(def res-mime-types (into #{} (vals mime-types)))
+(def res-mime-types (map mime-types [:json :yaml :edn :clojure :yaml-in-html :transit-json :transit-msgpack]))
 
-(def req-mime-types (into #{} (map (fn [[k _]]
-                                     (k mime-types))
-                                   format-params/format-wrappers)))
+(def req-mime-types (map mime-types [:json-kw :edn :yaml-kw :transit-msgpack :transit-json]))
 
 (defn wrap-swagger [handler]
   (fn [request]
