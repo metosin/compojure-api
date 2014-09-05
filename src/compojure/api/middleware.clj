@@ -56,12 +56,16 @@
 (defn handle-req-error [e handler req]
   (cond
     (instance? com.fasterxml.jackson.core.JsonParseException e)
-    (bad-request {:type "parse-exception"
-                  :content-type (:content-type req)
+    (bad-request {:type "json-parse-exception"
+                  :message (.getMessage e)})
+
+    (instance? org.yaml.snakeyaml.parser.ParserException e)
+    (bad-request {:type "yaml-parse-exception"
                   :message (.getMessage e)})
 
     :else
-    (internal-server-error {:message (.getMessage e)})))
+    (internal-server-error {:type (str (class e))
+                            :message (.getMessage e)})))
 
 (defn serializable?
   "Predicate which return true if the response body is serializable.
