@@ -32,13 +32,18 @@
 
 (defn json [x] (cheshire/generate-string x))
 
-(defn post* [app uri & [data]]
+(defn raw-post* [app uri & [data content-type headers]]
   (let [{{:keys [status body]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :post
-                       :content-type "application/json"
+                       :headers (or headers {})
+                       :content-type (or content-type "application/json")
                        :body (.getBytes data)))]
+    [status (read-body body)]))
+
+(defn post* [app uri & [data]]
+  (let [[status body] (raw-post* app uri data)]
     [status (parse-body body)]))
 
 ;;
@@ -470,3 +475,29 @@
       (->> body
            :apis
            (map :path)) => ["/" "/a" "/b/b1" "/b" "/b//b2"]))))
+
+(fact "formats supported by ring-middleware-format"
+  (defapi api
+    (swaggered +name+
+      (POST* "/echo" []
+        :body-params [foo :- String]
+        (ok {:foo foo}))))
+
+  (tabular
+    (facts
+      (fact {:midje/description (str ?content-type " to json")}
+        (let [[status body headers]
+              (raw-post* api "/echo" ?body ?content-type {:accept "application/json"})]
+          status => 200
+          body => "{\"foo\":\"bar\"}"))
+      (fact {:midje/description (str "json to " ?content-type)}
+        (let [[status body headers]
+              (raw-post* api "/echo" "{\"foo\":\"bar\"}" "application/json" {:accept ?content-type})]
+          status => 200
+          body => ?body)))
+
+    ?content-type ?body
+    "application/json" "{\"foo\":\"bar\"}"
+    "application/x-yaml" "{foo: bar}\n"
+    "application/edn" "{:foo \"bar\"}"
+    "application/transit+json" "[\"^ \",\"~:foo\",\"bar\"]"))
