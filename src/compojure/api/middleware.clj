@@ -69,14 +69,10 @@
   "Predicate which return true if the response body is serializable.
    That is, return type is set by :return compojure-api key or it's not
    string, File or InputStream."
-  [req {:keys [body] :as response}]
+  [_ {:keys [body] :as response}]
   (when response
     (or (:compojure.api.meta/serializable? response)
-        (not
-          (or
-            (string? body)
-            (instance? java.io.File body)
-            (instance? java.io.InputStream body))))))
+        (coll? body))))
 
 ;; Version with out serializable?
 (defn wrap-restful-response

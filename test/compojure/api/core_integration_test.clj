@@ -16,13 +16,18 @@
 ;; common
 ;;
 
-(defn get* [app uri & [params headers]]
+(defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :get
                        :params (or params {})
                        :headers (or headers {})))]
+    [status (read-body body) headers]))
+
+(defn get* [app uri & [params headers]]
+  (let [[status body headers]
+        (raw-get* app uri params headers)]
     [status (parse-body body) headers]))
 
 (defn json [x] (cheshire/generate-string x))
@@ -322,19 +327,18 @@
           (ok "kikka")))))
 
   (fact "when :return is set, longs can be returned"
-    (let [[status body] (get* api "/primitives/return-long")]
+    (let [[status body] (raw-get* api "/primitives/return-long")]
       status => 200
-      body => 1))
+      body => "1"))
 
-  ;; FIXME:
-  #_
-  (fact "when :return is not set, longs can't be returned"
-    (get* api "/primitives/long") => (throws Exception))
+  (fact "when :return is not set, longs won't be encoded"
+    (let [[status body] (raw-get* api "/primitives/long")]
+      body => number?))
 
   (fact "when :return is set, raw strings can be returned"
-    (let [[status body] (get* api "/primitives/return-string")]
+    (let [[status body] (raw-get* api "/primitives/return-string")]
       status => 200
-      body => "kikka")))
+      body => "\"kikka\"")))
 
 (fact "compojure destructuring support"
   (defapi api
