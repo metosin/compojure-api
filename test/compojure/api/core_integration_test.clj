@@ -397,6 +397,8 @@
 
 (fact "swagger-docs"
   (defapi api
+    {:response-formats [:json :edn]
+     :request-formats [:json-kw :edn]}
     (swagger-docs)
     (swaggered +name+
       (GET* "/user" []
@@ -414,22 +416,21 @@
   (fact "api-docs"
     (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
       status => 200
-      body => (contains
-                {:swaggerVersion "1.2"
-                 :apiVersion "0.0.1"
-                 :resourcePath "/"
-                 :models {}
-                 :basePath "http://localhost"
-                 :consumes (contains #{"application/edn" "application/json"} :gaps-ok)
-                 :produces (contains #{"application/edn" "application/json"} :gaps-ok)
-                 :apis [{:operations [{:method "GET"
-                                       :nickname "getUser"
-                                       :notes ""
-                                       :parameters []
-                                       :responseMessages []
-                                       :summary ""
-                                       :type "void"}]
-                         :path "/user"}]}))))
+      body => {:swaggerVersion "1.2"
+               :apiVersion "0.0.1"
+               :resourcePath "/"
+               :models {}
+               :basePath "http://localhost"
+               :consumes ["application/json" "application/edn"]
+               :produces ["application/json" "application/edn"]
+               :apis [{:operations [{:method "GET"
+                                     :nickname "getUser"
+                                     :notes ""
+                                     :parameters []
+                                     :responseMessages []
+                                     :summary ""
+                                     :type "void"}]
+                       :path "/user"}]})))
 
 (fact "sub-context paths"
   (let [response {:ping "pong"}

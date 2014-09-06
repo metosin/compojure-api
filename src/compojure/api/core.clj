@@ -6,10 +6,18 @@
             [compojure.api.meta :refer [restructure]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
-(defmacro defapi [name & body]
-  `(defroutes ~name
-     (api-middleware
-       (routes/with-routes ~@body))))
+(defmacro defapi
+  "If first element of body is a map, it will be used as options for api-middleware."
+  [name & body]
+  (let [[body opts] (if (map? (first body))
+                      [(rest body) (first body)]
+                      [body nil])]
+    `(defroutes ~name
+       (api-middleware
+         (routes/with-routes ~@body)
+         ~@(reduce (fn [acc [k v]]
+                     (conj acc k v))
+                   [] opts)))))
 
 (import-vars [compojure.api.meta middlewares])
 

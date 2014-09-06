@@ -40,15 +40,11 @@
                                   [k (str (:type t) "/" (:sub-type t))]))
                               format-response/format-encoders)))
 
-(def res-mime-types (map mime-types [:json :yaml :edn :clojure :yaml-in-html :transit-json :transit-msgpack]))
-
-(def req-mime-types (map mime-types [:json-kw :edn :yaml-kw :transit-msgpack :transit-json]))
-
-(defn wrap-swagger [handler]
+(defn wrap-swagger [handler & {:keys [response-formats request-formats]}]
   (fn [request]
     (-> request
-        (assoc-in [:meta :consumes] req-mime-types)
-        (assoc-in [:meta :produces] res-mime-types)
+        (assoc-in [:meta :consumes] (map mime-types request-formats))
+        (assoc-in [:meta :produces] (map mime-types response-formats))
         handler)))
 
 (defn handle-req-error [e handler req]
@@ -102,16 +98,21 @@
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
-  [handler]
+  [handler & {:keys [request-formats response-formats]
+              :or {request-formats [:json-kw :edn :yaml-kw :transit-msgpack :transit-json]
+                   response-formats [:json :yaml :edn :clojure :yaml-in-html :transit-json :transit-msgpack]}}]
   (-> handler
       ring.middleware.http-response/catch-response
       ring.swagger.middleware/catch-validation-errors
       ex-info-support
-      wrap-swagger
+      (wrap-swagger
+        :request-formats request-formats
+        :response-formats response-formats)
       (wrap-restful-params
-        :formats [:json-kw :edn :yaml-kw :transit-msgpack :transit-json]
+        :formats request-formats
         :handle-error handle-req-error)
-      (wrap-restful-response)
+      (wrap-restful-response
+        :formats response-formats)
       wrap-keyword-params
       wrap-nested-params
       wrap-params))
