@@ -1,16 +1,13 @@
 (ns compojure.api.meta
   (:require [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
-            [ring.util.response :as response]
             [ring.util.http-response :refer [internal-server-error]]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
-            [ring.swagger.core :as swagger]
             [ring.swagger.schema :as schema]
             [ring.swagger.common :refer :all]
             [schema.core :as s]
-            [clojure.walk :refer [keywordize-keys]]
-            [clojure.tools.macro :refer [name-with-attributes]]))
+            [clojure.walk :refer [keywordize-keys]]))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
@@ -82,81 +79,82 @@
 ;;
 ;; Smart restructurings
 ;;
+
+; Defines a return type and coerced the return value of a body against it.
+; Examples:
+; :return MyModel
+; :return {:value String}
+; :return #{{:key (s/maybe Long)}}
 (defmethod restructure-param :return [k model acc]
-  "Defines a return type and coerced the return value of a body against it.
-   Examples:
-   :return MyModel
-   :return {:value String}
-   :return #{{:key (s/maybe Long)}}"
   (-> acc
       (update-in [:parameters] assoc k model)
       (update-in [:responses] assoc 200 model)))
 
+; value is a map of http-response-code -> Model. Translates to both swagger
+; parameters and return model coercion. Models can be decorated with meta-data.
+; Examples:
+; :responses {403 ErrorEnvelope}
+; :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}
 (defmethod restructure-param :responses [_ responses acc]
-  "value is a map of http-response-code -> Model. Translates to both swagger
-   parameters and return model coercion. Models can be decorated with meta-data.
-   Examples:
-   :responses {403 ErrorEnvelope}
-   :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}"
   (let [messages (responses->messages responses)]
     (-> acc
         (update-in [:parameters :responseMessages] (comp distinct concat) messages)
         (update-in [:responses] merge responses))))
 
+; reads body-params into a enchanced let. First parameter is the let symbol,
+; second is the Model to coerced! against.
+; Examples:
+; :body [user User]
 (defmethod restructure-param :body [_ [value model] acc]
-  "reads body-params into a enchanced let. First parameter is the let symbol,
-   second is the Model to coerced! against.
-   Examples:
-   :body [user User]"
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :body-params :json)])
       (update-in [:parameters :parameters] conj {:type :body
                                                  :model model})))
 
+; reads query-params into a enchanced let. First parameter is the let symbol,
+; second is the Model to coerced! against.
+; Examples:
+; :query [user User]
 (defmethod restructure-param :query [_ [value model] acc]
-  "reads query-params into a enchanced let. First parameter is the let symbol,
-   second is the Model to coerced! against.
-   Examples:
-   :query [user User]"
   (-> acc
       (update-in [:lets] into [value (src-coerce! model :query-params :query)])
       (update-in [:parameters :parameters] conj {:type :query
                                                  :model model})))
 
+; restructures body-params with plumbing letk notation. Example:
+; :body-params [id :- Long name :- String]
 (defmethod restructure-param :body-params [_ body-params acc]
-  "restructures body-params with plumbing letk notation. Example:
-   :body-params [id :- Long name :- String]"
   (let [schema (strict (fnk-schema body-params))]
     (-> acc
         (update-in [:parameters :parameters] conj {:type :body :model schema})
         (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)]))))
 
+; restructures query-params with plumbing letk notation. Example:
+; :header-params [id :- Long name :- String]
 (defmethod restructure-param :header-params [_ header-params acc]
-  "restructures query-params with plumbing letk notation. Example:
-   :header-params [id :- Long name :- String]"
   (let [schema (fnk-schema header-params)]
     (-> acc
         (update-in [:parameters :parameters] conj {:type :header :model schema})
         (update-in [:letks] into [header-params (src-coerce! schema :headers :query)]))))
 
+; restructures query-params with plumbing letk notation. Example:
+; :query-params [id :- Long name :- String]
 (defmethod restructure-param :query-params [_ query-params acc]
-  "restructures query-params with plumbing letk notation. Example:
-   :query-params [id :- Long name :- String]"
   (let [schema (fnk-schema query-params)]
     (-> acc
         (update-in [:parameters :parameters] conj {:type :query :model schema})
         (update-in [:letks] into [query-params (src-coerce! schema :query-params :query)]))))
 
+; restructures path-params by plumbing letk notation. Example:
+; :path-params [id :- Long name :- String]
 (defmethod restructure-param :path-params [_ path-params acc]
-  "restructures path-params by plumbing letk notation. Example:
-   :path-params [id :- Long name :- String]"
   (let [schema (fnk-schema path-params)]
     (-> acc
         (update-in [:parameters :parameters] conj {:type :path :model schema})
         (update-in [:letks] into [path-params (src-coerce! schema :route-params :query)]))))
 
+; Applies the given vector of middlewares for the route from left to right
 (defmethod restructure-param :middlewares [_ middlewares acc]
-  "Applies the given vector of middlewares for the route from left to right"
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
 

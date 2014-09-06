@@ -7,10 +7,10 @@
             :comments "same as Clojure"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [prismatic/plumbing "0.3.3"]
-                 [potemkin "0.3.4"]
+                 [potemkin "0.3.8"]
                  [cheshire "5.3.1"]
                  [compojure "1.1.8"]
-                 [prismatic/schema "0.2.4"]
+                 [prismatic/schema "0.2.6"]
                  [metosin/ring-http-response "0.5.0"]
                  [metosin/ring-swagger "0.13.0"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
@@ -18,7 +18,7 @@
                        :source-paths ["examples/src"]
                        :main examples.server
                        :dependencies [[metosin/ring-swagger-ui "2.0.17"]
-                                      [http-kit "2.1.18"]]}
+                                      [http-kit "2.1.19"]]}
              :uberjar {:aot :all}
              :dev {:ring {:handler examples.handler/app}
                    :plugins [[lein-clojars "0.9.1"]
@@ -27,6 +27,8 @@
                    :dependencies [[peridot "0.3.0"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.3"]]}}
+  :eastwood {:namespaces [:source-paths]
+             :add-linters [:unused-namespaces]}
   :aliases {"start-thingie"    ["with-profile" "thingie" "ring" "server"]
             "http-kit-thingie" ["with-profile" "thingie" "run"]
             "aot-uberjar"      ["with-profile" "thingie,uberjar" "do" "clean," "ring" "uberjar"]})

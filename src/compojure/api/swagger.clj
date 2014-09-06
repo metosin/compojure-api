@@ -5,16 +5,13 @@
             [clojure.walk :as walk]
             [clojure.set :refer [union]]
             [potemkin :refer [import-vars]]
-            [ring.util.response :refer :all]
             [ring.swagger.core :as swagger]
             [ring.swagger.impl :as swagger-impl]
             [ring.swagger.common :refer :all]
             [ring.swagger.schema :as schema]
             ring.swagger.ui
             [compojure.api.common :refer :all]
-            [compojure.api.core :as core]
             [compojure.api.routes :as routes]
-            [compojure.route :as route]
             [compojure.core :refer :all]))
 
 ;;
