@@ -2,7 +2,7 @@
   (:require [clojure.string :as st]
             [schema.core :as s]
             [plumbing.core :refer [fn->]]
-            [clojure.walk16 :as walk]
+            [clojure.walk :as walk]
             [clojure.set :refer [union]]
             [potemkin :refer [import-vars]]
             [ring.util.response :refer :all]

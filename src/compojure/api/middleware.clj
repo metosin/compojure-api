@@ -1,8 +1,5 @@
 (ns compojure.api.middleware
-  (:require [clojure.walk16 :as walk]
-            [ring.util.response :refer [response content-type redirect]]
-            [cheshire.core :as cheshire]
-            [clojure.java.io :as io]
+  (:require [ring.util.response :refer [response content-type redirect]]
             [compojure.route :as route]
             [compojure.core :refer :all]
             [ring.util.http-response :refer [bad-request]]
@@ -12,13 +9,6 @@
             ring.middleware.http-response
             ring.swagger.middleware
             [compojure.api.json :refer :all]))
-
-(defn keywordize-request
-  "keywordizes all ring-request keys recursively."
-  [handler]
-  (fn [request]
-    (handler
-      (walk/keywordize-keys request))))
 
 (defroutes public-resource-routes
   (GET "/" [] (redirect "/index.html"))

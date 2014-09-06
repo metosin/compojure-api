@@ -1,3 +1,8 @@
+## 0.16.0 (x.9.2014)
+
+- Some cleaning
+  - Requires now clojure 1.6.0 for `clojure.walk`
+
 ## 0.15.2 (4.9.2014)
 
 - Update to latest `ring-swagger`
