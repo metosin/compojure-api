@@ -63,6 +63,12 @@
           response (handler request)]
       (update-in response [:headers mw*] append))))
 
+(defn constant-middleware
+  "This middleware rewrites all responses with a constant response."
+  [handler & [res]]
+  (fn [request]
+    res))
+
 (defn reply-mw*
   "Handler which replies with response where a header contains copy
    of the headers value from request and 7"
@@ -101,6 +107,28 @@
       status => 200
       (get headers mw*) => "1234567654321")))
 
+(facts "middlewares - multiple routes"
+  (defapi api
+    (swaggered +name+
+      (GET* "/first" []
+        (ok {:value "first"}))
+      (GET* "/second" []
+        :middlewares [(constant-middleware (ok {:value"foo"}))]
+        (ok {:value "second"}))
+      (GET* "/third" []
+        (ok {:value "third"}))))
+  (fact "first returns first"
+    (let [[status body headers] (get* api "/first" {})]
+      status => 200
+      body => {:value "first"}))
+  (fact "second returns foo"
+    (let [[status body headers] (get* api "/second" {})]
+      status => 200
+      body => {:value "foo"}))
+  (fact "third returns third"
+    (let [[status body headers] (get* api "/third" {})]
+      status => 200
+      body => {:value "third"})))
 
 (fact ":body, :query and :return"
   (defapi api
