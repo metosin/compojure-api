@@ -99,8 +99,8 @@
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
-  [handler & {:keys [formats]
-              :or {formats [:json-kw :yaml-kw :edn :clojure :yaml-in-html :transit-json :transit-msgpack]}}]
+  [handler & [{:keys [formats]
+               :or {formats [:json-kw :yaml-kw :edn :clojure :yaml-in-html :transit-json :transit-msgpack]}}]]
   (-> handler
       ring.middleware.http-response/catch-response
       ring.swagger.middleware/catch-validation-errors

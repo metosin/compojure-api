@@ -15,9 +15,7 @@
     `(defroutes ~name
        (api-middleware
          (routes/with-routes ~@body)
-         ~@(reduce (fn [acc [k v]]
-                     (conj acc k v))
-                   [] opts)))))
+         ~opts))))
 
 (import-vars [compojure.api.meta middlewares])
 
