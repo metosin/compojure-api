@@ -32,10 +32,11 @@
       (catch clojure.lang.ExceptionInfo e
         (bad-request (ex-data e))))))
 
-(def ^:private mime-types (into {} (map (fn [[k x]]
-                                (let [t (:enc-type x)]
-                                  [k (str (:type t) "/" (:sub-type t))]))
-                              format-response/format-encoders)))
+;; ring-middleware-format stuff
+(def ^:private mime-types
+  (into {} (map (fn [[k {{:keys [type sub-type]} :enc-type}]]
+                  [k (str type "/" sub-type)])
+                format-response/format-encoders)))
 
 (def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
@@ -70,7 +71,7 @@
         (coll? body))))
 
 ;; Version which takes the predicate as a parameter
-;; TODO: Try to get merged to ring-middleware-format
+;; TODO: Try to get merged into ring-middleware-format
 (defn wrap-restful-response
   "Wrapper that tries to do the right thing with the response *:body*
    and provide a solid basis for a RESTful API. It will serialize to
