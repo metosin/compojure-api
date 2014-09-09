@@ -67,7 +67,8 @@
     (or (:compojure.api.meta/serializable? response)
         (coll? body))))
 
-;; Version with out serializable?
+;; Version which takes the predicate as a parameter
+;; TODO: Try to get merged to ring-middleware-format
 (defn wrap-restful-response
   "Wrapper that tries to do the right thing with the response *:body*
    and provide a solid basis for a RESTful API. It will serialize to
@@ -75,8 +76,9 @@
    See wrap-format-response for more details. Recognized formats are
    *:json*, *:json-kw*, *:edn* *:yaml*, *:yaml-in-html*, *:transit-json*,
    *:transit-msgpack*."
-  [handler & {:keys [handle-error formats charset binary?]
+  [handler & {:keys [handle-error predicate formats charset binary?]
               :or {handle-error format-response/default-handle-error
+                   predicate format-response/serializable?
                    charset format-response/default-charset-extractor
                    formats [:json :yaml :edn :clojure :yaml-in-html :transit-json :transit-msgpack]}}]
   (let [encoders (for [format formats
@@ -87,7 +89,7 @@
                        :when encoder]
                    encoder)]
     (format-response/wrap-format-response handler
-                                          :predicate serializable?
+                                          :predicate predicate
                                           :encoders encoders
                                           :binary? binary?
                                           :charset charset
@@ -109,7 +111,8 @@
         :formats request-formats
         :handle-error handle-req-error)
       (wrap-restful-response
-        :formats response-formats)
+        :formats response-formats
+        :predicate serializable?)
       wrap-keyword-params
       wrap-nested-params
       wrap-params))

@@ -2,6 +2,8 @@
 
 - Some cleaning
   - Requires now clojure 1.6.0 for `clojure.walk`
+- Support other formats in addition to JSON
+  - Uses now the [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format) to parse requests and encode responses
 
 ## 0.15.2 (4.9.2014)
 
