@@ -40,7 +40,7 @@
 
 (def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
-(defn wrap-swagger [handler & {:keys [response-formats request-formats]}]
+(defn wrap-publish-swagger-formats [handler & {:keys [response-formats request-formats]}]
   (fn [request]
     (-> request
         (assoc-in [:meta :consumes] (map mime-types request-formats))
@@ -106,7 +106,7 @@
       ring.middleware.http-response/catch-response
       ring.swagger.middleware/catch-validation-errors
       ex-info-support
-      (wrap-swagger
+      (wrap-publish-swagger-formats
         :request-formats (remove response-only-mimes formats)
         :response-formats formats)
       (wrap-restful-params
