@@ -32,9 +32,6 @@
       (catch clojure.lang.ExceptionInfo e
         (bad-request (ex-data e))))))
 
-;; All mime-types supported by default mw-format
-;; FIXME: Extension point to mw-format which can be used to modify req?
-;; So that we can check which formats are enabled
 (def mime-types (into {} (map (fn [[k x]]
                                 (let [t (:enc-type x)]
                                   [k (str (:type t) "/" (:sub-type t))]))
