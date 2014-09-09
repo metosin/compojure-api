@@ -369,7 +369,7 @@ Key `:responses` takes a map of http-status-code -> model map, which translates 
 
 ## Route-specific middlewares
 
-Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds from within the route body.
+Key `:middlewares` takes a vector of middlewares to be applied to the route. Note that the middlewares are wrapped around the route, so they don't see any restructured bindinds from within the route body and they **are applied before the actual route is being matched**.
 
 ```clojure
  (DELETE* "/user/:id" []
