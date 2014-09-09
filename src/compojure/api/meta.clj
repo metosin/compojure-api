@@ -169,22 +169,36 @@
     `(-> (routes ~@body)
          ~@middlewares)))
 
-(defn- destructure-compojure-api-request [lets arg]
+(defmacro route-middlewares
+  "Wraps route body in mock-handler and middlewares."
+  [middlewares body arg]
+  (let [middlewares (reverse middlewares)]
+    `((-> (fn [~arg] ~body) ~@middlewares) ~arg)))
+
+(defn- destructure-compojure-api-request
+  "Returns a vector of three elements:
+   - new lets list
+   - bindings form for compojure route
+   - symbol to which request will be bound"
+  [lets arg]
   (cond
-    (vector? arg) [lets (into arg [:as +compojure-api-request+])]
+    ;; GET "/route" []
+    (vector? arg) [lets (into arg [:as +compojure-api-request+]) +compojure-api-request+]
+    ;; GET "/route" {:as req}
     (map? arg) (if-let [as (:as arg)]
-                 [(conj lets +compojure-api-request+ as) arg]
-                 [lets (merge arg [:as +compojure-api-request+])])
-    (symbol? arg) [(conj lets +compojure-api-request+ arg) arg]
+                 [(conj lets +compojure-api-request+ as) arg as]
+                 [lets (merge arg [:as +compojure-api-request+]) +compojure-api-request+])
+    ;; GET "/route" req
+    (symbol? arg) [(conj lets +compojure-api-request+ arg) arg arg]
     :else (throw
             (RuntimeException.
-              (str "unknown compojure destruction synxax: " arg)))))
+              (str "unknown compojure destruction syntax: " arg)))))
 
 (defn restructure [method [path arg & args]]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         [lets letks responses middlewares] [[] [] nil nil]
-        [lets arg-with-request] (destructure-compojure-api-request lets arg)
+        [lets arg-with-request arg] (destructure-compojure-api-request lets arg)
 
         {:keys [lets
                 letks
@@ -202,7 +216,7 @@
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
         body (if (seq parameters) `(meta-container ~parameters ~body) body)
+        body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
         body `(~method-symbol ~path ~arg-with-request ~body)
-        body (if (seq middlewares) `(middlewares [~@middlewares] ~body) body)
         body (if responses `(body-coercer-middleware ~body  ~responses) body)]
     body))
