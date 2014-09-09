@@ -4,14 +4,13 @@
             [compojure.api.routes :as routes]
             [compojure.api.middleware :refer [api-middleware]]
             [compojure.api.meta :refer [restructure]]
+            [ring.swagger.common :refer [extract-parameters]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
 (defmacro defapi
   "If first element of body is a map, it will be used as options for api-middleware."
   [name & body]
-  (let [[body opts] (if (map? (first body))
-                      [(rest body) (first body)]
-                      [body nil])]
+  (let [[opts body] (extract-parameters body)]
     `(defroutes ~name
        (api-middleware
          (routes/with-routes ~@body)
