@@ -32,10 +32,12 @@
       (catch clojure.lang.ExceptionInfo e
         (bad-request (ex-data e))))))
 
-(def mime-types (into {} (map (fn [[k x]]
+(def ^:private mime-types (into {} (map (fn [[k x]]
                                 (let [t (:enc-type x)]
                                   [k (str (:type t) "/" (:sub-type t))]))
                               format-response/format-encoders)))
+
+(def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
 (defn wrap-swagger [handler & {:keys [response-formats request-formats]}]
   (fn [request]
@@ -97,21 +99,20 @@
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
-  [handler & {:keys [request-formats response-formats]
-              :or {request-formats [:json-kw :edn :yaml-kw :transit-msgpack :transit-json]
-                   response-formats [:json :yaml :edn :clojure :yaml-in-html :transit-json :transit-msgpack]}}]
+  [handler & {:keys [formats]
+              :or {formats [:json-kw :yaml-kw :edn :clojure :yaml-in-html :transit-json :transit-msgpack]}}]
   (-> handler
       ring.middleware.http-response/catch-response
       ring.swagger.middleware/catch-validation-errors
       ex-info-support
       (wrap-swagger
-        :request-formats request-formats
-        :response-formats response-formats)
+        :request-formats (remove response-only-mimes formats)
+        :response-formats formats)
       (wrap-restful-params
-        :formats request-formats
+        :formats (remove response-only-mimes formats)
         :handle-error handle-req-error)
       (wrap-restful-response
-        :formats response-formats
+        :formats formats
         :predicate serializable?)
       wrap-keyword-params
       wrap-nested-params
