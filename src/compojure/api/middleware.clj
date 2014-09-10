@@ -62,8 +62,8 @@
 
 (defn serializable?
   "Predicate which return true if the response body is serializable.
-   That is, return type is set by :return compojure-api key or it's not
-   string, File or InputStream."
+   That is, return type is set by :return compojure-api key or it's
+   a collection."
   [_ {:keys [body] :as response}]
   (when response
     (or (:compojure.api.meta/serializable? response)

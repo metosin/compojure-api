@@ -155,7 +155,7 @@ There is also `defapi` as a short form for the common case of defining routes wi
 Middlewares (and other handlers) can publish their capabilities to consume & produce different wire-formats.
 This information is passed to `ring-swagger` and added to swagger-docs & is available in the swagger-ui.
 
-The default middleware on Compojure-API includes [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format)
+The default middlewares on Compojure-API includes [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format)
 which supports multiple formats. If the first element of `defapi` body is a map it will be used to pass parameters to
 `api-middleware`, e.g. the formats which should be enabled.
 
