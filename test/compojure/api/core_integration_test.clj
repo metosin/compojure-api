@@ -8,32 +8,43 @@
             [compojure.core :as compojure]
             [clojure.java.io :as io]
             [compojure.api.sweet :refer :all]
-            [compojure.api.test-domain :as domain])
+            [compojure.api.test-domain :as domain]
+            [compojure.api.test-utils :refer :all])
   (:import [java.io ByteArrayInputStream]))
 
 ;;
 ;; common
 ;;
 
-(defn get* [app uri & [params headers]]
+(defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :get
                        :params (or params {})
                        :headers (or headers {})))]
-    [status (cheshire/parse-string body true) headers]))
+    [status (read-body body) headers]))
+
+(defn get* [app uri & [params headers]]
+  (let [[status body headers]
+        (raw-get* app uri params headers)]
+    [status (parse-body body) headers]))
 
 (defn json [x] (cheshire/generate-string x))
 
-(defn post* [app uri & [data]]
+(defn raw-post* [app uri & [data content-type headers]]
   (let [{{:keys [status body]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :post
-                       :content-type "application/json"
+                       :headers (or headers {})
+                       :content-type (or content-type "application/json")
                        :body (.getBytes data)))]
-    [status (cheshire/parse-string body true)]))
+    [status (read-body body)]))
+
+(defn post* [app uri & [data]]
+  (let [[status body] (raw-post* app uri data)]
+    [status (parse-body body)]))
 
 ;;
 ;; Data
@@ -349,17 +360,18 @@
           (ok "kikka")))))
 
   (fact "when :return is set, longs can be returned"
-    (let [[status body] (get* api "/primitives/return-long")]
+    (let [[status body] (raw-get* api "/primitives/return-long")]
       status => 200
-      body => 1))
+      body => "1"))
 
-  (fact "when :return is not set, longs can't be returned"
-    (get* api "/primitives/long") => (throws Exception))
+  (fact "when :return is not set, longs won't be encoded"
+    (let [[status body] (raw-get* api "/primitives/long")]
+      body => number?))
 
   (fact "when :return is set, raw strings can be returned"
-    (let [[status body] (get* api "/primitives/return-string")]
+    (let [[status body] (raw-get* api "/primitives/return-string")]
       status => 200
-      body => "kikka")))
+      body => "\"kikka\"")))
 
 (fact "compojure destructuring support"
   (defapi api
@@ -413,6 +425,7 @@
 
 (fact "swagger-docs"
   (defapi api
+    {:formats [:json-kw :edn]}
     (swagger-docs)
     (swaggered +name+
       (GET* "/user" []
@@ -435,8 +448,8 @@
                :resourcePath "/"
                :models {}
                :basePath "http://localhost"
-               :consumes ["application/json"]
-               :produces ["application/json"]
+               :consumes ["application/json" "application/edn"]
+               :produces ["application/json" "application/edn"]
                :apis [{:operations [{:method "GET"
                                      :nickname "getUser"
                                      :notes ""
@@ -490,3 +503,31 @@
       (->> body
            :apis
            (map :path)) => ["/" "/a" "/b/b1" "/b" "/b//b2"]))))
+
+(fact "formats supported by ring-middleware-format"
+  (defapi api
+    (swaggered +name+
+      (POST* "/echo" []
+        :body-params [foo :- String]
+        (ok {:foo foo}))))
+
+  (tabular
+    (facts
+      (fact {:midje/description (str ?content-type " to json")}
+        (let [[status body headers]
+              (raw-post* api "/echo" ?body ?content-type {:accept "application/json"})]
+          status => 200
+          body => "{\"foo\":\"bar\"}"))
+      (fact {:midje/description (str "json to " ?content-type)}
+        (let [[status body headers]
+              (raw-post* api "/echo" "{\"foo\":\"bar\"}" "application/json" {:accept ?content-type})]
+          status => 200
+          body => ?body)))
+
+    ?content-type ?body
+    "application/json" "{\"foo\":\"bar\"}"
+    "application/x-yaml" "{foo: bar}\n"
+    "application/edn" "{:foo \"bar\"}"
+    ;; FIXME: Broken on ring-middleware-format 0.4.0, waiting for fix to be merged
+    ; "application/transit+json" "[\"^ \",\"~:foo\",\"bar\"]"
+    ))

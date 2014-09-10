@@ -4,9 +4,9 @@
             [compojure.api.routes :as routes]
             [ring.mock.request :refer :all]
             [ring.swagger.schema :refer [describe]]
-            [cheshire.core :as cheshire]
             [compojure.core :as compojure]
-            [compojure.api.sweet :refer :all]))
+            [compojure.api.sweet :refer :all]
+            [compojure.api.test-utils :refer :all]))
 
 (s/defschema Band {:id s/Int
                    :name s/Str
@@ -105,7 +105,7 @@
 
   (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))
-          body (cheshire/parse-string body true)]
+          body (parse-body body)]
       status => 200
       body => {:apiVersion "0.0.1"
                :apis [{:description "sample api"
@@ -115,6 +115,6 @@
 
   (fact "api-details works"
     (let [{:keys [body status]} (api (request :get (str "/api/api-docs/" app-name)))
-          body (cheshire/parse-string body true)]
+          body (parse-body body)]
       status => 200
       body => truthy)))
