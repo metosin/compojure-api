@@ -87,6 +87,13 @@
   (-> (ok "true")
       (header mw* (str (get-in request [:headers mw*]) 7))))
 
+(defn middleware-x
+  "If request has query-param x, presume it's a integer and multiply it by two
+   before passing request to next handler."
+  [handler]
+  (fn [req]
+    (handler (update-in req [:query-params "x"] #(* (Integer. %) 2)))))
+
 ;;
 ;; Facts
 ;;
@@ -140,6 +147,18 @@
     (let [[status body headers] (get* api "/third" {})]
       status => 200
       body => {:value "third"})))
+
+(facts "middlewares - editing request"
+  (defapi api
+    (swaggered +name+
+      (GET* "/first" []
+        :query-params [x :- Long]
+        :middlewares [middleware-x]
+        (ok {:value x}))))
+  (fact "middleware edits the parameter before route body"
+    (let [[status body headers] (get* api "/first?x=5" {})]
+      status => 200
+      body => {:value 10})))
 
 (fact ":body, :query and :return"
   (defapi api
