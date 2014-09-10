@@ -1,8 +1,7 @@
 (ns compojure.api.middleware
-  (:require [ring.util.response :refer [response content-type redirect]]
-            [compojure.route :as route]
+  (:require [compojure.route :as route]
             [compojure.core :refer :all]
-            [ring.util.http-response :refer [bad-request internal-server-error]]
+            [ring.util.http-response :refer :all]
             [ring.middleware.format-response :as format-response]
             [ring.middleware.format-params :as format-params :refer [wrap-restful-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
@@ -12,7 +11,7 @@
             ring.swagger.middleware))
 
 (defroutes public-resource-routes
-  (GET "/" [] (redirect "/index.html"))
+  (GET "/" [] (found "/index.html"))
   (route/resources "/"))
 
 (defn public-resources
