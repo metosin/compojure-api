@@ -215,8 +215,8 @@
         body `(do ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
-        body (if (seq parameters) `(meta-container ~parameters ~body) body)
         body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
+        body (if (seq parameters) `(meta-container ~parameters ~body) body)
         body `(~method-symbol ~path ~arg-with-request ~body)
         body (if responses `(body-coercer-middleware ~body  ~responses) body)]
     body))
