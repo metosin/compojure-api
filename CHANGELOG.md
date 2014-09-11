@@ -1,3 +1,8 @@
+## 0.16.1 (11.9.2014)
+
+- Compiled without AOT
+- Removed `:yaml-in-html` and `:clojure` from default response formats
+
 ## 0.16.0 (10.9.2014)
 
 - Some cleaning
