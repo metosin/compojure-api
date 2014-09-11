@@ -34,4 +34,4 @@
             "http-kit-thingie" ["with-profile" "thingie" "run"]
             "aot-uberjar"      ["with-profile" "thingie,uberjar" "do" "clean," "ring" "uberjar"]
             "deploy!"          ^{:doc "Recompile sources, then deploy if tests succeed."}
-            ["do" "clean" "midje" ["deploy" "clojars"]]})
+            ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
