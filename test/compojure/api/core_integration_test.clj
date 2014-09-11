@@ -478,6 +478,25 @@
                                      :type "void"}]
                        :path "/user"}]})))
 
+(fact "swagger-docs works with the :middlewares"
+  (defapi api
+    (swagger-docs)
+    (swaggered +name+
+      (GET* "/middleware" []
+        :query-params [x :- String]
+        :middlewares [(constant-middleware (ok 1))]
+        (ok 2))))
+
+  (fact "api-docs"
+    (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+      status => 200
+      (-> body  :apis first :operations first :parameters first) =>
+      {:description ""
+       :name "x"
+       :paramType "query"
+       :required true
+       :type "string"})))
+
 (fact "sub-context paths"
   (let [response {:ping "pong"}
         ok (ok response)

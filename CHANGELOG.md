@@ -1,3 +1,7 @@
+## 0.16.2 (11.9.2014)
+
+- Fixed #47: `:middlewares` broke route parameters
+
 ## 0.16.1 (11.9.2014)
 
 - Compiled without AOT
