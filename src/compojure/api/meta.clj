@@ -12,8 +12,6 @@
             [clojure.walk16 :refer [keywordize-keys]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
-(def tom true)
-
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
