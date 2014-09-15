@@ -12,6 +12,8 @@
             [clojure.walk16 :refer [keywordize-keys]]
             [clojure.tools.macro :refer [name-with-attributes]]))
 
+(def tom true)
+
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
@@ -130,6 +132,14 @@
     (-> acc
         (update-in [:parameters :parameters] conj {:type :body :model schema})
         (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)]))))
+
+(defmethod restructure-param :form-params [_ form-params acc]
+  "restructures form-params with plumbing letk notation. Example:
+   :form-params [id :- Long name :- String]"
+  (let [schema (strict (fnk-schema form-params))]
+    (-> acc
+        (update-in [:parameters :parameters] conj {:type :form :model schema})
+        (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)]))))
 
 (defmethod restructure-param :header-params [_ header-params acc]
   "restructures query-params with plumbing letk notation. Example:
