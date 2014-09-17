@@ -69,6 +69,12 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
+      (POST* "/times" []
+        :return      Total
+        :form-params [x :- Long y :- Long]
+        :summary     "x/y with form-parameters"
+        (ok {:total (quot x y)}))
+
       (GET* "/power" []
         :return      Total
         :header-params [x :- Long y :- Long]
