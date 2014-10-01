@@ -2,7 +2,7 @@
   (:require [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
             [ring.util.http-response :refer [internal-server-error]]
-            [plumbing.core :refer :all]
+            [plumbing.core :refer :all :exclude [update]]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.schema :as schema]
             [ring.swagger.common :refer :all]
