@@ -1,11 +1,11 @@
 (ns compojure.api.core
-  (:require [potemkin :refer [import-vars]]
-            [compojure.core :refer :all]
-            [compojure.api.routes :as routes]
-            [compojure.api.middleware :refer [api-middleware]]
+  (:require [clojure.tools.macro :refer [name-with-attributes]]
             [compojure.api.meta :refer [restructure]]
-            [ring.swagger.common :refer [extract-parameters]]
-            [clojure.tools.macro :refer [name-with-attributes]]))
+            [compojure.api.middleware :refer [api-middleware]]
+            [compojure.api.routes :as routes]
+            [compojure.core :refer :all]
+            [potemkin :refer [import-vars]]
+            [ring.swagger.common :refer [extract-parameters]]))
 
 (defmacro defapi
   "If first element of body is a map, it will be used as options for api-middleware."

@@ -1,6 +1,6 @@
 (ns compojure.api.legacy
-  (:require [potemkin :refer [import-vars]]
-            compojure.core))
+  (:require compojure.core
+            [potemkin :refer [import-vars]]))
 
 (import-vars
 

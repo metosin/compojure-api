@@ -1,13 +1,13 @@
 (ns compojure.api.meta
-  (:require [compojure.api.common :refer :all]
+  (:require [clojure.walk :refer [keywordize-keys]]
+            [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
-            [ring.util.http-response :refer [internal-server-error]]
             [plumbing.core :refer :all :exclude [update]]
             [plumbing.fnk.impl :as fnk-impl]
-            [ring.swagger.schema :as schema]
             [ring.swagger.common :refer :all]
-            [schema.core :as s]
-            [clojure.walk :refer [keywordize-keys]]))
+            [ring.swagger.schema :as schema]
+            [ring.util.http-response :refer [internal-server-error]]
+            [schema.core :as s]))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."

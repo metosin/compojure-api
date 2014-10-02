@@ -1,15 +1,15 @@
 (ns compojure.api.core-integration-test
-  (:require [midje.sweet :refer :all]
-            [schema.core :as s]
-            [compojure.api.swagger :as swagger]
-            [ring.util.http-response :refer :all]
-            [peridot.core :as p]
-            [cheshire.core :as cheshire]
-            [compojure.core :as compojure]
+  (:require [cheshire.core :as cheshire]
             [clojure.java.io :as io]
+            [compojure.api.swagger :as swagger]
             [compojure.api.sweet :refer :all]
             [compojure.api.test-domain :as domain]
-            [compojure.api.test-utils :refer :all])
+            [compojure.api.test-utils :refer :all]
+            [compojure.core :as compojure]
+            [midje.sweet :refer :all]
+            [peridot.core :as p]
+            [ring.util.http-response :refer :all]
+            [schema.core :as s])
   (:import [java.io ByteArrayInputStream]))
 
 ;;

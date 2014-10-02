@@ -1,7 +1,7 @@
 (ns compojure.api.swagger-ordering-test
-  (:require [midje.sweet :refer :all]
-            [compojure.api.routes :as routes]
-            [compojure.api.sweet :refer :all]))
+  (:require [compojure.api.routes :as routes]
+            [compojure.api.sweet :refer :all]
+            [midje.sweet :refer :all]))
 
 (def app-name (str (gensym)))
 

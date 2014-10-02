@@ -1,12 +1,12 @@
 (ns compojure.api.sweet-test
-  (:require [midje.sweet :refer :all]
-            [schema.core :as s]
-            [compojure.api.routes :as routes]
+  (:require [compojure.api.routes :as routes]
+            [compojure.api.sweet :refer :all]
+            [compojure.api.test-utils :refer :all]
+            [compojure.core :as compojure]
+            [midje.sweet :refer :all]
             [ring.mock.request :refer :all]
             [ring.swagger.schema :refer [describe]]
-            [compojure.core :as compojure]
-            [compojure.api.sweet :refer :all]
-            [compojure.api.test-utils :refer :all]))
+            [schema.core :as s]))
 
 (s/defschema Band {:id s/Int
                    :name s/Str

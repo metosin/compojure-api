@@ -1,8 +1,8 @@
 (ns compojure.api.swagger-test
-  (:require [midje.sweet :refer :all]
+  (:require [compojure.api.core :refer :all]
+            [compojure.api.swagger :refer :all]
             [compojure.core :refer :all]
-            [compojure.api.core :refer :all]
-            [compojure.api.swagger :refer :all]))
+            [midje.sweet :refer :all]))
 
 (fact "extracting compojure paths"
 

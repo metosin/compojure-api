@@ -1,6 +1,6 @@
 (ns compojure.api.middleware-test
-  (:require [midje.sweet :refer :all]
-            [compojure.api.middleware :refer :all]
+  (:require [compojure.api.middleware :refer :all]
+            [midje.sweet :refer :all]
             ring.util.test))
 
 (facts serializable?

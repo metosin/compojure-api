@@ -1,6 +1,6 @@
 (ns compojure.api.common-test
-  (:require [midje.sweet :refer :all]
-            [compojure.api.common :refer :all]
+  (:require [compojure.api.common :refer :all]
+            [midje.sweet :refer :all]
             potemkin))
 
 (fact "path-vals"

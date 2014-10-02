@@ -1,8 +1,8 @@
 (ns compojure.api.sweet
-  (:require [potemkin :refer [import-vars]]
+  (:require compojure.api.core
+            compojure.api.swagger
             compojure.core
-            compojure.api.core
-            compojure.api.swagger))
+            [potemkin :refer [import-vars]]))
 
 (import-vars
 

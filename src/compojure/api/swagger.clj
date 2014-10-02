@@ -1,18 +1,18 @@
 (ns compojure.api.swagger
-  (:require [clojure.string :as st]
-            [schema.core :as s]
-            [plumbing.core :refer [fn->]]
+  (:require [clojure.set :refer [union]]
+            [clojure.string :as st]
             [clojure.walk :as walk]
-            [clojure.set :refer [union]]
-            [potemkin :refer [import-vars]]
-            [ring.swagger.core :as swagger]
-            [ring.swagger.impl :as swagger-impl]
-            [ring.swagger.common :refer :all]
-            [ring.swagger.schema :as schema]
-            ring.swagger.ui
             [compojure.api.common :refer :all]
             [compojure.api.routes :as routes]
-            [compojure.core :refer :all]))
+            [compojure.core :refer :all]
+            [plumbing.core :refer [fn->]]
+            [potemkin :refer [import-vars]]
+            [ring.swagger.common :refer :all]
+            [ring.swagger.core :as swagger]
+            [ring.swagger.impl :as swagger-impl]
+            [ring.swagger.schema :as schema]
+            ring.swagger.ui
+            [schema.core :as s]))
 
 ;;
 ;; Schema helpers
