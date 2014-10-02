@@ -1,6 +1,4 @@
-# Compojure-api
-
-[![Build Status](https://travis-ci.org/metosin/compojure-api.png)](https://travis-ci.org/metosin/compojure-api)
+# Compojure-api [![Build Status](https://travis-ci.org/metosin/compojure-api.png)](https://travis-ci.org/metosin/compojure-api)
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
