@@ -26,6 +26,7 @@
   (swagger-docs
     :title "Api thingies"
     :description "playing with things")
+
   (swaggered "math"
     :description "Math with parameters"
     (context "/math" []
@@ -51,17 +52,28 @@
         :summary     "x*y with path-parameters"
         (ok {:total (* x y)}))
 
+      (POST* "/req" req (ok (dissoc req :body )))
+
+      (POST* "/divided" []
+         :return      Total
+         :form-params [x :- Long y :- Long]
+         :summary     "x/y with body-parameters"
+         (ok {:total (/ x y)}))
+
       (GET* "/power" []
         :return        Total
         :header-params [x :- Long y :- Long]
         :summary       "x^y with header-parameters"
         (ok {:total (long (Math/pow x y))}))))
+
   (swaggered "pizza"
     :description "Pizza api"
     pizza-routes)
+
   (swaggered "dates"
     :description "Roundrobin of Dates"
     date-routes)
+
   (swaggered "responses"
     :description "responses demo"
     (context "/responses" []
