@@ -323,7 +323,7 @@
         body => (contains {:errors {:return "missing-required-key"
                                     :value "disallowed-key"}})))))
 
-(fact ":query-params, :path-params, :header-params & :body-params"
+(fact ":query-params, :path-params, :header-params , :body-params and :form-params"
   (defapi api
     (swaggered +name+
       (context "/smart" []
@@ -338,7 +338,10 @@
           (ok {:total (long (Math/pow x y))}))
         (POST* "/minus" []
           :body-params [x :- Long {y :- Long 1}]
-          (ok {:total (- x y)})))))
+          (ok {:total (- x y)}))
+        (POST* "/divide" []
+          :form-params [x :- Long y :- Long ]
+          (ok {:total (quot x y)})))))
 
   (fact "query-parameters"
     (let [[status body] (get* api "/smart/plus" {:x 2 :y 3})]
