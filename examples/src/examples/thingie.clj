@@ -55,7 +55,7 @@
       (POST* "/req" req (ok (dissoc req :body )))
 
       (POST* "/divided" []
-         :return      Total
+         :return      {:total Double}
          :form-params [x :- Long y :- Long]
          :summary     "x/y with body-parameters"
          (ok {:total (/ x y)}))

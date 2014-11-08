@@ -16,6 +16,8 @@
 ;; common
 ;;
 
+(defn json [x] (cheshire/generate-string x))
+
 (defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
@@ -30,7 +32,13 @@
         (raw-get* app uri params headers)]
     [status (parse-body body) headers]))
 
-(defn json [x] (cheshire/generate-string x))
+(defn form-post* [app uri params]
+  (let [{{:keys [status body]} :response}
+        (-> (p/session app)
+            (p/request uri
+                       :request-method :post
+                       :params params))]
+    [status (parse-body body)]))
 
 (defn raw-post* [app uri & [data content-type headers]]
   (let [{{:keys [status body]} :response}
@@ -340,15 +348,15 @@
           :body-params [x :- Long {y :- Long 1}]
           (ok {:total (- x y)}))
         (POST* "/divide" []
-          :form-params [x :- Long y :- Long ]
-          (ok {:total (quot x y)})))))
+          :form-params [x :- Long y :- Long]
+          (ok {:total (/ x y)})))))
 
   (fact "query-parameters"
     (let [[status body] (get* api "/smart/plus" {:x 2 :y 3})]
       status => 200
       body => {:total 5}))
 
-  (fact "query-parameters"
+  (fact "path-parameters"
     (let [[status body] (get* api "/smart/multiply/2/3")]
       status => 200
       body => {:total 6}))
@@ -357,6 +365,11 @@
     (let [[status body] (get* api "/smart/power" {} {:x 2 :y 3})]
       status => 200
       body => {:total 8}))
+
+  (fact "form-parameters"
+    (let [[status body] (form-post* api "/smart/divide" {:x 6 :y 3})]
+      status => 200
+      body => {:total 2}))
 
   (fact "body-parameters"
     (let [[status body] (post* api "/smart/minus" (json {:x 2 :y 3}))]
