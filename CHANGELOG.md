@@ -1,3 +1,7 @@
+## 0.16.3 (9.11.2014)
+
+- support for `:form-parameters`, thanks to [Thomas Whitcomb](https://github.com/thomaswhitcomb)
+
 ## 0.16.2 (11.9.2014)
 
 - Fixed #47: `:middlewares` broke route parameters

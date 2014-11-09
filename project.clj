@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.16.2"
+(defproject metosin/compojure-api "0.16.3"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -36,4 +36,5 @@
             "http-kit-thingie" ["with-profile" "thingie" "run"]
             "aot-uberjar"      ["with-profile" "thingie,uberjar" "do" "clean," "ring" "uberjar"]
             "deploy!"          ^{:doc "Recompile sources, then deploy if tests succeed."}
+            "test-ancient"     ["midje"]
             ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})

@@ -54,11 +54,11 @@
 
       (POST* "/req" req (ok (dissoc req :body )))
 
-      (POST* "/divided" []
-         :return      {:total Double}
-         :form-params [x :- Long y :- Long]
-         :summary     "x/y with body-parameters"
-         (ok {:total (/ x y)}))
+      (POST* "/divide" []
+        :return      {:total Double}
+        :form-params [x :- Long y :- Long]
+        :summary     "x/y with form-parameters"
+        (ok {:total (/ x y)}))
 
       (GET* "/power" []
         :return        Total

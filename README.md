@@ -31,8 +31,6 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
                       :chief [{:name String
                                :type #{{:id String}}}]})
 
-(s/defschema FlatThingie (dissoc Thingie :chief))
-
 ;;
 ;; Routes
 ;;
@@ -73,6 +71,12 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         :summary     "x/y with form-parameters"
         (ok {:total (quot x y)}))
 
+      (POST* "/divide" []
+        :return      {:total Double}
+        :form-params [x :- Long y :- Long]
+        :summary     "x/y with form-parameters"
+        (ok {:total (/ x y)}))
+
       (GET* "/power" []
         :return      Total
         :header-params [x :- Long y :- Long]
@@ -80,12 +84,6 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         (ok {:total (long (Math/pow x y))}))
 
       legacy-route
-
-      (GET* "/echo" []
-        :return   FlatThingie
-        :query    [thingie FlatThingie]
-        :summary  "echoes a FlatThingie from query-params"
-        (ok thingie))
 
       (PUT* "/echo" []
         :return   [{:hot Boolean}]
@@ -112,7 +110,8 @@ Use a Leiningen template: `lein new compojure-api my-api`
 
 ## Current (major) issues
 
-* `defroutes*` does not handle swagger-meta-data namespace resolution correctly. One has to import all used namespaces to root api namespace. See https://github.com/metosin/compojure-api/issues/42. `defroutes*` will be rewritten for Swagger 2.0.
+* `defroutes*` does not handle swagger-meta-data model namespace resolution correctly. One has to import all used namespaces to root api namespace. See https://github.com/metosin/compojure-api/issues/42. `defroutes*` will be rewritten for Swagger 2.0.
+   - currently best way is to push all api models into separate namespace.
 
 # Building Documented Apis
 
@@ -122,7 +121,9 @@ There is pre-packaged middleware `compojure.api.middleware/api-middleware` for c
 
 - catching slinghotted http-errors (`ring.middleware.http-response/catch-response`)
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
-- json request & response parsing (`compojure.api.json/json-support`)
+- support for different protocols via `ring.middleware.format-params.wrap-restful-params` and `compojure.api.middleware/wrap-restful-response`
+    - default supported protocols are:
+       - `:json-kw`, `:yaml-kw`, `:edn`, `:transit-json` and `:transit-msgpack`
 
 ### Mounting middlewares
 
@@ -156,12 +157,9 @@ There is also `defapi` as a short form for the common case of defining routes wi
 
 ## Request & response formats
 
-Middlewares (and other handlers) can publish their capabilities to consume & produce different wire-formats.
-This information is passed to `ring-swagger` and added to swagger-docs & is available in the swagger-ui.
+Middlewares (and other handlers) can publish their capabilities to consume & produce different wire-formats. This information is passed to `ring-swagger` and added to swagger-docs & is available in the swagger-ui.
 
-The default middlewares on Compojure-API includes [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format)
-which supports multiple formats. If the first element of `defapi` body is a map it will be used to pass parameters to
-`api-middleware`, e.g. the formats which should be enabled.
+The default middlewares on Compojure-API includes [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format) which supports multiple formats. If the first element of `defapi` body is a map it will be used to pass parameters to `api-middleware`, e.g. the formats which should be enabled.
 
 ```clojure
 (defapi app
@@ -329,6 +327,11 @@ All parameters can also be destructured using the [Plumbing](https://github.com/
 (GET* "/times/:x/:y" []
   :path-params [x :- Long, y :- Long]
   (ok {:total (* x y)}))
+
+(POST* "/divide" []
+  :return Double
+  :form-params [x :- Long, y :- Long]
+  (ok {:total (/ x y)}))
 
 (POST* "/minus" []
   :body-params [x :- Long, y :- Long]
