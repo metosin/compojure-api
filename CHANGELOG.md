@@ -1,6 +1,17 @@
 ## 0.16.3 (9.11.2014)
 
 - support for `:form-parameters`, thanks to [Thomas Whitcomb](https://github.com/thomaswhitcomb)
+- update deps:
+
+```clojure
+[prismatic/plumbing "0.3.5"] is available but we use "0.3.3"
+[potemkin "0.3.11"] is available but we use "0.3.8"
+[compojure "1.2.1"] is available but we use "1.1.9"
+[prismatic/schema "0.3.2"] is available but we use "0.2.6"
+[metosin/ring-http-response "0.5.1"] is available but we use "0.5.0"
+[metosin/ring-swagger "0.14.0"] is available but we use "0.13.0"
+[lein-ring "0.8.13"] is available but we use "0.8.11"
+```
 
 ## 0.16.2 (11.9.2014)
 
