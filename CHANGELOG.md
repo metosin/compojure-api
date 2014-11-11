@@ -1,3 +1,11 @@
+## 0.16.4 (10.11.2014)
+
+- use `[org.tobereplaced/lettercase "1.0.0"]` for camel-casing (see https://github.com/metosin/compojure-api-examples/issues/1#issuecomment-62580504)
+- updated deps:
+```clojure
+[metosin/ring-swagger "0.14.1"] is available but we use "0.14.0"
+```
+
 ## 0.16.3 (9.11.2014)
 
 - support for `:form-parameters`, thanks to [Thomas Whitcomb](https://github.com/thomaswhitcomb)
