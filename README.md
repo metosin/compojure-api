@@ -23,8 +23,6 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ;; Schemas
 ;;
 
-(s/defschema Total {:total Long})
-
 (s/defschema Thingie {:id Long
                       :hot Boolean
                       :tag (s/enum :kikka :kukka)
@@ -48,40 +46,34 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
     (context "/api" []
 
       (GET* "/plus" []
-        :return       Total
+        :return       Long
         :query-params [x :- Long {y :- Long 1}]
         :summary      "x+y with query-parameters. y defaults to 1."
-        (ok {:total (+ x y)}))
+        (ok (+ x y)))
 
       (POST* "/minus" []
-        :return      Total
+        :return      Long
         :body-params [x :- Long y :- Long]
         :summary     "x-y with body-parameters."
-        (ok {:total (- x y)}))
+        (ok (- x y)))
 
       (GET* "/times/:x/:y" []
-        :return      Total
+        :return      Long
         :path-params [x :- Long y :- Long]
         :summary     "x*y with path-parameters"
-        (ok {:total (* x y)}))
+        (ok (* x y)))
 
       (POST* "/divide" []
-        :return      Total
+        :return      Double
         :form-params [x :- Long y :- Long]
         :summary     "x/y with form-parameters"
-        (ok {:total (quot x y)}))
-
-      (POST* "/divide" []
-        :return      {:total Double}
-        :form-params [x :- Long y :- Long]
-        :summary     "x/y with form-parameters"
-        (ok {:total (/ x y)}))
+        (ok (/ x y)))
 
       (GET* "/power" []
-        :return      Total
+        :return      Long
         :header-params [x :- Long y :- Long]
         :summary     "x^y with header-parameters"
-        (ok {:total (long (Math/pow x y))}))
+        (ok (long (Math/pow x y))))
 
       legacy-route
 
