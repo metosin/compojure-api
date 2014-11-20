@@ -131,7 +131,7 @@
                   (update-in parameter [:model]
                              swagger-impl/update-schema
                              (fn-> (s/schema-with-name
-                                     (gensym (lc/mixed (name type))))))
+                                     (gensym (lc/capitalized (name type))))))
                   parameter)))
          (assoc-in route-with-meta [:metadata :parameters]))
     route-with-meta))
@@ -143,7 +143,7 @@
       (update-in route-with-meta [:metadata :return]
                  swagger-impl/update-schema
                  (fn-> (s/schema-with-name
-                         (gensym (lc/mixed "return")))))
+                         (gensym (lc/capitalized "return")))))
       route-with-meta)
     route-with-meta))
 
