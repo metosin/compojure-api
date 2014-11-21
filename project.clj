@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.16.4"
+(defproject metosin/compojure-api "0.16.5"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -10,8 +10,8 @@
                  [potemkin "0.3.11"]
                  [cheshire "5.3.1"]
                  [compojure "1.2.1"]
-                 [prismatic/schema "0.3.2"]
-                 [metosin/ring-http-response "0.5.1"]
+                 [prismatic/schema "0.3.3"]
+                 [metosin/ring-http-response "0.5.2"]
                  [metosin/ring-swagger "0.14.1"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [ring-middleware-format "0.4.0"]]

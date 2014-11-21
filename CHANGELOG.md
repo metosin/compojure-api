@@ -1,3 +1,13 @@
+## 0.16.5 (21.11.2014)
+
+- fix anonyous Body & Return model naming issue [56](https://github.com/metosin/compojure-api/issues/56) by [Michael Blume](https://github.com/MichaelBlume)
+- update deps:
+
+```clojure
+[prismatic/schema "0.3.3"] is available but we use "0.3.2"
+[metosin/ring-http-response "0.5.2"] is available but we use "0.5.1"
+```
+
 ## 0.16.4 (10.11.2014)
 
 - use `[org.tobereplaced/lettercase "1.0.0"]` for camel-casing (see https://github.com/metosin/compojure-api-examples/issues/1#issuecomment-62580504)
