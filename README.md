@@ -98,7 +98,13 @@ To try it yourself, clone this repo and type
 
 Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
 
-Use a Leiningen template: `lein new compojure-api my-api`
+Use a Leiningen template, with or without tests:
+
+```
+lein new compojure-api my-api
+lein new compojure-api my-api +midje
+lein new compojure-api my-api +clojure-test
+```
 
 ## Current (major) issues
 

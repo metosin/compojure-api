@@ -495,7 +495,7 @@
                        :path "/user"}]})))
 
 
-(facts "swagger-docs with Return and Body models"
+(facts "swagger-docs with anonymous Return and Body models"
   (defapi api
     (swagger-docs)
     (swaggered +name+

@@ -2,8 +2,7 @@
   (:require [compojure.api.core :refer :all]
             [compojure.api.swagger :refer :all]
             [compojure.core :refer :all]
-            [midje.sweet :refer :all]
-            [schema.core :as s]))
+            [midje.sweet :refer :all]))
 
 (fact "extracting compojure paths"
 
