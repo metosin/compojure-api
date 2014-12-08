@@ -1,3 +1,13 @@
+## 0.16.6 (8.12.2014)
+
+- fix #53
+- update deps:
+```clojure
+[compojure "1.3.1"] is available but we use "1.2.1"
+[metosin/ring-swagger "0.15.0"] is available but we use "0.14.1"
+[peridot "0.3.1"] is available but we use "0.3.0"
+``
+
 ## 0.16.5 (21.11.2014)
 
 - fix anonyous Body & Return model naming issue [56](https://github.com/metosin/compojure-api/issues/56) by [Michael Blume](https://github.com/MichaelBlume)
