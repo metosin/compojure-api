@@ -2,10 +2,12 @@
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
-- contains a [Swagger](https://github.com/wordnik/swagger-core/wiki) implementation, using the [ring-swagger](https://github.com/metosin/ring-swagger)
-- uses [Schema](https://github.com/Prismatic/schema) for creating and mapping data models
+- [Schema](https://github.com/Prismatic/schema) for input & output data coercion
+- [Swagger](https://github.com/wordnik/swagger-core/wiki) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
+- extendable request restructuring via metadata handlers ([woot?](#creating-your-own-metadata-handlers))
 - bundled middleware for common api behavior (exception mapping, data formats & serialization)
 - route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui)
+   - uses the `ring-swagger-ui` which is needed as separate dependency (separate lifecycle)
 
 ## Latest version
 
@@ -346,7 +348,7 @@ Raw values / primitives (e.g. not sequences or maps) can be returned when a `:re
 
 *note* setting a `:return` value as `String` allows you to return raw strings (as JSON or whatever protocols your app supports), opposed to the [Ring Spec](https://github.com/mmcgrana/ring/blob/master/SPEC#L107-L120).
 
-```
+```clojure
 (context "/primitives" []
 
   (GET* "/plus" []
@@ -374,13 +376,13 @@ Key `:responses` takes a map of http-status-code -> model map, which translates 
 
 ```clojure
 (POST* "/number" []
-  :return       Total
+  :return       Long
   :query-params [x :- Long y :- Long]
   :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
   :summary      "x-y with body-parameters."
   (let [total (- x y)]
-    (if (>= total 0)
-      (ok {:total (- x y)})
+    (if (pos? total)
+      (ok total)
       (forbidden {:message "difference is negative"}))))
 ```
 
