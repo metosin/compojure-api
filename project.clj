@@ -29,7 +29,7 @@
                    :dependencies [[peridot "0.3.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.3"]]}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-alpha2"]]}}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-alpha4"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :aliases {"all" ["with-profile" "dev:dev,1.7"]
