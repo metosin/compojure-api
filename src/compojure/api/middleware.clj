@@ -1,8 +1,8 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.format-params :as format-params :refer [wrap-restful-params]]
-            [ring.middleware.format-response :as format-response]
+            [ring.middleware.format-params :refer [wrap-restful-params]]
+            [ring.middleware.format-response :refer [wrap-restful-response format-encoders]]
             ring.middleware.http-response
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
@@ -35,7 +35,7 @@
 (def ^:private mime-types
   (into {} (map (fn [[k {{:keys [type sub-type]} :enc-type}]]
                   [k (str type "/" sub-type)])
-                format-response/format-encoders)))
+                format-encoders)))
 
 (def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
@@ -68,34 +68,6 @@
   (when response
     (or (:compojure.api.meta/serializable? response)
         (coll? body))))
-
-;; Version which takes the predicate as a parameter
-;; TODO: Try to get merged into ring-middleware-format
-(defn wrap-restful-response
-  "Wrapper that tries to do the right thing with the response *:body*
-   and provide a solid basis for a RESTful API. It will serialize to
-   JSON, YAML, Clojure, Transit or HTML-wrapped YAML depending on Accept header.
-   See wrap-format-response for more details. Recognized formats are
-   *:json*, *:json-kw*, *:edn* *:yaml*, *:yaml-in-html*, *:transit-json*,
-   *:transit-msgpack*."
-  [handler & {:keys [handle-error predicate formats charset binary?]
-              :or {handle-error format-response/default-handle-error
-                   predicate format-response/serializable?
-                   charset format-response/default-charset-extractor
-                   formats [:json :yaml :edn :clojure :yaml-in-html :transit-json :transit-msgpack]}}]
-  (let [encoders (for [format formats
-                       :when format
-                       :let [encoder (if (map? format)
-                                       format
-                                       (get format-response/format-encoders (keyword format)))]
-                       :when encoder]
-                   encoder)]
-    (format-response/wrap-format-response handler
-                                          :predicate predicate
-                                          :encoders encoders
-                                          :binary? binary?
-                                          :charset charset
-                                          :handle-error handle-error)))
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."

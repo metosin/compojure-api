@@ -1,3 +1,10 @@
+## 0.17.0 (x.x.x)
+
+- Depend on forked version of [`ring-middleware-format`](https://github.com/metosin/ring-middleware-format)
+  - Transit support should now work
+  - If you are depending on ring-middleware-format directly, you'll want to either
+  update your dependency or exclude one from compojure-api
+
 ## 0.16.6 (8.12.2014)
 
 - fix #53
