@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [prismatic/plumbing "0.3.5"]
                  [potemkin "0.3.11"]
-                 [cheshire "5.3.1"]
+                 [cheshire "5.4.0"]
                  [compojure "1.3.1"]
                  [prismatic/schema "0.3.3"]
                  [metosin/ring-http-response "0.5.2"]
@@ -19,7 +19,7 @@
                               :reload-paths ["src" "examples/src"]}
                        :source-paths ["examples/src"]
                        :main examples.server
-                       :dependencies [[metosin/ring-swagger-ui "2.0.17"]
+                       :dependencies [[metosin/ring-swagger-ui "2.0.24"]
                                       [http-kit "2.1.19"]]}
              :uberjar {:aot :all}
              :dev {:ring {:handler examples.handler/app}
