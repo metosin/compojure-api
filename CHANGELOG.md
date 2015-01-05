@@ -4,6 +4,11 @@
   - Transit support should now work
   - If you are depending on ring-middleware-format directly, you'll want to either
   update your dependency or exclude one from compojure-api
+- Update dependencies:
+```clojure
+[cheshire "5.4.0"] is available but we use "5.3.1"
+[metosin/ring-swagger-ui "2.0.24"] is available but we use "2.0.17"
+```
 
 ## 0.16.6 (8.12.2014)
 
