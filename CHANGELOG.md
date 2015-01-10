@@ -1,4 +1,4 @@
-## 0.17.0 (x.x.x)
+## 0.17.0 (10.1.2017)
 
 - Depend on forked version of [`ring-middleware-format`](https://github.com/metosin/ring-middleware-format)
   - Transit support should now work
@@ -8,6 +8,7 @@
 ```clojure
 [cheshire "5.4.0"] is available but we use "5.3.1"
 [metosin/ring-swagger-ui "2.0.24"] is available but we use "2.0.17"
+[lein-ring "0.9.0"] is available but we use "0.8.13"
 ```
 
 ## 0.16.6 (8.12.2014)

@@ -25,7 +25,7 @@
              :dev {:ring {:handler examples.handler/app}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
-                             [lein-ring "0.8.13"]]
+                             [lein-ring "0.9.0"]]
                    :dependencies [[peridot "0.3.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.3"]]}
