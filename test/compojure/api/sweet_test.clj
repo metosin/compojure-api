@@ -2,7 +2,6 @@
   (:require [compojure.api.routes :as routes]
             [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
-            [compojure.core :as compojure]
             [midje.sweet :refer :all]
             [ring.mock.request :refer :all]
             [ring.swagger.schema :refer [describe]]
