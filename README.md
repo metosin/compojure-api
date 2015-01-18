@@ -121,7 +121,7 @@ There is pre-packaged middleware `compojure.api.middleware/api-middleware` for c
 
 - catching slinghotted http-errors (`ring.middleware.http-response/catch-response`)
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
-- support for different protocols via `ring.middleware.format-params.wrap-restful-params` and `compojure.api.middleware/wrap-restful-response`
+- support for different protocols via `ring.middleware.format-params/wrap-restful-params` and `ring.middleware.format-response/wrap-restful-response`
     - default supported protocols are:
        - `:json-kw`, `:yaml-kw`, `:edn`, `:transit-json` and `:transit-msgpack`
 
