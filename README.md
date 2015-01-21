@@ -481,6 +481,6 @@ macroexpanding-1 it too see what's get generated:
 
 ## License
 
-Copyright © 2014-2015 Metosin Oy
+Copyright © 2014-2015 [Metosin Oy](http://www.metosin.fi)
 
 Distributed under the Eclipse Public License, the same as Clojure.
