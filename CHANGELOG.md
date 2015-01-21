@@ -1,4 +1,14 @@
-## 0.17.0 (10.1.2017)
+## 0.18.0 (x.x.2015)
+
+- Support passing options to specific format middlewares:
+```clj
+(defapi app
+  {:params-opts {:transit-json {:options {:handlers readers}}}
+   :response-opts {:transit-json {:handlers writeris}}}
+   ...)
+```
+
+## 0.17.0 (10.1.2015)
 
 - Depend on forked version of [`ring-middleware-format`](https://github.com/metosin/ring-middleware-format)
   - Transit support should now work

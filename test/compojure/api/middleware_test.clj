@@ -22,5 +22,3 @@
 
     (ring.util.test/string-input-stream "foobar") false false
     ))
-
-

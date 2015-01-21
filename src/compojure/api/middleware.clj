@@ -2,7 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.format-params :refer [wrap-restful-params]]
-            [ring.middleware.format-response :refer [wrap-restful-response format-encoders]]
+            [ring.middleware.format-response :refer [wrap-restful-response]]
             ring.middleware.http-response
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
@@ -33,13 +33,19 @@
 
 ;; ring-middleware-format stuff
 (def ^:private mime-types
-  (into {} (map (fn [[k {{:keys [type sub-type]} :enc-type}]]
-                  [k (str type "/" sub-type)])
-                format-encoders)))
+  {:json "application/json"
+   :json-kw "application/json"
+   :edn "application/edn"
+   :clojure "application/clojure"
+   :yaml "application/x-yaml"
+   :yaml-kw "application/x-yaml"
+   :yaml-in-html "text/html"
+   :transit-json "application/transit+json"
+   :transit-msgpack "application/transit+msgpack"})
 
 (def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
-(defn wrap-publish-swagger-formats [handler & {:keys [response-formats request-formats]}]
+(defn wrap-publish-swagger-formats [handler & [{:keys [response-formats request-formats]}]]
   (fn [request]
     (-> request
         (assoc-in [:meta :consumes] (map mime-types request-formats))
@@ -71,21 +77,23 @@
 
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
-  [handler & [{:keys [formats]
+  [handler & [{:keys [formats params-opts response-opts]
                :or {formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]}}]]
   (-> handler
       ring.middleware.http-response/catch-response
       ring.swagger.middleware/catch-validation-errors
       ex-info-support
       (wrap-publish-swagger-formats
-        :request-formats (remove response-only-mimes formats)
-        :response-formats formats)
+        {:request-formats (remove response-only-mimes formats)
+         :response-formats formats})
       (wrap-restful-params
-        :formats (remove response-only-mimes formats)
-        :handle-error handle-req-error)
+        (merge {:formats (remove response-only-mimes formats)
+                :handle-error handle-req-error}
+               params-opts))
       (wrap-restful-response
-        :formats formats
-        :predicate serializable?)
+        (merge {:formats formats
+                :predicate serializable?}
+               response-opts))
       wrap-keyword-params
       wrap-nested-params
       wrap-params))
