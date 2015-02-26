@@ -110,6 +110,7 @@
                :apis [{:description "sample api"
                        :path (str "/" app-name)}]
                :info {}
+               :authorizations {}
                :swaggerVersion "1.2"}))
 
   (fact "api-details works"

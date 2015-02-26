@@ -1,4 +1,5 @@
-(ns compojure.api.common)
+(ns compojure.api.common
+  (:require [org.tobereplaced.lettercase :as lc]))
 
 (defn path-vals
   "Returns vector of tuples containing path vector to the value and the value."
@@ -61,3 +62,6 @@
     {}))
 
 (def meta-container? #{#'meta-container})
+
+(defn ->CamelCase [x]
+  (lc/capitalized x))

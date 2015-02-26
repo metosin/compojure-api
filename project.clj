@@ -6,14 +6,14 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [prismatic/plumbing "0.3.5"]
+                 [prismatic/plumbing "0.3.7"]
                  [potemkin "0.3.11"]
                  [cheshire "5.4.0"]
-                 [compojure "1.3.1"]
-                 [prismatic/schema "0.3.3"]
-                 [metosin/ring-http-response "0.5.2"]
-                 [metosin/ring-swagger "0.15.0"]
+                 [compojure "1.3.2"]
+                 [prismatic/schema "0.3.7"]
                  [org.tobereplaced/lettercase "1.0.0"]
+                 [metosin/ring-http-response "0.5.2"]
+                 [metosin/ring-swagger "0.17.0"]
                  [metosin/ring-middleware-format "0.6.0-SNAPSHOT"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
                               :reload-paths ["src" "examples/src"]}

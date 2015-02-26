@@ -60,3 +60,6 @@
     (unwrap-meta-container '(meta-container :abba identity)) => (throws AssertionError))
   (fact "unwrapping non-meta-container returns empty map"
     (unwrap-meta-container 'identity) => {}))
+
+(fact "->CamelCase"
+  (->CamelCase "olipa-kerran") => "OlipaKerran")

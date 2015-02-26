@@ -467,6 +467,7 @@
       status => 200
       body => {:swaggerVersion "1.2"
                :apiVersion "0.0.1"
+               :authorizations {}
                :info {}
                :apis [{:description ""
                        :path (str "/" +name+)}]}))
@@ -484,6 +485,7 @@
                :apis [{:operations [{:method "GET"
                                      :nickname "getUser"
                                      :notes ""
+                                     :authorizations {}
                                      :parameters []
                                      :responseMessages []
                                      :summary ""

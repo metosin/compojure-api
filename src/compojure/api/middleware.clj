@@ -81,7 +81,7 @@
                :or {formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]}}]]
   (-> handler
       ring.middleware.http-response/catch-response
-      ring.swagger.middleware/catch-validation-errors
+      ring.swagger.middleware/wrap-validation-errors
       ex-info-support
       (wrap-publish-swagger-formats
         {:request-formats (remove response-only-mimes formats)

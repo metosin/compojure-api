@@ -6,6 +6,14 @@
   {:params-opts {:transit-json {:options {:handlers readers}}}
    :response-opts {:transit-json {:handlers writeris}}}
    ...)
+- Update dependencies
+```
+[prismatic/plumbing "0.3.7"] is available but we use "0.3.5"
+[compojure "1.3.2"] is available but we use "1.3.1"
+[prismatic/schema "0.3.7"] is available but we use "0.3.3"
+[metosin/ring-swagger "0.18.0-SNAPSHOT"] is available but we use "0.15.0"
+[metosin/ring-http-response "0.6.0-SNAPSHOT"] is available but we use "0.5.2"
+[metosin/ring-swagger "0.18.0-SNAPSHOT"] is available but we use "0.17.0"
 ```
 
 ## 0.17.0 (10.1.2015)

@@ -7,7 +7,6 @@
             [compojure.core :refer :all]
             [plumbing.core :refer [fn->]]
             [potemkin :refer [import-vars]]
-            [org.tobereplaced.lettercase :as lc]
             [ring.swagger.common :refer :all]
             [ring.swagger.core :as swagger]
             [ring.swagger.impl :as swagger-impl]
@@ -131,7 +130,7 @@
                   (update-in parameter [:model]
                              swagger-impl/update-schema
                              (fn-> (s/schema-with-name
-                                     (gensym (lc/capitalized (name type))))))
+                                     (gensym (->CamelCase (name type))))))
                   parameter)))
          (assoc-in route-with-meta [:metadata :parameters]))
     route-with-meta))
@@ -143,7 +142,7 @@
       (update-in route-with-meta [:metadata :return]
                  swagger-impl/update-schema
                  (fn-> (s/schema-with-name
-                         (gensym (lc/capitalized "return")))))
+                         (gensym (->CamelCase "return")))))
       route-with-meta)
     route-with-meta))
 
