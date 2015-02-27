@@ -6,6 +6,7 @@
   {:params-opts {:transit-json {:options {:handlers readers}}}
    :response-opts {:transit-json {:handlers writeris}}}
    ...)
+```
 - Update dependencies
 ```
 [prismatic/plumbing "0.3.7"] is available but we use "0.3.5"
