@@ -92,13 +92,13 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         (ok thingie)))))
 ```
 
-To try it yourself, clone this repo and type
+To try it yourself, clone this repository and type
 - `lein start-thingie` (Jetty)
 - `lein http-kit-thingie` (Http-kit)
 
-## Quickstart for a new project
+## Quick start for a new project
 
-Clone the [examples-repo](https://github.com/metosin/compojure-api-examples).
+Clone the [examples-repository](https://github.com/metosin/compojure-api-examples).
 
 Use a Leiningen template, with or without tests:
 
@@ -117,9 +117,9 @@ lein new compojure-api my-api +clojure-test
 
 ## Middlewares
 
-There is pre-packaged middleware `compojure.api.middleware/api-middleware` for common web api usage. It's a enchanced version of `compojure.handler/api` adding the following:
+There is prepackaged middleware `compojure.api.middleware/api-middleware` for common web api usage. It's a enhanced version of `compojure.handler/api` adding the following:
 
-- catching slinghotted http-errors (`ring.middleware.http-response/catch-response`)
+- catching slingshotted http-errors (`ring.middleware.http-response/catch-response`)
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
 - support for different protocols via `ring.middleware.format-params/wrap-restful-params` and `ring.middleware.format-response/wrap-restful-response`
     - default supported protocols are:
@@ -172,11 +172,11 @@ supported content-type into request under keys `[:meta :consumes]` and `[:meta :
 
 ## Routes
 
-You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enchanced versions from `compojure.api.core`. Enchanced versions have `*` in their name (`GET*`, `POST*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enchanced version can be used exactly as their ancestors but have also new behavior, more on that later.
+You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enhanced versions from `compojure.api.core`. Enhanced versions have `*` in their name (`GET*`, `POST*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enhanced version can be used exactly as their ancestors but have also new behavior, more on that later.
 
 Namespace `compojure.api.sweet` is a public entry point for all routing - importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`.
 
-There is also `compojure.api.legacy` namespace which contains rest of the public vars from `compojure.core` (the `GET`, `POST` etc. endpoint macros which are not contained in `sweet`). Using `sweet` in conjuction with `legacy` should provide a drop-in-replacement for `compojure.core` - with new new route goodies.
+There is also `compojure.api.legacy` namespace which contains rest of the public vars from `compojure.core` (the `GET`, `POST` etc. endpoint macros which are not contained in `sweet`). Using `sweet` in conjunction with `legacy` should provide a drop-in-replacement for `compojure.core` - with new new route goodies.
 
 ### sample sweet application
 
@@ -199,7 +199,7 @@ Enabling Swagger route documentation in your application is done by:
 
 - wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/with-routes`) macro. This initializes an empty route tree to your namespace.
 - wrapping your web apis in a `swaggered` -route macro on to the root level of your web app.
-  - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penanty)
+  - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
 - mounting `compojure.api.swagger/swagger-docs` to publish the collected routes.
 - **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/wordnik/swagger-ui) to the web app
@@ -253,9 +253,9 @@ See source code & [examples](https://github.com/metosin/compojure-api/blob/maste
 
 ## Models
 
-Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modelling, backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
+Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling, backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
 
-Two coercers are available (and automatically selected with smart destucturing): one for json and another for string-based formats (query-parameters & path-parameters). See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
+Two coercers are available (and automatically selected with smart destructuring): one for json and another for string-based formats (query-parameters & path-parameters). See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
 
 ### sample schema and coercion
 
@@ -277,13 +277,13 @@ Two coercers are available (and automatically selected with smart destucturing):
 
 ## Models, routes and meta-data
 
-The enchanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-specific data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coersion.
+The enhanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-specific data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coercion.
 
 ```clojure
   (POST* "/echo" []
     :return   FlatThingie
     :query    [flat-thingie FlatThingie]
-    :summary  "echos a FlatThingie from query-params"
+    :summary  "echoes a FlatThingie from query-params"
     :nickname "echoFlatThingiePost"
     (ok flat-thingie)) ;; here be coerced thingie
 ```
@@ -292,12 +292,12 @@ The enchanced route-macros allow you to define extra meta-data by adding a) meta
   (GET* "/echo" []
     :return   Thingie
     :query    [thingie Thingie]
-    :summary  "echos a thingie from query-params"
+    :summary  "echoes a thingie from query-params"
     :nickname "echoThingieQuery"
     (ok thingie)) ;; here be coerced thingie
 ```
 
-you can also wrap models in containers (`vector` and `set`) and add extra metadata:
+You can also wrap models in containers (`vector` and `set`) and add extra metadata:
 
 ```clojure
   (POST* "/echos" []
@@ -366,7 +366,7 @@ Raw values / primitives (e.g. not sequences or maps) can be returned when a `:re
     :return String
     :query-params [name :- String]
     :notes   "<h1>hello world.</h1>"
-    :summary "echos a string from query-params"
+    :summary "echoes a string from query-params"
     (ok (str "hello, " name))))
 ```
 
@@ -389,19 +389,19 @@ Key `:responses` takes a map of http-status-code -> model map, which translates 
 ## Route-specific middlewares
 
 Key `:middlewares` takes a vector of middlewares to be applied to the route.
-Note that the middlewares don't see any restructured bindinds from within the route body.
+Note that the middlewares don't see any restructured bindings from within the route body.
 They are executed inside the route so you can safely edit request etc. and the changes
 won't leak to other routes in the same context.
 
 ```clojure
  (DELETE* "/user/:id" []
    :middlewares [audit-support (for-roles :admin)]
-   (ok {:name "Pertti"})))
+   (ok {:name "Pertti"}))
 ```
 
 ## Creating your own metadata handlers
 
-Compojure-api handles the route metadatas by calling the multimethod `compojure.api.meta/restructure-param` with metadata key as a dispatch value.
+Compojure-api handles the route metadata by calling the multimethod `compojure.api.meta/restructure-param` with metadata key as a dispatch value.
 
 Multimethods take three parameters:
 
@@ -429,7 +429,7 @@ You can add your own metadata-handlers by implementing the multimethod:
                       (ring.util.http-response/forbidden "Auth required"))))))
 ```
 
-using it:
+Using it:
 
 ```clojure
 (GET* "/current-session" []
@@ -458,7 +458,7 @@ macroexpanding-1 it too see what's get generated:
     (ring.util.http-response/forbidden "Auth required")))))
 ```
 
-## Running the embedded example(s)
+## Running the embedded example
 
 `lein start-samples`
 
@@ -471,7 +471,7 @@ macroexpanding-1 it too see what's get generated:
 
 ## Roadmap
 
-- don't pollute api namespases with `+routes+` var, use lexically/dynamically scoped route tree instead
+- don't pollute api namespaces with `+routes+` var, use lexically/dynamically scoped route tree instead
 - collect routes from root, not from `swaggered`
 - type-safe `:params` destructuring
 - `url-for` for endpoints (bidi, bidi, bidi)
