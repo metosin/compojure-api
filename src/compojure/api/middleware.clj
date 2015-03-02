@@ -113,16 +113,19 @@
 
 (defn api-middleware
   "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
-   options for the used middlewares. These include:
+   options for the used middlewares (see middlewares for full details on options):
 
-   :exceptions        - for compojure.api.middleware/wrap-exceptions
-   :validation-errors - for ring.swagger.middleware/wrap-validation-errors
-   :format            - for ring-middleware-format middlewares
-      :formats        - sequence of supported formats, e.g. [:json-kw :edn]
-      :param-opts     - for ring.middleware.format-params/wrap-restful-params,
-                        e.g. {:transit-json {:options {:handlers readers}}}
-      :response-opts  - for ring.middleware.format-params/wrap-restful-response,
-                        e.g. {:transit-json {:handlers writers}}"
+   :exceptions           - for compojure.api.middleware/wrap-exceptions
+     :exception-handler  - function to handle uncaught exceptions
+   :validation-errors    - for ring.swagger.middleware/wrap-validation-errors
+     :error-handler      - function to handle ring-swagger schema exceptions
+     :catch-core-errors? - whether to catch also :schema.core/errors
+   :format               - for ring-middleware-format middlewares
+     :formats            - sequence of supported formats, e.g. [:json-kw :edn]
+     :param-opts         - for ring.middleware.format-params/wrap-restful-params,
+                           e.g. {:transit-json {:options {:handlers readers}}}
+     :response-opts      - for ring.middleware.format-params/wrap-restful-response,
+                           e.g. {:transit-json {:handlers writers}}"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
         {:keys [formats params-opts response-opts]} (:format options)]
