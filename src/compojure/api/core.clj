@@ -8,7 +8,16 @@
             [ring.swagger.common :refer [extract-parameters]]))
 
 (defmacro defapi
-  "If first element of body is a map, it will be used as options for api-middleware."
+  "Defines a ring handler wrapped in compojure.api.middleware/api-middlware.
+   Defines a local var +routes+ which is used to store the route tables. Currently
+   there can be only one defapi in one namespace. The mounted api-middleware can
+   be configured by options map as the first parameter:
+
+      (defapi app
+        {:options 123}
+        ...)
+
+   ... see compojure.api.middleware/api-middleware for possible options."
   [name & body]
   (let [[opts body] (extract-parameters body)]
     `(defroutes ~name

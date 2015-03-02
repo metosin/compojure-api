@@ -8,7 +8,13 @@
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
             ring.swagger.middleware
-            [ring.util.http-response :refer :all]))
+            [ring.util.http-response :refer :all])
+  (:import [com.fasterxml.jackson.core JsonParseException]
+           [org.yaml.snakeyaml.parser ParserException]))
+
+;;
+;; Public resources
+;;
 
 (defroutes public-resource-routes
   (GET "/" [] (found "/index.html"))
@@ -20,7 +26,7 @@
   (fn [request]
     (let [response (handler request)]
       (or response
-        ((route/resources "/") request)))))
+          ((route/resources "/") request)))))
 
 ;;
 ;; Catch exceptions
@@ -45,7 +51,10 @@
       (catch Exception e
         (exception-handler e)))))
 
+;;
 ;; ring-middleware-format stuff
+;;
+
 (def ^:private mime-types
   {:json "application/json"
    :json-kw "application/json"
@@ -68,11 +77,11 @@
 
 (defn handle-req-error [e handler req]
   (cond
-    (instance? com.fasterxml.jackson.core.JsonParseException e)
+    (instance? JsonParseException e)
     (bad-request {:type "json-parse-exception"
                   :message (.getMessage e)})
 
-    (instance? org.yaml.snakeyaml.parser.ParserException e)
+    (instance? ParserException e)
     (bad-request {:type "yaml-parse-exception"
                   :message (.getMessage e)})
 
@@ -89,14 +98,24 @@
     (or (:compojure.api.meta/serializable? response)
         (coll? body))))
 
+;;
+;; Api Middleware
+;;
+
+; TODO: format-options under :format?
+; TODO: document all options
 (defn api-middleware
-  "opinionated chain of middlewares for web apis."
+  "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
+   options for the used middlewares. These include:
+
+   :exceptions        - for compojure.api.middleware/wrap-exceptions
+   :validation-errors - for ring.swagger.middleware/wrap-validation-errors"
   [handler & [{:keys [formats params-opts response-opts]
                :or {formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]}
                :as options}]]
   (-> handler
-      ring.middleware.http-response/catch-response
-      ring.swagger.middleware/wrap-validation-errors
+      ring.middleware.http-response/wrap-http-response
+      (ring.swagger.middleware/wrap-validation-errors (:validation-errors options))
       (wrap-exceptions (:exceptions options))
       (wrap-publish-swagger-formats
         {:request-formats (remove response-only-mimes formats)
@@ -112,3 +131,14 @@
       wrap-keyword-params
       wrap-nested-params
       wrap-params))
+
+(comment
+ "..."
+ (defn api-middleware-defaults
+   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
+             :params-opts {}
+             :response-opts {}}
+    :validation-errors {:error-handler nil
+                        :catch-core-errors? nil}
+    :exceptions {:exception-handler default-exception-handler}
+    :defaults "https://github.com/ring-clojure/ring-defaults/blob/master/src/ring/middleware/defaults.clj#L20"}))
