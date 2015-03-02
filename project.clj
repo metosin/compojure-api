@@ -12,7 +12,7 @@
                  [compojure "1.3.2"]
                  [prismatic/schema "0.3.7"]
                  [org.tobereplaced/lettercase "1.0.0"]
-                 [metosin/ring-http-response "0.6.0-SNAPSHOT"]
+                 [metosin/ring-http-response "0.6.0"]
                  [metosin/ring-swagger "0.18.0-SNAPSHOT"]
                  [metosin/ring-middleware-format "0.6.0-SNAPSHOT"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
@@ -25,7 +25,7 @@
              :dev {:ring {:handler examples.handler/app}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
-                             [lein-ring "0.9.1"]]
+                             [lein-ring "0.9.2"]]
                    :dependencies [[peridot "0.3.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.6.3"]]}
