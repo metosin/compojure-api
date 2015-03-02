@@ -109,17 +109,20 @@
             :response-opts {}}
    :validation-errors {:error-handler nil
                        :catch-core-errors? nil}
-   :exceptions {:exception-handler default-exception-handler}
-   :defaults "https://github.com/ring-clojure/ring-defaults/blob/master/src/ring/middleware/defaults.clj#L20"})
+   :exceptions {:exception-handler default-exception-handler}})
 
-; TODO: document all options
 (defn api-middleware
   "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
    options for the used middlewares. These include:
 
    :exceptions        - for compojure.api.middleware/wrap-exceptions
    :validation-errors - for ring.swagger.middleware/wrap-validation-errors
-   :format            - format, params-opts, response-opts for ring-middleware-format middlewares"
+   :format            - for ring-middleware-format middlewares
+      :formats        - sequence of supported formats, e.g. [:json-kw :edn]
+      :param-opts     - for ring.middleware.format-params/wrap-restful-params,
+                        e.g. {:transit-json {:options {:handlers readers}}}
+      :response-opts  - for ring.middleware.format-params/wrap-restful-response,
+                        e.g. {:transit-json {:handlers writers}}"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
         {:keys [formats params-opts response-opts]} (:format options)]
