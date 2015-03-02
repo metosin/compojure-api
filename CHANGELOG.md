@@ -8,6 +8,8 @@
    ...)
 ```
 - import `compojure.core/wrap-routes` into `compojure.api.sweet`
+- **BREAKING**: in `compojure.api.middleware`, `ex-info-support` is now parametrizable `wrap-exception`
+  - fixes [#68](https://github.com/metosin/compojure-api/issues/68)
 - Update dependencies
 ```
 [prismatic/plumbing "0.3.7"] is available but we use "0.3.5"

@@ -22,14 +22,28 @@
       (or response
         ((route/resources "/") request)))))
 
-;; make this better, Slingshot?
-(defn ex-info-support
-  [handler]
+;;
+;; Catch exceptions
+;;
+
+(defn default-exception-handler [^Exception e]
+  (.printStackTrace e)
+  (internal-server-error {:type  "unknown-exception"
+                          :class (.getName (.getClass e))}))
+
+(defn wrap-exceptions
+  "Catches all exceptions. Accepts the following options:
+
+  :exception-handler - a function to handle the exception. defaults
+                       to default-exception-handler"
+  [handler & [{:keys [exception-handler]
+               :or {exception-handler default-exception-handler}}]]
+  {:pre [(fn? exception-handler)]}
   (fn [request]
     (try
       (handler request)
-      (catch clojure.lang.ExceptionInfo e
-        (bad-request (ex-data e))))))
+      (catch Exception e
+        (exception-handler e)))))
 
 ;; ring-middleware-format stuff
 (def ^:private mime-types
@@ -78,11 +92,12 @@
 (defn api-middleware
   "opinionated chain of middlewares for web apis."
   [handler & [{:keys [formats params-opts response-opts]
-               :or {formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]}}]]
+               :or {formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]}
+               :as options}]]
   (-> handler
       ring.middleware.http-response/catch-response
       ring.swagger.middleware/wrap-validation-errors
-      ex-info-support
+      (wrap-exceptions (:exceptions options))
       (wrap-publish-swagger-formats
         {:request-formats (remove response-only-mimes formats)
          :response-formats formats})
