@@ -7,6 +7,7 @@
    :response-opts {:transit-json {:handlers writeris}}}
    ...)
 ```
+- import `compojure.core/wrap-routes` into `compojure.api.sweet`
 - Update dependencies
 ```
 [prismatic/plumbing "0.3.7"] is available but we use "0.3.5"

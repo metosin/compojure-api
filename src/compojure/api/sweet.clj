@@ -13,7 +13,8 @@
    routing
    routes
    context
-   let-routes]
+   let-routes
+   wrap-routes]
 
   ;; with enchanced methods
   [compojure.api.core
