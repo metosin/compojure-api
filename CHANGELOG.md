@@ -3,9 +3,9 @@
 - Support passing options to specific format middlewares:
 ```clj
 (defapi app
-  {:params-opts   {:transit-json {:options {:handlers readers}}}
-   :response-opts {:transit-json {:handlers writers}}}
-   ...)
+  {:format {:params-opts   {:transit-json {:options {:handlers readers}}}
+            :response-opts {:transit-json {:handlers writers}}}})
+  ...
 ```
 - import `compojure.core/wrap-routes` into `compojure.api.sweet`
 - **BREAKING**: in `compojure.api.middleware`, `ex-info-support` is now parametrizable `wrap-exception`

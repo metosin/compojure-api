@@ -456,7 +456,7 @@
 
 (fact "swagger-docs"
   (defapi api
-    {:formats [:json-kw :edn]}
+    {:format {:formats [:json-kw :edn]}}
     (swagger-docs)
     (swaggered +name+
       (GET* "/user" []

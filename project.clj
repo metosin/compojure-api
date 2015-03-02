@@ -28,7 +28,7 @@
                              [lein-ring "0.9.2"]]
                    :dependencies [[peridot "0.3.1"]
                                   [javax.servlet/servlet-api "2.5"]
-                                  [midje "1.6.3"]]}
+                                  [midje "1.7.0-SNAPSHOT"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0-alpha4"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
