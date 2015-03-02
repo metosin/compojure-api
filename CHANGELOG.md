@@ -1,11 +1,15 @@
 ## 0.18.0 (x.x.2015)
 
-- Support passing options to specific format middlewares:
+- Support passing options to specific format middlewares (merged into defaults):
 ```clj
 (defapi app
-  {:format {:params-opts   {:transit-json {:options {:handlers readers}}}
-            :response-opts {:transit-json {:handlers writers}}}})
-  ...
+  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
+            :params-opts {}
+            :response-opts {}}
+   :validation-errors {:error-handler nil
+                       :catch-core-errors? nil}
+   :exceptions {:exception-handler default-exception-handler}}
+  ...)
 ```
 - import `compojure.core/wrap-routes` into `compojure.api.sweet`
 - **BREAKING**: in `compojure.api.middleware`, `ex-info-support` is now parametrizable `wrap-exception`
@@ -17,6 +21,7 @@
 [prismatic/schema "0.3.7"] is available but we use "0.3.3"
 [metosin/ring-swagger "0.18.0"] is available but we use "0.15.0"
 [metosin/ring-http-response "0.6.0"] is available but we use "0.5.2"
+[metosin/ring-middleware-format "0.6.0"] is available but we use "0.5.0"
 ```
 
 ## 0.17.0 (10.1.2015)

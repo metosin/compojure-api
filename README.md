@@ -471,13 +471,11 @@ macroexpanding-1 it too see what's get generated:
 
 ## Roadmap
 
+- Swagger 2.0
 - don't pollute api namespaces with `+routes+` var, use lexically/dynamically scoped route tree instead
 - collect routes from root, not from `swaggered`
 - type-safe `:params` destructuring
 - `url-for` for endpoints (bidi, bidi, bidi)
-- include external common use middlewares (ring-middleware-format, ring-cors etc.)
-- file handling
-- `WS*`?
 
 ## License
 
