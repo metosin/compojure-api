@@ -22,3 +22,6 @@
 
     (ring.util.test/string-input-stream "foobar") false false
     ))
+
+;TODO: implement
+(facts "wrap-exceptions")
