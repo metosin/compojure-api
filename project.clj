@@ -13,7 +13,7 @@
                  [prismatic/schema "0.3.7"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [metosin/ring-http-response "0.6.0"]
-                 [metosin/ring-swagger "0.18.0-SNAPSHOT"]
+                 [metosin/ring-swagger "0.18.0"]
                  [metosin/ring-middleware-format "0.6.0-SNAPSHOT"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
                               :reload-paths ["src" "examples/src"]}
