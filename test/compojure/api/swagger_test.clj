@@ -129,4 +129,20 @@
         :routes [{:method :get
                   :uri "/api/user/:id"
                   :metadata {:parameters [{:type :path
-                                           :model {:id String}}]}}]}))
+                                           :model {:id String}}]}}]})
+
+  (fact "context* meta-data"
+    (first (swagger-info
+            '((context* "/api" []
+                :summary "from context"
+                (GET* "/ping" []
+                  :summary "from endpoint")
+                (GET* "/pong" []
+                  identity)))))
+
+    => {:routes [{:metadata {:summary "from endpoint"}
+                  :method :get
+                  :uri "/api/ping"}
+                 {:metadata {:summary "from father"}
+                  :method :get
+                  :uri "/api/pong"}]}))
