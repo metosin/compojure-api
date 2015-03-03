@@ -44,3 +44,4 @@
 (defmacro OPTIONS* [& args] (restructure #'OPTIONS args))
 (defmacro POST*    [& args] (restructure #'POST    args))
 (defmacro PUT*     [& args] (restructure #'PUT     args))
+(defmacro context* [& args] (restructure #'context args))
