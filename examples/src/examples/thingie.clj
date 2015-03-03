@@ -66,6 +66,12 @@
         :summary       "x^y with header-parameters"
         (ok {:total (long (Math/pow x y))}))))
 
+  (swaggered "failing"
+    :description "handling uncaught exceptions"
+    (context "/failing" []
+      (GET* "/exceptions" []
+        (throw (RuntimeException. "KOSH")))))
+
   (swaggered "pizza"
     :description "Pizza api"
     pizza-routes)
