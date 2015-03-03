@@ -91,12 +91,7 @@
 
 (defn create-paths [{:keys [p b c] :as r}]
   (cond
-    (is-a? CompojureRoute r)  (let [route-meta (meta r)
-                                    method-meta (meta (first b))
-                                    parameter-meta (first (extract-parameters (drop 3 b)))
-                                    metadata (merge route-meta method-meta parameter-meta)
-                                    new-body [(with-meta (first b) metadata) (rest b)]]
-                                [[p (extract-method b)] new-body])
+    (is-a? CompojureRoute r) [[p (extract-method b)] [(first b) (rest b)]]
     (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {} (map create-paths c))]))
 
 (defn route-metadata [body]
