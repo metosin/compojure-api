@@ -25,6 +25,7 @@
 ;; Route peeling
 ;;
 
+; TODO: #'wrap-routes
 (def compojure-route?     #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
 (def compojure-context?   #{#'context})
 (def compojure-letroutes? #{#'let-routes})
@@ -36,7 +37,7 @@
   (walk/prewalk
     (fn [x]
       (cond
-        (inline? x) (-> x value-of meta :source)            ;; resolve the syms!
+        (inline? x) (-> x value-of meta :source) ;; resolve the syms!
         (seq? x)    (let [sym (first x)]
                       (if (and
                             (symbol? sym)
@@ -172,7 +173,7 @@
        (apply array-map)
        path-vals
        (map create-api-route)
-       (map attach-meta-data-to-route)
+       (mapv attach-meta-data-to-route)
        reverse))
 
 (defn swagger-info [body]
