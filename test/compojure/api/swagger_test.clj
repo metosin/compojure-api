@@ -105,7 +105,7 @@
         '(:title ..title..
           :description ..description..
           :routes ..overridded..
-          (context "/api"
+          (context "/api" []
             (GET "/user/:id" [] identity)))))
 
     => {:title  ..title..
@@ -121,7 +121,7 @@
         '({:title ..title..
            :description ..description..
            :routes ..overridded..}
-          (context "/api"
+          (context "/api" []
             (GET "/user/:id" [] identity)))))
 
     => {:title  ..title..
