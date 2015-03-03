@@ -59,7 +59,7 @@
   [c x] (= (str c) (str (class x))))
 
 (defn filter-routes [c]
-  (filter #(or (is-a? CompojureRoute %)
+  (filterv #(or (is-a? CompojureRoute %)
                (is-a? CompojureRoutes %)) (flatten c)))
 
 (defn collect-compojure-routes [form]
