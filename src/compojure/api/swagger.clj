@@ -125,7 +125,7 @@
                                             swagger-impl/strict-schema)
           string-path-parameters (swagger/string-path-parameters uri)
           all-path-parameters (update-in string-path-parameters [:model]
-                                         merge (or existing-path-parameters {}))
+                                         merge existing-path-parameters)
           new-parameters (conj (remove path-parameter? all-parameters)
                                all-path-parameters)]
       (assoc-in route-with-meta [:metadata :parameters] new-parameters))
