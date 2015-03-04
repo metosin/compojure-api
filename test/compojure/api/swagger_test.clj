@@ -132,19 +132,27 @@
                                            :model {:id String}}]}}]})
 
   (fact "context* meta-data"
-    (first (swagger-info
-            '((context* "/api" []
-                :summary "from context"
-                (GET* "/ping" []
-                  :summary "from endpoint")
-                (GET* "/pong" []
-                  identity)))))
+    (first
+     (swagger-info
+      '((context* "/api" []
+          :summary "top-summary"
+          (GET* "/kikka" []
+            identity)
+          (context* "/ipa" []
+            :summary "mid-summary"
+            (GET* "/kukka" []
+              :summary "bottom-summary")
+            (GET* "/kakka" []
+              identity))))))
 
-    => {:routes [{:metadata {:summary "from endpoint"}
+    => {:routes [{:metadata {:summary "top-summary"}
                   :method :get
-                  :uri "/api/ping"}
-                 {:metadata {:summary "from father"}
+                  :uri "/api/kikka"}
+                 {:metadata {:summary "bottom-summary"}
                   :method :get
-                  :uri "/api/pong"}]}))
+                  :uri "/api/ipa/kukka"}
+                 {:metadata {:summary "mid-summary"}
+                  :method :get
+                  :uri "/api/ipa/kakka"}]}))
 
 
