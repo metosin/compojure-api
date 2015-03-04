@@ -120,12 +120,19 @@
         :summary "echos a string from query-params"
         (ok (str "hello, " name)))))
 
+  (swaggered "context*"
+    :description "context* routes"
+    (context* "/context" []
+      :summary "summary inherited from context"
+      (GET* "/api" []
+        (ok {:ping :pong}))))
+
   (swaggered "echo"
     :description "echoes data"
     (context "/echo" []
 
     (POST* "/recursion" []
-      :return   Recursive
+      :return Recursive
       :body     [body (describe Recursive "Recursive Schema")]
       :summary  "echoes a the json-body"
       (ok body))
