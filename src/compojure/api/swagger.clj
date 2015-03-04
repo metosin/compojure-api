@@ -52,7 +52,7 @@
     form))
 
 (defrecord CompojureRoute [p b])
-(defrecord CompojureRoutes [p c])
+(defrecord CompojureRoutes [p m c])
 
 (defn is-a?
   "like instanceof? but compares .toString of a classes"
@@ -72,8 +72,8 @@
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
               (compojure-route? rm)     (->CompojureRoute p x)
-              (compojure-context? rm)   (->CompojureRoutes p  (filter-routes x))
-              (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x))
+              (compojure-context? rm)   (->CompojureRoutes p {} (filter-routes x))
+              (compojure-letroutes? rm) (->CompojureRoutes "" {} (filter-routes x))
               :else                     x)))
         x))
     form))
@@ -155,7 +155,7 @@
 
 (defn ensure-routes-in-root [body]
   (if (seq? body)
-    (->CompojureRoutes "" (filter-routes body))
+    (->CompojureRoutes "" {} (filter-routes body))
     body))
 
 (defn extract-routes [body]
