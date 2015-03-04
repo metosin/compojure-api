@@ -58,6 +58,18 @@
   "like instanceof? but compares .toString of a classes"
   [c x] (= (str c) (str (class x))))
 
+(defn parse-meta-data [container]
+  (if-let [{:keys [return parameters] :as meta} (unwrap-meta-container container)]
+    (remove-empty-keys
+     (merge meta {:parameters (and parameters (doall (map eval parameters)))
+                  :return (eval return)}))))
+
+(defn route-metadata [body]
+  (parse-meta-data (last (second body))))
+
+(defn context-metadata [body]
+  (parse-meta-data (first (drop 3 body))))
+
 (defn filter-routes [c]
   (filterv #(or (is-a? CompojureRoute %)
                (is-a? CompojureRoutes %)) (flatten c)))
@@ -72,8 +84,8 @@
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
               (compojure-route? rm)     (->CompojureRoute p x)
-              (compojure-context? rm)   (->CompojureRoutes p {} (filter-routes x))
-              (compojure-letroutes? rm) (->CompojureRoutes "" {} (filter-routes x))
+              (compojure-context? rm)   (->CompojureRoutes p (context-metadata x) (filter-routes x))
+              (compojure-letroutes? rm) (->CompojureRoutes "" (context-metadata x) (filter-routes x))
               :else                     x)))
         x))
     form))
@@ -93,12 +105,6 @@
   (cond
     (is-a? CompojureRoute r) [[p (extract-method b)] [(first b) (rest b)]]
     (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {} (map create-paths c))]))
-
-(defn route-metadata [body]
-  (remove-empty-keys
-    (let [{:keys [return parameters] :as meta} (unwrap-meta-container (last (second body)))]
-      (merge meta {:parameters (and parameters (doall (map eval parameters)))
-                   :return (eval return)}))))
 
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (swagger/path-params uri))
