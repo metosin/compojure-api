@@ -122,10 +122,13 @@
 
   (swaggered "context*"
     :description "context* routes"
-    (context* "/context" []
+    (context* "/context/:kikka" []
       :summary "summary inherited from context"
+      :path-params [kikka :- s/Str]
+      :query-params [kukka :- s/Str]
       (GET* "/api" []
-        (ok {:ping :pong}))))
+        (ok {:kikka kikka
+             :kukka kukka}))))
 
   (swaggered "echo"
     :description "echoes data"
