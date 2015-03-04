@@ -133,28 +133,31 @@
 
   (fact "context* meta-data"
 
-    (fact "simple inheritance"
-      (first
-       (swagger-info
-        '((context* "/api" []
-            :summary "top-summary"
-            (GET* "/kikka" []
-              identity)
-            (context* "/ipa" []
-              :summary "mid-summary"
-              (GET* "/kukka" []
-                :summary "bottom-summary")
-              (GET* "/kakka" []
-                identity))))))
+    (first
+     (swagger-info
+      '((context* "/api/:id" []
+          :summary "top-summary"
+          :path-params [id :- String]
+          (GET* "/kikka" []
+            identity)
+          (context* "/ipa" []
+            :summary "mid-summary"
+            (GET* "/kukka" []
+              :summary "bottom-summary")
+            (GET* "/kakka" []
+              identity))))))
 
-      => {:routes [{:metadata {:summary "top-summary"}
-                    :method :get
-                    :uri "/api/kikka"}
-                   {:metadata {:summary "bottom-summary"}
-                    :method :get
-                    :uri "/api/ipa/kukka"}
-                   {:metadata {:summary "mid-summary"}
-                    :method :get
-                    :uri "/api/ipa/kakka"}]})))
+    => {:routes [{:metadata {:summary "top-summary"
+                             :parameters [{:model {:id String}, :type :path}]}
+                  :method :get
+                  :uri "/api/:id/kikka"}
+                 {:metadata {:summary "bottom-summary"
+                             :parameters [{:model {:id String}, :type :path}]}
+                  :method :get
+                  :uri "/api/:id/ipa/kukka"}
+                 {:metadata {:summary "mid-summary"
+                             :parameters [{:model {:id String}, :type :path}]}
+                  :method :get
+                  :uri "/api/:id/ipa/kakka"}]}))
 
 
