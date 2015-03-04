@@ -120,6 +120,13 @@
         :summary "echos a string from query-params"
         (ok (str "hello, " name)))))
 
+  (swaggered "context*"
+    :description "context* routes"
+    (context* "/context" []
+      :summary "summary inherited from context"
+      (GET* "/api" []
+        (ok {:ping :pong}))))
+
   (swaggered "echo"
     :description "echoes data"
     (context "/echo" []
