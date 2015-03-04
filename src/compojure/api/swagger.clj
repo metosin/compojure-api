@@ -65,14 +65,18 @@
                   :return (eval return)}))))
 
 (defn route-metadata [body]
-  (parse-meta-data (last (second body))))
+  (parse-meta-data (first (drop 2 body))))
 
 (defn context-metadata [body]
   (parse-meta-data (first (drop 3 body))))
 
+;; TODO: just merges meta, should do better with e.g. path-parameters
+(defn merge-meta [& meta]
+  (apply merge meta))
+
 (defn filter-routes [c]
   (filterv #(or (is-a? CompojureRoute %)
-               (is-a? CompojureRoutes %)) (flatten c)))
+                (is-a? CompojureRoutes %)) (flatten c)))
 
 (defn collect-compojure-routes [form]
   (walk/postwalk
@@ -101,10 +105,13 @@
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
 
-(defn create-paths [{:keys [p b c] :as r}]
+(defn create-paths [m {:keys [p b c] :as r}]
   (cond
-    (is-a? CompojureRoute r) [[p (extract-method b)] [(first b) (rest b)]]
-    (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {} (map create-paths c))]))
+    (is-a? CompojureRoute r)  [[p (extract-method b)] [:endpoint {:meta m :body (rest b)}]]
+    (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {}
+                                               (map (partial
+                                                     create-paths
+                                                     (merge-meta m (:m r))) c))]))
 
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (swagger/path-params uri))
@@ -148,8 +155,8 @@
       route-with-meta)
     route-with-meta))
 
-(defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
-  (let [meta (route-metadata body)
+(defn attach-meta-data-to-route [[{:keys [uri] :as route} [_ {:keys [body meta]}]]]
+  (let [meta (merge-meta meta (route-metadata body))
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
          (ensure-path-parameters uri)
@@ -170,7 +177,7 @@
        macroexpand-to-compojure
        collect-compojure-routes
        ensure-routes-in-root
-       create-paths
+       (create-paths {})
        (apply array-map)
        path-vals
        (map create-api-route)
