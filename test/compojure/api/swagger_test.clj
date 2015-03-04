@@ -149,16 +149,19 @@
               identity))))))
 
     => {:routes [{:metadata {:summary "top-summary"
-                             :parameters [{:model {:id String}, :type :path}]}
+                             :parameters [{:model {:id String},
+                                           :type :path}]}
                   :method :get
                   :uri "/api/:id/kikka"}
                  {:metadata {:summary "bottom-summary"
                              :parameters [{:model {:id String
-                                                   :kukka String}, :type :path}]}
+                                                   :kukka String},
+                                           :type :path}]}
                   :method :get
                   :uri "/api/:id/ipa/kukka/:kukka"}
                  {:metadata {:summary "mid-summary"
-                             :parameters [{:model {:id String}, :type :path}]}
+                             :parameters [{:model {:id String},
+                                           :type :path}]}
                   :method :get
                   :uri "/api/:id/ipa/kakka"}]}))
 
