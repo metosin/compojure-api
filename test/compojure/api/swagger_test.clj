@@ -132,27 +132,29 @@
                                            :model {:id String}}]}}]})
 
   (fact "context* meta-data"
-    (first
-     (swagger-info
-      '((context* "/api" []
-          :summary "top-summary"
-          (GET* "/kikka" []
-            identity)
-          (context* "/ipa" []
-            :summary "mid-summary"
-            (GET* "/kukka" []
-              :summary "bottom-summary")
-            (GET* "/kakka" []
-              identity))))))
 
-    => {:routes [{:metadata {:summary "top-summary"}
-                  :method :get
-                  :uri "/api/kikka"}
-                 {:metadata {:summary "bottom-summary"}
-                  :method :get
-                  :uri "/api/ipa/kukka"}
-                 {:metadata {:summary "mid-summary"}
-                  :method :get
-                  :uri "/api/ipa/kakka"}]}))
+    (fact "simple inheritance"
+      (first
+       (swagger-info
+        '((context* "/api" []
+            :summary "top-summary"
+            (GET* "/kikka" []
+              identity)
+            (context* "/ipa" []
+              :summary "mid-summary"
+              (GET* "/kukka" []
+                :summary "bottom-summary")
+              (GET* "/kakka" []
+                identity))))))
+
+      => {:routes [{:metadata {:summary "top-summary"}
+                    :method :get
+                    :uri "/api/kikka"}
+                   {:metadata {:summary "bottom-summary"}
+                    :method :get
+                    :uri "/api/ipa/kukka"}
+                   {:metadata {:summary "mid-summary"}
+                    :method :get
+                    :uri "/api/ipa/kakka"}]})))
 
 
