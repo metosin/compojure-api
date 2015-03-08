@@ -73,28 +73,22 @@
                   :metadata {:nickname "getBand"
                              :return Band
                              :summary "Gets a Band"
-                             :parameters [{:type :path
-                                           :model {:id String}}]}}
+                             :parameters {:path {:id String}}}}
                  {:method :post
                   :uri "/api/bands"
                   :metadata {:nickname "addBand"
-                             :parameters [{:type :body
-                                           :model [NewBand]}]
+                             :parameters {:body [NewBand]}
                              :return Band
                              :summary "Adds a Band"}}
                  {:method :get
                   :uri "/api/path-header-and-query-parameters/:a/:b"
                   :metadata {:nickname "pathHeaderAndQueryParameters"
-                             :parameters [{:type :path
-                                           :model {:a Long
-                                                   :b String}}
-                                          {:type :header
-                                           :model {:hp Boolean
-                                                   s/Keyword s/Any}}
-                                          {:type :query
-                                           :model {:qp Boolean
-                                                   s/Keyword s/Any}}
-                                          ]}}
+                             :parameters {:path {:a Long
+                                                 :b String}
+                                          :header {:hp Boolean
+                                                   s/Keyword s/Any}
+                                          :query {:qp Boolean
+                                                  s/Keyword s/Any}}}}
                  {:method :get
                   :uri "/api/primitive"
                   :metadata {:return String}}
