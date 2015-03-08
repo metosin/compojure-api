@@ -135,26 +135,32 @@
       '((context* "/api/:id" []
           :summary "top-summary"
           :path-params [id :- String]
+          :tags [:kiss]
           (GET* "/kikka" []
             identity)
           (context* "/ipa" []
             :summary "mid-summary"
+            :tags [:wasp]
             (GET* "/kukka/:kukka" []
+              :summary "bottom-summary"
               :path-params [kukka :- String]
-              :summary "bottom-summary")
+              :tags [:venom])
             (GET* "/kakka" []
               identity))))))
 
     => {:routes [{:metadata {:summary "top-summary"
+                             :tags #{:kiss}
                              :parameters {:path {:id String}}}
                   :method :get
                   :uri "/api/:id/kikka"}
                  {:metadata {:summary "bottom-summary"
+                             :tags #{:venom}
                              :parameters {:path {:id String
                                                  :kukka String}}}
                   :method :get
                   :uri "/api/:id/ipa/kukka/:kukka"}
                  {:metadata {:summary "mid-summary"
+                             :tags #{:wasp}
                              :parameters {:path {:id String}}}
                   :method :get
                   :uri "/api/:id/ipa/kakka"}]}))

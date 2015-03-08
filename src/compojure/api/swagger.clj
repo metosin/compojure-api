@@ -74,7 +74,6 @@
 (defn context-metadata [body]
   (parse-meta-data (first (drop 3 body))))
 
-;; TODO: just merges meta, should do better with e.g. path-parameters
 (defn merge-meta [& meta]
   (apply deep-merge meta))
 

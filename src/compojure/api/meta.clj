@@ -80,6 +80,12 @@
 ;; Smart restructurings
 ;;
 
+; Tags for api categorization. Ignores duplicates.
+; Examples:
+; :tags [:admin]
+(defmethod restructure-param :tags [_ tags acc]
+  (update-in acc [:parameters :tags] (comp set into) tags))
+
 ; Defines a return type and coerced the return value of a body against it.
 ; Examples:
 ; :return MySchema
