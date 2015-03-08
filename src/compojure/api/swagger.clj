@@ -264,15 +264,3 @@
     `(do
        (swap! ~routes/+routes-sym+ assoc-map-ordered ~name '~details)
        (routes ~@body))))
-
-(require '[compojure.api.core :refer [context* GET*]])
-(./pprint
- (first
-  (swagger-info
-   `((context* "/kukka/:kukka" []
-               :path-params [kukka :- String]
-               :summary "bottom-summary"
-               (GET* "/kikka" []
-                 :summary "jeah"
-                 :return String
-                 identity))))))
