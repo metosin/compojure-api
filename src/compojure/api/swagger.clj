@@ -59,10 +59,14 @@
   [c x] (= (str c) (str (class x))))
 
 (defn parse-meta-data [container]
-  (if-let [{:keys [return parameters] :as meta} (unwrap-meta-container container)]
-    (remove-empty-keys
-     (merge meta {:parameters (and parameters (doall (map eval parameters)))
-                  :return (eval return)}))))
+  (when-let [meta (unwrap-meta-container container)]
+    (let [meta (update-in meta [:return] eval)
+          meta (reduce
+                (fn [acc x]
+                  (update-in acc [:parameters x] eval))
+                meta
+                (-> meta :parameters keys))]
+      (remove-empty-keys meta))))
 
 (defn route-metadata [body]
   (parse-meta-data (first (drop 2 body))))
@@ -72,7 +76,7 @@
 
 ;; TODO: just merges meta, should do better with e.g. path-parameters
 (defn merge-meta [& meta]
-  (apply merge meta))
+  (apply deep-merge meta))
 
 (defn filter-routes [c]
   (filterv #(or (is-a? CompojureRoute %)
@@ -113,23 +117,27 @@
                                                      create-paths
                                                      (merge-meta m (:m r))) c))]))
 
+;;
+;; ensure path parameters
+;;
+
+(defn path-params [s]
+  (map (comp keyword second) (re-seq #":(.[^:|(/]*)[/]?" s)))
+
+(defn string-path-parameters [uri]
+  (let [params (path-params uri)]
+    (if (seq params)
+      (zipmap params (repeat String)))))
+
 (defn ensure-path-parameters [uri route-with-meta]
-  (if (seq (swagger/path-params uri))
-    (let [all-parameters (get-in route-with-meta [:metadata :parameters])
-          path-parameter? (fn-> :type (= :path))
-          existing-path-parameters (some->> all-parameters
-                                            (filter path-parameter?)
-                                            first
-                                            :model
-                                            value-of
-                                            swagger-impl/strict-schema)
-          string-path-parameters (swagger/string-path-parameters uri)
-          all-path-parameters (update-in string-path-parameters [:model]
-                                         merge existing-path-parameters)
-          new-parameters (conj (remove path-parameter? all-parameters)
-                               all-path-parameters)]
-      (assoc-in route-with-meta [:metadata :parameters] new-parameters))
+  (if (seq (path-params uri))
+    (update-in route-with-meta [:metadata :parameters :path]
+               (partial merge (string-path-parameters uri)))
     route-with-meta))
+
+;;
+;; generate schema names
+;;
 
 (defn ensure-parameter-schema-names [route-with-meta]
   (if-let [all-parameters (get-in route-with-meta [:metadata :parameters])]
@@ -155,13 +163,17 @@
       route-with-meta)
     route-with-meta))
 
+;;
+;;
+;;
+
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} [_ {:keys [body meta]}]]]
   (let [meta (merge-meta meta (route-metadata body))
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
          (ensure-path-parameters uri)
-         ensure-parameter-schema-names
-         ensure-return-schema-names)))
+         #_ensure-parameter-schema-names
+         #_ensure-return-schema-names)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
