@@ -139,18 +139,20 @@
 ;; generate schema names
 ;;
 
+(defn with-name [type schema]
+  (if schema
+    (swagger-impl/update-schema
+     schema
+     #(s/schema-with-name % (gensym (->CamelCase (name type)))))))
+
 (defn ensure-parameter-schema-names [route-with-meta]
-  (if-let [all-parameters (get-in route-with-meta [:metadata :parameters])]
-    (->> all-parameters
-         (map (fn [{:keys [model type] :as parameter}]
-                (if-not (direct-or-contained schema/named-schema? model)
-                  (update-in parameter [:model]
-                             swagger-impl/update-schema
-                             (fn-> (s/schema-with-name
-                                     (gensym (->CamelCase (name type))))))
-                  parameter)))
-         (assoc-in route-with-meta [:metadata :parameters]))
-    route-with-meta))
+  (reduce
+   (fn [acc type]
+     (if (get-in acc [:metadata :parameters type])
+       (update-in acc [:metadata :parameters type]
+                  (partial with-name type))
+       acc))
+   route-with-meta [:path :body :query :header]))
 
 (defn ensure-return-schema-names [route-with-meta]
   (if-let [return (get-in route-with-meta [:metadata :return])]
@@ -158,8 +160,7 @@
                 (direct-or-contained (comp not map?) return))
       (update-in route-with-meta [:metadata :return]
                  swagger-impl/update-schema
-                 (fn-> (s/schema-with-name
-                         (gensym (->CamelCase "return")))))
+                 (partial with-name "return"))
       route-with-meta)
     route-with-meta))
 
@@ -172,8 +173,8 @@
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
          (ensure-path-parameters uri)
-         #_ensure-parameter-schema-names
-         #_ensure-return-schema-names)))
+         ensure-parameter-schema-names
+         ensure-return-schema-names)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
@@ -202,6 +203,18 @@
         details (assoc parameters :routes routes)]
     [details body]))
 
+(defn convert-parameters-to-swagger-12 [routes]
+  (let [->12parameter (fn [[k v]] {:type k :model v})]
+    (into
+     (empty routes)
+     (for [[name info] routes]
+       [name (update-in info [:routes]
+                        (fn [routes]
+                          (mapv (fn [route]
+                                  (update-in route [:metadata :parameters]
+                                             (partial mapv ->12parameter)))
+                                routes)))]))))
+
 ;;
 ;; Public api
 ;;
@@ -229,7 +242,11 @@
                consumes# (-> request# :meta :consumes (or []))
                parameters# (merge ~parameters {:produces produces#
                                                :consumes consumes#})]
-           (swagger/api-declaration parameters# @~routes/+routes-sym+ api# (swagger/basepath request#)))))))
+           (swagger/api-declaration
+             parameters#
+             (convert-parameters-to-swagger-12  @~routes/+routes-sym+)
+             api#
+             (swagger/basepath request#)))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional
