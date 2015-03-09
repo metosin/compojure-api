@@ -45,29 +45,6 @@
   [& syms]
   `(zipmap ~(vec (map keyword syms)) ~(vec syms)))
 
-;;
-;; meta-data-container
-;;
-
-(def +meta+
-  "lexically bound meta-data for handlers."
-  '+meta+)
-
-(defmacro meta-container [meta & form]
-  `(let [~'+meta+ ~meta]
-     ~@form))
-
-(defn unwrap-meta-container [container]
-  {:post [(map? %)]}
-  (or
-    (if (sequential? container)
-      (let [[sym meta-data] container]
-        (if (and (symbol? sym) (= #'meta-container (resolve sym)))
-          meta-data)))
-    {}))
-
-(def meta-container? #{#'meta-container})
-
 (defn ->CamelCase [x]
   (lc/capitalized x))
 

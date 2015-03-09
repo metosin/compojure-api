@@ -4,6 +4,7 @@
             [clojure.walk :as walk]
             [compojure.api.common :refer :all]
             [compojure.api.routes :as routes]
+            [compojure.api.meta :as m]
             [compojure.core :refer :all]
             [plumbing.core :refer [fn->]]
             [potemkin :refer [import-vars]]
@@ -43,7 +44,7 @@
                             (symbol? sym)
                             (or
                               (compojure-macro? (eval-re-resolve sym))
-                              (meta-container? (eval-re-resolve sym))))
+                              (m/meta-container? (eval-re-resolve sym))))
                         (filter (comp not nil?) x)
                         (let [result (macroexpand-1 x)]
                           ;; stop if macro expands to itself
@@ -59,7 +60,7 @@
   [c x] (= (str c) (str (class x))))
 
 (defn parse-meta-data [container]
-  (when-let [meta (unwrap-meta-container container)]
+  (when-let [meta (m/unwrap-meta-container container)]
     (let [meta (update-in meta [:return] eval)
           meta (reduce
                 (fn [acc x]
