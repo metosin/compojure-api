@@ -49,8 +49,13 @@
 ;; meta-data-container
 ;;
 
+(def +meta+
+  "lexically bound meta-data for handlers."
+  '+meta+)
+
 (defmacro meta-container [meta & form]
-  `(do ~@form))
+  `(let [~'+meta+ ~meta]
+     ~@form))
 
 (defn unwrap-meta-container [container]
   {:post [(map? %)]}
