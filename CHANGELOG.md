@@ -1,4 +1,8 @@
-## 0.18.0 (x.x.2015)
+## 0.xx.x (x.x.2015)
+
+- support for `context*`
+
+## 0.18.0 (2.3.2015)
 
 - Support passing options to specific format middlewares (merged into defaults):
 ```clj
