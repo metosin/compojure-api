@@ -9,9 +9,36 @@
             [ring.util.http-response :refer [internal-server-error]]
             [schema.core :as s]))
 
+;;
+;; Meta Evil
+;;
+
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
+
+(def +compojure-api-meta+
+  "lexically bound meta-data for handlers."
+  '+compojure-api-meta+)
+
+(defmacro meta-container [meta & form]
+  `(let [~'+compojure-api-meta+ ~meta]
+     ~@form))
+
+(defn unwrap-meta-container [container]
+  {:post [(map? %)]}
+  (or
+    (if (sequential? container)
+      (let [[sym meta-data] container]
+        (if (and (symbol? sym) (= #'meta-container (resolve sym)))
+          meta-data)))
+    {}))
+
+(def meta-container? #{#'meta-container})
+
+;;
+;; Schema
+;;
 
 (defn strict [schema]
   (dissoc schema 'schema.core/Keyword))
@@ -38,7 +65,7 @@
    extracted from a key in a ring request."
   [param key type]
   `(schema/coerce!
-     (get-in ~+meta+ [:parameters ~param])
+     (get-in ~+compojure-api-meta+ [:parameters ~param])
      (keywordize-keys
        (~key ~+compojure-api-request+))
      ~type))
@@ -138,42 +165,37 @@
 ; restructures body-params with plumbing letk notation. Example:
 ; :body-params [id :- Long name :- String]
 (defmethod restructure-param :body-params [_ body-params acc]
-  (let [schema (strict (fnk-schema body-params))]
-    (-> acc
-        (update-in [:letks] into [body-params (src-coerce-param! :body :body-params :json)])
-        (assoc-in [:parameters :parameters :body] schema))))
+  (-> acc
+      (update-in [:letks] into [body-params (src-coerce-param! :body :body-params :json)])
+      (assoc-in [:parameters :parameters :body] (strict (fnk-schema body-params)))))
 
 ; restructures form-params with plumbing letk notation. Example:
 ; :form-params [id :- Long name :- String]
 (defmethod restructure-param :form-params [_ form-params acc]
-  (let [schema (strict (fnk-schema form-params))]
-    (-> acc
-        (update-in [:letks] into [form-params (src-coerce-param! :form :form-params :query)])
-        (assoc-in [:parameters :parameters :form] schema))))
+  (-> acc
+      (update-in [:letks] into [form-params (src-coerce-param! :form :form-params :query)])
+      (assoc-in [:parameters :parameters :form] (strict (fnk-schema form-params)))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]
 (defmethod restructure-param :header-params [_ header-params acc]
-  (let [schema (fnk-schema header-params)]
-    (-> acc
-        (update-in [:letks] into [header-params (src-coerce-param! :header :headers :query)])
-        (assoc-in [:parameters :parameters :header] schema))))
+  (-> acc
+      (update-in [:letks] into [header-params (src-coerce-param! :header :headers :query)])
+      (assoc-in [:parameters :parameters :header] (fnk-schema header-params))))
 
 ; restructures query-params with plumbing letk notation. Example:
 ; :query-params [id :- Long name :- String]
 (defmethod restructure-param :query-params [_ query-params acc]
-  (let [schema (fnk-schema query-params)]
-    (-> acc
-        (update-in [:letks] into [query-params (src-coerce-param! :query :query-params :query)])
-        (assoc-in [:parameters :parameters :query] schema))))
+  (-> acc
+      (update-in [:letks] into [query-params (src-coerce-param! :query :query-params :query)])
+      (assoc-in [:parameters :parameters :query] (fnk-schema query-params))))
 
 ; restructures path-params by plumbing letk notation. Example:
 ; :path-params [id :- Long name :- String]
 (defmethod restructure-param :path-params [_ path-params acc]
-  (let [schema (strict (fnk-schema path-params))]
-    (-> acc
-        (update-in [:letks] into [path-params (src-coerce-param! :path :route-params :query)])
-        (assoc-in [:parameters :parameters :path] schema))))
+  (-> acc
+      (update-in [:letks] into [path-params (src-coerce-param! :path :route-params :query)])
+      (assoc-in [:parameters :parameters :path] (strict (fnk-schema path-params)))))
 
 ; Applies the given vector of middlewares for the route from left to right
 (defmethod restructure-param :middlewares [_ middlewares acc]
