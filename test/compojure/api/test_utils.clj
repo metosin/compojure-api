@@ -1,8 +1,9 @@
 (ns compojure.api.test-utils
-  (:require [cheshire.core :as cheshire]))
+  (:require [cheshire.core :as cheshire])
+  (:import [java.io InputStream]))
 
 (defn read-body [body]
-  (if (instance? java.io.InputStream body)
+  (if (instance? InputStream body)
     (slurp body)
     body))
 

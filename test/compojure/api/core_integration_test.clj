@@ -89,9 +89,7 @@
 
 (defn constant-middleware
   "This middleware rewrites all responses with a constant response."
-  [handler & [res]]
-  (fn [request]
-    res))
+  [_ & [res]] (constantly res))
 
 (defn reply-mw*
   "Handler which replies with response where a header contains copy
@@ -245,7 +243,7 @@
       body => pertti))
 
   (fact "Validation of returned data"
-    (let [[status body] (get* api "/models/invalid-user")]
+    (let [[status] (get* api "/models/invalid-user")]
       status => 500))
 
   (fact "Routes without a :return parameter aren't validated"
@@ -414,7 +412,7 @@
       body => "1"))
 
   (fact "when :return is not set, longs won't be encoded"
-    (let [[status body] (raw-get* api "/primitives/long")]
+    (let [[body] (raw-get* api "/primitives/long")]
       body => number?))
 
   (fact "when :return is set, raw strings can be returned"
