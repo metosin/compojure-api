@@ -158,9 +158,8 @@
 ; :headers [headers Headers]
 (defmethod restructure-param :headers [_ [value model] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! model :headers :query)])
-      (update-in [:parameters :parameters] conj {:type :header
-                                                 :model model})))
+      (update-in [:lets] into [value (src-coerce-param! :header :headers :query)])
+      (assoc-in [:parameters :parameters :header] model)))
 
 ; restructures body-params with plumbing letk notation. Example:
 ; :body-params [id :- Long name :- String]
