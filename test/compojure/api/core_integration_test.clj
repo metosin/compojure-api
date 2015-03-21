@@ -532,6 +532,39 @@
           return-type => truthy
           (-> body :models return-type) => truthy)))))
 
+(def Boundary
+  {:type (s/enum "MultiPolygon" "Polygon" "MultiPoint" "Point")
+   :coordinates [s/Any]})
+
+(def ReturnValue
+  {:boundary (s/maybe Boundary)})
+
+(facts "https://github.com/metosin/compojure-api/issues/53"
+  (defapi api
+    (swagger-docs)
+    (swaggered +name+
+      (POST* "/" []
+        :return ReturnValue
+        :body [_ Boundary]
+        identity)))
+
+  (fact "api-docs"
+    (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+
+      (fact "are found"
+        status => 200)
+
+      (let [operation           (-> body :apis first :operations first)
+            body-parameter-type (-> operation :parameters first :type keyword)
+            return-type         (-> operation :type keyword)]
+
+        (fact "generated body-param is found in Models"
+          (-> body :models body-parameter-type) => truthy)
+
+        (fact "generated return-param is found in Models"
+          return-type => truthy
+          (-> body :models return-type) => truthy)))))
+
 (fact "swagger-docs works with the :middlewares"
   (defapi api
     (swagger-docs)
