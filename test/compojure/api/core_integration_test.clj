@@ -50,6 +50,10 @@
   (let [[status body] (raw-post* app uri data)]
     [status (parse-body body)]))
 
+(defn headers-post* [app uri headers]
+  (let [[status body] (raw-post* app uri "" nil headers)]
+    [status (parse-body body)]))
+
 ;;
 ;; Data
 ;;
@@ -62,6 +66,11 @@
 (def invalid-user {:id 1 :name "Jorma" :age 50})
 
 (def +name+ (str (gensym)))
+
+; Headers contain extra keys, so make the schema open
+(s/defschema UserHeaders
+  (assoc User
+         s/Keyword s/Any))
 
 ;;
 ;; Middleware setup
@@ -164,7 +173,7 @@
       status => 200
       body => {:value 10})))
 
-(fact ":body, :query and :return"
+(fact ":body, :query, :headers and :return"
   (defapi api
     (swaggered +name+
       (context "/models" []
@@ -192,6 +201,10 @@
           :return #{User}
           :body   [users #{User}]
           (ok users))
+        (POST* "/user_headers" []
+          :return User
+          :headers [user UserHeaders]
+          (ok (select-keys user [:id :name])))
         (POST* "/user_legacy" {user :body-params}
           :return User
           (ok user)))))
@@ -223,6 +236,11 @@
 
   (fact "POST* with compojure destructuring"
     (let [[status body] (post* api "/models/user_legacy" (json pertti))]
+      status => 200
+      body => pertti))
+
+  (fact "POST* with smart destructuring - headers"
+    (let [[status body] (headers-post* api "/models/user_headers" pertti)]
       status => 200
       body => pertti))
 
