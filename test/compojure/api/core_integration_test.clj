@@ -449,8 +449,6 @@
         status => 200
         body => {:a "a" :b "b"}))))
 
-
-
 (fact "counting execution times, issue #19"
   (let [execution-times (atom 0)]
     (defapi api
@@ -467,8 +465,6 @@
         status => 200
         body => pertti)
       @execution-times => 1)))
-
-
 
 (fact "swagger-docs"
   (defapi api
@@ -514,8 +510,8 @@
     (swagger-docs)
     (swaggered +name+
       (POST* "/echo" []
-        :return {:a String}
-        :body [_ {:a String}]
+        :return (s/either {:a String})
+        :body [_ (s/maybe {:a String})]
         identity)))
 
   (fact "api-docs"

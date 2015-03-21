@@ -9,7 +9,7 @@
 
 (s/defschema Band {:id s/Int
                    :name s/Str
-                   (s/optional-key :description) s/Str
+                   (s/optional-key :description) (s/maybe s/Str)
                    :toppings [(s/enum :cheese :olives :ham :pepperoni :habanero)]})
 
 (s/defschema NewBand (dissoc Band :id))
