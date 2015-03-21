@@ -1,6 +1,16 @@
-## 0.xx.x (x.x.2015)
+## 0.18.1 (21.3.2015)
 
-- support for `context*`
+- added destructuring for `:headers`, thanks to [tchagnon](https://github.com/tchagnon)!
+- updated deps:
+
+```clojure
+[prismatic/plumbing "0.4.1"] is available but we use "0.3.7"
+[potemkin "0.3.12"] is available but we use "0.3.11"
+[prismatic/schema "0.4.0"] is available but we use "0.3.7"
+[metosin/ring-http-response "0.6.1"] is available but we use "0.6.0"
+[metosin/ring-swagger "0.19.0"] is available but we use "0.18.1"
+[lein-ring "0.9.3"] is available but we use "0.9.2"
+```
 
 ## 0.18.0 (2.3.2015)
 

@@ -50,6 +50,10 @@
   (let [[status body] (raw-post* app uri data)]
     [status (parse-body body)]))
 
+(defn headers-post* [app uri headers]
+  (let [[status body] (raw-post* app uri "" nil headers)]
+    [status (parse-body body)]))
+
 ;;
 ;; Data
 ;;
@@ -62,6 +66,11 @@
 (def invalid-user {:id 1 :name "Jorma" :age 50})
 
 (def +name+ (str (gensym)))
+
+; Headers contain extra keys, so make the schema open
+(s/defschema UserHeaders
+  (assoc User
+         s/Keyword s/Any))
 
 ;;
 ;; Middleware setup
@@ -80,9 +89,7 @@
 
 (defn constant-middleware
   "This middleware rewrites all responses with a constant response."
-  [handler & [res]]
-  (fn [request]
-    res))
+  [_ & [res]] (constantly res))
 
 (defn reply-mw*
   "Handler which replies with response where a header contains copy
@@ -164,7 +171,7 @@
       status => 200
       body => {:value 10})))
 
-(fact ":body, :query and :return"
+(fact ":body, :query, :headers and :return"
   (defapi api
     (swaggered +name+
       (context "/models" []
@@ -192,6 +199,10 @@
           :return #{User}
           :body   [users #{User}]
           (ok users))
+        (POST* "/user_headers" []
+          :return User
+          :headers [user UserHeaders]
+          (ok (select-keys user [:id :name])))
         (POST* "/user_legacy" {user :body-params}
           :return User
           (ok user)))))
@@ -226,8 +237,13 @@
       status => 200
       body => pertti))
 
+  (fact "POST* with smart destructuring - headers"
+    (let [[status body] (headers-post* api "/models/user_headers" pertti)]
+      status => 200
+      body => pertti))
+
   (fact "Validation of returned data"
-    (let [[status body] (get* api "/models/invalid-user")]
+    (let [[status] (get* api "/models/invalid-user")]
       status => 500))
 
   (fact "Routes without a :return parameter aren't validated"
@@ -396,7 +412,7 @@
       body => "1"))
 
   (fact "when :return is not set, longs won't be encoded"
-    (let [[status body] (raw-get* api "/primitives/long")]
+    (let [[body] (raw-get* api "/primitives/long")]
       body => number?))
 
   (fact "when :return is set, raw strings can be returned"
@@ -433,8 +449,6 @@
         status => 200
         body => {:a "a" :b "b"}))))
 
-
-
 (fact "counting execution times, issue #19"
   (let [execution-times (atom 0)]
     (defapi api
@@ -451,8 +465,6 @@
         status => 200
         body => pertti)
       @execution-times => 1)))
-
-
 
 (fact "swagger-docs"
   (defapi api
@@ -498,8 +510,8 @@
     (swagger-docs)
     (swaggered +name+
       (POST* "/echo" []
-        :return {:a String}
-        :body [_ {:a String}]
+        :return (s/either {:a String})
+        :body [_ (s/maybe {:a String})]
         identity)))
 
   (fact "api-docs"
@@ -514,6 +526,39 @@
 
         (fact "generated body-param is found in Models"
           body-parameter-type => truthy
+          (-> body :models body-parameter-type) => truthy)
+
+        (fact "generated return-param is found in Models"
+          return-type => truthy
+          (-> body :models return-type) => truthy)))))
+
+(def Boundary
+  {:type (s/enum "MultiPolygon" "Polygon" "MultiPoint" "Point")
+   :coordinates [s/Any]})
+
+(def ReturnValue
+  {:boundary (s/maybe Boundary)})
+
+(facts "https://github.com/metosin/compojure-api/issues/53"
+  (defapi api
+    (swagger-docs)
+    (swaggered +name+
+      (POST* "/" []
+        :return ReturnValue
+        :body [_ Boundary]
+        identity)))
+
+  (fact "api-docs"
+    (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+
+      (fact "are found"
+        status => 200)
+
+      (let [operation           (-> body :apis first :operations first)
+            body-parameter-type (-> operation :parameters first :type keyword)
+            return-type         (-> operation :type keyword)]
+
+        (fact "generated body-param is found in Models"
           (-> body :models body-parameter-type) => truthy)
 
         (fact "generated return-param is found in Models"

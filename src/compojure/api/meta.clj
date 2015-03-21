@@ -152,6 +152,16 @@
       (update-in [:lets] into [value (src-coerce-param! :query :query-params :query)])
       (assoc-in [:parameters :parameters :query] model)))
 
+; reads header-params into a enchanced let. First parameter is the let symbol,
+; second is the Model to coerced! against.
+; Examples:
+; :headers [headers Headers]
+(defmethod restructure-param :headers [_ [value model] acc]
+  (-> acc
+      (update-in [:lets] into [value (src-coerce! model :headers :query)])
+      (update-in [:parameters :parameters] conj {:type :header
+                                                 :model model})))
+
 ; restructures body-params with plumbing letk notation. Example:
 ; :body-params [id :- Long name :- String]
 (defmethod restructure-param :body-params [_ body-params acc]
