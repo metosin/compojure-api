@@ -2,7 +2,7 @@
   (:require [clojure.walk :refer [keywordize-keys]]
             [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
-            [plumbing.core :refer :all :exclude [update]]
+            [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :refer :all]
             [ring.swagger.schema :as schema]
