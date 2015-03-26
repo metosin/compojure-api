@@ -191,7 +191,6 @@
        peel
        macroexpand-to-compojure
        collect-compojure-routes
-       #_(#(do (println "*********") (./aprint %) %))
        ensure-routes-in-root
        (create-paths {})
        (apply array-map)
