@@ -55,3 +55,11 @@
 
 (fact "->CamelCase"
   (->CamelCase "olipa-kerran") => "OlipaKerran")
+
+(fact "get-local allows local symbol resolution"
+  (let [a1 (get-local 'a)
+        a  "kikka"
+        a2 (get-local 'a)]
+    a1 => nil
+    a => "kikka"
+    a2 => "kikka"))
