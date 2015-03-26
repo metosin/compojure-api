@@ -132,7 +132,7 @@
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (path-params uri))
     (update-in route-with-meta [:metadata :parameters :path]
-               (partial merge (string-path-parameters uri)))
+               #(dissoc (merge (string-path-parameters uri) %) s/Keyword))
     route-with-meta))
 
 ;;
