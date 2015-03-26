@@ -194,7 +194,7 @@
 (defmethod restructure-param :path-params [_ path-params acc]
   (-> acc
       (update-in [:letks] into [path-params (src-coerce-param! :path :route-params :query)])
-      (assoc-in [:parameters :parameters :path] (strict (fnk-schema path-params)))))
+      (assoc-in [:parameters :parameters :path] (fnk-schema path-params))))
 
 ; Applies the given vector of middlewares for the route from left to right
 (defmethod restructure-param :middlewares [_ middlewares acc]
