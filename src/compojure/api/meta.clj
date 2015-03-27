@@ -22,7 +22,8 @@
   '+compojure-api-meta+)
 
 (defmacro meta-container [meta & form]
-  `(let [~'+compojure-api-meta+ ~meta]
+  `(let [accumulated-meta# (get-local +compojure-api-meta+)
+         ~'+compojure-api-meta+ (deep-merge accumulated-meta# ~meta)]
      ~@form))
 
 (defn unwrap-meta-container [container]
