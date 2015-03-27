@@ -655,3 +655,29 @@
     "application/edn" "{:foo \"bar\"}"
     "application/transit+json" "[\"^ \",\"~:foo\",\"bar\"]"
     ))
+
+(fact "accumulation in context*"
+  (let [metas (atom nil)]
+    (defapi api
+      (swaggered +name+
+        (context* "/:id" []
+          :path-params [id :- String]
+          :tags [:api]
+          :summary "jeah"
+          (GET* "/:di/ping" []
+            :tags [:ipa]
+            :path-params [di :- String]
+            :query-params [foo :- String]
+            (reset! metas +compojure-api-meta+)
+            (ok)))))
+
+    (fact "all but lists & sequences get accumulated"
+      (let [[status] (get* api "/kikka/kikka/ping" {:foo "123"})]
+        status => 200
+        @metas => {:parameters {:path {:id String
+                                       :di String
+                                       s/Keyword s/Any}
+                                :query {:foo String
+                                        s/Keyword s/Any}}
+                   :summary "jeah"
+                   :tags #{:ipa}}))))
