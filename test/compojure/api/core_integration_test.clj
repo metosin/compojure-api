@@ -667,17 +667,18 @@
           (GET* "/:di/ping" []
             :tags [:ipa]
             :path-params [di :- String]
-            :query-params [foo :- String]
+            :query-params [foo :- s/Int]
             (reset! metas +compojure-api-meta+)
-            (ok)))))
+            (ok [id di foo])))))
 
     (fact "all but lists & sequences get accumulated"
-      (let [[status] (get* api "/kikka/kikka/ping" {:foo "123"})]
+      (let [[status body] (get* api "/kikka/kukka/ping" {:foo 123})]
         status => 200
+        body => ["kikka" "kukka" 123]
         @metas => {:parameters {:path {:id String
                                        :di String
                                        s/Keyword s/Any}
-                                :query {:foo String
+                                :query {:foo s/Int
                                         s/Keyword s/Any}}
                    :summary "jeah"
                    :tags #{:ipa}}))))
