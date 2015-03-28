@@ -126,9 +126,11 @@
       :summary "summary inherited from context"
       :path-params [kikka :- s/Str]
       :query-params [kukka :- s/Str]
-      (GET* "/api" []
+      (GET* "/:kakka" []
+        :path-params [kakka :- s/Str]
         (ok {:kikka kikka
-             :kukka kukka}))))
+             :kukka kukka
+             :kakka kakka}))))
 
   (swaggered "echo"
     :description "echoes data"
