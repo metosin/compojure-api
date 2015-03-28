@@ -2,17 +2,16 @@
 
 - added destructuring for `:headers`, thanks to [tchagnon](https://github.com/tchagnon)!
 - `:path-param` allows any keywords, needed for the partial parameter matching with `context*`
-- **BREAKING**: parameters are collected in (Ring-)Swagger 2.0 format, might break client-side restructurings. see https://github.com/metosin/ring-swagger/blob/master/test/ring/swagger/swagger2_test.clj & https://github.com/metosin/compojure-api/blob/master/src/compojure/api/meta.clj for examples of the new models
+- **BREAKING**: parameters are collected in (Ring-)Swagger 2.0 format, might break client-side `compojure.api.meta/restructure-param` dispatch functions - for the swagger documentation part. see https://github.com/metosin/ring-swagger/blob/master/test/ring/swagger/swagger2_test.clj & https://github.com/metosin/compojure-api/blob/master/src/compojure/api/meta.clj for examples of the new schemas.
 - `context*` to allow setting meta-data to mid-routes. Mid-route meta-data are deep-merged into endpoint swagger-definitions at compile-time. At runtime, code is executed in place.
 
 ```clojure
-; all meta-data
 (context* "/api/:kikka" []
   :summary "summary inherited from context"
   :path-params [kikka :- s/Str] ; enforced here at runtime
   :query-params [kukka :- s/Str] ; enforced here at runtime
   (GET* "/:kakka" []
-    :path-params [kakka :- s/Str] ; enforced here
+    :path-params [kakka :- s/Str] ; enforced here at runtime
     (ok {:kikka kikka
          :kukka kukka
          :kakka kakka})))
