@@ -202,13 +202,13 @@
         parameters (apply hash-map key-values)]
     `(routes
        (GET ~path []
-            (swagger/api-listing ~parameters @~routes/+routes-sym+))
+         (swagger/api-listing ~parameters @~routes/+routes-sym+))
        (GET ~(str path "/:api") {{api# :api} :route-params :as request#}
-            (let [produces# (-> request# :meta :produces (or []))
-                  consumes# (-> request# :meta :consumes (or []))
-                  parameters# (merge ~parameters {:produces produces#
-                                                  :consumes consumes#})]
-              (swagger/api-declaration parameters# @~routes/+routes-sym+ api# (swagger/basepath request#)))))))
+         (let [produces# (-> request# :meta :produces (or []))
+               consumes# (-> request# :meta :consumes (or []))
+               parameters# (merge ~parameters {:produces produces#
+                                               :consumes consumes#})]
+           (swagger/api-declaration parameters# @~routes/+routes-sym+ api# (swagger/basepath request#)))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional

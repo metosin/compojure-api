@@ -2,7 +2,7 @@
   (:require [clojure.walk :refer [keywordize-keys]]
             [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
-            [plumbing.core :refer :all :exclude [update]]
+            [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :refer :all]
             [ring.swagger.schema :as schema]
@@ -136,24 +136,24 @@
 (defmethod restructure-param :body-params [_ body-params acc]
   (let [schema (strict (fnk-schema body-params))]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :body :model schema})
-        (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)]))))
+        (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)])
+        (update-in [:parameters :parameters] conj {:type :body :model schema}))))
 
 ; restructures form-params with plumbing letk notation. Example:
 ; :form-params [id :- Long name :- String]
 (defmethod restructure-param :form-params [_ form-params acc]
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :form :model schema})
-        (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)]))))
+        (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)])
+        (update-in [:parameters :parameters] conj {:type :form :model schema}))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]
 (defmethod restructure-param :header-params [_ header-params acc]
   (let [schema (fnk-schema header-params)]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :header :model schema})
-        (update-in [:letks] into [header-params (src-coerce! schema :headers :query)]))))
+        (update-in [:letks] into [header-params (src-coerce! schema :headers :query)])
+        (update-in [:parameters :parameters] conj {:type :header :model schema}))))
 
 ; restructures query-params with plumbing letk notation. Example:
 ; :query-params [id :- Long name :- String]

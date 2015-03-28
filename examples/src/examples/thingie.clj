@@ -5,7 +5,8 @@
             [ring.swagger.schema :refer [field describe]]
             ring.swagger.json-schema-dirty
             [examples.domain :refer :all]
-            [examples.dates :refer :all]))
+            [examples.dates :refer :all])
+  (:import [org.joda.time DateTime]))
 
 ;;
 ;; Schemas
@@ -104,9 +105,9 @@
         (ok (+ x y)))
 
       (GET* "/datetime-now" []
-        :return org.joda.time.DateTime
+        :return DateTime
         :summary "current datetime"
-        (ok (org.joda.time.DateTime.)))
+        (ok (DateTime.)))
 
 
       (GET* "/hello" []
