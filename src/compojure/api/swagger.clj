@@ -4,6 +4,7 @@
             [clojure.walk :as walk]
             [compojure.api.common :refer :all]
             [compojure.api.routes :as routes]
+            [compojure.api.meta :as m]
             [compojure.core :refer :all]
             [plumbing.core :refer [fn->]]
             [potemkin :refer [import-vars]]
@@ -25,6 +26,7 @@
 ;; Route peeling
 ;;
 
+; TODO: #'wrap-routes
 (def compojure-route?     #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
 (def compojure-context?   #{#'context})
 (def compojure-letroutes? #{#'let-routes})
@@ -42,7 +44,7 @@
                             (symbol? sym)
                             (or
                               (compojure-macro? (eval-re-resolve sym))
-                              (meta-container? (eval-re-resolve sym))))
+                              (m/meta-container? (eval-re-resolve sym))))
                         (filter (comp not nil?) x)
                         (let [result (macroexpand-1 x)]
                           ;; stop if macro expands to itself
@@ -51,15 +53,34 @@
     form))
 
 (defrecord CompojureRoute [p b])
-(defrecord CompojureRoutes [p c])
+(defrecord CompojureRoutes [p m c])
 
 (defn is-a?
   "like instanceof? but compares .toString of a classes"
   [c x] (= (str c) (str (class x))))
 
+(defn parse-meta-data [container]
+  (when-let [meta (m/unwrap-meta-container container)]
+    (let [meta (update-in meta [:return] eval)
+          meta (reduce
+                (fn [acc x]
+                  (update-in acc [:parameters x] eval))
+                meta
+                (-> meta :parameters keys))]
+      (remove-empty-keys meta))))
+
+(defn route-metadata [body]
+  (parse-meta-data (first (drop 2 body))))
+
+(defn context-metadata [body]
+  (parse-meta-data (first (drop 3 body))))
+
+(defn merge-meta [& meta]
+  (apply deep-merge meta))
+
 (defn filter-routes [c]
-  (filter #(or (is-a? CompojureRoute %)
-               (is-a? CompojureRoutes %)) (flatten c)))
+  (filterv #(or (is-a? CompojureRoute %)
+                (is-a? CompojureRoutes %)) (flatten c)))
 
 (defn collect-compojure-routes [form]
   (walk/postwalk
@@ -71,8 +92,8 @@
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
               (compojure-route? rm)     (->CompojureRoute p x)
-              (compojure-context? rm)   (->CompojureRoutes p  (filter-routes x))
-              (compojure-letroutes? rm) (->CompojureRoutes "" (filter-routes x))
+              (compojure-context? rm)   (->CompojureRoutes p (context-metadata x) (filter-routes x))
+              (compojure-letroutes? rm) (->CompojureRoutes "" (context-metadata x) (filter-routes x))
               :else                     x)))
         x))
     form))
@@ -88,52 +109,50 @@
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
 
-(defn create-paths [{:keys [p b c] :as r}]
+(defn create-paths [m {:keys [p b c] :as r}]
   (cond
-    (is-a? CompojureRoute r)  (let [route-meta (meta r)
-                                    method-meta (meta (first b))
-                                    parameter-meta (first (extract-parameters (drop 3 b)))
-                                    metadata (merge route-meta method-meta parameter-meta)
-                                    new-body [(with-meta (first b) metadata) (rest b)]]
-                                [[p (extract-method b)] new-body])
-    (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {} (map create-paths c))]))
+    (is-a? CompojureRoute r)  [[p (extract-method b)] [:endpoint {:meta m :body (rest b)}]]
+    (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {}
+                                               (map (partial
+                                                     create-paths
+                                                     (merge-meta m (:m r))) c))]))
 
-(defn route-metadata [body]
-  (remove-empty-keys
-    (let [{:keys [return parameters] :as meta} (unwrap-meta-container (last (second body)))]
-      (merge meta {:parameters (and parameters (doall (map eval parameters)))
-                   :return (eval return)}))))
+;;
+;; ensure path parameters
+;;
+
+(defn path-params [s]
+  (map (comp keyword second) (re-seq #":(.[^:|(/]*)[/]?" s)))
+
+(defn string-path-parameters [uri]
+  (let [params (path-params uri)]
+    (if (seq params)
+      (zipmap params (repeat String)))))
 
 (defn ensure-path-parameters [uri route-with-meta]
-  (if (seq (swagger/path-params uri))
-    (let [all-parameters (get-in route-with-meta [:metadata :parameters])
-          path-parameter? (fn-> :type (= :path))
-          existing-path-parameters (some->> all-parameters
-                                            (filter path-parameter?)
-                                            first
-                                            :model
-                                            value-of
-                                            swagger-impl/strict-schema)
-          string-path-parameters (swagger/string-path-parameters uri)
-          all-path-parameters (update-in string-path-parameters [:model]
-                                         merge (or existing-path-parameters {}))
-          new-parameters (conj (remove path-parameter? all-parameters)
-                               all-path-parameters)]
-      (assoc-in route-with-meta [:metadata :parameters] new-parameters))
+  (if (seq (path-params uri))
+    (update-in route-with-meta [:metadata :parameters :path]
+               #(dissoc (merge (string-path-parameters uri) %) s/Keyword))
     route-with-meta))
 
+;;
+;; generate schema names
+;;
+
+(defn with-name [type schema]
+  (if schema
+    (swagger-impl/update-schema
+     schema
+     #(s/schema-with-name % (gensym (->CamelCase (name type)))))))
+
 (defn ensure-parameter-schema-names [route-with-meta]
-  (if-let [all-parameters (get-in route-with-meta [:metadata :parameters])]
-    (->> all-parameters
-         (map (fn [{:keys [model type] :as parameter}]
-                (if-not (direct-or-contained schema/named-schema? model)
-                  (update-in parameter [:model]
-                             swagger-impl/update-schema
-                             (fn-> (s/schema-with-name
-                                     (gensym (->CamelCase (name type))))))
-                  parameter)))
-         (assoc-in route-with-meta [:metadata :parameters]))
-    route-with-meta))
+  (reduce
+   (fn [acc type]
+     (if (get-in acc [:metadata :parameters type])
+       (update-in acc [:metadata :parameters type]
+                  (partial with-name type))
+       acc))
+   route-with-meta [:path :body :query :header]))
 
 (defn ensure-return-schema-names [route-with-meta]
   (if-let [return (get-in route-with-meta [:metadata :return])]
@@ -141,13 +160,16 @@
                 (direct-or-contained (comp not map?) return))
       (update-in route-with-meta [:metadata :return]
                  swagger-impl/update-schema
-                 (fn-> (s/schema-with-name
-                         (gensym (->CamelCase "return")))))
+                 (partial with-name "return"))
       route-with-meta)
     route-with-meta))
 
-(defn attach-meta-data-to-route [[{:keys [uri] :as route} body]]
-  (let [meta (route-metadata body)
+;;
+;;
+;;
+
+(defn attach-meta-data-to-route [[{:keys [uri] :as route} [_ {:keys [body meta]}]]]
+  (let [meta (merge-meta meta (route-metadata body))
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
          (ensure-path-parameters uri)
@@ -159,7 +181,7 @@
 
 (defn ensure-routes-in-root [body]
   (if (seq? body)
-    (->CompojureRoutes "" (filter-routes body))
+    (->CompojureRoutes "" {} (filter-routes body))
     body))
 
 (defn extract-routes [body]
@@ -168,11 +190,11 @@
        macroexpand-to-compojure
        collect-compojure-routes
        ensure-routes-in-root
-       create-paths
+       (create-paths {})
        (apply array-map)
        path-vals
        (map create-api-route)
-       (map attach-meta-data-to-route)
+       (mapv attach-meta-data-to-route)
        reverse))
 
 (defn swagger-info [body]
@@ -180,6 +202,18 @@
         routes  (extract-routes body)
         details (assoc parameters :routes routes)]
     [details body]))
+
+(defn convert-parameters-to-swagger-12 [routes]
+  (let [->12parameter (fn [[k v]] {:type k :model v})]
+    (into
+     (empty routes)
+     (for [[name info] routes]
+       [name (update-in info [:routes]
+                        (fn [routes]
+                          (mapv (fn [route]
+                                  (update-in route [:metadata :parameters]
+                                             (partial mapv ->12parameter)))
+                                routes)))]))))
 
 ;;
 ;; Public api
@@ -208,7 +242,11 @@
                consumes# (-> request# :meta :consumes (or []))
                parameters# (merge ~parameters {:produces produces#
                                                :consumes consumes#})]
-           (swagger/api-declaration parameters# @~routes/+routes-sym+ api# (swagger/basepath request#)))))))
+           (swagger/api-declaration
+             parameters#
+             (convert-parameters-to-swagger-12  @~routes/+routes-sym+)
+             api#
+             (swagger/basepath request#)))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional

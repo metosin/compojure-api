@@ -45,24 +45,6 @@
   [& syms]
   `(zipmap ~(vec (map keyword syms)) ~(vec syms)))
 
-;;
-;; meta-data-container
-;;
-
-(defmacro meta-container [meta & form]
-  `(do ~@form))
-
-(defn unwrap-meta-container [container]
-  {:post [(map? %)]}
-  (or
-    (if (sequential? container)
-      (let [[sym meta-data] container]
-        (if (and (symbol? sym) (= #'meta-container (resolve sym)))
-          meta-data)))
-    {}))
-
-(def meta-container? #{#'meta-container})
-
 (defn ->CamelCase [x]
   (lc/capitalized x))
 
@@ -87,3 +69,11 @@
 
       :else
       (last values))))
+
+(defmacro local-bindings []
+  (->> (keys &env)
+       (map (fn [k] [`'~k k]))
+       (into {})))
+
+(defmacro get-local [s]
+  `(get (local-bindings) ~s))
