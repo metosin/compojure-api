@@ -2,16 +2,44 @@
   (:require [clojure.walk :refer [keywordize-keys]]
             [compojure.api.common :refer :all]
             [compojure.core :refer [routes]]
-            [plumbing.core :refer :all :exclude [update]]
+            [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :refer :all]
             [ring.swagger.schema :as schema]
             [ring.util.http-response :refer [internal-server-error]]
             [schema.core :as s]))
 
+;;
+;; Meta Evil
+;;
+
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
+
+(def +compojure-api-meta+
+  "lexically bound meta-data for handlers. EXPERIMENTAL."
+  '+compojure-api-meta+)
+
+(defmacro meta-container [meta & form]
+  `(let [accumulated-meta# (get-local +compojure-api-meta+)
+         ~'+compojure-api-meta+ (deep-merge accumulated-meta# ~meta)]
+     ~@form))
+
+(defn unwrap-meta-container [container]
+  {:post [(map? %)]}
+  (or
+    (if (sequential? container)
+      (let [[sym meta-data] container]
+        (if (and (symbol? sym) (= #'meta-container (resolve sym)))
+          meta-data)))
+    {}))
+
+(def meta-container? #{#'meta-container})
+
+;;
+;; Schema
+;;
 
 (defn strict [schema]
   (dissoc schema 'schema.core/Keyword))
@@ -24,8 +52,8 @@
 (defn body-coercer-middleware [handler responses]
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
-      (if-let [model (responses status)]
-        (let [body (schema/coerce model (:body response))]
+      (if-let [schema (responses status)]
+        (let [body (schema/coerce schema (:body response))]
           (if (schema/error? body)
             (internal-server-error {:errors (:error body)})
             (assoc response
@@ -35,10 +63,20 @@
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type,
-   extracted from a key in a ring request."
+  extracted from a key in a ring request."
   [schema key type]
   `(schema/coerce!
      ~schema
+     (keywordize-keys
+       (~key ~+compojure-api-request+))
+     ~type))
+
+#_(defn src-coerce-param!
+  "Return source code for coerce! for a schema with coercer type,
+   extracted from a key in a ring request."
+  [param key type]
+  `(schema/coerce!
+     (get-in ~+compojure-api-meta+ [:parameters ~param])
      (keywordize-keys
        (~key ~+compojure-api-request+))
      ~type))
@@ -48,11 +86,11 @@
 ;;
 
 (defn- responses->messages [responses]
-  (for [[code model] responses
+  (for [[code schema] responses
         :when (not= code 200)]
     {:code code
-     :message (or (some-> model meta :message) "")
-     :responseModel (eval model)}))
+     :message (or (some-> schema meta :message) "")
+     :responseModel (eval schema)}))
 
 ;;
 ;; Extension point
@@ -80,18 +118,24 @@
 ;; Smart restructurings
 ;;
 
+; Tags for api categorization. Ignores duplicates.
+; Examples:
+; :tags [:admin]
+(defmethod restructure-param :tags [_ tags acc]
+  (update-in acc [:parameters :tags] (comp set into) tags))
+
 ; Defines a return type and coerced the return value of a body against it.
 ; Examples:
-; :return MyModel
+; :return MySchema
 ; :return {:value String}
 ; :return #{{:key (s/maybe Long)}}
-(defmethod restructure-param :return [k model acc]
+(defmethod restructure-param :return [k schema acc]
   (-> acc
-      (update-in [:parameters] assoc k model)
-      (update-in [:responses] assoc 200 model)))
+      (update-in [:parameters] assoc k schema)
+      (update-in [:responses] assoc 200 schema)))
 
-; value is a map of http-response-code -> Model. Translates to both swagger
-; parameters and return model coercion. Models can be decorated with meta-data.
+; value is a map of http-response-code -> Schema. Translates to both swagger
+; parameters and return schema coercion. Schemas can be decorated with meta-data.
 ; Examples:
 ; :responses {403 ErrorEnvelope}
 ; :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}
@@ -102,74 +146,71 @@
         (update-in [:responses] merge responses))))
 
 ; reads body-params into a enchanced let. First parameter is the let symbol,
-; second is the Model to coerced! against.
+; second is the Schema to coerced! against.
 ; Examples:
 ; :body [user User]
-(defmethod restructure-param :body [_ [value model] acc]
+(defmethod restructure-param :body [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! model :body-params :json)])
-      (update-in [:parameters :parameters] conj {:type :body
-                                                 :model model})))
+      (update-in [:lets] into [value (src-coerce! schema :body-params :json)])
+      (assoc-in [:parameters :parameters :body] schema)))
 
 ; reads query-params into a enchanced let. First parameter is the let symbol,
-; second is the Model to coerced! against.
+; second is the Schema to coerced! against.
 ; Examples:
 ; :query [user User]
-(defmethod restructure-param :query [_ [value model] acc]
+(defmethod restructure-param :query [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! model :query-params :query)])
-      (update-in [:parameters :parameters] conj {:type :query
-                                                 :model model})))
+      (update-in [:lets] into [value (src-coerce! schema :query-params :query)])
+      (assoc-in [:parameters :parameters :query] schema)))
 
 ; reads header-params into a enchanced let. First parameter is the let symbol,
-; second is the Model to coerced! against.
+; second is the Schema to coerced! against.
 ; Examples:
 ; :headers [headers Headers]
-(defmethod restructure-param :headers [_ [value model] acc]
+(defmethod restructure-param :headers [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! model :headers :query)])
-      (update-in [:parameters :parameters] conj {:type :header
-                                                 :model model})))
+      (update-in [:lets] into [value (src-coerce! schema :headers :query)])
+      (assoc-in [:parameters :parameters :header] schema)))
 
 ; restructures body-params with plumbing letk notation. Example:
 ; :body-params [id :- Long name :- String]
 (defmethod restructure-param :body-params [_ body-params acc]
   (let [schema (strict (fnk-schema body-params))]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :body :model schema})
-        (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)]))))
+        (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)])
+        (assoc-in [:parameters :parameters :body] schema))))
 
 ; restructures form-params with plumbing letk notation. Example:
 ; :form-params [id :- Long name :- String]
 (defmethod restructure-param :form-params [_ form-params acc]
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :form :model schema})
-        (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)]))))
+        (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)])
+        (assoc-in [:parameters :parameters :form] schema))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]
 (defmethod restructure-param :header-params [_ header-params acc]
   (let [schema (fnk-schema header-params)]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :header :model schema})
-        (update-in [:letks] into [header-params (src-coerce! schema :headers :query)]))))
+        (update-in [:letks] into [header-params (src-coerce! schema :headers :query)])
+        (assoc-in [:parameters :parameters :header] schema))))
 
 ; restructures query-params with plumbing letk notation. Example:
 ; :query-params [id :- Long name :- String]
 (defmethod restructure-param :query-params [_ query-params acc]
   (let [schema (fnk-schema query-params)]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :query :model schema})
-        (update-in [:letks] into [query-params (src-coerce! schema :query-params :query)]))))
+        (update-in [:letks] into [query-params (src-coerce! schema :query-params :query)])
+        (assoc-in [:parameters :parameters :query] schema))))
 
 ; restructures path-params by plumbing letk notation. Example:
 ; :path-params [id :- Long name :- String]
 (defmethod restructure-param :path-params [_ path-params acc]
   (let [schema (fnk-schema path-params)]
     (-> acc
-        (update-in [:parameters :parameters] conj {:type :path :model schema})
-        (update-in [:letks] into [path-params (src-coerce! schema :route-params :query)]))))
+        (update-in [:letks] into [path-params (src-coerce! schema :route-params :query)])
+        (assoc-in [:parameters :parameters :path] schema))))
 
 ; Applies the given vector of middlewares for the route from left to right
 (defmethod restructure-param :middlewares [_ middlewares acc]

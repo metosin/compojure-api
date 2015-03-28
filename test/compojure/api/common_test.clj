@@ -53,13 +53,13 @@
   (let [a 1 b true c [:abba :jabba]]
     (map-of a b c) => {:a 1 :b true :c [:abba :jabba]}))
 
-(fact "unwrapping meta-container"
-  (fact "meta-data is returned"
-    (unwrap-meta-container '(meta-container {:a 1} identity)) => {:a 1})
-  (fact "non-map meta-data can't be unwrapped"
-    (unwrap-meta-container '(meta-container :abba identity)) => (throws AssertionError))
-  (fact "unwrapping non-meta-container returns empty map"
-    (unwrap-meta-container 'identity) => {}))
-
 (fact "->CamelCase"
   (->CamelCase "olipa-kerran") => "OlipaKerran")
+
+(fact "get-local allows local symbol resolution"
+  (let [a1 (get-local 'a)
+        a  "kikka"
+        a2 (get-local 'a)]
+    a1 => nil
+    a => "kikka"
+    a2 => "kikka"))

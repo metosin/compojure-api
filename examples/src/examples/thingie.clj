@@ -5,7 +5,8 @@
             [ring.swagger.schema :refer [field describe]]
             ring.swagger.json-schema-dirty
             [examples.domain :refer :all]
-            [examples.dates :refer :all]))
+            [examples.dates :refer :all])
+  (:import [org.joda.time DateTime]))
 
 ;;
 ;; Schemas
@@ -104,9 +105,9 @@
         (ok (+ x y)))
 
       (GET* "/datetime-now" []
-        :return org.joda.time.DateTime
+        :return DateTime
         :summary "current datetime"
-        (ok (org.joda.time.DateTime.)))
+        (ok (DateTime.)))
 
 
       (GET* "/hello" []
@@ -119,12 +120,24 @@
         :summary "echos a string from query-params"
         (ok (str "hello, " name)))))
 
+  (swaggered "context*"
+    :description "context* routes"
+    (context* "/context/:kikka" []
+      :summary "summary inherited from context"
+      :path-params [kikka :- s/Str]
+      :query-params [kukka :- s/Str]
+      (GET* "/:kakka" []
+        :path-params [kakka :- s/Str]
+        (ok {:kikka kikka
+             :kukka kukka
+             :kakka kakka}))))
+
   (swaggered "echo"
     :description "echoes data"
     (context "/echo" []
 
     (POST* "/recursion" []
-      :return   Recursive
+      :return Recursive
       :body     [body (describe Recursive "Recursive Schema")]
       :summary  "echoes a the json-body"
       (ok body))

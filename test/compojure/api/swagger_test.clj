@@ -2,7 +2,8 @@
   (:require [compojure.api.core :refer :all]
             [compojure.api.swagger :refer :all]
             [compojure.core :refer :all]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [schema.core :as s]))
 
 (fact "extracting compojure paths"
 
@@ -35,11 +36,10 @@
          :uri "/a/b/h"}
         {:method :get
          :uri "/a/:i/:j/k/:l/m/:n"
-         :metadata {:parameters [{:type :path
-                                  :model {:i String
-                                          :j String
-                                          :l String
-                                          :n String}}]}}])
+         :metadata {:parameters {:path {:i String
+                                        :j String
+                                        :l String
+                                        :n String}}}}])
 
   (fact "runtime code in route is ignored"
     (extract-routes
@@ -94,8 +94,7 @@
 
     => [{:method :get
          :uri "/api/:param"
-         :metadata {:parameters [{:type :path
-                                  :model {:param String}}]}}]))
+         :metadata {:parameters {:path {:param String}}}}]))
 
 (facts "swagger-info"
 
@@ -112,8 +111,7 @@
         :description ..description..
         :routes [{:method :get
                   :uri "/api/user/:id"
-                  :metadata {:parameters [{:type :path
-                                           :model {:id String}}]}}]})
+                  :metadata {:parameters {:path {:id String}}}}]})
 
   (fact "with map-parameters"
     (first
@@ -128,5 +126,43 @@
         :description ..description..
         :routes [{:method :get
                   :uri "/api/user/:id"
-                  :metadata {:parameters [{:type :path
-                                           :model {:id String}}]}}]}))
+                  :metadata {:parameters {:path {:id String}}}}]})
+
+  (fact "context* meta-data"
+
+    (first
+     (swagger-info
+      '((context* "/api/:id" []
+          :summary "top-summary"
+          :path-params [id :- String]
+          :tags [:kiss]
+          (GET* "/kikka" []
+            identity)
+          (context* "/ipa" []
+            :summary "mid-summary"
+            :tags [:wasp]
+            (GET* "/kukka/:kukka" []
+              :summary "bottom-summary"
+              :path-params [kukka :- String]
+              :tags [:venom])
+            (GET* "/kakka" []
+              identity))))))
+
+    => {:routes [{:metadata {:summary "top-summary"
+                             :tags #{:kiss}
+                             :parameters {:path {:id String}}}
+                  :method :get
+                  :uri "/api/:id/kikka"}
+                 {:metadata {:summary "bottom-summary"
+                             :tags #{:venom}
+                             :parameters {:path {:id String
+                                                 :kukka String}}}
+                  :method :get
+                  :uri "/api/:id/ipa/kukka/:kukka"}
+                 {:metadata {:summary "mid-summary"
+                             :tags #{:wasp}
+                             :parameters {:path {:id String}}}
+                  :method :get
+                  :uri "/api/:id/ipa/kakka"}]}))
+
+
