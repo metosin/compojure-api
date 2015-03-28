@@ -24,8 +24,8 @@
 (defn body-coercer-middleware [handler responses]
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
-      (if-let [model (responses status)]
-        (let [body (schema/coerce model (:body response))]
+      (if-let [schema (responses status)]
+        (let [body (schema/coerce schema (:body response))]
           (if (schema/error? body)
             (internal-server-error {:errors (:error body)})
             (assoc response
@@ -48,11 +48,11 @@
 ;;
 
 (defn- responses->messages [responses]
-  (for [[code model] responses
+  (for [[code schema] responses
         :when (not= code 200)]
     {:code code
-     :message (or (some-> model meta :message) "")
-     :responseModel (eval model)}))
+     :message (or (some-> schema meta :message) "")
+     :responseModel (eval schema)}))
 
 ;;
 ;; Extension point
@@ -82,16 +82,16 @@
 
 ; Defines a return type and coerced the return value of a body against it.
 ; Examples:
-; :return MyModel
+; :return MySchema
 ; :return {:value String}
 ; :return #{{:key (s/maybe Long)}}
-(defmethod restructure-param :return [k model acc]
+(defmethod restructure-param :return [k schema acc]
   (-> acc
-      (update-in [:parameters] assoc k model)
-      (update-in [:responses] assoc 200 model)))
+      (update-in [:parameters] assoc k schema)
+      (update-in [:responses] assoc 200 schema)))
 
-; value is a map of http-response-code -> Model. Translates to both swagger
-; parameters and return model coercion. Models can be decorated with meta-data.
+; value is a map of http-response-code -> Schema. Translates to both swagger
+; parameters and return schema coercion. Schemas can be decorated with meta-data.
 ; Examples:
 ; :responses {403 ErrorEnvelope}
 ; :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}
@@ -102,34 +102,34 @@
         (update-in [:responses] merge responses))))
 
 ; reads body-params into a enchanced let. First parameter is the let symbol,
-; second is the Model to coerced! against.
+; second is the Schema to coerced! against.
 ; Examples:
 ; :body [user User]
-(defmethod restructure-param :body [_ [value model] acc]
+(defmethod restructure-param :body [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! model :body-params :json)])
+      (update-in [:lets] into [value (src-coerce! schema :body-params :json)])
       (update-in [:parameters :parameters] conj {:type :body
-                                                 :model model})))
+                                                 :model schema})))
 
 ; reads query-params into a enchanced let. First parameter is the let symbol,
-; second is the Model to coerced! against.
+; second is the Schema to coerced! against.
 ; Examples:
 ; :query [user User]
-(defmethod restructure-param :query [_ [value model] acc]
+(defmethod restructure-param :query [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! model :query-params :query)])
+      (update-in [:lets] into [value (src-coerce! schema :query-params :query)])
       (update-in [:parameters :parameters] conj {:type :query
-                                                 :model model})))
+                                                 :model schema})))
 
 ; reads header-params into a enchanced let. First parameter is the let symbol,
-; second is the Model to coerced! against.
+; second is the Schema to coerced! against.
 ; Examples:
 ; :headers [headers Headers]
-(defmethod restructure-param :headers [_ [value model] acc]
+(defmethod restructure-param :headers [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! model :headers :query)])
+      (update-in [:lets] into [value (src-coerce! schema :headers :query)])
       (update-in [:parameters :parameters] conj {:type :header
-                                                 :model model})))
+                                                 :model schema})))
 
 ; restructures body-params with plumbing letk notation. Example:
 ; :body-params [id :- Long name :- String]

@@ -36,7 +36,7 @@
   (walk/prewalk
     (fn [x]
       (cond
-        (inline? x) (-> x value-of meta :source)            ;; resolve the syms!
+        (inline? x) (-> x value-of meta :source) ;; resolve the syms!
         (seq? x)    (let [sym (first x)]
                       (if (and
                             (symbol? sym)
