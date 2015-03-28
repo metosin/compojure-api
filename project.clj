@@ -19,7 +19,7 @@
                               :reload-paths ["src" "examples/src"]}
                        :source-paths ["examples/src"]
                        :main examples.server
-                       :dependencies [[metosin/ring-swagger-ui "2.0.24"]
+                       :dependencies [[metosin/ring-swagger-ui "2.1.8-M1"]
                                       [http-kit "2.1.19"]]}
              :uberjar {:aot :all}
              :dev {:ring {:handler examples.handler/app}
