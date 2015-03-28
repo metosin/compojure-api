@@ -70,10 +70,10 @@
       :else
       (last values))))
 
-; http://stackoverflow.com/questions/15600573/clojure-resolve-a-symbol-inside-let
 (defmacro local-bindings []
-  (let [symbols (map key @clojure.lang.Compiler/LOCAL_ENV)]
-    (zipmap (map (fn [sym] `(quote ~sym)) symbols) symbols)))
+  (->> (keys &env)
+       (map (fn [k] [`'~k k]))
+       (into {})))
 
 (defmacro get-local [s]
   `(get (local-bindings) ~s))
