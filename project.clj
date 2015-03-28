@@ -13,13 +13,13 @@
                  [prismatic/schema "0.4.0"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [metosin/ring-http-response "0.6.1"]
-                 [metosin/ring-swagger "0.19.0"]
+                 [metosin/ring-swagger "0.19.1"]
                  [metosin/ring-middleware-format "0.6.0"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
                               :reload-paths ["src" "examples/src"]}
                        :source-paths ["examples/src"]
                        :main examples.server
-                       :dependencies [[metosin/ring-swagger-ui "2.0.24"]
+                       :dependencies [[metosin/ring-swagger-ui "2.1.8-M1"]
                                       [http-kit "2.1.19"]]}
              :uberjar {:aot :all}
              :dev {:ring {:handler examples.handler/app}
