@@ -45,12 +45,3 @@
 (defmacro POST*    [& args] (restructure #'POST    args))
 (defmacro PUT*     [& args] (restructure #'PUT     args))
 (defmacro context* [& args] (restructure #'context args))
-
-(context* "/context/:kikka" []
-  :summary "summary inherited from context" ; works ok
-  :path-params [kikka :- s/Str] ; currently enforced here
-  :query-params [kukka :- s/Str] ; currently enforced here too
-  (GET* "/api" []
-    ; does not generate any code for parameter validation as meta-data is passed in at runtime (not at compile-time)
-    (ok {:kikka kikka
-         :kukka kukka})))
