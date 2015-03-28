@@ -89,7 +89,19 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
         :return   Thingie
         :body     [thingie Thingie]
         :summary  "echoes a Thingie from json-body"
-        (ok thingie)))))
+        (ok thingie))
+
+      (swaggered "context*"
+        :description "context* routes"
+        (context* "/context/:kikka" []
+          :summary "summary inherited from context"
+          :path-params [kikka :- s/Str]
+          :query-params [kukka :- s/Str]
+          (GET* "/:kakka" []
+            :path-params [kakka :- s/Str]
+            (ok {:kikka kikka
+                 :kukka kukka
+                 :kakka kakka})))))))
 ```
 
 To try it yourself, clone this repository and type
@@ -172,7 +184,7 @@ supported content-type into request under keys `[:meta :consumes]` and `[:meta :
 
 ## Routes
 
-You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enhanced versions from `compojure.api.core`. Enhanced versions have `*` in their name (`GET*`, `POST*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enhanced version can be used exactly as their ancestors but have also new behavior, more on that later.
+You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enhanced versions from `compojure.api.core`. Enhanced versions have `*` in their name (`GET*`, `POST*`, `context*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enhanced version can be used exactly as their ancestors but have also new behavior, more on that later.
 
 Namespace `compojure.api.sweet` is a public entry point for all routing - importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`.
 
@@ -186,7 +198,7 @@ There is also `compojure.api.legacy` namespace which contains rest of the public
             [compojure.api.sweet :refer :all]))
 
 (defapi app
-  (context "/api" []
+  (context* "/api" []
     (GET* "/user/:id" [id] (ok {:id id}))
     (POST* "/echo" {body :body-params} (ok body))))
 ```
