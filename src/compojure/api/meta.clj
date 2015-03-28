@@ -175,42 +175,42 @@
 ; restructures body-params with plumbing letk notation. Example:
 ; :body-params [id :- Long name :- String]
 (defmethod restructure-param :body-params [_ body-params acc]
-  (let [model (strict (fnk-schema body-params))]
+  (let [schema (strict (fnk-schema body-params))]
     (-> acc
-        (update-in [:letks] into [body-params (src-coerce! model :body-params :json)])
-        (assoc-in [:parameters :parameters :body] model))))
+        (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)])
+        (assoc-in [:parameters :parameters :body] schema))))
 
 ; restructures form-params with plumbing letk notation. Example:
 ; :form-params [id :- Long name :- String]
 (defmethod restructure-param :form-params [_ form-params acc]
-  (let [model (strict (fnk-schema form-params))]
+  (let [schema (strict (fnk-schema form-params))]
     (-> acc
-        (update-in [:letks] into [form-params (src-coerce! model :form-params :query)])
-        (assoc-in [:parameters :parameters :form] model))))
+        (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)])
+        (assoc-in [:parameters :parameters :form] schema))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]
 (defmethod restructure-param :header-params [_ header-params acc]
-  (let [model (fnk-schema header-params)]
+  (let [schema (fnk-schema header-params)]
     (-> acc
-        (update-in [:letks] into [header-params (src-coerce! model :headers :query)])
-        (assoc-in [:parameters :parameters :header] model))))
+        (update-in [:letks] into [header-params (src-coerce! schema :headers :query)])
+        (assoc-in [:parameters :parameters :header] schema))))
 
 ; restructures query-params with plumbing letk notation. Example:
 ; :query-params [id :- Long name :- String]
 (defmethod restructure-param :query-params [_ query-params acc]
-  (let [model (fnk-schema query-params)]
+  (let [schema (fnk-schema query-params)]
     (-> acc
-        (update-in [:letks] into [query-params (src-coerce! model :query-params :query)])
-        (assoc-in [:parameters :parameters :query] model))))
+        (update-in [:letks] into [query-params (src-coerce! schema :query-params :query)])
+        (assoc-in [:parameters :parameters :query] schema))))
 
 ; restructures path-params by plumbing letk notation. Example:
 ; :path-params [id :- Long name :- String]
 (defmethod restructure-param :path-params [_ path-params acc]
-  (let [model (fnk-schema path-params)]
+  (let [schema (fnk-schema path-params)]
     (-> acc
-        (update-in [:letks] into [path-params (src-coerce! model :route-params :query)])
-        (assoc-in [:parameters :parameters :path] model))))
+        (update-in [:letks] into [path-params (src-coerce! schema :route-params :query)])
+        (assoc-in [:parameters :parameters :path] schema))))
 
 ; Applies the given vector of middlewares for the route from left to right
 (defmethod restructure-param :middlewares [_ middlewares acc]
