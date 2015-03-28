@@ -1,6 +1,23 @@
-## 0.18.1 (21.3.2015)
+## 0.19.0-SNAPSHOT (xx.3.2015)
 
 - added destructuring for `:headers`, thanks to [tchagnon](https://github.com/tchagnon)!
+- **BREAKING**: `:path-param` doesn't use force models to be strict, needed for the `context*
+- **BREAKING**: parameters are collected in (Ring-)Swagger 2.0 format, might break client-side restructurings. see https://github.com/metosin/ring-swagger/blob/master/test/ring/swagger/swagger2_test.clj
+- `context*` to allow setting meta-data to mid-routes. Mid-route meta-data are deep-merged into endpoint swagger-definitions at compile-time. At runtime, code is executed in place.
+
+```clojure
+; all meta-data
+(context* "/api/:kikka" []
+  :summary "summary inherited from context"
+  :path-params [kikka :- s/Str] ; enforced here at runtime
+  :query-params [kukka :- s/Str] ; enforced here at runtime
+  (GET* "/:kakka" []
+    :path-params [kakka :- s/Str] ; enforced here
+    (ok {:kikka kikka
+         :kukka kukka
+         :kakka kakka})))
+```
+
 - updated deps:
 
 ```clojure
