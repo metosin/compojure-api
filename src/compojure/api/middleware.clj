@@ -76,7 +76,7 @@
         (assoc-in [:meta :produces] (map mime-types response-formats))
         handler)))
 
-(defn handle-req-error [e handler req]
+(defn handle-req-error [^Throwable e handler req]
   (cond
     (instance? JsonParseException e)
     (bad-request {:type "json-parse-exception"
