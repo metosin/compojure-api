@@ -1,3 +1,11 @@
+## 0.19.2 (31.3.2015)
+
+- Compatibility with swagger-ui `2.1.0-M2` - `[metosin/ring-swagger-ui "2.1.0-M2-2]`
+- updated deps:
+```clojure
+[metosin/ring-swagger "0.19.3"] is available but we use "0.19.2"
+```
+
 ## 0.19.1 (31.3.2015)
 - avoid reflection fixes by [Michael Blume](https://github.com/MichaelBlume)
 - one can now wrap body & response-models in predicates and get the swagger docs out:
