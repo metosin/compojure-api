@@ -147,15 +147,15 @@
       (GET* "/third" []
         (ok {:value "third"}))))
   (fact "first returns first"
-    (let [[status body headers] (get* api "/first" {})]
+    (let [[status body] (get* api "/first" {})]
       status => 200
       body => {:value "first"}))
   (fact "second returns foo"
-    (let [[status body headers] (get* api "/second" {})]
+    (let [[status body] (get* api "/second" {})]
       status => 200
       body => {:value "foo"}))
   (fact "third returns third"
-    (let [[status body headers] (get* api "/third" {})]
+    (let [[status body] (get* api "/third" {})]
       status => 200
       body => {:value "third"})))
 
@@ -167,7 +167,7 @@
         :middlewares [middleware-x]
         (ok {:value x}))))
   (fact "middleware edits the parameter before route body"
-    (let [[status body headers] (get* api "/first?x=5" {})]
+    (let [[status body] (get* api "/first?x=5" {})]
       status => 200
       body => {:value 10})))
 
@@ -639,12 +639,12 @@
   (tabular
     (facts
       (fact {:midje/description (str ?content-type " to json")}
-        (let [[status body headers]
+        (let [[status body]
               (raw-post* api "/echo" ?body ?content-type {:accept "application/json"})]
           status => 200
           body => "{\"foo\":\"bar\"}"))
       (fact {:midje/description (str "json to " ?content-type)}
-        (let [[status body headers]
+        (let [[status body]
               (raw-post* api "/echo" "{\"foo\":\"bar\"}" "application/json" {:accept ?content-type})]
           status => 200
           body => ?body)))
