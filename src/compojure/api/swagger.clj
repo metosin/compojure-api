@@ -6,21 +6,12 @@
             [compojure.api.routes :as routes]
             [compojure.api.meta :as m]
             [compojure.core :refer :all]
-            [plumbing.core :refer [fn->]]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
             [ring.swagger.core :as swagger]
-            [ring.swagger.impl :as swagger-impl]
-            [ring.swagger.schema :as schema]
+            [ring.swagger.swagger2 :as swagger2]
             ring.swagger.ui
             [schema.core :as s]))
-
-;;
-;; Schema helpers
-;;
-
-(defn direct-or-contained [f x]
-  (if (swagger-impl/valid-container? x) (f (first x)) (f x)))
 
 ;;
 ;; Route peeling
@@ -139,29 +130,16 @@
 ;; generate schema names
 ;;
 
-(defn with-name [type schema]
-  (if schema
-    (swagger-impl/update-schema
-     schema
-     #(s/schema-with-name % (gensym (->CamelCase (name type)))))))
-
 (defn ensure-parameter-schema-names [route-with-meta]
-  (reduce
-   (fn [acc type]
-     (if (get-in acc [:metadata :parameters type])
-       (update-in acc [:metadata :parameters type]
-                  (partial with-name type))
-       acc))
-   route-with-meta [:path :body :query :header]))
+  (if (get-in route-with-meta [:metadata :parameters :body])
+    (update-in route-with-meta [:metadata :parameters :body]
+               #(swagger/with-named-sub-schemas % "Body"))
+    route-with-meta))
 
 (defn ensure-return-schema-names [route-with-meta]
-  (if-let [return (get-in route-with-meta [:metadata :return])]
-    (if-not (or (direct-or-contained schema/named-schema? return)
-                (direct-or-contained (comp not map?) return))
-      (update-in route-with-meta [:metadata :return]
-                 swagger-impl/update-schema
-                 (partial with-name "return"))
-      route-with-meta)
+  (if (get-in route-with-meta [:metadata :return])
+    (update-in route-with-meta [:metadata :return]
+               #(swagger/with-named-sub-schemas % "Response"))
     route-with-meta))
 
 ;;
