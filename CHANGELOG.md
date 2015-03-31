@@ -1,3 +1,19 @@
+## 0.19.1 (31.3.2015)
+- avoid reflection fixes by [Michael Blume](https://github.com/MichaelBlume)
+- one can now wrap body & response-models in predicates and get the swagger docs out:
+
+```clojure
+  :return (s/maybe User)
+  :responses {200 (s/maybe User)
+              400 (s/either Cat Dog)}
+```
+
+- updated deps:
+
+```clojure
+[metosin/ring-swagger "0.19.2"] is available but we use "0.19.1"
+```
+
 ## 0.19.0 (28.3.2015)
 
 - added destructuring for `:headers`, thanks to [tchagnon](https://github.com/tchagnon)!
