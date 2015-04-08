@@ -253,7 +253,7 @@
             (RuntimeException.
               (str "unknown compojure destruction syntax: " arg)))))
 
-(defn restructure [method [path arg & args]]
+(defn restructure [method [path arg & args] & {:keys [body-wrap] :or {body-wrap 'do}}]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
         [lets letks responses middlewares] [[] [] nil nil]
@@ -271,7 +271,7 @@
           (map-of lets letks responses middlewares parameters body)
           parameters)
 
-        body `(do ~@body)
+        body `(~body-wrap ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
         body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
