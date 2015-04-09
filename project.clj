@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.19.2"
+(defproject metosin/compojure-api "0.19.3"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -6,14 +6,14 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [prismatic/plumbing "0.4.1"]
-                 [potemkin "0.3.12"]
+                 [prismatic/plumbing "0.4.2"]
+                 [potemkin "0.3.13"]
                  [cheshire "5.4.0"]
-                 [compojure "1.3.2"]
+                 [compojure "1.3.3"]
                  [prismatic/schema "0.4.0"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [metosin/ring-http-response "0.6.1"]
-                 [metosin/ring-swagger "0.19.3"]
+                 [metosin/ring-swagger "0.19.4"]
                  [metosin/ring-middleware-format "0.6.0"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
                               :reload-paths ["src" "examples/src"]}

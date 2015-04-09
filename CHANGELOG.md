@@ -1,3 +1,15 @@
+## 0.19.3 (9.4.2015)
+- Fixed [#79](https://github.com/metosin/compojure-api/issues/79) by [Jon Eisen](https://github.com/yanatan16)
+
+- updated deps:
+
+```clojure
+[prismatic/plumbing "0.4.2"] is available but we use "0.4.1"
+[potemkin "0.3.13"] is available but we use "0.3.12"
+[compojure "1.3.3"] is available but we use "1.3.2"
+[metosin/ring-swagger "0.19.4"] is available but we use "0.19.3"
+```
+
 ## 0.19.2 (31.3.2015)
 
 - Compatibility with swagger-ui `2.1.0-M2` - `[metosin/ring-swagger-ui "2.1.0-M2-2]`
