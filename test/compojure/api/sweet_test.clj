@@ -14,7 +14,7 @@
 
 (s/defschema NewBand (dissoc Band :id))
 
-(def app-name (str (gensym)))
+(def app-name "default")
 
 (defroutes* ping-routes (GET* "/ping" [] identity))
 
@@ -58,8 +58,7 @@
   (fact "details are generated"
     ((routes/get-routes) app-name)
 
-    => {:description "sample api"
-        :routes [{:method :get
+    => {:routes [{:method :get
                   :uri "/ping"}
                  {:method :get
                   :uri "/api/ping"}
@@ -101,7 +100,7 @@
           body (parse-body body)]
       status => 200
       body => {:apiVersion "0.0.1"
-               :apis [{:description "sample api"
+               :apis [{:description ""
                        :path (str "/" app-name)}]
                :info {}
                :authorizations {}
