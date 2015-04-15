@@ -1,9 +1,6 @@
 (ns compojure.api.routes
   (:require [compojure.core :refer :all]))
 
-(ns compojure.api.routes
-  (:require [compojure.core :refer :all]))
-
 (defmulti collect-routes identity)
 
 (def +routes+ '+routes+)
