@@ -25,7 +25,7 @@
           (GET* "/10" [] identity)))))
 
   (fact "swagger-api order is maintained"
-    (->> (routes/get-routes)
+    (->> ((routes/get-routes) "default")
          :routes
          (map :uri))  => ["/a/1"
                           "/a/2"
