@@ -11,7 +11,7 @@
 (defmacro with-routes [& body]
   (let [[details body] (collect-routes body)]
     `(do
-       (def ~+routes+ '~details)
+       (def ~+routes+ {"default" '~details})
        (routes ~@body))))
 
 (defmacro get-routes []
