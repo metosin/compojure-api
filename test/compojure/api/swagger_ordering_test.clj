@@ -3,7 +3,7 @@
             [compojure.api.sweet :refer :all]
             [midje.sweet :refer :all]))
 
-(def app-name (str (gensym)))
+(def app-name "default")
 
 (facts "with 9+ routes"
 
@@ -25,7 +25,8 @@
           (GET* "/10" [] identity)))))
 
   (fact "swagger-api order is maintained"
-    (->> ((routes/get-routes) "default")
+    (->> app-name
+         ((routes/get-routes))
          :routes
          (map :uri))  => ["/a/1"
                           "/a/2"
