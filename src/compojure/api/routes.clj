@@ -3,21 +3,21 @@
 
 (defmulti collect-routes identity)
 
-(def +routes+ '+routes+)
+(def +compojure-api-routes+ '+compojure-api-routes+)
 
 (defmacro with-routes [& body]
   (let [[details body] (collect-routes body)]
     `(do
-       (def ~+routes+ {"default" '~details})
+       (def ~+compojure-api-routes+ {"default" '~details})
        (routes ~@body))))
 
 (defmacro get-routes []
   `(try
-     (eval +routes+)
+     (eval +compojure-api-routes+)
      (catch RuntimeException e#
        (throw
          (IllegalStateException.
            (str
              "Coudn't find a +compojure-api-routes+ var defined in this ns. "
-             "You should wrap your api in a compojure.api.routes.root -macro "
+             "You should wrap your api in a compojure.api.routes.with-routes -macro "
              "to get your lovely routes collected."))))))
