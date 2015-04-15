@@ -65,7 +65,7 @@
 
 (def invalid-user {:id 1 :name "Jorma" :age 50})
 
-(def +name+ (str (gensym)))
+(def +name+ "default")
 
 ; Headers contain extra keys, so make the schema open
 (s/defschema UserHeaders
