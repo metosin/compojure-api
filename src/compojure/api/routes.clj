@@ -19,5 +19,5 @@
          (IllegalStateException.
            (str
              "Coudn't find a +compojure-api-routes+ var defined in this ns. "
-             "You should wrap your api in a compojure.api.routes.with-routes -macro "
-             "to get your lovely routes collected."))))))
+             "You should wrap your api in a compojure.api.routes/with-routes"
+             " -macro to get your lovely routes collected."))))))
