@@ -1,13 +1,26 @@
 (ns compojure.api.routes
   (:require [compojure.core :refer :all]))
 
-(def +routes-sym+ '+routes+)
+(ns compojure.api.routes
+  (:require [compojure.core :refer :all]))
+
+(defmulti collect-routes identity)
+
+(def +routes+ '+routes+)
 
 (defmacro with-routes [& body]
-  `(do (def ~+routes-sym+ (atom {}))
-       (routes ~@body)))
+  (let [[details body] (collect-routes body)]
+    `(do
+       (def ~+routes+ '~details)
+       (routes ~@body))))
 
 (defmacro get-routes []
-  `(if-let [data# ~+routes-sym+]
-     @data#
-     (throw (IllegalStateException. "no +routes+ bound in this namespace."))))
+  `(try
+     (eval +routes+)
+     (catch RuntimeException e#
+       (throw
+         (IllegalStateException.
+           (str
+             "Coudn't find a +compojure-api-routes+ var defined in this ns. "
+             "You should wrap your api in a compojure.api.routes.root -macro "
+             "to get your lovely routes collected."))))))

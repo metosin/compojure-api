@@ -214,7 +214,7 @@
         parameters (apply hash-map key-values)]
     `(routes
        (GET ~path []
-         (swagger/api-listing ~parameters @~routes/+routes-sym+))
+         (swagger/api-listing ~parameters @~routes/+routes+))
        (GET ~(str path "/:api") {{api# :api} :route-params :as request#}
          (let [produces# (-> request# :meta :produces (or []))
                consumes# (-> request# :meta :consumes (or []))
@@ -222,7 +222,7 @@
                                                :consumes consumes#})]
            (swagger/api-declaration
              parameters#
-             (convert-parameters-to-swagger-12  @~routes/+routes-sym+)
+             (convert-parameters-to-swagger-12  @~routes/+routes+)
              api#
              (swagger/basepath request#)))))))
 
@@ -231,9 +231,9 @@
    Keyword value pairs or a single Map for meta-data
    and a normal route body. Macropeels the body and
    extracts route, model and endpoint meta-datas."
-  [name & body]
-  (let [[details body] (swagger-info body)
-        name (st/replace (str (eval name)) #" " "")]
-    `(do
-       (swap! ~routes/+routes-sym+ assoc-map-ordered ~name '~details)
-       (routes ~@body))))
+  [_ & body]
+  (let [[_ body] (swagger-info body)]
+    `(routes ~@body)))
+
+(defmethod routes/collect-routes :default [body]
+  (swagger-info body))
