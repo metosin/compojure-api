@@ -221,7 +221,7 @@
     `(routes
        (GET* ~path []
          :hidden true
-         (swagger/api-listing ~parameters ~routes/+routes+))
+         (swagger/api-listing ~parameters ~routes/+compojure-api-routes+))
        (GET* ~(str path "/:api") {{api# :api} :route-params :as request#}
          :hidden true
          (let [produces# (-> request# :meta :produces (or []))
@@ -230,7 +230,7 @@
                                                :consumes consumes#})]
            (swagger/api-declaration
              parameters#
-             (convert-parameters-to-swagger-12 ~routes/+routes+)
+             (convert-parameters-to-swagger-12 ~routes/+compojure-api-routes+)
              "default"
              (swagger/basepath request#)))))))
 
