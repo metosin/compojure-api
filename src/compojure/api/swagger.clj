@@ -6,6 +6,7 @@
             [compojure.api.routes :as routes]
             [compojure.api.meta :as m]
             [compojure.core :refer :all]
+            [compojure.api.core :refer [GET*]]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
             [ring.swagger.core :as swagger]
@@ -162,6 +163,9 @@
     (->CompojureRoutes "" {} (filter-routes body))
     body))
 
+(defn remove-hidden-routes [routes]
+  (remove (fn [route] (some-> route :metadata :hidden true?)) routes))
+
 (defn extract-routes [body]
   (->> body
        peel
@@ -172,7 +176,9 @@
        (apply array-map)
        path-vals
        (map create-api-route)
-       (mapv attach-meta-data-to-route)
+       (map attach-meta-data-to-route)
+       remove-hidden-routes
+       vec
        reverse))
 
 (defn swagger-info [body]
@@ -182,6 +188,7 @@
     [details body]))
 
 (defn convert-parameters-to-swagger-12 [routes]
+  (./aprint routes)
   (let [->12parameter (fn [[k v]] {:type k :model v})]
     (into
      (empty routes)
@@ -213,17 +220,19 @@
                             ["/api/api-docs" body])
         parameters (apply hash-map key-values)]
     `(routes
-       (GET ~path []
-         (swagger/api-listing ~parameters @~routes/+routes+))
-       (GET ~(str path "/:api") {{api# :api} :route-params :as request#}
+       (GET* ~path []
+         :hidden true
+         (swagger/api-listing ~parameters ~routes/+routes+))
+       (GET* ~(str path "/:api") {{api# :api} :route-params :as request#}
+         :hidden true
          (let [produces# (-> request# :meta :produces (or []))
                consumes# (-> request# :meta :consumes (or []))
                parameters# (merge ~parameters {:produces produces#
                                                :consumes consumes#})]
            (swagger/api-declaration
              parameters#
-             (convert-parameters-to-swagger-12  @~routes/+routes+)
-             api#
+             (convert-parameters-to-swagger-12 ~routes/+routes+)
+             "default"
              (swagger/basepath request#)))))))
 
 (defmacro swaggered

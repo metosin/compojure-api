@@ -118,6 +118,12 @@
 ;; Smart restructurings
 ;;
 
+; Boolean to mark the route out from api documentation
+; Example:
+; :hidden true
+(defmethod restructure-param :hidden [k v acc]
+  (update-in acc [:parameters] assoc k v))
+
 ; Tags for api categorization. Ignores duplicates.
 ; Examples:
 ; :tags [:admin]
