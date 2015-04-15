@@ -188,7 +188,6 @@
     [details body]))
 
 (defn convert-parameters-to-swagger-12 [routes]
-  (./aprint routes)
   (let [->12parameter (fn [[k v]] {:type k :model v})]
     (into
      (empty routes)
