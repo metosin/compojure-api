@@ -112,14 +112,13 @@
 (facts "middlewares"
   (defapi api
     (middlewares [middleware* (middleware* 2)]
-      (swaggered +name+
-        (context "/middlewares" []
-          (GET* "/simple" req (reply-mw* req))
-          (middlewares [(middleware* 3) (middleware* 4)]
-            (GET* "/nested" req (reply-mw* req))
-            (GET* "/nested-declared" req
-              :middlewares [(middleware* 5) (middleware* 6)]
-              (reply-mw* req)))))))
+      (context "/middlewares" []
+        (GET* "/simple" req (reply-mw* req))
+        (middlewares [(middleware* 3) (middleware* 4)]
+          (GET* "/nested" req (reply-mw* req))
+          (GET* "/nested-declared" req
+            :middlewares [(middleware* 5) (middleware* 6)]
+            (reply-mw* req))))))
 
   (fact "are applied left-to-right"
     (let [[status body headers] (get* api "/middlewares/simple" {})]
@@ -138,14 +137,13 @@
 
 (facts "middlewares - multiple routes"
   (defapi api
-    (swaggered +name+
-      (GET* "/first" []
-        (ok {:value "first"}))
-      (GET* "/second" []
-        :middlewares [(constant-middleware (ok {:value"foo"}))]
-        (ok {:value "second"}))
-      (GET* "/third" []
-        (ok {:value "third"}))))
+    (GET* "/first" []
+      (ok {:value "first"}))
+    (GET* "/second" []
+      :middlewares [(constant-middleware (ok {:value"foo"}))]
+      (ok {:value "second"}))
+    (GET* "/third" []
+      (ok {:value "third"})))
   (fact "first returns first"
     (let [[status body] (get* api "/first" {})]
       status => 200
@@ -161,11 +159,10 @@
 
 (facts "middlewares - editing request"
   (defapi api
-    (swaggered +name+
-      (GET* "/first" []
-        :query-params [x :- Long]
-        :middlewares [middleware-x]
-        (ok {:value x}))))
+    (GET* "/first" []
+      :query-params [x :- Long]
+      :middlewares [middleware-x]
+      (ok {:value x})))
   (fact "middleware edits the parameter before route body"
     (let [[status body] (get* api "/first?x=5" {})]
       status => 200
@@ -173,39 +170,38 @@
 
 (fact ":body, :query, :headers and :return"
   (defapi api
-    (swaggered +name+
-      (context "/models" []
-        (GET* "/pertti" []
-          :return User
-          (ok pertti))
-        (GET* "/user" []
-          :return User
-          :query  [user User]
-          (ok user))
-        (GET* "/invalid-user" []
-          :return User
-          (ok invalid-user))
-        (GET* "/not-validated" []
-          (ok invalid-user))
-        (POST* "/user" []
-          :return User
-          :body   [user User]
-          (ok user))
-        (POST* "/user_list" []
-          :return [User]
-          :body   [users [User]]
-          (ok users))
-        (POST* "/user_set" []
-          :return #{User}
-          :body   [users #{User}]
-          (ok users))
-        (POST* "/user_headers" []
-          :return User
-          :headers [user UserHeaders]
-          (ok (select-keys user [:id :name])))
-        (POST* "/user_legacy" {user :body-params}
-          :return User
-          (ok user)))))
+    (context "/models" []
+      (GET* "/pertti" []
+        :return User
+        (ok pertti))
+      (GET* "/user" []
+        :return User
+        :query  [user User]
+        (ok user))
+      (GET* "/invalid-user" []
+        :return User
+        (ok invalid-user))
+      (GET* "/not-validated" []
+        (ok invalid-user))
+      (POST* "/user" []
+        :return User
+        :body   [user User]
+        (ok user))
+      (POST* "/user_list" []
+        :return [User]
+        :body   [users [User]]
+        (ok users))
+      (POST* "/user_set" []
+        :return #{User}
+        :body   [users #{User}]
+        (ok users))
+      (POST* "/user_headers" []
+        :return User
+        :headers [user UserHeaders]
+        (ok (select-keys user [:id :name])))
+      (POST* "/user_legacy" {user :body-params}
+        :return User
+        (ok user))))
 
   (fact "GET*"
     (let [[status body] (get* api "/models/pertti")]
@@ -261,18 +257,17 @@
 
   (fact "normal cases"
     (defapi api
-      (swaggered +name+
-        (GET* "/lotto/:x" []
-          :return [Long]
-          :path-params [x :- Long]
-          :responses {403 [String]
-                      440 [String]}
-          (case x
-            1 (ok [1])
-            2 (ok ["two"])
-            3 (forbidden ["error"])
-            4 (forbidden [1])
-            (not-found {:message "not-found"})))))
+      (GET* "/lotto/:x" []
+        :return [Long]
+        :path-params [x :- Long]
+        :responses {403 [String]
+                    440 [String]}
+        (case x
+          1 (ok [1])
+          2 (ok ["two"])
+          3 (forbidden ["error"])
+          4 (forbidden [1])
+          (not-found {:message "not-found"}))))
 
     (fact "return case"
       (let [[status body] (get* api "/lotto/1")]
@@ -301,14 +296,13 @@
 
   (fact ":responses 200 and :return"
     (defapi api
-      (swaggered +name+
-        (GET* "/lotto/:x" []
-          :path-params [x :- Long]
-          :return {:return String}
-          :responses {200 {:value String}}
-          (case x
-            1 (ok {:return "ok"})
-            2 (ok {:value "ok"})))))
+      (GET* "/lotto/:x" []
+        :path-params [x :- Long]
+        :return {:return String}
+        :responses {200 {:value String}}
+        (case x
+          1 (ok {:return "ok"})
+          2 (ok {:value "ok"}))))
 
     (fact "return case"
       (let [[status body] (get* api "/lotto/1")]
@@ -323,14 +317,13 @@
 
   (fact ":responses 200 and :return - other way around"
     (defapi api
-      (swaggered +name+
-        (GET* "/lotto/:x" []
-          :path-params [x :- Long]
-          :responses {200 {:value String}}
-          :return {:return String}
-          (case x
-            1 (ok {:return "ok"})
-            2 (ok {:value "ok"})))))
+      (GET* "/lotto/:x" []
+        :path-params [x :- Long]
+        :responses {200 {:value String}}
+        :return {:return String}
+        (case x
+          1 (ok {:return "ok"})
+          2 (ok {:value "ok"}))))
 
     (fact "return case"
       (let [[status body] (get* api "/lotto/1")]
@@ -345,23 +338,22 @@
 
 (fact ":query-params, :path-params, :header-params , :body-params and :form-params"
   (defapi api
-    (swaggered +name+
-      (context "/smart" []
-        (GET* "/plus" []
-          :query-params [x :- Long y :- Long]
-          (ok {:total (+ x y)}))
-        (GET* "/multiply/:x/:y" []
-          :path-params [x :- Long y :- Long]
-          (ok {:total (* x y)}))
-        (GET* "/power" []
-          :header-params [x :- Long y :- Long]
-          (ok {:total (long (Math/pow x y))}))
-        (POST* "/minus" []
-          :body-params [x :- Long {y :- Long 1}]
-          (ok {:total (- x y)}))
-        (POST* "/divide" []
-          :form-params [x :- Long y :- Long]
-          (ok {:total (/ x y)})))))
+    (context "/smart" []
+      (GET* "/plus" []
+        :query-params [x :- Long y :- Long]
+        (ok {:total (+ x y)}))
+      (GET* "/multiply/:x/:y" []
+        :path-params [x :- Long y :- Long]
+        (ok {:total (* x y)}))
+      (GET* "/power" []
+        :header-params [x :- Long y :- Long]
+        (ok {:total (long (Math/pow x y))}))
+      (POST* "/minus" []
+        :body-params [x :- Long {y :- Long 1}]
+        (ok {:total (- x y)}))
+      (POST* "/divide" []
+        :form-params [x :- Long y :- Long]
+        (ok {:total (/ x y)}))))
 
   (fact "query-parameters"
     (let [[status body] (get* api "/smart/plus" {:x 2 :y 3})]
@@ -395,16 +387,15 @@
 
 (fact "primitive support"
   (defapi api
-    (swaggered +name+
-      (context "/primitives" []
-        (GET* "/return-long" []
-          :return Long
-          (ok 1))
-        (GET* "/long" []
-          (ok 1))
-        (GET* "/return-string" []
-          :return String
-          (ok "kikka")))))
+    (context "/primitives" []
+      (GET* "/return-long" []
+        :return Long
+        (ok 1))
+      (GET* "/long" []
+        (ok 1))
+      (GET* "/return-string" []
+        :return String
+        (ok "kikka"))))
 
   (fact "when :return is set, longs can be returned"
     (let [[status body] (raw-get* api "/primitives/return-long")]
@@ -422,26 +413,25 @@
 
 (fact "compojure destructuring support"
   (defapi api
-    (swaggered +name+
-      (context "/destructuring" []
-        (GET* "/regular" {{:keys [a]} :params}
-          (ok {:a a
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/regular2" {:as req}
-          (ok {:a (-> req :params :a)
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/vector" [a]
-          (ok {:a a
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/vector2" [:as req]
-          (ok {:a (-> req :params :a)
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/symbol" req
-          (ok {:a (-> req :params :a)
-               :b (-> +compojure-api-request+ :params :b)}))
-        (GET* "/integrated" [a] :query-params [b]
-          (ok {:a a
-               :b b})))))
+    (context "/destructuring" []
+      (GET* "/regular" {{:keys [a]} :params}
+        (ok {:a a
+             :b (-> +compojure-api-request+ :params :b)}))
+      (GET* "/regular2" {:as req}
+        (ok {:a (-> req :params :a)
+             :b (-> +compojure-api-request+ :params :b)}))
+      (GET* "/vector" [a]
+        (ok {:a a
+             :b (-> +compojure-api-request+ :params :b)}))
+      (GET* "/vector2" [:as req]
+        (ok {:a (-> req :params :a)
+             :b (-> +compojure-api-request+ :params :b)}))
+      (GET* "/symbol" req
+        (ok {:a (-> req :params :a)
+             :b (-> +compojure-api-request+ :params :b)}))
+      (GET* "/integrated" [a] :query-params [b]
+        (ok {:a a
+             :b b}))))
 
   (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol" "integrated"]]
     (fact {:midje/description uri}
@@ -452,12 +442,11 @@
 (fact "counting execution times, issue #19"
   (let [execution-times (atom 0)]
     (defapi api
-      (swaggered +name+
-        (GET* "/user" []
-          :return User
-          :query  [user User]
-          (swap! execution-times inc)
-          (ok user))))
+      (GET* "/user" []
+        :return User
+        :query  [user User]
+        (swap! execution-times inc)
+        (ok user)))
 
     (fact "body is executed one"
       @execution-times => 0
@@ -470,9 +459,8 @@
   (defapi api
     {:format {:formats [:json-kw :edn]}}
     (swagger-docs)
-    (swaggered +name+
-      (GET* "/user" []
-        (continue))))
+    (GET* "/user" []
+      (continue)))
 
   (fact "api-listing"
     (let [[status body] (get* api "/api/api-docs" {})]
@@ -508,11 +496,10 @@
 (facts "swagger-docs with anonymous Return and Body models"
   (defapi api
     (swagger-docs)
-    (swaggered +name+
-      (POST* "/echo" []
-        :return (s/either {:a String})
-        :body [_ (s/maybe {:a String})]
-        identity)))
+    (POST* "/echo" []
+      :return (s/either {:a String})
+      :body [_ (s/maybe {:a String})]
+      identity))
 
   (fact "api-docs"
     (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
@@ -542,11 +529,10 @@
 (facts "https://github.com/metosin/compojure-api/issues/53"
   (defapi api
     (swagger-docs)
-    (swaggered +name+
-      (POST* "/" []
-        :return ReturnValue
-        :body [_ Boundary]
-        identity)))
+    (POST* "/" []
+      :return ReturnValue
+      :body [_ Boundary]
+      identity))
 
   (fact "api-docs"
     (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
@@ -568,11 +554,10 @@
 (fact "swagger-docs works with the :middlewares"
   (defapi api
     (swagger-docs)
-    (swaggered +name+
-      (GET* "/middleware" []
-        :query-params [x :- String]
-        :middlewares [(constant-middleware (ok 1))]
-        (ok 2))))
+    (GET* "/middleware" []
+      :query-params [x :- String]
+      :middlewares [(constant-middleware (ok 1))]
+      (ok 2)))
 
   (fact "api-docs"
     (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
@@ -593,21 +578,20 @@
         not-ok? (comp not ok?)]
     (defapi api
       (swagger-docs)
-      (swaggered +name+
-        (GET* "/" [] ok)
-        (GET* "/a" [] ok)
-        (context "/b" []
-          (context "/b1" []
-            (GET* "/" [] ok))
-          (context "/" []
-            ;; anonymous schema names
-            (GET* "/" []
-              :query-params [{x :- Long 1}]
-              ok)
-            ;; external schema names
-            (GET* "/b2" []
-              :query [q domain/Entity]
-              ok)))))
+      (GET* "/" [] ok)
+      (GET* "/a" [] ok)
+      (context "/b" []
+        (context "/b1" []
+          (GET* "/" [] ok))
+        (context "/" []
+          ;; anonymous schema names
+          (GET* "/" []
+            :query-params [{x :- Long 1}]
+            ok)
+          ;; external schema names
+          (GET* "/b2" []
+            :query [q domain/Entity]
+            ok))))
 
   (fact "valid routes"
     (get* api "/") => ok?
@@ -631,10 +615,9 @@
 
 (fact "formats supported by ring-middleware-format"
   (defapi api
-    (swaggered +name+
-      (POST* "/echo" []
-        :body-params [foo :- String]
-        (ok {:foo foo}))))
+    (POST* "/echo" []
+      :body-params [foo :- String]
+      (ok {:foo foo})))
 
   (tabular
     (facts
@@ -659,17 +642,16 @@
 (fact "accumulation in context*"
   (let [metas (atom nil)]
     (defapi api
-      (swaggered +name+
-        (context* "/:id" []
-          :path-params [id :- String]
-          :tags [:api]
-          :summary "jeah"
-          (GET* "/:di/ping" []
-            :tags [:ipa]
-            :path-params [di :- String]
-            :query-params [foo :- s/Int]
-            (reset! metas +compojure-api-meta+)
-            (ok [id di foo])))))
+      (context* "/:id" []
+        :path-params [id :- String]
+        :tags [:api]
+        :summary "jeah"
+        (GET* "/:di/ping" []
+          :tags [:ipa]
+          :path-params [di :- String]
+          :query-params [foo :- s/Int]
+          (reset! metas +compojure-api-meta+)
+          (ok [id di foo]))))
 
     (fact "all but lists & sequences get accumulated"
       (let [[status body] (get* api "/kikka/kukka/ping" {:foo 123})]
@@ -685,10 +667,9 @@
 
 (fact "multiple routes in context*"
   (defapi api
-    (swaggered +name+
-      (context* "/foo" []
-        (GET* "/bar" [] (ok ["bar"]))
-        (GET* "/baz" [] (ok ["baz"])))))
+    (context* "/foo" []
+      (GET* "/bar" [] (ok ["bar"]))
+      (GET* "/baz" [] (ok ["baz"]))))
 
   (fact "first route works"
     (let [[status body] (get* api "/foo/bar")]
