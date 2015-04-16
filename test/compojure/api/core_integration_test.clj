@@ -684,18 +684,17 @@
                    :tags #{:ipa}}))))
 
 (fact "multiple routes in context*"
-  (let [metas (atom nil)]
-    (defapi api
-      (swaggered +name+
-        (context* "/foo" []
-          (GET* "/bar" [] (ok ["bar"]))
-          (GET* "/baz" [] (ok ["baz"])))))
+  (defapi api
+    (swaggered +name+
+      (context* "/foo" []
+        (GET* "/bar" [] (ok ["bar"]))
+        (GET* "/baz" [] (ok ["baz"])))))
 
-    (fact "first route works"
-      (let [[status body] (get* api "/foo/bar")]
-        status => 200
-        body => ["bar"]))
-    (fact "second route works"
-      (let [[status body] (get* api "/foo/baz")]
-        status => 200
-        body => ["baz"]))))
+  (fact "first route works"
+    (let [[status body] (get* api "/foo/bar")]
+      status => 200
+      body => ["bar"]))
+  (fact "second route works"
+    (let [[status body] (get* api "/foo/baz")]
+      status => 200
+      body => ["baz"])))
