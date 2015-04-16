@@ -20,41 +20,39 @@
 
 (defapi api
   (swagger-docs)
-  (swaggered app-name
-    :description "sample api"
+  ping-routes
+  (context "/api" []
     ping-routes
-    (context "/api" []
-      ping-routes
-      (GET* "/bands" []
-        :return   [Band]
-        :summary  "Gets all Bands"
-        :nickname "getBands"
-        identity)
-      (GET* "/bands/:id" [id]
-        :return   Band
-        :summary  "Gets a Band"
-        :nickname "getBand"
-        identity)
-      (POST* "/bands" []
-        :return   Band
-        :body     [band [NewBand]]
-        :summary  "Adds a Band"
-        :nickname "addBand"
-        identity)
-      (GET* "/path-header-and-query-parameters/:a/:b" []
-        :path-params [a :- Long]
-        :query-params [qp :- Boolean]
-        :header-params [hp :- Boolean]
-        :nickname "pathHeaderAndQueryParameters"
-        identity)
-      (GET* "/primitive" []
-        :return String
-        identity)
-      (GET* "/primitiveArray" []
-        :return [String]
-        identity))))
+    (GET* "/bands" []
+      :return   [Band]
+      :summary  "Gets all Bands"
+      :nickname "getBands"
+      identity)
+    (GET* "/bands/:id" [id]
+      :return   Band
+      :summary  "Gets a Band"
+      :nickname "getBand"
+      identity)
+    (POST* "/bands" []
+      :return   Band
+      :body     [band [NewBand]]
+      :summary  "Adds a Band"
+      :nickname "addBand"
+      identity)
+    (GET* "/path-header-and-query-parameters/:a/:b" []
+      :path-params [a :- Long]
+      :query-params [qp :- Boolean]
+      :header-params [hp :- Boolean]
+      :nickname "pathHeaderAndQueryParameters"
+      identity)
+    (GET* "/primitive" []
+      :return String
+      identity)
+    (GET* "/primitiveArray" []
+      :return [String]
+      identity)))
 
-(facts "swaggered"
+(facts "api documentation"
   (fact "details are generated"
     ((routes/get-routes) app-name)
 
