@@ -14,7 +14,7 @@
 (defmacro get-routes []
   `(try
      (eval +compojure-api-routes+)
-     (catch RuntimeException e#
+     (catch RuntimeException _#
        (throw
          (IllegalStateException.
            (str
