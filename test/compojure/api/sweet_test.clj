@@ -18,7 +18,7 @@
 
 (defroutes* ping-routes (GET* "/ping" [] identity))
 
-(defapi api
+#_(defapi api
   (swagger-docs)
   ping-routes
   (context "/api" []
@@ -52,7 +52,7 @@
       :return [String]
       identity)))
 
-(facts "api documentation"
+#_(facts "api documentation"
   (fact "details are generated"
     ((routes/get-routes) app-name)
 

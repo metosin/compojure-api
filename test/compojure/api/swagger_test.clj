@@ -5,7 +5,7 @@
             [midje.sweet :refer :all]
             [schema.core :as s]))
 
-(fact "extracting compojure paths"
+#_(fact "extracting compojure paths"
 
   (fact "all compojure.core macros are interpreted"
     (extract-routes
@@ -96,7 +96,7 @@
          :uri "/api/:param"
          :metadata {:parameters {:path {:param String}}}}]))
 
-(facts "swagger-info"
+#_(facts "swagger-info"
 
   (fact "with keyword-parameters"
     (first

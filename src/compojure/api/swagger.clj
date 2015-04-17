@@ -7,6 +7,7 @@
             [compojure.api.meta :as m]
             [compojure.core :refer :all]
             [compojure.api.core :refer [GET*]]
+            [ring.util.http-response :refer [ok]]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
             [ring.swagger.core :as swagger]
@@ -144,8 +145,11 @@
     route-with-meta))
 
 ;;
+;; routes
 ;;
-;;
+
+(defn ->swagger2 [route]
+  {(:uri route) {(:method route) (dissoc (:metadata route) :method :uri)}})
 
 (defn attach-meta-data-to-route [[{:keys [uri] :as route} [_ {:keys [body meta]}]]]
   (let [meta (merge-meta meta (route-metadata body))
@@ -153,7 +157,8 @@
     (->> route-with-meta
          (ensure-path-parameters uri)
          ensure-parameter-schema-names
-         ensure-return-schema-names)))
+         ensure-return-schema-names
+         ->swagger2)))
 
 (defn peel [x]
   (or (and (seq? x) (= 1 (count x)) (first x)) x))
@@ -164,7 +169,7 @@
     body))
 
 (defn remove-hidden-routes [routes]
-  (remove (fn [route] (some-> route :metadata :hidden true?)) routes))
+  (remove (fn [route] (some-> route vals first vals first :hidden true?)) routes))
 
 (defn extract-routes [body]
   (->> body
@@ -178,26 +183,13 @@
        (map create-api-route)
        (map attach-meta-data-to-route)
        remove-hidden-routes
-       vec
-       reverse))
+       (into {})))
 
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
         routes  (extract-routes body)
-        details (assoc parameters :routes routes)]
+        details (assoc parameters :paths routes)]
     [details body]))
-
-(defn convert-parameters-to-swagger-12 [routes]
-  (let [->12parameter (fn [[k v]] {:type k :model v})]
-    (into
-     (empty routes)
-     (for [[name info] routes]
-       [name (update-in info [:routes]
-                        (fn [routes]
-                          (mapv (fn [route]
-                                  (update-in route [:metadata :parameters]
-                                             (partial mapv ->12parameter)))
-                                routes)))]))))
 
 ;;
 ;; Public api
@@ -219,20 +211,15 @@
                             ["/api/api-docs" body])
         parameters (apply hash-map key-values)]
     `(routes
-       (GET* ~path []
-         :hidden true
-         (swagger/api-listing ~parameters ~routes/+compojure-api-routes+))
-       (GET* ~(str path "/:api") {{api# :api} :route-params :as request#}
+       (GET* ~path {:as request#}
          :hidden true
          (let [produces# (-> request# :meta :produces (or []))
                consumes# (-> request# :meta :consumes (or []))
-               parameters# (merge ~parameters {:produces produces#
-                                               :consumes consumes#})]
-           (swagger/api-declaration
-             parameters#
-             (convert-parameters-to-swagger-12 ~routes/+compojure-api-routes+)
-             "default"
-             (swagger/basepath request#)))))))
+               parameters# {:produces produces#
+                            :consumes consumes#}]
+           (ok (swagger2/swagger-json
+                 (merge parameters#
+                        (~routes/+compojure-api-routes+ "default")))))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional
