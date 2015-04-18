@@ -61,7 +61,7 @@
         (ok (get-pizzas)))
       (GET* "/:id" []
         :path-params [id :- Long]
-        :return   Pizza
+        :return   (s/maybe Pizza)
         :summary  "Gets a pizza"
         :nickname "getPizza"
         (ok (get-pizza id)))

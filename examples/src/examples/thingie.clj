@@ -127,6 +127,9 @@
       :path-params [kikka :- s/Str]
       :query-params [kukka :- s/Str]
       (GET* "/:kakka" []
+        :return {:kikka s/Str
+                 :kukka s/Str
+                 :kakka s/Str}
         :path-params [kakka :- s/Str]
         (ok {:kikka kikka
              :kukka kukka
