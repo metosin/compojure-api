@@ -60,14 +60,14 @@
     => {:paths {"/ping" {:get nil}
                 "/api/ping" {:get nil}
                 "/api/bands" {:get {:nickname "getBands"
-                                    :return [Band]
+                                    :responses {200 {:schema [Band]}}
                                     :summary "Gets all Bands"}
                               :post {:nickname "addBand"
                                      :parameters {:body [NewBand]}
-                                     :return Band
+                                     :responses {200 {:schema Band}}
                                      :summary "Adds a Band"}}
                 "/api/bands/:id" {:get {:nickname "getBand"
-                                        :return Band
+                                        :responses {200 {:schema Band}}
                                         :summary "Gets a Band"
                                         :parameters {:path {:id String}}}}
                 "/api/parameters/:a/:b" {:get {:nickname "pathHeaderAndQueryParameters"
@@ -77,22 +77,86 @@
                                                                      s/Keyword s/Any}
                                                             :query {:qp Boolean
                                                                     s/Keyword s/Any}}}}
-                "/api/primitive" {:get {:return String}}
-                "/api/primitiveArray" {:get {:return [String]}}}})
+                "/api/primitive" {:get {:responses {200 {:schema String}}}}
+                "/api/primitiveArray" {:get {:responses {200 {:schema [String]}}}}}})
 
-  #_(fact "api-listing works"
+  (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))
           body (parse-body body)]
-      status => 200
-      body => {:apiVersion "0.0.1"
-               :apis [{:description ""
-                       :path (str "/" app-name)}]
-               :info {}
-               :authorizations {}
-               :swaggerVersion "1.2"}))
 
-  #_(fact "api-details works"
-    (let [{:keys [body status]} (api (request :get (str "/api/api-docs/" app-name)))
-          body (parse-body body)]
-      status => 200
-      body => truthy)))
+      (fact "is ok"
+        status => 200)
+
+      (fact "spec is ok"
+        body => {:swagger "2.0"
+                 :info {:title "Swagger API"
+                        :version "0.0.1"}
+                 :consumes ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"],
+                 :produces ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"]
+                 :paths {(keyword "/api/bands") {:get {:nickname "getBands"
+                                                       :responses {:200 {:description ""
+                                                                         :schema {:items {:$ref "#/definitions/Band"}
+                                                                                  :type "array"}}}
+                                                       :summary "Gets all Bands"}
+                                                 :post {:nickname "addBand"
+                                                        :parameters [{:description ""
+                                                                      :in "body"
+                                                                      :name "NewBand"
+                                                                      :required true
+                                                                      :schema {:items {:$ref "#/definitions/NewBand"}
+                                                                               :type "array"}}]
+                                                        :responses {:200 {:description ""
+                                                                          :schema {:$ref "#/definitions/Band"}}}
+                                                        :summary "Adds a Band"}}
+                         (keyword "/api/bands/{id}") {:get {:nickname "getBand"
+                                                            :parameters [{:description ""
+                                                                          :in "path"
+                                                                          :name "id"
+                                                                          :required true
+                                                                          :type "string"}]
+                                                             :responses {:200 {:description ""
+                                                                               :schema {:$ref "#/definitions/Band"}}}
+                                                            :summary "Gets a Band"}}
+                         (keyword "/api/parameters/{a}/{b}") {:get {:nickname "pathHeaderAndQueryParameters"
+                                                                     :parameters [{:in "header"
+                                                                                   :name "hp"
+                                                                                   :description ""
+                                                                                   :required true
+                                                                                   :type "boolean"}
+                                                                                  {:in "query"
+                                                                                   :name "qp"
+                                                                                   :description ""
+                                                                                   :required true
+                                                                                   :type "boolean"}
+                                                                                  {:in "path"
+                                                                                   :name "b"
+                                                                                   :description ""
+                                                                                   :required true
+                                                                                   :type "string"}
+                                                                                  {:in "path"
+                                                                                   :name "a"
+                                                                                   :description ""
+                                                                                   :format "int64"
+                                                                                   :required true
+                                                                                   :type "integer"}]
+                                                                     :responses {:default {:description ""}}}}
+                         (keyword "/api/ping") {:get {:responses {:default {:description ""}}}}
+                         (keyword "/api/primitive") {:get {:responses {:200 {:description ""
+                                                                             :schema {:type "string"}}}}}
+                         (keyword "/api/primitiveArray") {:get {:responses {:200 {:description ""
+                                                                                  :schema {:items {:type "string"}
+                                                                                           :type "array"}}}}}
+                         (keyword "/ping") {:get {:responses {:default {:description ""}}}}}
+                 :definitions {:Band {:properties {:description {:type "string"}
+                                                   :id {:format "int64", :type "integer"}
+                                                   :name {:type "string"}
+                                                   :toppings {:items {:enum ["olives" "pepperoni" "ham" "cheese" "habanero"]
+                                                                      :type "string"}
+                                                              :type "array"}}
+                                      :required ["id" "name" "toppings"]}
+                               :NewBand {:properties {:description {:type "string"}
+                                                      :name {:type "string"}
+                                                      :toppings {:items {:enum ["olives" "pepperoni" "ham" "cheese" "habanero"]
+                                                                         :type "string"}
+                                                                 :type "array"}}
+                                         :required ["name" "toppings"]}}}))))

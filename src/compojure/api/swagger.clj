@@ -139,10 +139,8 @@
     route-with-meta))
 
 (defn ensure-return-schema-names [route-with-meta]
-  (if (get-in route-with-meta [:metadata :return])
-    (update-in route-with-meta [:metadata :return]
-               #(swagger/with-named-sub-schemas % "Response"))
-    route-with-meta))
+  ;; TODO: static ensure?
+  route-with-meta)
 
 ;;
 ;; routes
@@ -209,6 +207,7 @@
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
                             ["/api/api-docs" body])
+        ;; TODO: to swagger2.
         parameters (apply hash-map key-values)]
     `(routes
        (GET* ~path {:as request#}
@@ -217,9 +216,11 @@
                consumes# (-> request# :meta :consumes (or []))
                parameters# {:produces produces#
                             :consumes consumes#}]
-           (ok (swagger2/swagger-json
-                 (merge parameters#
-                        (~routes/+compojure-api-routes+ "default")))))))))
+           (ok
+             (let [swagger# (merge parameters#
+                                   (~routes/+compojure-api-routes+ "default"))
+                   result# (swagger2/swagger-json swagger#)]
+               result#)))))))
 
 (defmacro swaggered
   "Defines a swagger-api. Takes api-name, optional
@@ -228,6 +229,7 @@
    extracts route, model and endpoint meta-datas."
   [_ & body]
   (let [[_ body] (swagger-info body)]
+    ;; TODO: context* with meta.
     `(routes ~@body)))
 
 (defmethod routes/collect-routes :default [body]

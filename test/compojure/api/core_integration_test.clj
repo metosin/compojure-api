@@ -473,7 +473,7 @@
                :definitions {}
                :paths {(keyword "/user") {:get {:responses {:default {:description ""}}}}}})))
 
-#_(facts "swagger-docs with anonymous Return and Body models"
+(facts "swagger-docs with anonymous Return and Body models"
   (defapi api
     (swagger-docs)
     (POST* "/echo" []
@@ -482,22 +482,21 @@
       identity))
 
   (fact "api-docs"
-    (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+    (let [[status spec] (get* api "/api/api-docs" {})]
 
       (fact "are found"
         status => 200)
 
-      (let [operation           (-> body :apis first :operations first)
-            body-parameter-type (-> operation :parameters first :type keyword)
-            return-type         (-> operation :type keyword)]
+      (let [operation  (some-> spec :paths vals first :post)
+            body-ref   (some-> operation :parameters first :schema :$ref)
+            return-ref (get-in operation [:responses :200 :schema :$ref])]
 
-        (fact "generated body-param is found in Models"
-          body-parameter-type => truthy
-          (-> body :models body-parameter-type) => truthy)
+        (fact "generated body-param is found in Definitions"
+          (find-definition spec body-ref) => truthy)
 
-        (fact "generated return-param is found in Models"
-          return-type => truthy
-          (-> body :models return-type) => truthy)))))
+        (fact "generated return-param is found in Definitions"
+          return-ref => truthy
+          (find-definition spec body-ref) => truthy)))))
 
 (def Boundary
   {:type (s/enum "MultiPolygon" "Polygon" "MultiPoint" "Point")
@@ -506,7 +505,7 @@
 (def ReturnValue
   {:boundary (s/maybe Boundary)})
 
-#_(facts "https://github.com/metosin/compojure-api/issues/53"
+(facts "https://github.com/metosin/compojure-api/issues/53"
   (defapi api
     (swagger-docs)
     (POST* "/" []
@@ -515,23 +514,23 @@
       identity))
 
   (fact "api-docs"
-    (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+    (let [[status spec] (get* api "/api/api-docs" {})]
 
       (fact "are found"
         status => 200)
 
-      (let [operation           (-> body :apis first :operations first)
-            body-parameter-type (-> operation :parameters first :type keyword)
-            return-type         (-> operation :type keyword)]
+      (let [operation  (some-> spec :paths vals first :post)
+            body-ref   (some-> operation :parameters first :schema :$ref)
+            return-ref (get-in operation [:responses :200 :schema :$ref])]
 
-        (fact "generated body-param is found in Models"
-          (-> body :models body-parameter-type) => truthy)
+        (fact "generated body-param is found in Definitions"
+          (find-definition spec body-ref) => truthy)
 
-        (fact "generated return-param is found in Models"
-          return-type => truthy
-          (-> body :models return-type) => truthy)))))
+        (fact "generated return-param is found in Definitions"
+          return-ref => truthy
+          (find-definition spec body-ref) => truthy)))))
 
-#_(fact "swagger-docs works with the :middlewares"
+(fact "swagger-docs works with the :middlewares"
   (defapi api
     (swagger-docs)
     (GET* "/middleware" []
@@ -540,16 +539,17 @@
       (ok 2)))
 
   (fact "api-docs"
-    (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
+    (let [[status body] (get* api "/api/api-docs" {})]
       status => 200
-      (-> body  :apis first :operations first :parameters first) =>
-      {:description ""
-       :name "x"
-       :paramType "query"
-       :required true
-       :type "string"})))
+      (-> body :paths vals first) =>
+      {:get {:parameters [{:description ""
+                           :in "query"
+                           :name "x"
+                           :required true
+                           :type "string"}]
+             :responses {:default {:description ""}}}})))
 
-#_(fact "sub-context paths"
+(fact "sub-context paths"
   (let [response {:ping "pong"}
         ok (ok response)
         ok? (fn [[status body]]
@@ -573,25 +573,26 @@
             :query [q domain/Entity]
             ok))))
 
-  (fact "valid routes"
-    (get* api "/") => ok?
-    (get* api "/a") => ok?
-    (get* api "/b/b1") => ok?
-    (get* api "/b/b1/") => ok?
-    (get* api "/b") => ok?
-    (get* api "/b/") => ok?
-    (get* api "/b//") => ok?
-    (get* api "/b//b2") => ok?)
+    (fact "valid routes"
+      (get* api "/") => ok?
+      (get* api "/a") => ok?
+      (get* api "/b/b1") => ok?
+      (get* api "/b/b1/") => ok?
+      (get* api "/b") => ok?
+      (get* api "/b/") => ok?
+      (get* api "/b//") => ok?
+      (get* api "/b//b2") => ok?)
 
-  (fact "invalid routes"
-    (get* api "/b/b2") => not-ok?)
+    (fact "invalid routes"
+      (get* api "/b/b2") => not-ok?)
 
-  (fact "swagger-docs have trailing slashes removed"
-    (let [[status body] (get* api (str "/api/api-docs/" +name+) {})]
-      status => 200
-      (->> body
-           :apis
-           (map :path)) => ["/" "/a" "/b/b1" "/b" "/b//b2"]))))
+    ;; TODO: order!
+    #_(fact "swagger-docs have trailing slashes removed"
+      (let [[status body] (get* api "/api/api-docs" {})]
+        status => 200
+        (->> body
+             :paths
+             keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
 
 (fact "formats supported by ring-middleware-format"
   (defapi api

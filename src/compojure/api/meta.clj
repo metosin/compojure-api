@@ -85,12 +85,10 @@
 ;; Response messages mangling
 ;;
 
-(defn- responses->messages [responses]
-  (for [[code schema] responses
-        :when (not= code 200)]
-    {:code code
-     :message (or (some-> schema meta :message) "")
-     :responseModel (eval schema)}))
+(defn- convert-responses [responses]
+  (into {} (for [[code schema] responses]
+             [code {:description (or (some-> schema meta :message) "")
+                    :schema (eval schema)}])))
 
 ;;
 ;; Extension point
@@ -135,9 +133,9 @@
 ; :return MySchema
 ; :return {:value String}
 ; :return #{{:key (s/maybe Long)}}
-(defmethod restructure-param :return [k schema acc]
+(defmethod restructure-param :return [_ schema acc]
   (-> acc
-      (update-in [:parameters] assoc k schema)
+      (assoc-in [:parameters :responses 200 :schema] (eval schema))
       (update-in [:responses] assoc 200 schema)))
 
 ; value is a map of http-response-code -> Schema. Translates to both swagger
@@ -146,9 +144,9 @@
 ; :responses {403 ErrorEnvelope}
 ; :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}
 (defmethod restructure-param :responses [_ responses acc]
-  (let [messages (responses->messages responses)]
+  (let [messages (convert-responses responses)]
     (-> acc
-        (update-in [:parameters :responseMessages] (comp distinct concat) messages)
+        (update-in [:parameters :responses] merge messages)
         (update-in [:responses] merge responses))))
 
 ; reads body-params into a enchanced let. First parameter is the let symbol,
