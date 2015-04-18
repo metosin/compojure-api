@@ -5,7 +5,7 @@
             [midje.sweet :refer :all]
             [schema.core :as s]))
 
-#_(fact "extracting compojure paths"
+(fact "extracting compojure paths"
 
   (fact "all compojure.core macros are interpreted"
     (extract-routes
@@ -22,34 +22,24 @@
            (context "/:i/:j" []
              (GET "/k/:l/m/:n" [] identity)))))
 
-    => [{:method :get
-         :uri "/a/b/c"}
-        {:method :post
-         :uri "/a/b/d"}
-        {:method :put
-         :uri "/a/b/e"}
-        {:method :delete
-         :uri "/a/b/f"}
-        {:method :options
-         :uri "/a/b/g"}
-        {:method :patch
-         :uri "/a/b/h"}
-        {:method :get
-         :uri "/a/:i/:j/k/:l/m/:n"
-         :metadata {:parameters {:path {:i String
-                                        :j String
-                                        :l String
-                                        :n String}}}}])
+    => {"/a/b/c" {:get nil}
+        "/a/b/d" {:post nil}
+        "/a/b/e" {:put nil}
+        "/a/b/f" {:delete nil}
+        "/a/b/g" {:options nil}
+        "/a/b/h" {:patch nil}
+        "/a/:i/:j/k/:l/m/:n" {:get {:parameters {:path {:i String
+                                                        :j String
+                                                        :l String
+                                                        :n String}}}}})
 
   (fact "runtime code in route is ignored"
     (extract-routes
       '(context "/api" []
          (if false
            (GET "/true" [] identity)
-           (PUT "/false" [] identity)))) => [{:method :get
-                                              :uri "/api/true"}
-                                             {:method :put
-                                              :uri "/api/false"}])
+           (PUT "/false" [] identity)))) => {"/api/true" {:get nil}
+                                             "/api/false" {:put nil}})
 
   (fact "route-macros are expanded"
     (defmacro optional-routes [p & body] (when p `(routes ~@body)))
@@ -58,15 +48,13 @@
          (optional-routes true
            (GET "/true" [] identity))
          (optional-routes false
-           (PUT "/false" [] identity)))) => [{:method :get
-                                              :uri "/api/true"}])
+           (PUT "/false" [] identity)))) => {"/api/true" {:get nil}})
 
   (fact "endpoint-macros are expanded"
     (defmacro GET+ [p & body] `(GET* ~(str "/xxx" p) ~@body))
     (extract-routes
       '(context "/api" []
-         (GET+ "/true" [] identity))) => [{:method :get
-                                           :uri "/api/xxx/true"}])
+         (GET+ "/true" [] identity))) => {"/api/xxx/true" {:get nil}})
 
   (fact "Vanilla Compojure defroutes are NOT followed"
     (defroutes even-more-routes (GET "/even" [] identity))
@@ -74,8 +62,7 @@
     (extract-routes
       '(context "/api" []
          (GET "/true" [] identity)
-         more-routes)) => [{:method :get
-                            :uri "/api/true"}])
+         more-routes)) => {"/api/true" {:get nil}})
 
   (fact "Compojure Api defroutes are followed"
     (defroutes* even-more-routes* (GET "/even" [] identity))
@@ -83,50 +70,43 @@
     (extract-routes
       '(context "/api" []
          (GET "/true" [] identity)
-         more-routes*)) => [{:method :get
-                            :uri "/api/true"}
-                           {:method :get
-                            :uri "/api/more/even"}])
+         more-routes*)) => {"/api/true" {:get nil}
+                            "/api/more/even" {:get nil}})
 
   (fact "Parameter regular expressions are discarded"
     (extract-routes '(context "/api" []
                        (GET ["/:param" :param #"[a-z]+"] [] identity)))
 
-    => [{:method :get
-         :uri "/api/:param"
-         :metadata {:parameters {:path {:param String}}}}]))
+    => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
-#_(facts "swagger-info"
+
+(facts "swagger-info"
 
   (fact "with keyword-parameters"
     (first
       (swagger-info
         '(:title ..title..
           :description ..description..
-          :routes ..overridded..
+          :paths ..overridded..
           (context "/api" []
             (GET "/user/:id" [] identity)))))
 
     => {:title  ..title..
         :description ..description..
-        :routes [{:method :get
-                  :uri "/api/user/:id"
-                  :metadata {:parameters {:path {:id String}}}}]})
+        :paths {"/api/user/:id" {:get {:parameters {:path {:id String}}}}}})
 
   (fact "with map-parameters"
     (first
       (swagger-info
         '({:title ..title..
            :description ..description..
-           :routes ..overridded..}
+           :paths ..overridded..}
           (context "/api" []
             (GET "/user/:id" [] identity)))))
 
     => {:title  ..title..
         :description ..description..
-        :routes [{:method :get
-                  :uri "/api/user/:id"
-                  :metadata {:parameters {:path {:id String}}}}]})
+        :paths {"/api/user/:id" {:get {:parameters {:path {:id String}}}}}})
 
   (fact "context* meta-data"
 
@@ -148,21 +128,13 @@
             (GET* "/kakka" []
               identity))))))
 
-    => {:routes [{:metadata {:summary "top-summary"
-                             :tags #{:kiss}
-                             :parameters {:path {:id String}}}
-                  :method :get
-                  :uri "/api/:id/kikka"}
-                 {:metadata {:summary "bottom-summary"
-                             :tags #{:venom}
-                             :parameters {:path {:id String
-                                                 :kukka String}}}
-                  :method :get
-                  :uri "/api/:id/ipa/kukka/:kukka"}
-                 {:metadata {:summary "mid-summary"
-                             :tags #{:wasp}
-                             :parameters {:path {:id String}}}
-                  :method :get
-                  :uri "/api/:id/ipa/kakka"}]}))
-
-
+    => {:paths {"/api/:id/kikka" {:get {:summary "top-summary"
+                                        :tags #{:kiss}
+                                        :parameters {:path {:id String}}}}
+                "/api/:id/ipa/kukka/:kukka" {:get {:summary "bottom-summary"
+                                                   :tags #{:venom}
+                                                   :parameters {:path {:id String
+                                                                       :kukka String}}}}
+                "/api/:id/ipa/kakka" {:get {:summary "mid-summary"
+                                            :tags #{:wasp}
+                                            :parameters {:path {:id String}}}}}}))
