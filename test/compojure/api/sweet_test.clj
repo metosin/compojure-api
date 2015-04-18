@@ -18,7 +18,7 @@
 
 (defroutes* ping-routes (GET* "/ping" [] identity))
 
-#_(defapi api
+(defapi api
   (swagger-docs)
   ping-routes
   (context "/api" []
@@ -39,7 +39,7 @@
       :summary  "Adds a Band"
       :nickname "addBand"
       identity)
-    (GET* "/path-header-and-query-parameters/:a/:b" []
+    (GET* "/parameters/:a/:b" []
       :path-params [a :- Long]
       :query-params [qp :- Boolean]
       :header-params [hp :- Boolean]
@@ -52,48 +52,35 @@
       :return [String]
       identity)))
 
-#_(facts "api documentation"
+(facts "api documentation"
   (fact "details are generated"
+
     ((routes/get-routes) app-name)
 
-    => {:routes [{:method :get
-                  :uri "/ping"}
-                 {:method :get
-                  :uri "/api/ping"}
-                 {:method :get
-                  :uri "/api/bands"
-                  :metadata {:nickname "getBands"
-                             :return [Band]
-                             :summary "Gets all Bands"}}
-                 {:method :get
-                  :uri "/api/bands/:id"
-                  :metadata {:nickname "getBand"
-                             :return Band
-                             :summary "Gets a Band"
-                             :parameters {:path {:id String}}}}
-                 {:method :post
-                  :uri "/api/bands"
-                  :metadata {:nickname "addBand"
-                             :parameters {:body [NewBand]}
-                             :return Band
-                             :summary "Adds a Band"}}
-                 {:method :get
-                  :uri "/api/path-header-and-query-parameters/:a/:b"
-                  :metadata {:nickname "pathHeaderAndQueryParameters"
-                             :parameters {:path {:a Long
-                                                 :b String}
-                                          :header {:hp Boolean
-                                                   s/Keyword s/Any}
-                                          :query {:qp Boolean
-                                                  s/Keyword s/Any}}}}
-                 {:method :get
-                  :uri "/api/primitive"
-                  :metadata {:return String}}
-                 {:method :get
-                  :uri "/api/primitiveArray"
-                  :metadata {:return [String]}}]})
+    => {:paths {"/ping" {:get nil}
+                "/api/ping" {:get nil}
+                "/api/bands" {:get {:nickname "getBands"
+                                    :return [Band]
+                                    :summary "Gets all Bands"}
+                              :post {:nickname "addBand"
+                                     :parameters {:body [NewBand]}
+                                     :return Band
+                                     :summary "Adds a Band"}}
+                "/api/bands/:id" {:get {:nickname "getBand"
+                                        :return Band
+                                        :summary "Gets a Band"
+                                        :parameters {:path {:id String}}}}
+                "/api/parameters/:a/:b" {:get {:nickname "pathHeaderAndQueryParameters"
+                                               :parameters {:path {:a Long
+                                                                   :b String}
+                                                            :header {:hp Boolean
+                                                                     s/Keyword s/Any}
+                                                            :query {:qp Boolean
+                                                                    s/Keyword s/Any}}}}
+                "/api/primitive" {:get {:return String}}
+                "/api/primitiveArray" {:get {:return [String]}}}})
 
-  (fact "api-listing works"
+  #_(fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/api/api-docs"))
           body (parse-body body)]
       status => 200
@@ -104,7 +91,7 @@
                :authorizations {}
                :swaggerVersion "1.2"}))
 
-  (fact "api-details works"
+  #_(fact "api-details works"
     (let [{:keys [body status]} (api (request :get (str "/api/api-docs/" app-name)))
           body (parse-body body)]
       status => 200

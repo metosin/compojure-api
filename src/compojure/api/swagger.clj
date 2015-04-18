@@ -183,7 +183,7 @@
        (map create-api-route)
        (map attach-meta-data-to-route)
        remove-hidden-routes
-       (into {})))
+       (apply deep-merge {})))
 
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
