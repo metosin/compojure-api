@@ -685,6 +685,9 @@
   (fact "swaggered pushes tag to endpoints"
     (let [[status spec] (get* api "/api/api-docs" {})]
       status => 200
-      ;; TODO: verify both endpoints with tags.
-      #_(./aprint spec)
-      #_#_spec => "")))
+      (:paths spec) => {:/api/a {:get {:responses {:default {:description ""}}
+                                       :tags ["a"]}}
+                        :/api/b {:get {:responses {:default {:description ""}}
+                                       :tags ["b"]}}})))
+
+

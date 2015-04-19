@@ -71,9 +71,24 @@
 (defn merge-meta [& meta]
   (apply deep-merge (map #(or % {}) meta)))
 
+(defn consume-empty-paths [routes]
+  (reduce
+    (fn [routes route]
+      (if (and (is-a? CompojureRoutes route) (= (:p route) ""))
+        (let [route-meta (:m route)
+              childs (:c route)
+              childs-with-meta (map
+                                 #(update-in
+                                   % [:m]
+                                   (fn [m]
+                                     (merge-meta route-meta (or m {}))))
+                                 childs)]
+          (into routes childs-with-meta))
+        (conj routes route))) [] routes))
+
 (defn filter-routes [c]
-  (filterv #(or (is-a? CompojureRoute %)
-                (is-a? CompojureRoutes %)) (flatten c)))
+  (consume-empty-paths (filterv #(or (is-a? CompojureRoute %)
+                                     (is-a? CompojureRoutes %)) (flatten c))))
 
 (defn collect-compojure-routes [form]
   (walk/postwalk
@@ -104,11 +119,21 @@
 
 (defn create-paths [m {:keys [p b c] :as r}]
   (cond
-    (is-a? CompojureRoute r)  [[p (extract-method b)] [:endpoint {:meta m :body (rest b)}]]
-    (is-a? CompojureRoutes r) [[p nil] (reduce (partial apply assoc-map-ordered) {}
-                                               (map (partial
-                                                     create-paths
-                                                     (merge-meta m (:m r))) c))]))
+
+    (is-a? CompojureRoute r)
+    [[p (extract-method b)] [:endpoint {:meta (merge-meta m (:m r))
+                                        :body (rest b)}]]
+
+    (is-a? CompojureRoutes r)
+    [[p nil] (reduce
+               (fn [acc c]
+                 #_(println "ACC1:" (keys acc))
+                 (let [acc (apply assoc-map-ordered acc c)]
+                   #_(println "ACC2:" (keys acc)) acc)) {}
+               (map (partial
+                      create-paths
+                      (merge-meta m (:m r)))
+                    c))]))
 
 ;;
 ;; ensure path parameters
