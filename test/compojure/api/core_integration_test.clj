@@ -259,10 +259,10 @@
     (defapi api
       (swagger-docs)
       (GET* "/lotto/:x" []
-        :return [Long]
         :path-params [x :- Long]
         :responses {403 [String]
                     440 [String]}
+        :return [Long]
         (case x
           1 (ok [1])
           2 (ok ["two"])
@@ -295,8 +295,7 @@
         body => {:message "not-found"}
         status => 404))
 
-    ;; TODO: does not work
-    #_(fact "swagger-docs for multiple returns"
+    (fact "swagger-docs for multiple returns"
       (let [[status spec] (get* api "/swagger.json" {})]
         status => 200
         (-> spec :paths vals first :get :responses keys)

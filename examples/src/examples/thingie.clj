@@ -87,9 +87,9 @@
   (context* "/responses" []
     :tags [:responses]
     (POST* "/number" []
-      :return       Total
       :query-params [x :- Long y :- Long]
       :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+      :return       Total
       :summary      "x-y with body-parameters."
       (let [total (- x y)]
         (if (>= total 0)
