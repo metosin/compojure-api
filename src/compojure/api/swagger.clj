@@ -45,7 +45,7 @@
         :else x))
     form))
 
-(defrecord CompojureRoute [p b])
+(defrecord CompojureRoute [p m b])
 (defrecord CompojureRoutes [p m c])
 
 (defn is-a?
@@ -69,7 +69,7 @@
   (parse-meta-data (first (drop 3 body))))
 
 (defn merge-meta [& meta]
-  (apply deep-merge meta))
+  (apply deep-merge (map #(or % {}) meta)))
 
 (defn filter-routes [c]
   (filterv #(or (is-a? CompojureRoute %)
@@ -84,7 +84,7 @@
           (let [[m p] x
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
-              (compojure-route? rm)     (->CompojureRoute p x)
+              (compojure-route? rm)     (->CompojureRoute p {} x)
               (compojure-context? rm)   (->CompojureRoutes p (context-metadata x) (filter-routes x))
               (compojure-letroutes? rm) (->CompojureRoutes "" (context-metadata x) (filter-routes x))
               :else                     x)))
