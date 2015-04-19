@@ -3,8 +3,8 @@
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
 - [Schema](https://github.com/Prismatic/schema) for input & output data coercion
-- [Swagger](https://github.com/wordnik/swagger-core/wiki) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
-- extendable request restructuring via metadata handlers ([woot?](#creating-your-own-metadata-handlers))
+- [Swagger 2.0](https://github.com/wordnik/swagger-core/wiki) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
+- simple extendable DSL via [metadata handlers](#creating-your-own-metadata-handlers)
 - bundled middleware for common api behavior (exception mapping, data formats & serialization)
 - route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui)
    - uses the `ring-swagger-ui` which is needed as separate dependency (separate lifecycle)
@@ -36,72 +36,71 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ;;
 
 (defroutes* legacy-route
-  (GET* "/legacy/:value" [value]
-    (ok {:value value})))
+            (GET* "/legacy/:value" [value]
+              (ok {:value value})))
 
 (defapi app
   (swagger-ui)
   (swagger-docs
     :title "Sample api")
-  (swaggered "thingie"
-    :description "There be thingies"
-    (context "/api" []
+  (context* "/api" []
+    :tags ["thingie"]
 
-      (GET* "/plus" []
-        :return       Long
-        :query-params [x :- Long, {y :- Long 1}]
-        :summary      "x+y with query-parameters. y defaults to 1."
-        (ok (+ x y)))
+    (GET* "/plus" []
+      :return       Long
+      :query-params [x :- Long, {y :- Long 1}]
+      :summary      "x+y with query-parameters. y defaults to 1."
+      (ok (+ x y)))
 
-      (POST* "/minus" []
-        :return      Long
-        :body-params [x :- Long, y :- Long]
-        :summary     "x-y with body-parameters."
-        (ok (- x y)))
+    (POST* "/minus" []
+      :return      Long
+      :body-params [x :- Long, y :- Long]
+      :summary     "x-y with body-parameters."
+      (ok (- x y)))
 
-      (GET* "/times/:x/:y" []
-        :return      Long
-        :path-params [x :- Long, y :- Long]
-        :summary     "x*y with path-parameters"
-        (ok (* x y)))
+    (GET* "/times/:x/:y" []
+      :return      Long
+      :path-params [x :- Long, y :- Long]
+      :summary     "x*y with path-parameters"
+      (ok (* x y)))
 
-      (POST* "/divide" []
-        :return      Double
-        :form-params [x :- Long, y :- Long]
-        :summary     "x/y with form-parameters"
-        (ok (/ x y)))
+    (POST* "/divide" []
+      :return      Double
+      :form-params [x :- Long, y :- Long]
+      :summary     "x/y with form-parameters"
+      (ok (/ x y)))
 
-      (GET* "/power" []
-        :return      Long
-        :header-params [x :- Long, y :- Long]
-        :summary     "x^y with header-parameters"
-        (ok (long (Math/pow x y))))
+    (GET* "/power" []
+      :return      Long
+      :header-params [x :- Long, y :- Long]
+      :summary     "x^y with header-parameters"
+      (ok (long (Math/pow x y))))
 
-      legacy-route
+    legacy-route
 
-      (PUT* "/echo" []
-        :return   [{:hot Boolean}]
-        :body     [body [{:hot Boolean}]]
-        :summary  "echoes a vector of anonymous hotties"
-        (ok body))
+    (PUT* "/echo" []
+      :return   [{:hot Boolean}]
+      :body     [body [{:hot Boolean}]]
+      :summary  "echoes a vector of anonymous hotties"
+      (ok body))
 
-      (POST* "/echo" []
-        :return   Thingie
-        :body     [thingie Thingie]
-        :summary  "echoes a Thingie from json-body"
-        (ok thingie))
+    (POST* "/echo" []
+      :return   (s/maybe Thingie)
+      :body     [thingie (s/maybe Thingie)]
+      :summary  "echoes a Thingie from json-body"
+      (ok thingie)))
 
-      (swaggered "context*"
-        :description "context* routes"
-        (context* "/context/:kikka" []
-          :summary "summary inherited from context"
-          :path-params [kikka :- s/Str]
-          :query-params [kukka :- s/Str]
-          (GET* "/:kakka" []
-            :path-params [kakka :- s/Str]
-            (ok {:kikka kikka
-                 :kukka kukka
-                 :kakka kakka})))))))
+  (context* "/context" []
+    :tags ["context*"]
+    :summary "summary inherited from context"
+    (context* "/:kikka" []
+      :path-params [kikka :- s/Str]
+      :query-params [kukka :- s/Str]
+      (GET* "/:kakka" []
+        :path-params [kakka :- s/Str]
+        (ok {:kikka kikka
+             :kukka kukka
+             :kakka kakka})))))
 ```
 
 To try it yourself, clone this repository and type
@@ -209,19 +208,18 @@ Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for r
 
 Enabling Swagger route documentation in your application is done by:
 
-- wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/with-routes`) macro. This initializes an empty route tree to your namespace.
-- wrapping your web apis in a `swaggered` -route macro on to the root level of your web app.
+- wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/api-root`) macro.
+  - This initializes an empty route tree to your namespace and creates the static route tree for your app
   - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
+- to group your endpoints in the swagger-ui, you can `:tags` metadata to routes
 - mounting `compojure.api.swagger/swagger-docs` to publish the collected routes.
 - **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/wordnik/swagger-ui) to the web app
   - the ui is packaged separately at clojars with name `metosin/metosin/ring-swagger-ui`
 
 Currently, there can be only one `defapi` or `with-routes` per namespace.
 
-There can be several `swaggered` apis in one web application.
-
-### sample minimalistic swaggered app
+### sample minimalistic swagger 2.0 app
 
 ```clojure
 (ns example4
@@ -235,11 +233,10 @@ There can be several `swaggered` apis in one web application.
 (defapi app
   (swagger-ui)
   (swagger-docs)
-  (swaggered "test"
-    :description "Swagger test api"
-    (context "/api" []
-      legacy-route
-      (POST* "/echo" {body :body-params} (ok body)))))
+  (context "/api" []
+    :tags ["test"]
+    legacy-route
+    (POST* "/echo" {body :body-params} (ok body))))
 ```
 
 By default, Swagger-UI is mounted to the root `/` and api-listing to `/swagger.json`.
@@ -251,17 +248,17 @@ Most route functions & macros have a loose (DSL) syntax taking optional paramete
   (swagger-docs)
 
   ; all said
-  (swagger-docs "/swagger.json"
-    :title "Cool api"
-    :apiVersion "1.0.0"
-    :description "Compojure Sample Web Api"
-    :termsOfServiceUrl "http://www.metosin.fi"
-    :contact "pizza@example.com"
-    :license "Eclipse 1.0"
-    :licenseUrl "http://www.eclipse.org/legal/epl-v10.html")
+	(swagger-docs
+	  :version "1.0.0"
+	  :title "Sausages"
+	  :description "Sausage description"
+	  :termsOfService "http://helloreverb.com/terms/"
+	  :contact {:name "My API Team"
+	            :email "foo@example.com"
+	            :url "http://www.metosin.fi"}
+	  :license {:name "Eclipse Public License"
+	            :url "http://www.eclipse.org/legal/epl-v10.html"})
 ```
-
-See source code & [examples](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/example/handler.clj#) for more details.
 
 ## Models
 
@@ -318,7 +315,15 @@ You can also wrap models in containers (`vector` and `set`) and add extra metada
     (ok thingies))
 ```
 
-From `0.12.0` on, anonoymous schemas are also supported:
+Schema-predicate wrappings work too:
+
+```clojure
+  (POST* "/nachos" []
+    :return (s/maybe {:a s/Str})
+    (ok nil))
+```
+
+And anonoymous schemas:
 
 ```clojure
   (PUT* "/echos" []
@@ -388,9 +393,9 @@ Key `:responses` takes a map of http-status-code -> model map, which translates 
 
 ```clojure
 (POST* "/number" []
-  :return       Long
   :query-params [x :- Long y :- Long]
   :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+  :return       Long
   :summary      "x-y with body-parameters."
   (let [total (- x y)]
     (if (pos? total)
@@ -479,13 +484,11 @@ macroexpanding-1 it too see what's get generated:
 - All routes are collected at compile-time
   - there is basically no runtime penalty for describing your apis
   - all runtime code between route-macros are ignored when macro-peeling route-trees. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
-  - `swaggered` peels the macros until it reaches `compojure.core` Vars. You can write your own DSL-macros on top of those
+  - `api-root` peels the macros until it reaches `compojure.core` Vars. You can write your own DSL-macros on top of those
 
 ## Roadmap
 
-- Swagger 2.0
 - don't pollute api namespaces with `+routes+` var, use lexically/dynamically scoped route tree instead
-- collect routes from root, not from `swaggered`
 - type-safe `:params` destructuring
 - `url-for` for endpoints (bidi, bidi, bidi)
 
