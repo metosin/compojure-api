@@ -1,6 +1,6 @@
 (ns compojure.api.swagger
   (:require [clojure.set :refer [union]]
-            [clojure.string :as st]
+            [clojure.string :as cs]
             [clojure.walk :as walk]
             [compojure.api.common :refer :all]
             [compojure.api.routes :as routes]
@@ -8,6 +8,8 @@
             [compojure.core :refer :all]
             [compojure.api.core :refer [GET*]]
             [ring.util.http-response :refer [ok]]
+            [schema-tools.core :as st]
+            [ring.swagger.swagger2-schema :as ss]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
             [ring.swagger.core :as swagger]
@@ -112,11 +114,11 @@
 
 (defn remove-param-regexes [p] (if (vector? p) (first p) p))
 
-(defn strip-trailing-spaces [s] (st/replace-first s #"(.)\/+$" "$1"))
+(defn strip-trailing-spaces [s] (cs/replace-first s #"(.)\/+$" "$1"))
 
 (defn create-api-route [[ks v]]
   [{:method (keyword (name (first (keep second ks))))
-    :uri (->> ks (map first) (map remove-param-regexes) st/join strip-trailing-spaces)} v])
+    :uri (->> ks (map first) (map remove-param-regexes) cs/join strip-trailing-spaces)} v])
 
 (defn extract-method [body]
   (-> body first str .toLowerCase keyword))
@@ -219,20 +221,32 @@
 
 (def swagger-ui (partial ui/swagger-ui :swagger-docs "/swagger.json"))
 
+(defn ->swagger2-info [info]
+  (when (:termsOfServiceUrl info)
+    (println "termsOfServiceUrl is deprecated. Use :termsOfService instead"))
+  (st/select-schema ss/Info info))
+
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
    parameter is a String, it is used as a url for the
-   api-docs, othereise \"/swagger.json\" will be used.
-   Next Keyword value pairs for meta-data. Valid keys:
+   api-docs, otherwise \"/swagger.json\" will be used.
+   Next Keyword value pairs OR a map for meta-data.
+   Example with all possible keys:
 
-   :title :description :termsOfServiceUrl
-   :contact :license :licenseUrl"
+    :version \"1.0.0\"
+    :title \"Sausages\"
+    :description \"Sausage description\"
+    :termsOfService \"http://helloreverb.com/terms/\"
+    :contact {:name \"My API Team\"
+              :email \"foo@example.com\"
+              :uri \"http://www.metosin.fi\"}
+    :license {:name: \"Eclipse Public License\"
+              :url: \"http://www.eclipse.org/legal/epl-v10.html\"}"
   [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
                             ["/swagger.json" body])
-        ;; TODO: to swagger2.
-        parameters (apply hash-map key-values)]
+        parameters (->swagger2-info (apply hash-map key-values))]
     `(routes
        (GET* ~path {:as request#}
          :no-doc true
@@ -252,7 +266,7 @@
    and a normal route body. Macropeels the body and
    extracts route, model and endpoint meta-datas."
   [api-name & body]
-  (println "swaggered is depecated. See https://github.com/metosin/compojure-api/blob/master/CHANGELOG.md.")
+  (println "swaggered is deprecated, see https://github.com/metosin/compojure-api/blob/master/CHANGELOG.md")
   (let [[_ body] (extract-parameters body)]
     `(let-routes [] (constantly nil)
        (compojure.api.meta/meta-container

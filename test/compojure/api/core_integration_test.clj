@@ -464,7 +464,7 @@
       (continue)))
 
   (fact "api-listing"
-    (let [[status body] (get* api "/api/api-docs" {})]
+    (let [[status body] (get* api "/swagger.json" {})]
       status => 200
       body => {:swagger "2.0"
                :info {:title "Swagger API"
@@ -483,7 +483,7 @@
       identity))
 
   (fact "api-docs"
-    (let [[status spec] (get* api "/api/api-docs" {})]
+    (let [[status spec] (get* api "/swagger.json" {})]
 
       (fact "are found"
         status => 200)
@@ -515,7 +515,7 @@
       identity))
 
   (fact "api-docs"
-    (let [[status spec] (get* api "/api/api-docs" {})]
+    (let [[status spec] (get* api "/swagger.json" {})]
 
       (fact "are found"
         status => 200)
@@ -540,7 +540,7 @@
       (ok 2)))
 
   (fact "api-docs"
-    (let [[status body] (get* api "/api/api-docs" {})]
+    (let [[status body] (get* api "/swagger.json" {})]
       status => 200
       (-> body :paths vals first) =>
       {:get {:parameters [{:description ""
@@ -589,7 +589,7 @@
 
     ;; TODO: order!
     #_(fact "swagger-docs have trailing slashes removed"
-      (let [[status body] (get* api "/api/api-docs" {})]
+      (let [[status body] (get* api "/swagger.json" {})]
         status => 200
         (->> body
              :paths
@@ -683,7 +683,7 @@
       body => "b"))
 
   (fact "swaggered pushes tag to endpoints"
-    (let [[status spec] (get* api "/api/api-docs" {})]
+    (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (:paths spec) => {:/api/a {:get {:responses {:default {:description ""}}
                                        :tags ["a"]}}

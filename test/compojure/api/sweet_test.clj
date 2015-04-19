@@ -81,7 +81,7 @@
                 "/api/primitiveArray" {:get {:responses {200 {:schema [String]}}}}}})
 
   (fact "api-listing works"
-    (let [{:keys [body status]} (api (request :get "/api/api-docs"))
+    (let [{:keys [body status]} (api (request :get "/swagger.json"))
           body (parse-body body)]
 
       (fact "is ok"

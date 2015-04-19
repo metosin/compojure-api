@@ -242,7 +242,7 @@ There can be several `swaggered` apis in one web application.
       (POST* "/echo" {body :body-params} (ok body)))))
 ```
 
-By default, Swagger-UI is mounted to the root `/` and api-listing to `/api/api-docs`.
+By default, Swagger-UI is mounted to the root `/` and api-listing to `/swagger.json`.
 
 Most route functions & macros have a loose (DSL) syntax taking optional parameters and having an easy way to add meta-data.
 
@@ -251,7 +251,7 @@ Most route functions & macros have a loose (DSL) syntax taking optional paramete
   (swagger-docs)
 
   ; all said
-  (swagger-docs "/api/api-docs"
+  (swagger-docs "/swagger.json"
     :title "Cool api"
     :apiVersion "1.0.0"
     :description "Compojure Sample Web Api"
