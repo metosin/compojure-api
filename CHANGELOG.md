@@ -1,9 +1,30 @@
 ## 0.20.0-SNAPSHOT (xx.x.xxxx)
 
+### Swagger 2.0 -support
+* Routes are collected always from the root (`defapi` or `compojure.api.routes/apiroot` within that)
+* **breaking** `compojure.api.routes/with-routes` is now `compojure.api.routes/api-root`
+* Swagger-documentation default uri is changed from `/api/api-docs` to `/swagger.json`.
+* `compojure.api.swagger/swaggered` is deprecated - not relevant with 2.0. Works, but prints out a warning to STDOUT
+** in 2.0, apis are categorized byt Tags, one can set them either to endpoints or to paths:
+
+```clojure
+(GET* "/api/pets/" []
+  :tags ["pet"]
+  (ok ...))
+```
+
+```clojure
+(context* "/api/pets" []
+  :tags ["pet"]
+  (GET* "/" []
+    :summary "get all pets"
+    (ok ...)))
+```
+
 - updated deps:
 
 ```clojure
-[metosin/ring-swagger "0.19.6"] is available but we use "0.19.4"
+[metosin/ring-swagger "0.19."] is available but we use "0.19.4"
 ```
 
 ## 0.19.3 (9.4.2015)
