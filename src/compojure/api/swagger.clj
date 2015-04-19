@@ -90,8 +90,9 @@
         (conj routes route))) [] routes))
 
 (defn filter-routes [c]
-  (consume-empty-paths (filterv #(or (is-a? CompojureRoute %)
-                                     (is-a? CompojureRoutes %)) (flatten c))))
+  (consume-empty-paths
+    (filterv #(or (is-a? CompojureRoute %)
+                  (is-a? CompojureRoutes %)) (flatten c))))
 
 (defn collect-compojure-routes [form]
   (walk/postwalk
