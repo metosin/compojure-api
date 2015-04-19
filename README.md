@@ -169,6 +169,20 @@ There is also `defapi` as a short form for the common case of defining routes wi
     (GET "/ping" [] (ok {:ping "pong"}))))
 ```
 
+`defapi` takes a bunch of options for api parametrization (and passed them 1:1 to `api-middleware`). 
+See `api-middleware` documentation for details.
+
+```clojure
+(defapi app
+  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
+            :params-opts {}
+            :response-opts {}}
+   :validation-errors {:error-handler nil
+                       :catch-core-errors? nil}
+   :exceptions {:exception-handler default-exception-handler}}
+  ...)
+```
+
 ## Request & response formats
 
 Middlewares (and other handlers) can publish their capabilities to consume & produce different wire-formats. This information is passed to `ring-swagger` and added to swagger-docs & is available in the swagger-ui.
