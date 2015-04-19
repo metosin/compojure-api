@@ -145,15 +145,18 @@ To help setting up custom middleware there is a `middlewares` macro:
   (:require [ring.util.http-response :refer [ok]]
             [compojure.api.middleware :refer [api-middleware]]
             [compojure.api.core :refer [middlewares]]
+            [compojure.api.routes :refer [api-root]]]
             [compojure.core :refer :all]))
 
 (defroutes app
   (middlewares [api-middleware]
-    (context "/api" []
-      (GET "/ping" [] (ok {:ping "pong"})))))
+    (api-root
+      (context "/api" []
+        (GET "/ping" [] (ok {:ping "pong"})))))
 ```
 
-There is also `defapi` as a short form for the common case of defining routes with `api-middleware`:
+There is also `defapi` as a short form for the common case of defining routes with `api-middleware`. It also adds
+`compojure.api.routes/api-root`, which is the actual macro responsible for generating the route-tree:
 
 ```clojure
 (ns example2
