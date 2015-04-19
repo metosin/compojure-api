@@ -42,7 +42,6 @@
 ```
 
 * **TODO**: api ordering is not implemented yet.
-* **TODO**: route with :return & :responses bugs in swagger docs
 
 - updated deps:
 
