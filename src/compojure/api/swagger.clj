@@ -165,8 +165,15 @@
     route-with-meta))
 
 (defn ensure-return-schema-names [route-with-meta]
-  ;; TODO: static ensure?
-  route-with-meta)
+  (if (get-in route-with-meta [:metadata :responses])
+    (update-in
+      route-with-meta [:metadata :responses]
+      (fn [responses]
+        (into {} (map
+                   (fn [[k v]]
+                     [k (swagger/with-named-sub-schemas v "Responses")])
+                   responses))))
+    route-with-meta))
 
 ;;
 ;; routes

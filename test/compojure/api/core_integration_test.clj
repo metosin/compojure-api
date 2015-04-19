@@ -257,6 +257,7 @@
 
   (fact "normal cases"
     (defapi api
+      (swagger-docs)
       (GET* "/lotto/:x" []
         :return [Long]
         :path-params [x :- Long]
@@ -292,7 +293,14 @@
     (fact "returning non-predefined http-status code works"
       (let [[status body] (get* api "/lotto/5")]
         body => {:message "not-found"}
-        status => 404)))
+        status => 404))
+
+    ;; TODO: does not work
+    #_(fact "swagger-docs for multiple returns"
+      (let [[status spec] (get* api "/swagger.json" {})]
+        status => 200
+        (-> spec :paths vals first :get :responses keys)
+        => [:200 :440 :403])))
 
   (fact ":responses 200 and :return"
     (defapi api
