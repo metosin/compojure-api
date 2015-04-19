@@ -1,3 +1,11 @@
+## 0.20.0-SNAPSHOT (xx.x.xxxx)
+
+- updated deps:
+
+```clojure
+[metosin/ring-swagger "0.19.6"] is available but we use "0.19.4"
+```
+
 ## 0.19.3 (9.4.2015)
 - Fixed [#79](https://github.com/metosin/compojure-api/issues/79) by [Jon Eisen](https://github.com/yanatan16)
 
