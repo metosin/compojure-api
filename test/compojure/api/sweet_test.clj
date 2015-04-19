@@ -69,14 +69,17 @@
     => {:paths {"/ping" {:get nil}
                 "/api/ping" {:get nil}
                 "/api/bands" {:get {:nickname "getBands"
-                                    :responses {200 {:schema [Band]}}
+                                    :responses {200 {:schema [Band]
+                                                     :description ""}}
                                     :summary "Gets all Bands"}
                               :post {:nickname "addBand"
                                      :parameters {:body [NewBand]}
-                                     :responses {200 {:schema Band}}
+                                     :responses {200 {:schema Band
+                                                      :description ""}}
                                      :summary "Adds a Band"}}
                 "/api/bands/:id" {:get {:nickname "getBand"
-                                        :responses {200 {:schema Band}}
+                                        :responses {200 {:schema Band
+                                                         :description ""}}
                                         :summary "Gets a Band"
                                         :parameters {:path {:id String}}}}
                 "/api/parameters/:a/:b" {:get {:nickname "pathHeaderAndQueryParameters"
@@ -86,8 +89,10 @@
                                                                      s/Keyword s/Any}
                                                             :query {:qp Boolean
                                                                     s/Keyword s/Any}}}}
-                "/api/primitive" {:get {:responses {200 {:schema String}}}}
-                "/api/primitiveArray" {:get {:responses {200 {:schema [String]}}}}}})
+                "/api/primitive" {:get {:responses {200 {:schema String
+                                                         :description ""}}}}
+                "/api/primitiveArray" {:get {:responses {200 {:schema [String]
+                                                              :description ""}}}}}})
 
   (fact "api-listing works"
     (let [{:keys [body status]} (api (request :get "/swagger.json"))

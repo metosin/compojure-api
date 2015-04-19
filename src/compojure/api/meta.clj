@@ -134,9 +134,10 @@
 ; :return {:value String}
 ; :return #{{:key (s/maybe Long)}}
 (defmethod restructure-param :return [_ schema acc]
-  (-> acc
-      (assoc-in [:parameters :responses 200 :schema] (eval schema))
-      (update-in [:responses] assoc 200 schema)))
+  (let [messages (convert-responses {200 schema})]
+    (-> acc
+        (update-in [:parameters :responses] deep-merge messages)
+        (update-in [:responses] assoc 200 schema))))
 
 ; value is a map of http-response-code -> Schema. Translates to both swagger
 ; parameters and return schema coercion. Schemas can be decorated with meta-data.
