@@ -661,3 +661,30 @@
     (let [[status body] (get* api "/foo/baz")]
       status => 200
       body => ["baz"])))
+
+(require '[compojure.api.meta :as m])
+
+(fact "(deprecated) swaggered-macro still works"
+  (defapi api
+    (swagger-docs)
+    (swaggered "a"
+      (GET* "/api/a" []
+        (ok "a")))
+    (swaggered "b"
+      (GET* "/api/b" []
+        (ok "b"))))
+
+  (fact "swaggered routes work"
+    (let [[_ body] (raw-get* api "/api/a")]
+      body => "a"))
+
+  (fact "swaggered routes work"
+    (let [[_ body] (raw-get* api "/api/b")]
+      body => "b"))
+
+  (fact "swaggered pushes tag to endpoints"
+    (let [[status spec] (get* api "/api/api-docs" {})]
+      status => 200
+      ;; TODO: verify both endpoints with tags.
+      #_(./aprint spec)
+      #_#_spec => "")))

@@ -227,10 +227,12 @@
    Keyword value pairs or a single Map for meta-data
    and a normal route body. Macropeels the body and
    extracts route, model and endpoint meta-datas."
-  [_ & body]
-  (let [[_ body] (swagger-info body)]
-    ;; TODO: context* with meta.
-    `(routes ~@body)))
+  [api-name & body]
+  (let [[_ body] (extract-parameters body)]
+    `(let-routes [] (constantly nil)
+       (compojure.api.meta/meta-container
+         {:tags [~(keyword api-name)]}
+         (routes ~@body)))))
 
 (defmethod routes/collect-routes :default [body]
   (swagger-info body))
