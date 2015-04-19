@@ -5,7 +5,7 @@
 
 (def +compojure-api-routes+ '+compojure-api-routes+)
 
-(defmacro with-routes [& body]
+(defmacro api-root [& body]
   (let [[details body] (collect-routes body)]
     `(do
        (def ~+compojure-api-routes+ {"default" '~details})

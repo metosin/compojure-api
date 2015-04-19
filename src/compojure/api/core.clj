@@ -22,7 +22,7 @@
   (let [[opts body] (extract-parameters body)]
     `(defroutes ~name
        (api-middleware
-         (routes/with-routes ~@body)
+         (routes/api-root ~@body)
          ~opts))))
 
 (import-vars [compojure.api.meta middlewares])
