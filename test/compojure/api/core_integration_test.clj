@@ -403,7 +403,8 @@
       body => "1"))
 
   (fact "when :return is not set, longs won't be encoded"
-    (let [[body] (raw-get* api "/primitives/long")]
+    (let [[status body] (raw-get* api "/primitives/long")]
+      status => 200
       body => number?))
 
   (fact "when :return is set, raw strings can be returned"
