@@ -125,15 +125,10 @@
                                         :body (rest b)}]]
 
     (is-a? CompojureRoutes r)
-    [[p nil] (reduce
-               (fn [acc c]
-                 #_(println "ACC1:" (keys acc))
-                 (let [acc (apply assoc-map-ordered acc c)]
-                   #_(println "ACC2:" (keys acc)) acc)) {}
-               (map (partial
-                      create-paths
-                      (merge-meta m (:m r)))
-                    c))]))
+    [[p nil] (reduce (partial apply assoc-map-ordered) {}
+                     (map (partial
+                            create-paths
+                            (merge-meta m (:m r))) c))]))
 
 ;;
 ;; ensure path parameters
