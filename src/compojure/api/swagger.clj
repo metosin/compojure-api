@@ -11,6 +11,7 @@
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
             [ring.swagger.core :as swagger]
+            [ring.swagger.ui :as ui]
             [ring.swagger.swagger2 :as swagger2]
             ring.swagger.ui
             [schema.core :as s]))
@@ -71,6 +72,8 @@
 (defn merge-meta [& meta]
   (apply deep-merge (map #(or % {}) meta)))
 
+;; this is needed in order for the swaggered-macro to work, can be
+;; removed when it's removed.
 (defn consume-empty-paths [routes]
   (reduce
     (fn [routes route]
@@ -213,12 +216,12 @@
 ;; Public api
 ;;
 
-(import-vars [ring.swagger.ui swagger-ui])
+(def swagger-ui (partial ui/swagger-ui :swagger-docs "/swagger.json"))
 
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
    parameter is a String, it is used as a url for the
-   api-docs, othereise \"/api/api-docs\" will be used.
+   api-docs, othereise \"/swagger.json\" will be used.
    Next Keyword value pairs for meta-data. Valid keys:
 
    :title :description :termsOfServiceUrl
@@ -226,7 +229,7 @@
   [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
-                            ["/api/api-docs" body])
+                            ["/swagger.json" body])
         ;; TODO: to swagger2.
         parameters (apply hash-map key-values)]
     `(routes
@@ -248,6 +251,7 @@
    and a normal route body. Macropeels the body and
    extracts route, model and endpoint meta-datas."
   [api-name & body]
+  (println "swaggered is depecated. See https://github.com/metosin/compojure-api/blob/master/CHANGELOG.md.")
   (let [[_ body] (extract-parameters body)]
     `(let-routes [] (constantly nil)
        (compojure.api.meta/meta-container
