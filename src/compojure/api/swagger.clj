@@ -223,8 +223,13 @@
 
 (defn ->swagger2-info [info]
   (when (:termsOfServiceUrl info)
-    (println "termsOfServiceUrl is deprecated. Use :termsOfService instead"))
-  (st/select-schema ss/Info info))
+    (println "swagger-docs: termsOfServiceUrl is deprecated. Use :termsOfService instead"))
+  (let [info (if (string? (:license info))
+               (do
+                 (println "swagger-docs: license should be a map.")
+                 (dissoc info :license))
+               info)]
+    (st/select-schema (st/dissoc ss/Info ss/X-) info)))
 
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
@@ -239,14 +244,14 @@
     :termsOfService \"http://helloreverb.com/terms/\"
     :contact {:name \"My API Team\"
               :email \"foo@example.com\"
-              :uri \"http://www.metosin.fi\"}
+              :url \"http://www.metosin.fi\"}
     :license {:name: \"Eclipse Public License\"
               :url: \"http://www.eclipse.org/legal/epl-v10.html\"}"
   [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
                             ["/swagger.json" body])
-        parameters (->swagger2-info (apply hash-map key-values))]
+        info (->swagger2-info (apply hash-map key-values))]
     `(routes
        (GET* ~path {:as request#}
          :no-doc true
@@ -256,6 +261,7 @@
                             :consumes consumes#}]
            (ok
              (let [swagger# (merge parameters#
+                                   {:info ~info}
                                    (~routes/+compojure-api-routes+ "default"))
                    result# (swagger2/swagger-json swagger#)]
                result#)))))))

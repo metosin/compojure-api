@@ -2,7 +2,8 @@
   (:require [compojure.api.core :refer :all]
             [compojure.api.swagger :refer :all]
             [compojure.core :refer :all]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all])
+  (:import [java.io StringWriter]))
 
 (fact "extracting compojure paths"
 
@@ -78,6 +79,25 @@
 
     => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
+
+(fact "->swagger2info"
+  (fact ":termsOfServiceUrl and :license are stripped"
+    (binding [*out* (StringWriter.)]
+      (->swagger2-info
+        {:termsOfServiceUrl "url"
+         :license "123"}) => {}))
+  (fact "with all datas"
+    (let [info {:version "1.0.0"
+                :title "Sausages"
+                :description "Sausage description"
+                :termsOfService "http://helloreverb.com/terms/"
+                :contact {:name "My API Team"
+                          :email "foo@example.com"
+                          :url "http://www.metosin.fi"}
+                :license {:name "Eclipse Public License"
+                          :url "http://www.eclipse.org/legal/epl-v10.html"}}]
+      (->swagger2-info
+        info) => info)))
 
 (facts "swagger-info"
 

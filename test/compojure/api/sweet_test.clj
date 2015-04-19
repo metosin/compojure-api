@@ -19,7 +19,16 @@
 (defroutes* ping-routes (GET* "/ping" [] identity))
 
 (defapi api
-  (swagger-docs)
+  (swagger-docs
+    :version "1.0.0"
+    :title "Sausages"
+    :description "Sausage description"
+    :termsOfService "http://helloreverb.com/terms/"
+    :contact {:name "My API Team"
+              :email "foo@example.com"
+              :url "http://www.metosin.fi"}
+    :license {:name "Eclipse Public License"
+              :url "http://www.eclipse.org/legal/epl-v10.html"})
   ping-routes
   (context "/api" []
     ping-routes
@@ -89,8 +98,15 @@
 
       (fact "spec is ok"
         body => {:swagger "2.0"
-                 :info {:title "Swagger API"
-                        :version "0.0.1"}
+                 :info {:version "1.0.0"
+                        :title "Sausages"
+                        :description "Sausage description"
+                        :termsOfService "http://helloreverb.com/terms/"
+                        :contact {:name "My API Team"
+                                  :email "foo@example.com"
+                                  :url "http://www.metosin.fi"}
+                        :license {:name "Eclipse Public License"
+                                  :url "http://www.eclipse.org/legal/epl-v10.html"}}
                  :consumes ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"],
                  :produces ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"]
                  :paths {(keyword "/api/bands") {:get {:nickname "getBands"

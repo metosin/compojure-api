@@ -7,7 +7,7 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
-            [compojure.api.common :refer [deep-merge]]
+            [ring.swagger.common :refer [deep-merge]]
             ring.swagger.middleware
             [ring.util.http-response :refer :all])
   (:import [com.fasterxml.jackson.core JsonParseException]
