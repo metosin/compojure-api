@@ -6,6 +6,22 @@
 * Routes are collected always from the root (`defapi` or `compojure.api.routes/apiroot` within that)
 * **breaking** `compojure.api.routes/with-routes` is now `compojure.api.routes/api-root`
 * **breaking** requires the latest swagger-ui to work
+* parameters for `swagger-docs` have changed. Old work, but a warning is put to STDOUT. Full set of new parameters:
+
+```clojure
+(swagger-docs
+  :version "1.0.0"
+  :title "Sausages"
+  :description "Sausage description"
+  :termsOfService "http://helloreverb.com/terms/"
+  :contact {:name "My API Team"
+            :email "foo@example.com"
+            :url "http://www.metosin.fi"}
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"})
+```
+
+
 ** `[metosin/ring-swagger-ui "2.1.0-M2-2"]` to get things pre-configured
 ** or package `2.1.1-M2` yourself from the [source](https://github.com/swagger-api/swagger-ui).
 * Swagger-documentation default uri is changed from `/api/api-docs` to `/swagger.json`.
