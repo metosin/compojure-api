@@ -187,7 +187,7 @@
     body))
 
 (defn remove-hidden-routes [routes]
-  (remove (fn [route] (some-> route vals first vals first :hidden true?)) routes))
+  (remove (fn [route] (some-> route vals first vals first :no-doc true?)) routes))
 
 (defn extract-routes [body]
   (->> body
@@ -231,7 +231,7 @@
         parameters (apply hash-map key-values)]
     `(routes
        (GET* ~path {:as request#}
-         :hidden true
+         :no-doc true
          (let [produces# (-> request# :meta :produces (or []))
                consumes# (-> request# :meta :consumes (or []))
                parameters# {:produces produces#
