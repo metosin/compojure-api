@@ -14,8 +14,6 @@
 
 (s/defschema NewBand (dissoc Band :id))
 
-(def app-name "default")
-
 (defroutes* ping-routes (GET* "/ping" [] identity))
 
 (defapi api
@@ -64,7 +62,7 @@
 (facts "api documentation"
   (fact "details are generated"
 
-    ((routes/get-routes) app-name)
+    (routes/get-routes)
 
     => {:paths {"/ping" {:get nil}
                 "/api/ping" {:get nil}

@@ -8,7 +8,7 @@
 (defmacro api-root [& body]
   (let [[details body] (collect-routes body)]
     `(do
-       (def ~+compojure-api-routes+ {"default" '~details})
+       (def ~+compojure-api-routes+ '~details)
        (routes ~@body))))
 
 (defmacro get-routes []

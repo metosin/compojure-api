@@ -269,7 +269,7 @@
            (ok
              (let [swagger# (merge parameters#
                                    {:info ~info}
-                                   (~routes/+compojure-api-routes+ "default"))
+                                   ~routes/+compojure-api-routes+)
                    result# (swagger2/swagger-json swagger#)]
                result#)))))))
 
