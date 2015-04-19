@@ -52,7 +52,8 @@
 ;; Routes
 
 (defroutes* pizza-routes
-  (context "/api" []
+  (context* "/api" []
+    :tags [:pizzas]
     (context "/pizzas" []
       (GET* "/" []
         :return   [Pizza]
