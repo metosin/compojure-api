@@ -25,116 +25,120 @@
 (defapi app
   (swagger-ui)
   (swagger-docs
-    :title "Api thingies"
-    :description "playing with things")
+    :version "1.0.0"
+    :title "Thingies API"
+    :description "the description"
+    :termsOfService "http://www.metosin.fi"
+    :contact {:name "My API Team"
+              :email "foo@example.com"
+              :url "http://www.metosin.fi"}
+    :license {:name "Eclipse Public License"
+              :url "http://www.eclipse.org/legal/epl-v10.html"})
 
-  (swaggered "math"
-    :description "Math with parameters"
-    (context "/math" []
+  (context* "/math" []
+    :tags [:math]
 
-      (GET* "/plus" []
-        :return       Total
-        ;; You can add any keys to meta-data, but Swagger-ui might not show them
-        :query-params [x :- (describe Long "description")
-                       {y :- Long 1}]
-        :summary      "x+y with query-parameters. y defaults to 1."
-        (ok {:total (+ x y)}))
+    (GET* "/plus" []
+      :return       Total
+      ;; You can add any keys to meta-data, but Swagger-ui might not show them
+      :query-params [x :- (describe Long "description")
+                     {y :- Long 1}]
+      :summary      "x+y with query-parameters. y defaults to 1."
+      (ok {:total (+ x y)}))
 
-      (POST* "/minus" []
-        :return      Total
-        :body-params [x :- (describe Long "first param")
-                      y :- (describe Long "second param")]
-        :summary     "x-y with body-parameters."
-        (ok {:total (- x y)}))
+    (POST* "/minus" []
+      :return      Total
+      :body-params [x :- (describe Long "first param")
+                    y :- (describe Long "second param")]
+      :summary     "x-y with body-parameters."
+      (ok {:total (- x y)}))
 
-      (GET* "/times/:x/:y" []
-        :return      Total
-        :path-params [x :- Long y :- Long]
-        :summary     "x*y with path-parameters"
-        (ok {:total (* x y)}))
+    (GET* "/times/:x/:y" []
+      :return      Total
+      :path-params [x :- Long y :- Long]
+      :summary     "x*y with path-parameters"
+      (ok {:total (* x y)}))
 
-      (POST* "/req" req (ok (dissoc req :body )))
+    (POST* "/req" req (ok (dissoc req :body )))
 
-      (POST* "/divide" []
-        :return      {:total Double}
-        :form-params [x :- Long y :- Long]
-        :summary     "x/y with form-parameters"
-        (ok {:total (/ x y)}))
+    (POST* "/divide" []
+      :return      {:total Double}
+      :form-params [x :- Long y :- Long]
+      :summary     "x/y with form-parameters"
+      (ok {:total (/ x y)}))
 
-      (GET* "/power" []
-        :return        Total
-        :header-params [x :- Long y :- Long]
-        :summary       "x^y with header-parameters"
-        (ok {:total (long (Math/pow x y))}))))
+    (GET* "/power" []
+      :return        Total
+      :header-params [x :- Long y :- Long]
+      :summary       "x^y with header-parameters"
+      (ok {:total (long (Math/pow x y))})))
 
-  (swaggered "failing"
-    :description "handling uncaught exceptions"
-    (context "/failing" []
-      (GET* "/exceptions" []
-        (throw (RuntimeException. "KOSH")))))
+  (context* "/failing" []
+    :tags [:failing]
+    (GET* "/exceptions" []
+      (throw (RuntimeException. "KOSH"))))
 
-  (swaggered "pizza"
-    :description "Pizza api"
-    pizza-routes)
+  pizza-routes
 
-  (swaggered "dates"
-    :description "Roundrobin of Dates"
+  (context* "/dates" []
+    :tags [:dates]
     date-routes)
 
-  (swaggered "responses"
-    :description "responses demo"
-    (context "/responses" []
-      (POST* "/number" []
-        :return       Total
-        :query-params [x :- Long y :- Long]
-        :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
-        :summary      "x-y with body-parameters."
-        (let [total (- x y)]
-          (if (>= total 0)
-            (ok {:total (- x y)})
-            (forbidden {:message "difference is negative"}))))))
+  (context* "/responses" []
+    :tags [:responses]
+    (POST* "/number" []
+      :query-params [x :- Long y :- Long]
+      :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+      :return       Total
+      :summary      "x-y with body-parameters."
+      (let [total (- x y)]
+        (if (>= total 0)
+          (ok {:total (- x y)})
+          (forbidden {:message "difference is negative"})))))
 
-  (swaggered "primitives"
-    :description "returning primitive values"
-    (context "/primitives" []
+  (context* "/primitives" []
+    :tags [:primitives]
 
-      (GET* "/plus" []
-        :return       Long
-        :query-params [x :- Long {y :- Long 1}]
-        :summary      "x+y with query-parameters. y defaults to 1."
-        (ok (+ x y)))
+    (GET* "/plus" []
+      :return       Long
+      :query-params [x :- Long {y :- Long 1}]
+      :summary      "x+y with query-parameters. y defaults to 1."
+      (ok (+ x y)))
 
-      (GET* "/datetime-now" []
-        :return DateTime
-        :summary "current datetime"
-        (ok (DateTime.)))
+    (GET* "/datetime-now" []
+      :return DateTime
+      :summary "current datetime"
+      (ok (DateTime.)))
 
+    (GET* "/hello" []
+      :return String
+      :query-params [name :- (describe String "foobar")
+                     ;; Broken on aot
+                     ; foo :- (s/if (constantly true) String Long)
+                     ]
+      :notes   "<h1>hello world.</h1>"
+      :summary "echos a string from query-params"
+      (ok (str "hello, " name))))
 
-      (GET* "/hello" []
-        :return String
-        :query-params [name :- (describe String "foobar")
-                       ;; Broken on aot
-                       ; foo :- (s/if (constantly true) String Long)
-                       ]
-        :notes   "<h1>hello world.</h1>"
-        :summary "echos a string from query-params"
-        (ok (str "hello, " name)))))
+  (context* "/context" []
+    :summary "summary inherited from context"
+    :tags [:context]
 
-  (swaggered "context*"
-    :description "context* routes"
-    (context* "/context/:kikka" []
-      :summary "summary inherited from context"
+    (context* "/:kikka" []
       :path-params [kikka :- s/Str]
       :query-params [kukka :- s/Str]
+
       (GET* "/:kakka" []
+        :return {:kikka s/Str
+                 :kukka s/Str
+                 :kakka s/Str}
         :path-params [kakka :- s/Str]
         (ok {:kikka kikka
              :kukka kukka
              :kakka kakka}))))
 
-  (swaggered "echo"
-    :description "echoes data"
-    (context "/echo" []
+  (context* "/echo" []
+    :tags [:echo]
 
     (POST* "/recursion" []
       :return   Recursive
@@ -146,4 +150,4 @@
       :return   [{:hot Boolean}]
       :body     [body [{:hot (s/either Boolean String)}]]
       :summary  "echoes a vector of anonymous hotties"
-      (ok body)))))
+      (ok body))))

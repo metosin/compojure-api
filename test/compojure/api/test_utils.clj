@@ -1,5 +1,6 @@
 (ns compojure.api.test-utils
-  (:require [cheshire.core :as cheshire])
+  (:require [cheshire.core :as cheshire]
+            [clojure.string :as str])
   (:import [java.io InputStream]))
 
 (defn read-body [body]
@@ -13,3 +14,11 @@
                (cheshire/parse-string body true)
                body)]
     body))
+
+(defn extract-schema-name [ref-str]
+  (last (str/split ref-str #"/")))
+
+(defn find-definition [spec ref]
+  (let [schema-name (keyword (extract-schema-name ref))]
+    (get-in spec [:definitions schema-name])))
+

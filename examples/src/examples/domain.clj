@@ -52,7 +52,8 @@
 ;; Routes
 
 (defroutes* pizza-routes
-  (context "/api" []
+  (context* "/api" []
+    :tags [:pizzas]
     (context "/pizzas" []
       (GET* "/" []
         :return   [Pizza]
@@ -61,7 +62,7 @@
         (ok (get-pizzas)))
       (GET* "/:id" []
         :path-params [id :- Long]
-        :return   Pizza
+        :return   (s/maybe Pizza)
         :summary  "Gets a pizza"
         :nickname "getPizza"
         (ok (get-pizza id)))

@@ -85,12 +85,10 @@
 ;; Response messages mangling
 ;;
 
-(defn- responses->messages [responses]
-  (for [[code schema] responses
-        :when (not= code 200)]
-    {:code code
-     :message (or (some-> schema meta :message) "")
-     :responseModel (eval schema)}))
+(defn- convert-responses [responses]
+  (into {} (for [[code schema] responses]
+             [code {:description (or (some-> schema meta :message) "")
+                    :schema (eval schema)}])))
 
 ;;
 ;; Extension point
@@ -118,6 +116,12 @@
 ;; Smart restructurings
 ;;
 
+; Boolean to discard the route out from api documentation
+; Example:
+; :no-doc true
+(defmethod restructure-param :no-doc [k v acc]
+  (update-in acc [:parameters] assoc k v))
+
 ; Tags for api categorization. Ignores duplicates.
 ; Examples:
 ; :tags [:admin]
@@ -129,10 +133,11 @@
 ; :return MySchema
 ; :return {:value String}
 ; :return #{{:key (s/maybe Long)}}
-(defmethod restructure-param :return [k schema acc]
-  (-> acc
-      (update-in [:parameters] assoc k schema)
-      (update-in [:responses] assoc 200 schema)))
+(defmethod restructure-param :return [_ schema acc]
+  (let [messages (convert-responses {200 schema})]
+    (-> acc
+        (update-in [:parameters :responses] deep-merge messages)
+        (update-in [:responses] assoc 200 schema))))
 
 ; value is a map of http-response-code -> Schema. Translates to both swagger
 ; parameters and return schema coercion. Schemas can be decorated with meta-data.
@@ -140,9 +145,9 @@
 ; :responses {403 ErrorEnvelope}
 ; :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}
 (defmethod restructure-param :responses [_ responses acc]
-  (let [messages (responses->messages responses)]
+  (let [messages (convert-responses responses)]
     (-> acc
-        (update-in [:parameters :responseMessages] (comp distinct concat) messages)
+        (update-in [:parameters :responses] merge messages)
         (update-in [:responses] merge responses))))
 
 ; reads body-params into a enchanced let. First parameter is the let symbol,
