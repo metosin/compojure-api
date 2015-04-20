@@ -1,4 +1,4 @@
-## 0.20.0-SNAPSHOT (xx.x.xxxx)
+## 0.20.0-SNAPSHOT (20.4.2015)
 
 * New restructuring for `:no-docs` (a boolean) - endpoints with this don't get api documentation.
 
