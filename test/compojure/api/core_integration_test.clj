@@ -1,7 +1,6 @@
 (ns compojure.api.core-integration-test
   (:require [cheshire.core :as cheshire]
             [compojure.api.sweet :refer :all]
-            [compojure.api.test-domain :as domain]
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
             [peridot.core :as p]
@@ -296,8 +295,8 @@
     (fact "swagger-docs for multiple returns"
       (let [[status spec] (get* api "/swagger.json" {})]
         status => 200
-        (-> spec :paths vals first :get :responses keys)
-        => [:200 :440 :403])))
+        (-> spec :paths vals first :get :responses keys set)
+        => #{:200 :440 :403})))
 
   (fact ":responses 200 and :return"
     (defapi api
@@ -661,8 +660,6 @@
       status => 200
       body => ["baz"])))
 
-(require '[compojure.api.meta :as m])
-
 (fact "(deprecated) swaggered-macro still works"
   (defapi api
     (swagger-docs)
@@ -689,4 +686,28 @@
                         :/api/b {:get {:responses {:default {:description ""}}
                                        :tags ["b"]}}})))
 
+(require '[compojure.api.test-domain :refer [Pizza burger-routes]])
 
+(fact "external deep schemas"
+  (defapi api
+    (swagger-docs)
+    burger-routes
+    (POST* "/pizza" []
+      :return Pizza
+      :body [body Pizza]
+      (ok body)))
+
+  (fact "direct route with nested named schema works when called"
+    (let [[status body] (post* api "/pizza" (json {:toppings nil}))]
+      status => 200
+      body => {:toppings nil}))
+
+  (fact "defroute*'d route with nested named schema works when called"
+    (let [[status body] (post* api "/burger" (json {:ingredients nil}))]
+      status => 200
+      body => {:ingredients nil}))
+
+  (fact "generate correct swagger-spec"
+    (let [[status spec] (get* api "/swagger.json" {})]
+      status => 200
+      (-> spec :definitions keys set) => #{:Topping :Pizza :Burger :Beef})))
