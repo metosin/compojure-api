@@ -13,6 +13,13 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 [![Clojars Project](http://clojars.org/metosin/compojure-api/latest-version.svg)](http://clojars.org/metosin/compojure-api)
 
+## Migration from Swagger 1.2 to 2.0
+
+This README is for `0.20.0-SNAPSHOT` version and work in progress for few days. If you are using earlier versions,
+[this README](https://github.com/metosin/compojure-api/tree/053b130f91cb687f217ab94e9a5ecd5833507f57) is for you.
+
+[Migration guide](https://github.com/metosin/compojure-api/wiki/Migration-from-Swagger-1.2-to-2.0)
+
 ## Sample application
 
 ```clojure
