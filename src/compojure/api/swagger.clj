@@ -16,7 +16,6 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as ui]
             [ring.swagger.swagger2 :as swagger2]
-            ring.swagger.ui
             [schema.core :as s]))
 
 ;;
@@ -63,7 +62,8 @@
                 (fn [acc x]
                   (update-in acc [:parameters x] eval))
                 meta
-                (-> meta :parameters keys))]
+                (-> meta :parameters keys))
+          meta (update-in meta [:responses] eval)]
       (remove-empty-keys meta))))
 
 (defn route-metadata [body]
@@ -230,7 +230,7 @@
 ;; Public api
 ;;
 
-(def swagger-ui (partial ui/swagger-ui :swagger-docs "/swagger.json"))
+(import-vars [ring.swagger.ui swagger-ui])
 
 (defn select-swagger2-parameters
   "Validates the given Swagger 2.0 format against the Schema. Prints warnings to STDOUT

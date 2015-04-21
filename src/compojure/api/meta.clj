@@ -78,7 +78,7 @@
 (defn- convert-responses [responses]
   (into {} (for [[code schema] responses]
              [code {:description (or (some-> schema meta :message) "")
-                    :schema (eval schema)}])))
+                    :schema      schema}])))
 
 ;;
 ;; Extension point
