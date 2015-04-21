@@ -63,7 +63,8 @@
                 (fn [acc x]
                   (update-in acc [:parameters x] eval))
                 meta
-                (-> meta :parameters keys))]
+                (-> meta :parameters keys))
+          meta (update-in meta [:responses] eval)]
       (remove-empty-keys meta))))
 
 (defn route-metadata [body]
