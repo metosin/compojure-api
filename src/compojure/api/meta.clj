@@ -71,16 +71,6 @@
        (~key ~+compojure-api-request+))
      ~type))
 
-#_(defn src-coerce-param!
-  "Return source code for coerce! for a schema with coercer type,
-   extracted from a key in a ring request."
-  [param key type]
-  `(schema/coerce!
-     (get-in ~+compojure-api-meta+ [:parameters ~param])
-     (keywordize-keys
-       (~key ~+compojure-api-request+))
-     ~type))
-
 ;;
 ;; Response messages mangling
 ;;
