@@ -1,10 +1,10 @@
 ## 0.20.0-SNAPSHOT (20.4.2015)
 
 * New restructuring for `:no-docs` (a boolean) - endpoints with this don't get api documentation.
-
-### Swagger 2.0 -support
 * Fixed [#42](https://github.com/metosin/compojure-api/issues/42). Defroute\* now does namespace resolution for the source
 used for route peeling and source linking (the macro magic)
+
+### Swagger 2.0 -support
 * Routes are collected always from the root (`defapi` or `compojure.api.routes/api-root` within that)
 * `compojure.api.routes/with-routes` is now `compojure.api.routes/api-root`
 * **breaking** requires the latest swagger-ui to work
