@@ -4,8 +4,8 @@
             [schema.core :as s]
             [ring.swagger.schema :refer [field describe]]
             ring.swagger.json-schema-dirty
-            [examples.domain :refer :all]
-            [examples.dates :refer :all])
+            [examples.domain :refer [pizza-routes]]
+            [examples.dates :refer [date-routes]])
   (:import [org.joda.time DateTime]))
 
 ;;

@@ -126,11 +126,6 @@ lein new compojure-api my-api +midje
 lein new compojure-api my-api +clojure-test
 ```
 
-## Current (major) issues
-
-* `defroutes*` does not handle swagger-meta-data model namespace resolution correctly. One has to import all used namespaces to root api namespace. See https://github.com/metosin/compojure-api/issues/42. `defroutes*` will be rewritten for Swagger 2.0.
-   - currently best way is to push all api models into separate namespace.
-
 # Building Documented Apis
 
 ## Middlewares

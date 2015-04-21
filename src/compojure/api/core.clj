@@ -5,7 +5,8 @@
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
-            [ring.swagger.common :refer [extract-parameters]]))
+            [ring.swagger.common :refer [extract-parameters]]
+            [backtick :refer [syntax-quote]]))
 
 (defmacro defapi
   "Defines a ring handler wrapped in compojure.api.middleware/api-middlware.
@@ -33,7 +34,7 @@
   [name & routes]
   (let [source (drop 2 &form)
         [name routes] (name-with-attributes name routes)]
-    `(def ~name (with-meta (routes ~@routes) {:source '~source
+    `(def ~name (with-meta (routes ~@routes) {:source (syntax-quote ~source)
                                               :inline true}))))
 
 (defmacro GET*     [& args] (restructure #'GET     args))
