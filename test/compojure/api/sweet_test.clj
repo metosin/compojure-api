@@ -33,24 +33,25 @@
     (GET* "/bands" []
       :return   [Band]
       :summary  "Gets all Bands"
-      :nickname "getBands"
+      :description "bands bands bands"
+      :operationId "getBands"
       identity)
     (GET* "/bands/:id" [id]
       :return   Band
       :summary  "Gets a Band"
-      :nickname "getBand"
+      :operationId "getBand"
       identity)
     (POST* "/bands" []
       :return   Band
       :body     [band [NewBand]]
       :summary  "Adds a Band"
-      :nickname "addBand"
+      :operationId "addBand"
       identity)
     (GET* "/parameters/:a/:b" []
       :path-params [a :- Long]
       :query-params [qp :- Boolean]
       :header-params [hp :- Boolean]
-      :nickname "pathHeaderAndQueryParameters"
+      :operationId "pathHeaderAndQueryParameters"
       identity)
     (GET* "/primitive" []
       :return String
@@ -66,21 +67,22 @@
 
     => {:paths {"/ping" {:get nil}
                 "/api/ping" {:get nil}
-                "/api/bands" {:get {:nickname "getBands"
+                "/api/bands" {:get {:operationId "getBands"
+                                    :description "bands bands bands"
                                     :responses {200 {:schema [Band]
                                                      :description ""}}
                                     :summary "Gets all Bands"}
-                              :post {:nickname "addBand"
+                              :post {:operationId "addBand"
                                      :parameters {:body [NewBand]}
                                      :responses {200 {:schema Band
                                                       :description ""}}
                                      :summary "Adds a Band"}}
-                "/api/bands/:id" {:get {:nickname "getBand"
+                "/api/bands/:id" {:get {:operationId "getBand"
                                         :responses {200 {:schema Band
                                                          :description ""}}
                                         :summary "Gets a Band"
                                         :parameters {:path {:id String}}}}
-                "/api/parameters/:a/:b" {:get {:nickname "pathHeaderAndQueryParameters"
+                "/api/parameters/:a/:b" {:get {:operationId "pathHeaderAndQueryParameters"
                                                :parameters {:path {:a Long
                                                                    :b String}
                                                             :header {:hp Boolean
@@ -112,12 +114,13 @@
                                   :url "http://www.eclipse.org/legal/epl-v10.html"}}
                  :consumes ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"],
                  :produces ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"]
-                 :paths {(keyword "/api/bands") {:get {:nickname "getBands"
+                 :paths {(keyword "/api/bands") {:get {:operationId "getBands"
+                                                       :description "bands bands bands"
                                                        :responses {:200 {:description ""
                                                                          :schema {:items {:$ref "#/definitions/Band"}
                                                                                   :type "array"}}}
                                                        :summary "Gets all Bands"}
-                                                 :post {:nickname "addBand"
+                                                 :post {:operationId "addBand"
                                                         :parameters [{:description ""
                                                                       :in "body"
                                                                       :name "NewBand"
@@ -127,7 +130,7 @@
                                                         :responses {:200 {:description ""
                                                                           :schema {:$ref "#/definitions/Band"}}}
                                                         :summary "Adds a Band"}}
-                         (keyword "/api/bands/{id}") {:get {:nickname "getBand"
+                         (keyword "/api/bands/{id}") {:get {:operationId "getBand"
                                                             :parameters [{:description ""
                                                                           :in "path"
                                                                           :name "id"
@@ -136,7 +139,7 @@
                                                              :responses {:200 {:description ""
                                                                                :schema {:$ref "#/definitions/Band"}}}
                                                             :summary "Gets a Band"}}
-                         (keyword "/api/parameters/{a}/{b}") {:get {:nickname "pathHeaderAndQueryParameters"
+                         (keyword "/api/parameters/{a}/{b}") {:get {:operationId "pathHeaderAndQueryParameters"
                                                                      :parameters [{:in "header"
                                                                                    :name "hp"
                                                                                    :description ""

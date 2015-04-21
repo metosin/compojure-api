@@ -310,7 +310,7 @@ The enhanced route-macros allow you to define extra meta-data by adding a) meta-
     :return   FlatThingie
     :query    [flat-thingie FlatThingie]
     :summary  "echoes a FlatThingie from query-params"
-    :nickname "echoFlatThingiePost"
+    :operationId "echoFlatThingiePost"
     (ok flat-thingie)) ;; here be coerced thingie
 ```
 
@@ -319,7 +319,7 @@ The enhanced route-macros allow you to define extra meta-data by adding a) meta-
     :return   Thingie
     :query    [thingie Thingie]
     :summary  "echoes a thingie from query-params"
-    :nickname "echoThingieQuery"
+    :operationId "echoThingieQuery"
     (ok thingie)) ;; here be coerced thingie
 ```
 

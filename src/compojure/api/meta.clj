@@ -106,10 +106,10 @@
 (defmethod restructure-param :summary [k v acc]
   (update-in acc [:parameters] assoc k v))
 
-(defmethod restructure-param :notes [k v acc]
+(defmethod restructure-param :description [k v acc]
   (update-in acc [:parameters] assoc k v))
 
-(defmethod restructure-param :nickname [k v acc]
+(defmethod restructure-param :operationId [k v acc]
   (update-in acc [:parameters] assoc k v))
 
 ;;
