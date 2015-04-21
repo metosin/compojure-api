@@ -81,11 +81,21 @@
 
 
 (fact "->swagger2info"
-  (fact ":termsOfServiceUrl and :license are stripped"
+  (fact "old format get's converted to new with warnings"
     (binding [*out* (StringWriter.)]
       (select-swagger2-parameters
-        {:termsOfServiceUrl "url"
-         :license "123"}) => {}))
+        {:version ..version..
+         :title ..title..
+         :description ..description..
+         :termsOfServiceUrl ..url..
+         :license ..license..})
+
+      => {:info {:version ..version..
+                 :title ..title..
+                 :description ..description..
+                 :termsOfService ..url..
+                 :license {:name ..license..}}}))
+
   (fact "with all datas"
     (let [info {:info {:version "1.0.0"
                        :title "Sausages"

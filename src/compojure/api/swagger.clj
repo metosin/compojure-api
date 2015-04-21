@@ -223,6 +223,9 @@
         details (assoc parameters :paths routes)]
     [details body]))
 
+(defn- deprecated! [& args]
+  (apply println (concat ["DEPRECATED:"] args)))
+
 ;;
 ;; Public api
 ;;
@@ -233,13 +236,20 @@
   "Validates the given Swagger 2.0 format against the Schema. Prints warnings to STDOUT
   if old input was used. Fails with missing 2.0 keys."
   [info]
-  (let [old-keys #{:version :title :description :termsOfServiceUrl :license}
+  (let [mapping {:version [:info :version]
+                 :title [:info :title]
+                 :description [:info :description]
+                 :termsOfServiceUrl [:info :termsOfService]
+                 :license [:info :license :name]}
+        old-keys (set (keys mapping))
         info (reduce
-               (fn [info [k]]
+               (fn [info [k v]]
                  (if (old-keys k)
                    (do
-                     (println "swagger-docs: key" k "is deprecated, see docs for details.")
-                     (dissoc info k))
+                     (deprecated! "swagger-docs -" k "is deprecated, see docs for details.")
+                     (-> info
+                         (dissoc k)
+                         (assoc-in (mapping k) v)))
                    info))
                info
                info)
@@ -248,7 +258,7 @@
                    (st/assoc (s/optional-key :tags) [{:name (s/either s/Str s/Keyword)
                                                       (s/optional-key :description) s/Str
                                                       ss/X- s/Any}]))]
-    (rss/coerce! Schema info)))
+    (st/select-schema Schema info)))
 
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
@@ -296,7 +306,7 @@
       :tags [\"api\"]
       ...)"
   [api-name & body]
-  (println "swaggered is deprecated and removed soon, see docs for details.")
+  (deprecated! "swaggered is deprecated and removed soon, see docs for details.")
   (let [[_ body] (extract-parameters body)]
     `(let-routes [] (constantly nil)
        (compojure.api.meta/meta-container
