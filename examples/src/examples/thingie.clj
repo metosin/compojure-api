@@ -48,7 +48,6 @@
 
     (GET* "/plus" []
       :return       Total
-      ;; You can add any keys to meta-data, but Swagger-ui might not show them
       :query-params [x :- (describe Long "description")
                      {y :- Long 1}]
       :summary      "x+y with query-parameters. y defaults to 1."
