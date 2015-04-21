@@ -594,14 +594,6 @@
            :paths
            keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
 
-(fact "external deep schemas"
-  (defapi api
-    (swagger-docs)
-    (POST* "/pizza" []
-      ;:return domain/Pizza
-      :body [body domain/Pizza]
-      (ok))))
-
 (fact "formats supported by ring-middleware-format"
   (defapi api
     (POST* "/echo" []
