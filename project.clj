@@ -16,27 +16,26 @@
                  [metosin/ring-swagger "0.20.0"]
                  [metosin/ring-middleware-format "0.6.0"]
                  [backtick "0.3.2"]]
-  :profiles {:thingie {:ring {:handler examples.thingie/app
+  :profiles {:uberjar {:aot :all}
+             :dev     {:plugins      [[lein-clojars "0.9.1"]
+                                      [lein-midje "3.1.3"]
+                                      [lein-ring "0.9.3"]]
+                       :dependencies [[peridot "0.3.1"]
+                                      [javax.servlet/servlet-api "2.5"]
+                                      [midje "1.7.0-SNAPSHOT"]
+                                      [metosin/ring-swagger-ui "2.1.0-M2-2"]
+                                      [http-kit "2.1.19"]]
+                       :ring {:handler examples.thingie/app
                               :reload-paths ["src" "examples/src"]}
                        :source-paths ["examples/src"]
-                       :main examples.server
-                       :dependencies [[metosin/ring-swagger-ui "2.1.0-M2-2"]
-                                      [http-kit "2.1.19"]]}
-             :uberjar {:aot :all}
-             :dev {:ring {:handler examples.handler/app}
-                   :plugins [[lein-clojars "0.9.1"]
-                             [lein-midje "3.1.3"]
-                             [lein-ring "0.9.3"]]
-                   :dependencies [[peridot "0.3.1"]
-                                  [javax.servlet/servlet-api "2.5"]
-                                  [midje "1.7.0-SNAPSHOT"]]}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-alpha4"]]}}
+                       :main examples.server}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-beta1"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :aliases {"all" ["with-profile" "dev:dev,1.7"]
-            "start-thingie"    ["with-profile" "thingie" "ring" "server"]
-            "http-kit-thingie" ["with-profile" "thingie" "run"]
-            "aot-uberjar"      ["with-profile" "thingie,uberjar" "do" "clean," "ring" "uberjar"]
+            "start-thingie"    ["ring" "server"]
+            "http-kit-thingie" ["run"]
+            "aot-uberjar"      ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient"     ["midje"]
             "deploy!"          ^{:doc "Recompile sources, then deploy if tests succeed."}
             ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
