@@ -6,3 +6,7 @@
 (defn -main []
   (httpkit/run-server app {:port 8080})
   (println "server started"))
+
+(comment
+  (def server (httpkit/run-server #'app {:port 8080}))
+  (server))
