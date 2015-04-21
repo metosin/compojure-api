@@ -13,7 +13,7 @@
                  [prismatic/schema "0.4.0"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [metosin/ring-http-response "0.6.1"]
-                 [metosin/ring-swagger "0.19.7-SNAPSHOT"]
+                 [metosin/ring-swagger "0.20.0"]
                  [metosin/ring-middleware-format "0.6.0"]
                  [backtick "0.3.2"]]
   :profiles {:thingie {:ring {:handler examples.thingie/app
