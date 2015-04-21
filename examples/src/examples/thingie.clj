@@ -25,15 +25,23 @@
 (defapi app
   (swagger-ui)
   (swagger-docs
-    :version "1.0.0"
-    :title "Thingies API"
-    :description "the description"
-    :termsOfService "http://www.metosin.fi"
-    :contact {:name "My API Team"
-              :email "foo@example.com"
-              :url "http://www.metosin.fi"}
-    :license {:name "Eclipse Public License"
-              :url "http://www.eclipse.org/legal/epl-v10.html"})
+    {:info {:version "1.0.0"
+            :title "Thingies API"
+            :description "the description"
+            :termsOfService "http://www.metosin.fi"
+            :contact {:name "My API Team"
+                      :email "foo@example.com"
+                      :url "http://www.metosin.fi"}
+            :license {:name "Eclipse Public License"
+                      :url "http://www.eclipse.org/legal/epl-v10.html"}}
+     :tags [{:name "math", :description "Math with parameters"}
+            {:name "pizzas", :description "Pizza API"}
+            {:name "failing", :description "handling uncaught exceptions"}
+            {:name "dates", :description "Dates API"}
+            {:name "responses", :description "responses demo"}
+            {:name "primitives", :description "returning primitive values"}
+            {:name "context*", :description "context* routes"}
+            {:name "echo", :description "echoes data"}]})
 
   (context* "/math" []
     :tags ["math"]

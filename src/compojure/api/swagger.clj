@@ -12,6 +12,7 @@
             [ring.swagger.swagger2-schema :as ss]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
+            [ring.swagger.schema :as rss]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as ui]
             [ring.swagger.swagger2 :as swagger2]
@@ -228,58 +229,74 @@
 
 (def swagger-ui (partial ui/swagger-ui :swagger-docs "/swagger.json"))
 
-(defn ->swagger2-info [info]
-  (when (:termsOfServiceUrl info)
-    (println "swagger-docs: termsOfServiceUrl is deprecated. Use :termsOfService instead"))
-  (let [info (if (string? (:license info))
-               (do
-                 (println "swagger-docs: license should be a map.")
-                 (dissoc info :license))
-               info)]
-    (st/select-schema (st/dissoc ss/Info ss/X-) info)))
+(defn select-swagger2-parameters
+  "Validates the given Swagger 2.0 format against the Schema. Prints warnings to STDOUT
+  if old input was used. Fails with missing 2.0 keys."
+  [info]
+  (let [old-keys #{:version :title :description :termsOfServiceUrl :license}
+        info (reduce
+               (fn [info [k]]
+                 (if (old-keys k)
+                   (do
+                     (println "swagger-docs: key" k "is deprecated, see docs for details.")
+                     (dissoc info k))
+                   info))
+               info
+               info)
+        Schema (-> ss/Swagger
+                   (st/select-keys [:info s/Keyword])
+                   (st/assoc (s/optional-key :tags) [{:name (s/either s/Str s/Keyword)
+                                                      (s/optional-key :description) s/Str
+                                                      ss/X- s/Any}]))]
+    (rss/coerce! Schema info)))
 
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
    parameter is a String, it is used as a url for the
    api-docs, otherwise \"/swagger.json\" will be used.
    Next Keyword value pairs OR a map for meta-data.
-   Example with all possible keys:
+   Meta-data can be any valid swagger 2.0 data. Common
+   case is to introduce API Info and Tags here:
 
-    :version \"1.0.0\"
-    :title \"Sausages\"
-    :description \"Sausage description\"
-    :termsOfService \"http://helloreverb.com/terms/\"
-    :contact {:name \"My API Team\"
-              :email \"foo@example.com\"
-              :url \"http://www.metosin.fi\"}
-    :license {:name: \"Eclipse Public License\"
-              :url: \"http://www.eclipse.org/legal/epl-v10.html\"}"
+   {:info {:version \"1.0.0\"
+           :title \"Sausages\"
+           :description \"Sausage description\"
+           :termsOfService \"http://helloreverb.com/terms/\"
+           :contact {:name \"My API Team\"
+                     :email \"foo@example.com\"
+                     :url \"http://www.metosin.fi\"}
+           :license {:name: \"Eclipse Public License\"
+                     :url: \"http://www.eclipse.org/legal/epl-v10.html\"}}
+    :tags [{:name \"sausages\", :description \"Sausage api-set}]"
   [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
                             ["/swagger.json" body])
-        info (->swagger2-info (apply hash-map key-values))]
+        first-value (first key-values)
+        extra-info (select-swagger2-parameters (if (map? first-value)
+                                                 first-value
+                                                 (apply hash-map key-values)))]
     `(routes
        (GET* ~path {:as request#}
          :no-doc true
          (let [produces# (-> request# :meta :produces (or []))
                consumes# (-> request# :meta :consumes (or []))
-               parameters# {:produces produces#
+               runtime-info# {:produces produces#
                             :consumes consumes#}]
            (ok
-             (let [swagger# (merge parameters#
-                                   {:info ~info}
+             (let [swagger# (merge runtime-info#
+                                   ~extra-info
                                    ~routes/+compojure-api-routes+)
                    result# (swagger2/swagger-json swagger#)]
                result#)))))))
 
 (defmacro swaggered
-  "Defines a swagger-api. Takes api-name, optional
-   Keyword value pairs or a single Map for meta-data
-   and a normal route body. Macropeels the body and
-   extracts route, model and endpoint meta-datas."
+  "DEPRECATED. Use context* with :tags instead:
+    (context* \"/api\"
+      :tags [\"api\"]
+      ...)"
   [api-name & body]
-  (println "swaggered is deprecated, see https://github.com/metosin/compojure-api/blob/master/CHANGELOG.md")
+  (println "swaggered is deprecated and removed soon, see docs for details.")
   (let [[_ body] (extract-parameters body)]
     `(let-routes [] (constantly nil)
        (compojure.api.meta/meta-container

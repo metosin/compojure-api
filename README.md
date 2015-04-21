@@ -36,13 +36,13 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ;;
 
 (defroutes* legacy-route
-            (GET* "/legacy/:value" [value]
-              (ok {:value value})))
+  (GET* "/legacy/:value" [value]
+    (ok {:value value})))
 
 (defapi app
   (swagger-ui)
-  (swagger-docs
-    :title "Sample api")
+  (swagger-docs 
+    {:info {:title "Sample api"}})
   (context* "/api" []
     :tags ["thingie"]
 
@@ -227,7 +227,7 @@ Enabling Swagger route documentation in your application is done by:
 
 - defining your api via `compojure.api.core/defapi`
   - `defapi` uses `compojure.api.routes/api-root` to initialize an empty route tree to your namespace and assigns the static route tree for your app to it.
-  - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
+    - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
 - to group your endpoints in the swagger-ui, you can `:tags` metadata to routes
 - mounting `compojure.api.swagger/swagger-docs` to publish the collected routes.
@@ -257,24 +257,33 @@ Currently, there can be only one `defapi` or `with-routes` per namespace.
 
 By default, Swagger-UI is mounted to the root `/` and api-listing to `/swagger.json`.
 
-Most route functions & macros have a loose (DSL) syntax taking optional parameters and having an easy way to add meta-data.
+### Adding Swagger API Definitions manually 
+
+The `swagger-docs` can be used without parameters, but one can set any valid Swagger Data via it.
+
+#### With defaults:
 
 ```clojure
-  ; with defaults
-  (swagger-docs)
-
-  ; all said
-	(swagger-docs
-	  :version "1.0.0"
-	  :title "Sausages"
-	  :description "Sausage description"
-	  :termsOfService "http://helloreverb.com/terms/"
-	  :contact {:name "My API Team"
-	            :email "foo@example.com"
-	            :url "http://www.metosin.fi"}
-	  :license {:name "Eclipse Public License"
-	            :url "http://www.eclipse.org/legal/epl-v10.html"})
+(swagger-docs)
 ```
+
+#### With API Info and Tag descriptions set:
+
+```clojure
+(swagger-docs
+  {:info {:version "1.0.0"
+          :title "Sausages"
+          :description "Sausage description"
+          :termsOfService "http://helloreverb.com/terms/"
+          :contact {:name "My API Team"
+                    :email "foo@example.com"
+                    :url "http://www.metosin.fi"}
+          :license {:name "Eclipse Public License"
+                    :url "http://www.eclipse.org/legal/epl-v10.html"}}
+   :tags [{:name "kikka", :description "kukka"}]})
+```
+
+See the [Swagger-spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md) for more details.
 
 ## Models
 

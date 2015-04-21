@@ -18,15 +18,15 @@
 
 (defapi api
   (swagger-docs
-    :version "1.0.0"
-    :title "Sausages"
-    :description "Sausage description"
-    :termsOfService "http://helloreverb.com/terms/"
-    :contact {:name "My API Team"
-              :email "foo@example.com"
-              :url "http://www.metosin.fi"}
-    :license {:name "Eclipse Public License"
-              :url "http://www.eclipse.org/legal/epl-v10.html"})
+    {:info {:version "1.0.0"
+            :title "Sausages"
+            :description "Sausage description"
+            :termsOfService "http://helloreverb.com/terms/"
+            :contact {:name "My API Team"
+                      :email "foo@example.com"
+                      :url "http://www.metosin.fi"}
+            :license {:name "Eclipse Public License"
+                      :url "http://www.eclipse.org/legal/epl-v10.html"}}})
   ping-routes
   (context "/api" []
     ping-routes

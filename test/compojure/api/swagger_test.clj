@@ -83,20 +83,21 @@
 (fact "->swagger2info"
   (fact ":termsOfServiceUrl and :license are stripped"
     (binding [*out* (StringWriter.)]
-      (->swagger2-info
+      (select-swagger2-parameters
         {:termsOfServiceUrl "url"
          :license "123"}) => {}))
   (fact "with all datas"
-    (let [info {:version "1.0.0"
-                :title "Sausages"
-                :description "Sausage description"
-                :termsOfService "http://helloreverb.com/terms/"
-                :contact {:name "My API Team"
-                          :email "foo@example.com"
-                          :url "http://www.metosin.fi"}
-                :license {:name "Eclipse Public License"
-                          :url "http://www.eclipse.org/legal/epl-v10.html"}}]
-      (->swagger2-info
+    (let [info {:info {:version "1.0.0"
+                       :title "Sausages"
+                       :description "Sausage description"
+                       :termsOfService "http://helloreverb.com/terms/"
+                       :contact {:name "My API Team"
+                                 :email "foo@example.com"
+                                 :url "http://www.metosin.fi"}
+                       :license {:name "Eclipse Public License"
+                                 :url "http://www.eclipse.org/legal/epl-v10.html"}}
+                :tags [{:name "kikka", :description "kukka"}]}]
+      (select-swagger2-parameters
         info) => info)))
 
 (facts "swagger-info"
