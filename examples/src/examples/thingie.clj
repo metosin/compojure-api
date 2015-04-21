@@ -4,7 +4,7 @@
             [schema.core :as s]
             [ring.swagger.schema :refer [field describe]]
             ring.swagger.json-schema-dirty
-            [examples.domain :refer [pizza-routes]]
+            [examples.domain :refer [pizza-routes Pizza]]
             [examples.dates :refer [date-routes]])
   (:import [org.joda.time DateTime]))
 
@@ -158,4 +158,13 @@
       :return   [{:hot Boolean}]
       :body     [body [{:hot (s/either Boolean String)}]]
       :summary  "echoes a vector of anonymous hotties"
-      (ok body))))
+      (ok body)))
+
+  (context* "/foreign" []
+    :tags ["foreign"]
+
+    (GET* "/pizza" []
+      :summary "Foreign schema with unknown subschemas"
+      :return Pizza
+      :body [body Pizza]
+      (ok {}))))
