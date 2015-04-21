@@ -698,14 +698,16 @@
       (ok body)))
 
   (fact "direct route with nested named schema works when called"
-    (let [[status body] (post* api "/pizza" (json {:toppings nil}))]
+    (let [pizza {:toppings [{:name "cheese"}]}
+          [status body] (post* api "/pizza" (json pizza))]
       status => 200
-      body => {:toppings nil}))
+      body => pizza))
 
   (fact "defroute*'d route with nested named schema works when called"
-    (let [[status body] (post* api "/burger" (json {:ingredients nil}))]
+    (let [burger {:ingredients [{:name "beef"}, {:name "egg"}]}
+          [status body] (post* api "/burger" (json burger))]
       status => 200
-      body => {:ingredients nil}))
+      body => burger))
 
   (fact "generate correct swagger-spec"
     (let [[status spec] (get* api "/swagger.json" {})]
