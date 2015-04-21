@@ -570,14 +570,8 @@
         (context "/b1" []
           (GET* "/" [] ok))
         (context "/" []
-          ;; anonymous schema names
-          (GET* "/" []
-            :query-params [{x :- Long 1}]
-            ok)
-          ;; external schema names
-          (GET* "/b2" []
-            :query [q domain/Entity]
-            ok))))
+          (GET* "/" [] ok)
+          (GET* "/b2" [] ok))))
 
     (fact "valid routes"
       (get* api "/") => ok?
