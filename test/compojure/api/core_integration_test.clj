@@ -562,37 +562,45 @@
               (and (= status 200)
                    (= body response)))
         not-ok? (comp not ok?)]
-    (defapi api
-      (swagger-docs)
-      (GET* "/" [] ok)
-      (GET* "/a" [] ok)
-      (context "/b" []
-        (context "/b1" []
-          (GET* "/" [] ok))
-        (context "/" []
-          (GET* "/" [] ok)
-          (GET* "/b2" [] ok))))
+  (defapi api
+    (swagger-docs)
+    (GET* "/" [] ok)
+    (GET* "/a" [] ok)
+    (context "/b" []
+      (context "/b1" []
+        (GET* "/" [] ok))
+      (context "/" []
+        (GET* "/" [] ok)
+        (GET* "/b2" [] ok))))
 
-    (fact "valid routes"
-      (get* api "/") => ok?
-      (get* api "/a") => ok?
-      (get* api "/b/b1") => ok?
-      (get* api "/b/b1/") => ok?
-      (get* api "/b") => ok?
-      (get* api "/b/") => ok?
-      (get* api "/b//") => ok?
-      (get* api "/b//b2") => ok?)
+  (fact "valid routes"
+    (get* api "/") => ok?
+    (get* api "/a") => ok?
+    (get* api "/b/b1") => ok?
+    (get* api "/b/b1/") => ok?
+    (get* api "/b") => ok?
+    (get* api "/b/") => ok?
+    (get* api "/b//") => ok?
+    (get* api "/b//b2") => ok?)
 
-    (fact "invalid routes"
+  (fact "invalid routes"
       (get* api "/b/b2") => not-ok?)
 
-    ;; TODO: order!
-    #_(fact "swagger-docs have trailing slashes removed"
-      (let [[status body] (get* api "/swagger.json" {})]
-        status => 200
-        (->> body
-             :paths
-             keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
+  ;; TODO: order!
+  #_(fact "swagger-docs have trailing slashes removed"
+    (let [[status body] (get* api "/swagger.json" {})]
+      status => 200
+      (->> body
+           :paths
+           keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
+
+(fact "external deep schemas"
+  (defapi api
+    (swagger-docs)
+    (POST* "/pizza" []
+      ;:return domain/Pizza
+      :body [body domain/Pizza]
+      (ok))))
 
 (fact "formats supported by ring-middleware-format"
   (defapi api
