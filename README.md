@@ -225,8 +225,8 @@ Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for r
 
 Enabling Swagger route documentation in your application is done by:
 
-- wrapping your web app in a `compojure.api.core/defapi` (or `compojure.api.routes/api-root`) macro.
-  - This initializes an empty route tree to your namespace and creates the static route tree for your app
+- defining your api via `compojure.api.core/defapi`
+  - `defapi` uses `compojure.api.routes/api-root` to initialize an empty route tree to your namespace and assigns the static route tree for your app to it.
   - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
 - to group your endpoints in the swagger-ui, you can `:tags` metadata to routes
@@ -251,7 +251,6 @@ Currently, there can be only one `defapi` or `with-routes` per namespace.
   (swagger-ui)
   (swagger-docs)
   (context "/api" []
-    :tags ["test"]
     legacy-route
     (POST* "/echo" {body :body-params} (ok body))))
 ```

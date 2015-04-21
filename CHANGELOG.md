@@ -4,8 +4,9 @@
 
 ### Swagger 2.0 -support
 * Routes are collected always from the root (`defapi` or `compojure.api.routes/api-root` within that)
-* **breaking** `compojure.api.routes/with-routes` is now `compojure.api.routes/api-root`
+* `compojure.api.routes/with-routes` is now `compojure.api.routes/api-root`
 * **breaking** requires the latest swagger-ui to work
+* **breaking**: api ordering is not implemented.
 * **breaking**: restructuring `:nickname` is now `:operationId`
 * **breaking**: restructuring `:notes` is now `:description`
 ** `[metosin/ring-swagger-ui "2.1.0-M2-2"]` to get things pre-configured
@@ -42,8 +43,6 @@
     :summary "get all pets"
     (ok ...)))
 ```
-
-* **TODO**: api ordering is not implemented yet.
 
 - updated deps:
 
