@@ -53,33 +53,28 @@
 
 (defroutes* pizza-routes
   (context* "/api" []
-    :tags [:pizzas]
+    :tags ["pizzas"]
     (context "/pizzas" []
       (GET* "/" []
         :return   [Pizza]
         :summary  "Gets all Pizzas"
-        :nickname "getPizzas"
         (ok (get-pizzas)))
       (GET* "/:id" []
         :path-params [id :- Long]
         :return   (s/maybe Pizza)
         :summary  "Gets a pizza"
-        :nickname "getPizza"
         (ok (get-pizza id)))
       (POST* "/" []
         :return   Pizza
         :body     [pizza (describe NewPizza "new pizza")]
         :summary  "Adds a pizza"
-        :nickname "addPizza"
         (ok (add! pizza)))
       (PUT* "/" []
         :return   Pizza
         :body     [pizza Pizza]
         :summary  "Updates a pizza"
-        :nickname "updatePizza"
         (ok (update! pizza)))
       (DELETE* "/:id" []
         :path-params [id :- Long]
         :summary  "Deletes a Pizza"
-        :nickname "deletePizza"
         (ok (delete! id))))))

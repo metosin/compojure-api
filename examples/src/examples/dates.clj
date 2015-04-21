@@ -2,11 +2,13 @@
   (:require [compojure.api.sweet :refer :all]
             [schema.core :as s]
             [ring.util.http-response :refer :all]
-            [ring.swagger.schema :refer [describe]]))
+            [ring.swagger.schema :refer [describe]])
+  (:import [java.util Date]
+           [org.joda.time DateTime LocalDate]))
 
-(s/defschema Dates {:date java.util.Date
-                    :date-time org.joda.time.DateTime
-                    :local-date org.joda.time.LocalDate})
+(s/defschema Dates {:date Date
+                    :date-time DateTime
+                    :local-date LocalDate})
 
 (defroutes* date-routes
   (POST* "/dates" []

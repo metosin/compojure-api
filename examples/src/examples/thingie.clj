@@ -36,7 +36,7 @@
               :url "http://www.eclipse.org/legal/epl-v10.html"})
 
   (context* "/math" []
-    :tags [:math]
+    :tags ["math"]
 
     (GET* "/plus" []
       :return       Total
@@ -74,18 +74,18 @@
       (ok {:total (long (Math/pow x y))})))
 
   (context* "/failing" []
-    :tags [:failing]
+    :tags ["failing"]
     (GET* "/exceptions" []
       (throw (RuntimeException. "KOSH"))))
 
   pizza-routes
 
   (context* "/dates" []
-    :tags [:dates]
+    :tags ["dates"]
     date-routes)
 
   (context* "/responses" []
-    :tags [:responses]
+    :tags ["responses"]
     (POST* "/number" []
       :query-params [x :- Long y :- Long]
       :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
@@ -97,7 +97,7 @@
           (forbidden {:message "difference is negative"})))))
 
   (context* "/primitives" []
-    :tags [:primitives]
+    :tags ["primitives"]
 
     (GET* "/plus" []
       :return       Long
@@ -122,7 +122,7 @@
 
   (context* "/context" []
     :summary "summary inherited from context"
-    :tags [:context]
+    :tags ["context*"]
 
     (context* "/:kikka" []
       :path-params [kikka :- s/Str]
@@ -138,7 +138,7 @@
              :kakka kakka}))))
 
   (context* "/echo" []
-    :tags [:echo]
+    :tags ["echo"]
 
     (POST* "/recursion" []
       :return   Recursive
