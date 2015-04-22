@@ -10,7 +10,7 @@ is now a dependency.
 * Routes are collected always from the root (`defapi` or `compojure.api.routes/api-root` within that)
 * `compojure.api.routes/with-routes` is now `compojure.api.routes/api-root`
 * **breaking** requires the latest swagger-ui to work
-  * `[metosin/ring-swagger-ui "2.1.0-M2-2"]` to get things pre-configured
+  * `[metosin/ring-swagger-ui "2.1.1-M2"]` to get things pre-configured
   * or package `2.1.1-M2` yourself from the [source](https://github.com/swagger-api/swagger-ui).
 * **breaking**: api ordering is not implemented.
 * **breaking**: restructuring `:nickname` is now `:operationId`
