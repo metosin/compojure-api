@@ -47,11 +47,11 @@
       :summary  "Adds a Band"
       :operationId "addBand"
       identity)
-    (GET* "/parameters/:a/:b" []
-      :path-params [a :- Long]
+    (GET* "/query" []
       :query-params [qp :- Boolean]
+      identity)
+    (GET* "/header" []
       :header-params [hp :- Boolean]
-      :operationId "pathHeaderAndQueryParameters"
       identity)
     (GET* "/primitive" []
       :return String
@@ -82,13 +82,10 @@
                                                          :description ""}}
                                         :summary "Gets a Band"
                                         :parameters {:path {:id String}}}}
-                "/api/parameters/:a/:b" {:get {:operationId "pathHeaderAndQueryParameters"
-                                               :parameters {:path {:a Long
-                                                                   :b String}
-                                                            :header {:hp Boolean
-                                                                     s/Keyword s/Any}
-                                                            :query {:qp Boolean
-                                                                    s/Keyword s/Any}}}}
+                "/api/query" {:get {:parameters {:query {:qp Boolean
+                                                         s/Keyword s/Any}}}}
+                "/api/header" {:get {:parameters {:header {:hp Boolean
+                                                           s/Keyword s/Any}}}}
                 "/api/primitive" {:get {:responses {200 {:schema String
                                                          :description ""}}}}
                 "/api/primitiveArray" {:get {:responses {200 {:schema [String]
@@ -139,29 +136,18 @@
                                                              :responses {:200 {:description ""
                                                                                :schema {:$ref "#/definitions/Band"}}}
                                                             :summary "Gets a Band"}}
-                         (keyword "/api/parameters/{a}/{b}") {:get {:operationId "pathHeaderAndQueryParameters"
-                                                                     :parameters [{:in "header"
-                                                                                   :name "hp"
-                                                                                   :description ""
-                                                                                   :required true
-                                                                                   :type "boolean"}
-                                                                                  {:in "query"
-                                                                                   :name "qp"
-                                                                                   :description ""
-                                                                                   :required true
-                                                                                   :type "boolean"}
-                                                                                  {:in "path"
-                                                                                   :name "b"
-                                                                                   :description ""
-                                                                                   :required true
-                                                                                   :type "string"}
-                                                                                  {:in "path"
-                                                                                   :name "a"
-                                                                                   :description ""
-                                                                                   :format "int64"
-                                                                                   :required true
-                                                                                   :type "integer"}]
-                                                                     :responses {:default {:description ""}}}}
+                         (keyword "/api/query") {:get {:parameters [{:in "query"
+                                                                     :name "qp"
+                                                                     :description ""
+                                                                     :required true
+                                                                     :type "boolean"}]
+                                                       :responses {:default {:description ""}}}}
+                         (keyword "/api/header") {:get {:parameters [{:in "header"
+                                                                      :name "hp"
+                                                                      :description ""
+                                                                      :required true
+                                                                      :type "boolean"}]
+                                                       :responses {:default {:description ""}}}}
                          (keyword "/api/ping") {:get {:responses {:default {:description ""}}}}
                          (keyword "/api/primitive") {:get {:responses {:200 {:description ""
                                                                              :schema {:type "string"}}}}}

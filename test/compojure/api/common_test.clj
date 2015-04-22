@@ -7,11 +7,10 @@
   (let [original {:a {:b {:c 1
                           :d 2}
                       :e 3}}
-        target (seq [
-                [[:a :b :d] 2]
+        target [[[:a :b :d] 2]
                 [[:a :b :c] 1]
-                [[:a :e] 3]])]
-    (path-vals original) => target
+                [[:a :e] 3]]]
+    (path-vals original) => (contains target :in-any-order)
     (assoc-in-path-vals target) => original))
 
 (potemkin/import-vars [clojure.walk walk])
