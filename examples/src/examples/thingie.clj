@@ -43,11 +43,13 @@
             {:name "context*", :description "context* routes"}
             {:name "echo", :description "echoes data"}]})
 
+  #_
   (context* "/math" []
     :tags ["math"]
 
     (GET* "/plus" []
       :return       Total
+      ;; You can add any keys to meta-data, but Swagger-ui might not show them
       :query-params [x :- (describe Long "description")
                      {y :- Long 1}]
       :summary      "x+y with query-parameters. y defaults to 1."
@@ -80,6 +82,7 @@
       :summary       "x^y with header-parameters"
       (ok {:total (long (Math/pow x y))})))
 
+  #_
   (context* "/failing" []
     :tags ["failing"]
     (GET* "/exceptions" []
@@ -87,10 +90,12 @@
 
   pizza-routes
 
+  #_
   (context* "/dates" []
     :tags ["dates"]
     date-routes)
 
+  #_
   (context* "/responses" []
     :tags ["responses"]
     (POST* "/number" []
@@ -103,6 +108,7 @@
           (ok {:total (- x y)})
           (forbidden {:message "difference is negative"})))))
 
+  #_
   (context* "/primitives" []
     :tags ["primitives"]
 
@@ -127,6 +133,7 @@
       :summary "echos a string from query-params"
       (ok (str "hello, " name))))
 
+  #_
   (context* "/context" []
     :summary "summary inherited from context"
     :tags ["context*"]
@@ -144,6 +151,7 @@
              :kukka kukka
              :kakka kakka}))))
 
+  #_
   (context* "/echo" []
     :tags ["echo"]
 
@@ -166,4 +174,14 @@
       :summary "Foreign schema with unknown subschemas"
       :return Pizza
       :body [body Pizza]
-      (ok {}))))
+      (ok {})))
+
+  (context* "/foreign" []
+    :tags ["abc"]
+
+    (GET* "/abc" []
+      :summary "Foreign schema with unknown subschemas"
+      :return Pizza
+      :body [body Pizza]
+      (ok {})))
+  )

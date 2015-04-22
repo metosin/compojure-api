@@ -52,6 +52,7 @@
 ;; Routes
 
 (defroutes* pizza-routes
+  #_
   (context* "/api" []
     :tags ["pizzas"]
     (context "/pizzas" []
@@ -77,4 +78,10 @@
       (DELETE* "/:id" []
         :path-params [id :- Long]
         :summary  "Deletes a Pizza"
-        (ok (delete! id))))))
+        (ok (delete! id)))))
+
+  (context* "/foreign" []
+    :tags ["foreign"]
+    ;:path-params [foo :- s/Str]
+    (GET* "/bar" []
+      (ok {:bar "foo"}))))
