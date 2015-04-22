@@ -5,7 +5,12 @@
             [midje.sweet :refer :all]
             [ring.mock.request :refer :all]
             [ring.swagger.schema :refer [describe]]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [clojure.java.io :as io]
+            [scjsv.core :as scjsv]))
+
+(def validate
+  (scjsv/validator (slurp (io/resource "ring/swagger/v2.0_schema.json"))))
 
 (s/defschema Band {:id s/Int
                    :name s/Str
@@ -98,7 +103,7 @@
       (fact "is ok"
         status => 200)
 
-      (fact "spec is ok"
+      (fact "spec is as expected"
         body => {:swagger "2.0"
                  :info {:version "1.0.0"
                         :title "Sausages"
@@ -167,4 +172,7 @@
                                                       :toppings {:items {:enum ["olives" "pepperoni" "ham" "cheese" "habanero"]
                                                                          :type "string"}
                                                                  :type "array"}}
-                                         :required ["name" "toppings"]}}}))))
+                                         :required ["name" "toppings"]}}})
+
+      (fact "spec is valid"
+        (validate body) => nil))))
