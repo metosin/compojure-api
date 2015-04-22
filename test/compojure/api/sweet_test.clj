@@ -58,6 +58,9 @@
     (GET* "/header" []
       :header-params [hp :- Boolean]
       identity)
+    (POST* "/form" []
+      :form-params [fp :- Boolean]
+      identity)
     (GET* "/primitive" []
       :return String
       identity)
@@ -91,6 +94,7 @@
                                                          s/Keyword s/Any}}}}
                 "/api/header" {:get {:parameters {:header {:hp Boolean
                                                            s/Keyword s/Any}}}}
+                "/api/form" {:post {:parameters {:formData {:fp Boolean}}}}
                 "/api/primitive" {:get {:responses {200 {:schema String
                                                          :description ""}}}}
                 "/api/primitiveArray" {:get {:responses {200 {:schema [String]
@@ -153,6 +157,12 @@
                                                                       :required true
                                                                       :type "boolean"}]
                                                        :responses {:default {:description ""}}}}
+                         (keyword "/api/form") {:post {:parameters [{:in "formData"
+                                                                     :name "fp"
+                                                                     :description ""
+                                                                     :required true
+                                                                     :type "boolean"}]
+                                                        :responses {:default {:description ""}}}}
                          (keyword "/api/ping") {:get {:responses {:default {:description ""}}}}
                          (keyword "/api/primitive") {:get {:responses {:200 {:description ""
                                                                              :schema {:type "string"}}}}}

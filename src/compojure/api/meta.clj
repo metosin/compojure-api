@@ -181,7 +181,7 @@
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
         (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)])
-        (assoc-in [:parameters :parameters :form] schema))))
+        (assoc-in [:parameters :parameters :formData] schema))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]
