@@ -3,6 +3,7 @@
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
             ring.swagger.json-schema-dirty
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [examples.pizza :refer [pizza-routes Pizza]]
             [examples.ordered :refer [ordered-routes]]
             [examples.dates :refer [date-routes]])
@@ -180,4 +181,13 @@
       (ok))
     (GET* "/info" []
       :summary "from examples.thingie ns"
-      (ok {:source "examples.thingie"}))))
+      (ok {:source "examples.thingie"})))
+
+  (context* "/file" []
+    :tags ["file"]
+
+    (POST* "/upload" []
+      :multipart-params [file :- ring.swagger.json-schema/file]
+      :middlewares [wrap-multipart-params]
+      :consumes ["multipart/form-data"]
+      (ok (dissoc file :tempfile)))))
