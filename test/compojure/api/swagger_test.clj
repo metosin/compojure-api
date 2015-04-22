@@ -168,3 +168,17 @@
                 "/api/:id/ipa/kakka" {:get {:summary "mid-summary"
                                             :tags #{:wasp}
                                             :parameters {:path {:id String}}}}}}))
+
+(facts "duplicate context merge"
+  (first
+    (swagger-info
+      '((context* "/api" []
+          :tags [:kiss]
+            (GET* "/kakka" []
+              identity))
+         (context* "/api" []
+           :tags [:kiss]
+           (GET* "/kukka" []
+             identity)))))
+  => {:paths {"/api/kukka" {:get {:tags #{:kiss}}}
+              "/api/kakka" {:get {:tags #{:kiss}}}}})

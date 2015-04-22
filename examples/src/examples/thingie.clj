@@ -48,6 +48,7 @@
 
     (GET* "/plus" []
       :return       Total
+      ;; You can add any keys to meta-data, but Swagger-ui might not show them
       :query-params [x :- (describe Long "description")
                      {y :- Long 1}]
       :summary      "x+y with query-parameters. y defaults to 1."
@@ -166,4 +167,14 @@
       :summary "Foreign schema with unknown subschemas"
       :return Pizza
       :body [body Pizza]
-      (ok {}))))
+      (ok {})))
+
+  (context* "/foreign" []
+    :tags ["abc"]
+
+    (GET* "/abc" []
+      :summary "Foreign schema with unknown subschemas"
+      :return Pizza
+      :body [body Pizza]
+      (ok {})))
+  )
