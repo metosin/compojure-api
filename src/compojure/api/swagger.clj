@@ -150,10 +150,18 @@
     (if (seq params)
       (zipmap params (repeat String)))))
 
+(defn- remove-keyword-namespaces [schema]
+  (walk/prewalk
+    (fn [x]
+      (if (and (keyword? x) (namespace x))
+        (keyword (name x))
+        x))
+    schema))
+
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (path-params uri))
     (update-in route-with-meta [:metadata :parameters :path]
-               #(dissoc (merge (string-path-parameters uri) %) s/Keyword))
+               #(dissoc (merge (string-path-parameters uri) (remove-keyword-namespaces %)) s/Keyword))
     route-with-meta))
 
 ;;
