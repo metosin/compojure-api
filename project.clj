@@ -15,7 +15,8 @@
                  [metosin/ring-http-response "0.6.1"]
                  [metosin/ring-swagger "0.20.0"]
                  [metosin/ring-middleware-format "0.6.0"]
-                 [backtick "0.3.2"]]
+                 [backtick "0.3.2"]
+                 [metosin/ring-swagger-ui "2.1.1-M2"]]
   :profiles {:uberjar {:aot :all}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
@@ -23,7 +24,6 @@
                    :dependencies [[peridot "0.3.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.7.0-SNAPSHOT"]
-                                  [metosin/ring-swagger-ui "2.1.0-M2-2"]
                                   [metosin/scjsv "0.2.0"]
                                   [http-kit "2.1.19"]]
                    :ring {:handler examples.thingie/app
