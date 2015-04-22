@@ -2,7 +2,6 @@
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
-            [ring.swagger.schema :refer [field describe]]
             ring.swagger.json-schema-dirty
             [examples.domain :refer [pizza-routes Pizza]]
             [examples.dates :refer [date-routes]])

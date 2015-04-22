@@ -4,7 +4,6 @@
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
             [ring.mock.request :refer :all]
-            [ring.swagger.schema :refer [describe]]
             [schema.core :as s]
             [clojure.java.io :as io]
             [scjsv.core :as scjsv]))
