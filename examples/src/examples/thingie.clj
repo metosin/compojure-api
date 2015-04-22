@@ -43,7 +43,6 @@
             {:name "context*", :description "context* routes"}
             {:name "echo", :description "echoes data"}]})
 
-  #_
   (context* "/math" []
     :tags ["math"]
 
@@ -82,7 +81,6 @@
       :summary       "x^y with header-parameters"
       (ok {:total (long (Math/pow x y))})))
 
-  #_
   (context* "/failing" []
     :tags ["failing"]
     (GET* "/exceptions" []
@@ -90,12 +88,10 @@
 
   pizza-routes
 
-  #_
   (context* "/dates" []
     :tags ["dates"]
     date-routes)
 
-  #_
   (context* "/responses" []
     :tags ["responses"]
     (POST* "/number" []
@@ -108,7 +104,6 @@
           (ok {:total (- x y)})
           (forbidden {:message "difference is negative"})))))
 
-  #_
   (context* "/primitives" []
     :tags ["primitives"]
 
@@ -133,7 +128,6 @@
       :summary "echos a string from query-params"
       (ok (str "hello, " name))))
 
-  #_
   (context* "/context" []
     :summary "summary inherited from context"
     :tags ["context*"]
@@ -151,7 +145,6 @@
              :kukka kukka
              :kakka kakka}))))
 
-  #_
   (context* "/echo" []
     :tags ["echo"]
 

@@ -52,7 +52,6 @@
 ;; Routes
 
 (defroutes* pizza-routes
-  #_
   (context* "/api" []
     :tags ["pizzas"]
     (context "/pizzas" []
