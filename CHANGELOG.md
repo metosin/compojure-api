@@ -6,7 +6,7 @@ used for route peeling and source linking (the macro magic)
 * Fixed [#71](https://github.com/metosin/compojure-api/issues/71), [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
 is now a dependency.
 * **breaking** `ring.swagger.json-schema/describe` is now imported into `compojure.api.sweet` for easy use. If your code
-refers it directly, you need to fix your code.
+refers to it directly, you need remove the direct reference.
 
 ### Swagger 2.0 -support
 * Routes are collected always from the root (`defapi` or `compojure.api.routes/api-root` within that)
