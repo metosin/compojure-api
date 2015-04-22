@@ -3,6 +3,8 @@
 * New restructuring for `:no-docs` (a boolean) - endpoints with this don't get api documentation.
 * Fixed [#42](https://github.com/metosin/compojure-api/issues/42). Defroute\* now does namespace resolution for the source
 used for route peeling and source linking (the macro magic)
+* Fixed [#71](https://github.com/metosin/compojure-api/issues/71), [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
+is now a dependency.
 
 ### Swagger 2.0 -support
 * Routes are collected always from the root (`defapi` or `compojure.api.routes/api-root` within that)
