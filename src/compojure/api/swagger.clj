@@ -132,7 +132,9 @@
                                         :body (rest b)}]]
 
     (is-a? CompojureRoutes r)
-    [[p nil] (reduce (partial apply assoc-map-ordered) {}
+    [[p nil] (reduce (fn [acc [k v]]
+                       (assoc-map-ordered acc k (if (get acc k) (merge (get acc k) v) v)))
+                     {}
                      (map (partial
                             create-paths
                             (merge-meta m (:m r))) c))]))
