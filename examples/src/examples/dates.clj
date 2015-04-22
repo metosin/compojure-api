@@ -1,8 +1,7 @@
 (ns examples.dates
   (:require [compojure.api.sweet :refer :all]
             [schema.core :as s]
-            [ring.util.http-response :refer :all]
-            [ring.swagger.schema :refer [describe]])
+            [ring.util.http-response :refer :all])
   (:import [java.util Date]
            [org.joda.time DateTime LocalDate]))
 

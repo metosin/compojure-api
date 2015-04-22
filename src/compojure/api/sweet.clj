@@ -39,4 +39,8 @@
 
    swagger-ui
    swagger-docs
-   swaggered])
+   swaggered]
+
+  [ring.swagger.json-schema
+
+   describe])

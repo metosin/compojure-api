@@ -2,7 +2,7 @@
   (:require [schema.core :as s]
             [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [ring.swagger.schema :as rs :refer [describe]]))
+            [ring.swagger.schema :as rs]))
 
 ;;
 ;; Pizza Store
