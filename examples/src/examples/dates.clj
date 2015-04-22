@@ -10,9 +10,17 @@
                     :date-time DateTime
                     :local-date LocalDate})
 
+(defn sample [] {:date (Date.)
+                 :date-time (DateTime.)
+                 :local-date (LocalDate.)})
+
 (defroutes* date-routes
+  (GET* "/dates" []
+    :return   Dates
+    :summary  "returns dates"
+    (ok (sample)))
   (POST* "/dates" []
     :return   Dates
-    :body     [dates (describe Dates "{\"date\": \"2014-02-19T12:01:20.147Z\", \"date-time\": \"2014-02-18T12:01:20.147Z\", \"local-date\": \"2014-02-02\"}")]
+    :body     [sample (describe Dates "read response from GET /dates in here to see symmetric handling of dates")]
     :summary  "echos date input."
-    (ok dates)))
+    (ok sample)))
