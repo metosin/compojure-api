@@ -4,7 +4,6 @@
             [ring.util.http-response :refer :all]
             [ring.swagger.schema :as rs :refer [describe]]))
 
-
 ;;
 ;; Pizza Store
 ;;

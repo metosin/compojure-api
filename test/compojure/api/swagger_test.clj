@@ -1,8 +1,10 @@
 (ns compojure.api.swagger-test
-  (:require [compojure.api.core :refer :all]
+  (:require [schema.core :as s]
+            [compojure.api.core :refer :all]
             [compojure.api.swagger :refer :all]
             [compojure.core :refer :all]
-            [midje.sweet :refer :all])
+            [midje.sweet :refer :all]
+            [compojure.api.routes :as routes])
   (:import [java.io StringWriter]))
 
 (fact "extracting compojure paths"
@@ -174,11 +176,26 @@
     (swagger-info
       '((context* "/api" []
           :tags [:kiss]
-            (GET* "/kakka" []
-              identity))
-         (context* "/api" []
-           :tags [:kiss]
-           (GET* "/kukka" []
-             identity)))))
+          (GET* "/kakka" []
+            identity))
+        (context* "/api" []
+          :tags [:kiss]
+          (GET* "/kukka" []
+            identity)))))
   => {:paths {"/api/kukka" {:get {:tags #{:kiss}}}
               "/api/kakka" {:get {:tags #{:kiss}}}}})
+
+(facts "defroutes* path-params"
+  (defroutes* r1
+    (GET* "/:id" []
+      :path-params [id :- s/Str]
+      identity))
+  (defroutes* r2
+    (GET* "/kukka/:id" []
+      :path-params [id :- Long]
+      identity))
+
+  (first (swagger-info
+           '(r1 r2)))
+  => {:paths {"/:id"       {:get {:parameters {:path {:id String}}}}
+              "/kukka/:id" {:get {:parameters {:path {:id Long}}}}}})
