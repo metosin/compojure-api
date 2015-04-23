@@ -1,4 +1,4 @@
-(ns examples.domain
+(ns examples.pizza
   (:require [schema.core :as s]
             [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
@@ -80,6 +80,9 @@
 
   (context* "/foreign" []
     :tags ["foreign"]
-    ;:path-params [foo :- s/Str]
-    (GET* "/bar" []
-      (ok {:bar "foo"}))))
+    (GET* "/bar/:foo" []
+      :path-params [foo :- s/Str]
+      (ok {:bar foo}))
+    (GET* "/info" []
+      :summary "from examples.pizza ns"
+      (ok {:source "examples.pizza"}))))

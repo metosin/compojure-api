@@ -3,7 +3,7 @@
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
             ring.swagger.json-schema-dirty
-            [examples.domain :refer [pizza-routes Pizza]]
+            [examples.pizza :refer [pizza-routes Pizza]]
             [examples.dates :refer [date-routes]])
   (:import [org.joda.time DateTime]))
 
@@ -162,18 +162,19 @@
   (context* "/foreign" []
     :tags ["foreign"]
 
-    (GET* "/pizza" []
+    (POST* "/pizza" []
       :summary "Foreign schema with unknown subschemas"
-      :return Pizza
+      :return (s/maybe Pizza)
       :body [body Pizza]
-      (ok {})))
+      (ok)))
 
   (context* "/foreign" []
     :tags ["abc"]
 
     (GET* "/abc" []
       :summary "Foreign schema with unknown subschemas"
-      :return Pizza
-      :body [body Pizza]
-      (ok {})))
-  )
+      :return (s/maybe Pizza)
+      (ok))
+    (GET* "/info" []
+      :summary "from examples.thingie ns"
+      (ok {:source "examples.thingie"}))))
