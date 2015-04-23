@@ -6,8 +6,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - [Swagger 2.0](https://github.com/wordnik/swagger-core/wiki) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
 - simple extendable DSL via [metadata handlers](#creating-your-own-metadata-handlers)
 - bundled middleware for common api behavior (exception mapping, data formats & serialization)
-- route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui)
-   - uses the `ring-swagger-ui` which is needed as separate dependency (separate lifecycle)
+- route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
 
 ## Latest version
 
@@ -32,11 +31,12 @@ This README is for `0.20.0-SNAPSHOT` version and work in progress for few days. 
 ;; Schemas
 ;;
 
-(s/defschema Thingie {:id Long
-                      :hot Boolean
-                      :tag (s/enum :kikka :kukka)
-                      :chief [{:name String
-                               :type #{{:id String}}}]})
+(s/defschema Thingie 
+  {:id Long
+   :hot Boolean
+   :tag (s/enum :kikka :kukka)
+   :chief [{:name String
+            :type #{{:id String}}}]})
 
 ;;
 ;; Routes
@@ -232,9 +232,8 @@ Enabling Swagger route documentation in your application is done by:
     - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
 - to group your endpoints in the swagger-ui, you can `:tags` metadata to routes
-- mounting `compojure.api.swagger/swagger-docs` to publish the collected routes.
-- **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/wordnik/swagger-ui) to the web app
-  - the ui is packaged separately at clojars with name `metosin/metosin/ring-swagger-ui`
+- mounting `compojure.api.swagger/swagger-docs` to publish the swagger spec
+- **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/metosin/ring-swagger-ui) to the web app
 
 Currently, there can be only one `defapi` or `with-routes` per namespace.
 
@@ -259,17 +258,35 @@ Currently, there can be only one `defapi` or `with-routes` per namespace.
 
 By default, Swagger-UI is mounted to the root `/` and api-listing to `/swagger.json`.
 
-### Adding Swagger API Definitions manually 
+### The Swagger Docs
 
-The `swagger-docs` can be used without parameters, but one can set any valid Swagger Data via it.
+The resulting swagger-spec data (published by the `swagger-docs`) is combined from three sources:
+- Compile-time route & schema information, generated for you by the lib
+- Run-time extra information from the middlewares, passed in with the request
+- User-set custom information
 
-#### With defaults:
+#### Compile-time route & schema information
+
+Having a `defapi` in the same namespace as the `swagger-docs` does this for you.
+
+#### Run-time injected information
+
+Currently, only the application wire-format serialization capabilities (`:produces` and `:consumes`) 
+are injected in from `compojure.api.middleware.wrap-publish-swagger-formats` middleware.
+
+In future, there should be a extendable interface for external middlewares to contribute information this way.
+
+#### User-set custom information
+
+The `swagger-docs` can be used without parameters, but one can set any valid root-level Swagger Data via it.
+
+##### With defaults:
 
 ```clojure
 (swagger-docs)
 ```
 
-#### With API Info and Tag descriptions set:
+##### With API Info and Tag descriptions set:
 
 ```clojure
 (swagger-docs
@@ -287,33 +304,39 @@ The `swagger-docs` can be used without parameters, but one can set any valid Swa
 
 See the [Swagger-spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md) for more details.
 
+As one might accidentally pass invalid swagger data in, you should validate the end results.
+See [wiki](https://github.com/metosin/compojure-api/wiki/Validating-the-Swagger-SPEC) for details.
+
 ## Models
 
-Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling, backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
+Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,
+backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
 
-Two coercers are available (and automatically selected with smart destructuring): one for json and another for string-based formats (query-parameters & path-parameters). See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
+Two coercers are available (and automatically selected with smart destructuring): 
+one for json and another for string-based formats (query-parameters & path-parameters). 
+See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
 
 ### sample schema and coercion
 
 ```clojure
-(require '[ring.swagger.schema :as ss])
+(require '[ring.swagger.schema :refer [coerce!])
 (require '[schema.core :as s])
 
 (s/defschema Thingie {:id Long
                       :tag (s/enum :kikka :kukka)})
 
-(ss/coerce! Thingie {:id 123
-                     :tag "kikka"})
+(coerce! Thingie {:id 123, :tag "kikka"})
 ; => {:id 123 :tag :kikka}
 
-(ss/coerce! Thingie {:id 123
-                     :tags "kakka"})
+(coerce! Thingie {:id 123, :tags "kakka"})
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags disallowed-key, :tag missing-required-key}}  ring.swagger.schema/coerce! (schema.clj:88)
 ```
 
 ## Models, routes and meta-data
 
-The enhanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-specific data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coercion.
+The enhanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of
+keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-specific
+data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coercion.
 
 ```clojure
   (POST* "/echo" []
@@ -388,9 +411,12 @@ All parameters can also be destructured using the [Plumbing](https://github.com/
 
 ## Returning raw values
 
-Raw values / primitives (e.g. not sequences or maps) can be returned when a `:return` -metadata is set. Swagger, [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf) and ECMA-262 allow this (while RFC4627 forbids it).
+Raw values / primitives (e.g. not sequences or maps) can be returned when a `:return` -metadata is set. Swagger,
+[ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf) and ECMA-262 allow this
+(while RFC4627 forbids it).
 
-*note* setting a `:return` value as `String` allows you to return raw strings (as JSON or whatever protocols your app supports), opposed to the [Ring Spec](https://github.com/mmcgrana/ring/blob/master/SPEC#L107-L120).
+*note* setting a `:return` value as `String` allows you to return raw strings (as JSON or whatever protocols your
+app supports), opposed to the [Ring Spec](https://github.com/mmcgrana/ring/blob/master/SPEC#L107-L120).
 
 ```clojure
 (context "/primitives" []
@@ -416,7 +442,8 @@ Raw values / primitives (e.g. not sequences or maps) can be returned when a `:re
 
 ## Response-models
 
-Key `:responses` takes a map of http-status-code -> model map, which translates to both return model coercion and to swagger `responseMessages` description. Models can be decorated with `:message` meta-data.
+Key `:responses` takes a map of http-status-code -> model map, which translates to both return model coercion and
+to swagger `responseMessages` description. Models can be decorated with `:message` meta-data.
 
 ```clojure
 (POST* "/number" []
@@ -445,7 +472,8 @@ won't leak to other routes in the same context.
 
 ## Creating your own metadata handlers
 
-Compojure-api handles the route metadata by calling the multimethod `compojure.api.meta/restructure-param` with metadata key as a dispatch value.
+Compojure-api handles the route metadata by calling the multimethod `compojure.api.meta/restructure-param` with
+metadata key as a dispatch value.
 
 Multimethods take three parameters:
 
@@ -458,7 +486,10 @@ Multimethods take three parameters:
     - `:parameters`, meta-data of a route (without the key & value for the current multimethod)
     - `:body`, a sequence of the actual route body
 
-.. and should return the modified accumulator. Multimethod calls are reduced to produce the final accumulator for code generation. Defined key-value -based metadatas for routes are guaranteed to run on top-to-bottom order of the so all the potential `let` and `letk` variable overrides can be solved by the client. Default implementation is to keep the key & value as a route metadata.
+.. and should return the modified accumulator. Multimethod calls are reduced to produce the final accumulator for
+code generation. Defined key-value -based metadatas for routes are guaranteed to run on top-to-bottom order of the so
+all the potential `let` and `letk` variable overrides can be solved by the client. Default implementation is to keep
+the key & value as a route metadata.
 
 You can add your own metadata-handlers by implementing the multimethod:
 
