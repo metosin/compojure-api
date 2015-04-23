@@ -64,6 +64,7 @@ refers to it directly, you need remove the direct reference.
 
 ```clojure
 [prismatic/plumbing "0.4.2"] is available but we use "0.4.1"
+[prismatic/schema "0.4.1"] is available but we use "0.4.0"
 [potemkin "0.3.13"] is available but we use "0.3.12"
 [compojure "1.3.3"] is available but we use "1.3.2"
 [metosin/ring-swagger "0.19.4"] is available but we use "0.19.3"
