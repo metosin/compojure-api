@@ -12,9 +12,8 @@
             [ring.swagger.swagger2-schema :as ss]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
-            [ring.swagger.schema :as rss]
             [ring.swagger.core :as swagger]
-            [ring.swagger.ui :as ui]
+            [ring.swagger.ui]
             [ring.swagger.swagger2 :as swagger2]
             [schema.core :as s]))
 
@@ -128,7 +127,8 @@
   (cond
 
     (is-a? CompojureRoute r)
-    [[p (extract-method b)] [:endpoint {:meta (merge-meta m (:m r))
+    [[p (extract-method b)]
+     [:endpoint {:meta (merge-meta m (:m r))
                                         :body (rest b)}]]
 
     (is-a? CompojureRoutes r)
@@ -161,7 +161,9 @@
 (defn ensure-path-parameters [uri route-with-meta]
   (if (seq (path-params uri))
     (update-in route-with-meta [:metadata :parameters :path]
-               #(dissoc (merge (string-path-parameters uri) (remove-keyword-namespaces %)) s/Keyword))
+               #(dissoc (merge (string-path-parameters uri)
+                               (remove-keyword-namespaces %))
+                        s/Keyword))
     route-with-meta))
 
 ;;
@@ -264,7 +266,8 @@
                info)
         Schema (-> ss/Swagger
                    (st/select-keys [:info s/Keyword])
-                   (st/assoc (s/optional-key :tags) [{:name (s/either s/Str s/Keyword)
+                   (st/assoc (s/optional-key :tags)
+                             [{:name (s/either s/Str s/Keyword)
                                                       (s/optional-key :description) s/Str
                                                       ss/X- s/Any}]))]
     (st/select-schema Schema info)))
