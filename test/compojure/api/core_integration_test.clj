@@ -734,21 +734,45 @@
       status => 200
       (-> spec :paths vals first :get :summary) => "active-ping")))
 
-;; FIXME: a failing test, see https://github.com/metosin/compojure-api/issues/89
 (fact "multiple routes with same path & method over context*"
   (defapi api
     (swagger-docs)
     (context* "/api" []
+      (context* "/ipa" []
+        (GET* "/ping" []
+          :summary "active-ping"
+          (ok {:ping "active"}))))
+    (context* "/api" []
+      (context* "/ipa" []
+        (GET* "/ping" []
+          :summary "passive-ping"
+          (ok {:ping "passive"})))))
+
+  (fact "first route matches with Compojure"
+    (let [[status body] (get* api "/api/ipa/ping" {})]
+      status => 200
+      body => {:ping "active"}))
+
+  (fact "generate correct swagger-spec"
+    (let [[status spec] (get* api "/swagger.json" {})]
+      status => 200
+      (-> spec :paths vals first :get :summary) => "active-ping")))
+
+(fact "multiple routes with same overall path (with different path sniplets & method over context*"
+  (defapi api
+    (swagger-docs)
+    (context* "/api/ipa" []
       (GET* "/ping" []
         :summary "active-ping"
         (ok {:ping "active"})))
     (context* "/api" []
-      (GET* "/ping" []
-        :summary "passive-ping"
-        (ok {:ping "passive"}))))
+      (context* "/ipa" []
+        (GET* "/ping" []
+          :summary "passive-ping"
+          (ok {:ping "passive"})))))
 
   (fact "first route matches with Compojure"
-    (let [[status body] (get* api "/api/ping" {})]
+    (let [[status body] (get* api "/api/ipa/ping" {})]
       status => 200
       body => {:ping "active"}))
 
