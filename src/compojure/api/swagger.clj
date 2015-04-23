@@ -22,10 +22,10 @@
 ;;
 
 ; TODO: #'wrap-routes
-(def compojure-route?     #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
-(def compojure-context?   #{#'context})
+(def compojure-route? #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
+(def compojure-context? #{#'context})
 (def compojure-letroutes? #{#'let-routes})
-(def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
+(def compojure-macro? (union compojure-route? compojure-context? compojure-letroutes?))
 
 (defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
 
@@ -33,17 +33,17 @@
   (walk/prewalk
     (fn [x]
       (cond
-        (inline? x) (-> x value-of meta :source) ;; resolve the syms!
-        (seq? x)    (let [sym (first x)]
-                      (if (and
-                            (symbol? sym)
-                            (or
-                              (compojure-macro? (eval-re-resolve sym))
-                              (m/meta-container? (eval-re-resolve sym))))
-                        (filter (comp not nil?) x)
-                        (let [result (macroexpand-1 x)]
-                          ;; stop if macro expands to itself
-                          (if (= result x) result (list result)))))
+        (inline? x) (-> x value-of meta :source)            ;; resolve the syms!
+        (seq? x) (let [sym (first x)]
+                   (if (and
+                         (symbol? sym)
+                         (or
+                           (compojure-macro? (eval-re-resolve sym))
+                           (m/meta-container? (eval-re-resolve sym))))
+                     (filter (comp not nil?) x)
+                     (let [result (macroexpand-1 x)]
+                       ;; stop if macro expands to itself
+                       (if (= result x) result (list result)))))
         :else x))
     form))
 
@@ -58,10 +58,10 @@
   (when-let [meta (m/unwrap-meta-container container)]
     (let [meta (update-in meta [:return] eval)
           meta (reduce
-                (fn [acc x]
-                  (update-in acc [:parameters x] eval))
-                meta
-                (-> meta :parameters keys))
+                 (fn [acc x]
+                   (update-in acc [:parameters x] eval))
+                 meta
+                 (-> meta :parameters keys))
           meta (update-in meta [:responses] eval)]
       (remove-empty-keys meta))))
 
@@ -105,10 +105,10 @@
           (let [[m p] x
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
-              (compojure-route? rm)     (->CompojureRoute p {} x)
-              (compojure-context? rm)   (->CompojureRoutes p (context-metadata x) (filter-routes x))
+              (compojure-route? rm) (->CompojureRoute p {} x)
+              (compojure-context? rm) (->CompojureRoutes p (context-metadata x) (filter-routes x))
               (compojure-letroutes? rm) (->CompojureRoutes "" (context-metadata x) (filter-routes x))
-              :else                     x)))
+              :else x)))
         x))
     form))
 
@@ -129,14 +129,17 @@
     (is-a? CompojureRoute r)
     [[p (extract-method b)]
      [:endpoint {:meta (merge-meta m (:m r))
-                                        :body (rest b)}]]
+                 :body (rest b)}]]
 
     (is-a? CompojureRoutes r)
     [[p nil] (->> c
                   (map (partial create-paths (merge-meta m (:m r))))
                   (reduce (fn [acc [k v]]
-                            (assoc-map-ordered acc k (if (get acc k) (merge (get acc k) v) v)))
-                          {}))]))
+                            (assoc-map-ordered acc k (if (get acc k)
+                                                       ;; match first compojure route
+                                                       (deep-merge v (get acc k))
+                                                       v)))
+                          (array-map)))]))
 
 ;;
 ;; ensure path parameters
@@ -230,7 +233,7 @@
 
 (defn swagger-info [body]
   (let [[parameters body] (extract-parameters body)
-        routes  (extract-routes body)
+        routes (extract-routes body)
         details (assoc parameters :paths routes)]
     [details body]))
 
@@ -268,8 +271,8 @@
                    (st/select-keys [:info s/Keyword])
                    (st/assoc (s/optional-key :tags)
                              [{:name (s/either s/Str s/Keyword)
-                                                      (s/optional-key :description) s/Str
-                                                      ss/X- s/Any}]))]
+                               (s/optional-key :description) s/Str
+                               ss/X- s/Any}]))]
     (st/select-schema Schema info)))
 
 (defmacro swagger-docs
@@ -304,7 +307,7 @@
          (let [produces# (-> request# :meta :produces (or []))
                consumes# (-> request# :meta :consumes (or []))
                runtime-info# {:produces produces#
-                            :consumes consumes#}]
+                              :consumes consumes#}]
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info
