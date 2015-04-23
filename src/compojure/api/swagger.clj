@@ -22,10 +22,10 @@
 ;;
 
 ; TODO: #'wrap-routes
-(def compojure-route? #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
-(def compojure-context? #{#'context})
+(def compojure-route?     #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
+(def compojure-context?   #{#'context})
 (def compojure-letroutes? #{#'let-routes})
-(def compojure-macro? (union compojure-route? compojure-context? compojure-letroutes?))
+(def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
 
 (defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
 
@@ -33,17 +33,17 @@
   (walk/prewalk
     (fn [x]
       (cond
-        (inline? x) (-> x value-of meta :source)            ;; resolve the syms!
-        (seq? x) (let [sym (first x)]
-                   (if (and
-                         (symbol? sym)
-                         (or
-                           (compojure-macro? (eval-re-resolve sym))
-                           (m/meta-container? (eval-re-resolve sym))))
-                     (filter (comp not nil?) x)
-                     (let [result (macroexpand-1 x)]
-                       ;; stop if macro expands to itself
-                       (if (= result x) result (list result)))))
+        (inline? x) (-> x value-of meta :source) ;; resolve the syms!
+        (seq? x)    (let [sym (first x)]
+                      (if (and
+                            (symbol? sym)
+                            (or
+                              (compojure-macro? (eval-re-resolve sym))
+                              (m/meta-container? (eval-re-resolve sym))))
+                        (filter (comp not nil?) x)
+                        (let [result (macroexpand-1 x)]
+                          ;; stop if macro expands to itself
+                          (if (= result x) result (list result)))))
         :else x))
     form))
 
@@ -105,10 +105,10 @@
           (let [[m p] x
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
-              (compojure-route? rm) (->CompojureRoute p {} x)
-              (compojure-context? rm) (->CompojureRoutes p (context-metadata x) (filter-routes x))
+              (compojure-route? rm)     (->CompojureRoute p {} x)
+              (compojure-context? rm)   (->CompojureRoutes p (context-metadata x) (filter-routes x))
               (compojure-letroutes? rm) (->CompojureRoutes "" (context-metadata x) (filter-routes x))
-              :else x)))
+              :else                     x)))
         x))
     form))
 
