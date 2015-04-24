@@ -30,12 +30,21 @@
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may
-  optionally be followed by a doc-string and metadata map."
+  optionally be followed by a doc-string and metadata map. Generates an
+  extra private Var with `_` + name to the given namespace holding the
+  actual routes, caller doesn't have to care about this. Accessing defroutes*
+  over Var add tiny run-time penalty, but allows massive better development
+  speed as the defroutes* can be compiled seperately."
   [name & routes]
   (let [source (drop 2 &form)
-        [name routes] (name-with-attributes name routes)]
-    `(def ~name (with-meta (routes ~@routes) {:source (syntax-quote ~source)
-                                              :inline true}))))
+        [name routes] (name-with-attributes name routes)
+        route-sym (symbol (str "_" name))
+        route-meta {:source `(syntax-quote ~source)
+                    :inline true}]
+    `(do
+       (def ~route-sym (with-meta (routes ~@routes) ~route-meta))
+       (alter-meta! (var ~route-sym) assoc :private true)
+       (def ~name (var ~route-sym)))))
 
 (defmacro GET*     [& args] (restructure #'GET     args))
 (defmacro ANY*     [& args] (restructure #'ANY     args))
