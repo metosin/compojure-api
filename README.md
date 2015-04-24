@@ -230,7 +230,7 @@ Enabling Swagger route documentation in your application is done by:
 - defining your api via `compojure.api.core/defapi`
   - `defapi` uses `compojure.api.routes/api-root` to initialize an empty route tree to your namespace and assigns the static route tree for your app to it.
     - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
-  - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected.
+  - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected. **Note:** since `0.20.0` the `defroutes*` are automatically referenced over a Var to get smoother development flow.
 - to group your endpoints in the swagger-ui, you can `:tags` metadata to routes
 - mounting `compojure.api.swagger/swagger-docs` to publish the swagger spec
 - **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/metosin/ring-swagger-ui) to the web app

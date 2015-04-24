@@ -1,10 +1,14 @@
 ## 0.20.0-SNAPSHOT (20.4.2015)
 
 * New restructuring for `:no-docs` (a boolean) - endpoints with this don't get api documentation.
-* Fixed [#42](https://github.com/metosin/compojure-api/issues/42). Defroute\* now does namespace resolution for the source
+* Fixed [#42](https://github.com/metosin/compojure-api/issues/42) - `defroutes*` now does namespace resolution for the source
 used for route peeling and source linking (the macro magic)
+* Fixed [#91](https://github.com/metosin/compojure-api/issues/91) - `defroutes*` are now automatically accessed over a Var for better development flow.
+* Fixed [#89](https://github.com/metosin/compojure-api/issues/89).
+* Fixed [#82](https://github.com/metosin/compojure-api/issues/82).
 * Fixed [#71](https://github.com/metosin/compojure-api/issues/71), [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
 is now a dependency.
+
 * **breaking** `ring.swagger.json-schema/describe` is now imported into `compojure.api.sweet` for easy use. If your code
 refers to it directly, you need remove the direct reference.
 
@@ -54,7 +58,8 @@ refers to it directly, you need remove the direct reference.
 - updated deps:
 
 ```clojure
-[metosin/ring-swagger "0.19."] is available but we use "0.19.4"
+[metosin/ring-swagger "0.20.0"] is available but we use "0.19.4"
+[prismatic/schema "0.4.1"] is available but we use "0.4.0"
 ```
 
 ## 0.19.3 (9.4.2015)
