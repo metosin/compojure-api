@@ -713,3 +713,70 @@
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :definitions keys set) => #{:Topping :Pizza :Burger :Beef})))
+
+(fact "multiple routes with same path & method in same file"
+  (defapi api
+    (swagger-docs)
+    (GET* "/ping" []
+      :summary "active-ping"
+      (ok {:ping "active"}))
+    (GET* "/ping" []
+      :summary "passive-ping"
+      (ok {:ping "passive"})))
+
+  (fact "first route matches with Compojure"
+    (let [[status body] (get* api "/ping" {})]
+      status => 200
+      body => {:ping "active"}))
+
+  (fact "generate correct swagger-spec"
+    (let [[status spec] (get* api "/swagger.json" {})]
+      status => 200
+      (-> spec :paths vals first :get :summary) => "active-ping")))
+
+(fact "multiple routes with same path & method over context*"
+  (defapi api
+    (swagger-docs)
+    (context* "/api" []
+      (context* "/ipa" []
+        (GET* "/ping" []
+          :summary "active-ping"
+          (ok {:ping "active"}))))
+    (context* "/api" []
+      (context* "/ipa" []
+        (GET* "/ping" []
+          :summary "passive-ping"
+          (ok {:ping "passive"})))))
+
+  (fact "first route matches with Compojure"
+    (let [[status body] (get* api "/api/ipa/ping" {})]
+      status => 200
+      body => {:ping "active"}))
+
+  (fact "generate correct swagger-spec"
+    (let [[status spec] (get* api "/swagger.json" {})]
+      status => 200
+      (-> spec :paths vals first :get :summary) => "active-ping")))
+
+(fact "multiple routes with same overall path (with different path sniplets & method over context*"
+  (defapi api
+    (swagger-docs)
+    (context* "/api/ipa" []
+      (GET* "/ping" []
+        :summary "active-ping"
+        (ok {:ping "active"})))
+    (context* "/api" []
+      (context* "/ipa" []
+        (GET* "/ping" []
+          :summary "passive-ping"
+          (ok {:ping "passive"})))))
+
+  (fact "first route matches with Compojure"
+    (let [[status body] (get* api "/api/ipa/ping" {})]
+      status => 200
+      body => {:ping "active"}))
+
+  (fact "generate correct swagger-spec"
+    (let [[status spec] (get* api "/swagger.json" {})]
+      status => 200
+      (-> spec :paths vals first :get :summary) => "active-ping")))
