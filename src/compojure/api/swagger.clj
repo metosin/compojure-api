@@ -18,6 +18,19 @@
             [schema.core :as s]))
 
 ;;
+;; Source Linking
+;;
+
+(defn- purge-symbol-or-var-meta [x]
+  (if (symbol? x)
+    (let [value (value-of (eval-re-resolve x))
+          naked (if (var? value) (var-get value) value)]
+      (meta naked))))
+
+(defn- inline? [x] (:inline (purge-symbol-or-var-meta x)))
+(defn- extract-source [x] (:source (purge-symbol-or-var-meta x)))
+
+;;
 ;; Route peeling
 ;;
 
@@ -27,13 +40,11 @@
 (def compojure-letroutes? #{#'let-routes})
 (def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
 
-(defn inline? [x] (and (symbol? x) (-> x eval-re-resolve value-of meta :inline)))
-
 (defn macroexpand-to-compojure [form]
   (walk/prewalk
     (fn [x]
       (cond
-        (inline? x) (-> x value-of meta :source) ;; resolve the syms!
+        (inline? x) (extract-source x)
         (seq? x)    (let [sym (first x)]
                       (if (and
                             (symbol? sym)
