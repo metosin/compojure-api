@@ -17,7 +17,10 @@
                  [metosin/ring-middleware-format "0.6.0"]
                  [backtick "0.3.2"]
                  [metosin/ring-swagger-ui "2.1.1-M2"]]
-  :profiles {:uberjar {:aot :all}
+  :profiles {:uberjar {:aot :all
+                       :ring {:handler examples.thingie/app}
+                       :source-paths ["examples/src"]
+                       :dependencies [[http-kit "2.1.19"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
                              [lein-ring "0.9.3"]]
