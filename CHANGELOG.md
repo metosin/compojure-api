@@ -1,4 +1,4 @@
-## 0.20.0-SNAPSHOT (20.4.2015)
+## 0.20.0 (24.4.2015)
 
 * New restructuring for `:no-docs` (a boolean) - endpoints with this don't get api documentation.
 * Fixed [#42](https://github.com/metosin/compojure-api/issues/42) - `defroutes*` now does namespace resolution for the source
