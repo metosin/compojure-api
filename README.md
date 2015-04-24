@@ -14,10 +14,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 ## Migration from Swagger 1.2 to 2.0
 
-This README is for `0.20.0-SNAPSHOT` version and work in progress for few days. If you are using earlier versions,
-[this README](https://github.com/metosin/compojure-api/tree/053b130f91cb687f217ab94e9a5ecd5833507f57) is for you.
-
-[Migration guide](https://github.com/metosin/compojure-api/wiki/Migration-from-Swagger-1.2-to-2.0)
+If you were using version before `0.20.0`, you have to migrate your app to use Swagger 2.0. See [Migration guide](https://github.com/metosin/compojure-api/wiki/Migration-from-Swagger-1.2-to-2.0) for details.
 
 ## Sample application
 
