@@ -14,7 +14,8 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 ## Migration from Swagger 1.2 to 2.0
 
-If you were using version before `0.20.0`, you have to migrate your app to use Swagger 2.0. See [Migration guide](https://github.com/metosin/compojure-api/wiki/Migration-from-Swagger-1.2-to-2.0) for details.
+If you are upgrading your existing pre `0.20.0` compojure-api app to use `0.20.0` or later, you have to migrate the Swagger models
+from 1.2 to 2.0. See [Migration guide](https://github.com/metosin/compojure-api/wiki/Migration-from-Swagger-1.2-to-2.0) for details.
 
 ## Sample application
 
