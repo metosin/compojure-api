@@ -13,6 +13,9 @@ is now a dependency.
 refers to it directly, you need remove the direct reference.
 
 ### Swagger 2.0 -support
+
+#### [Migration Guide](https://github.com/metosin/compojure-api/wiki/Migration-from-Swagger-1.2-to-2.0)
+
 * Routes are collected always from the root (`defapi` or `compojure.api.routes/api-root` within that)
 * `compojure.api.routes/with-routes` is now `compojure.api.routes/api-root`
 * **breaking** requires the latest swagger-ui to work
