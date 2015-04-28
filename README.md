@@ -308,7 +308,7 @@ See [wiki](https://github.com/metosin/compojure-api/wiki/Validating-the-Swagger-
 ## Models
 
 Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,
-backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
+backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas. For Map-based schemas, Keyword keys should be used instead of Strings.
 
 Two coercers are available (and automatically selected with smart destructuring): 
 one for json and another for string-based formats (query-parameters & path-parameters). 
