@@ -1,8 +1,8 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.format-params :refer [wrap-restful-params]]
-            [ring.middleware.format-response :refer [wrap-restful-response]]
+            [ring.middleware.format :refer [wrap-formats]]
+            [ring.middleware.formatters :refer [get-existing-formatter encoder? decoder?]]
             ring.middleware.http-response
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
@@ -56,25 +56,15 @@
 ;; ring-middleware-format stuff
 ;;
 
-(def ^:private mime-types
-  {:json "application/json"
-   :json-kw "application/json"
-   :edn "application/edn"
-   :clojure "application/clojure"
-   :yaml "application/x-yaml"
-   :yaml-kw "application/x-yaml"
-   :yaml-in-html "text/html"
-   :transit-json "application/transit+json"
-   :transit-msgpack "application/transit+msgpack"})
-
-(def ^:private response-only-mimes #{:clojure :yaml-in-html})
-
-(defn wrap-publish-swagger-formats [handler & [{:keys [response-formats request-formats]}]]
-  (fn [request]
-    (-> request
-        (assoc-in [:meta :consumes] (map mime-types request-formats))
-        (assoc-in [:meta :produces] (map mime-types response-formats))
-        handler)))
+(defn wrap-publish-swagger-formats [handler & [{:keys [formats] :as opts}]]
+  (let [formats  (->> formats (map (partial get-existing-formatter opts)))
+        consumes (->> formats (filter decoder?) (mapv :content-type))
+        produces (->> formats (filter encoder?) (mapv :content-type))]
+    (fn [request]
+      (-> request
+          (assoc-in [:meta :consumes] consumes)
+          (assoc-in [:meta :produces] produces)
+          handler))))
 
 (defn handle-req-error [^Throwable e handler req]
   (cond
@@ -104,9 +94,7 @@
 ;;
 
 (def api-middleware-defaults
-  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
-            :params-opts {}
-            :response-opts {}}
+  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]}
    :validation-errors {:error-handler nil
                        :catch-core-errors? nil}
    :exceptions {:exception-handler default-exception-handler}})
@@ -120,30 +108,21 @@
    :validation-errors    - for ring.swagger.middleware/wrap-validation-errors
      :error-handler      - function to handle ring-swagger schema exceptions
      :catch-core-errors? - whether to catch also :schema.core/errors
-   :format               - for ring-middleware-format middlewares
-     :formats            - sequence of supported formats, e.g. [:json-kw :edn]
-     :param-opts         - for ring.middleware.format-params/wrap-restful-params,
-                           e.g. {:transit-json {:options {:handlers readers}}}
-     :response-opts      - for ring.middleware.format-params/wrap-restful-response,
-                           e.g. {:transit-json {:handlers writers}}"
+   :format               - for ring-middleware-format middleware
+     :opts
+       :*format-name*
+     :charset"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {:keys [formats params-opts response-opts]} (:format options)]
+        format-opts (:format options)]
     (-> handler
         ring.middleware.http-response/wrap-http-response
         (ring.swagger.middleware/wrap-validation-errors (:validation-errors options))
         (wrap-exceptions (:exceptions options))
-        (wrap-publish-swagger-formats
-         {:request-formats (remove response-only-mimes formats)
-          :response-formats formats})
-        (wrap-restful-params
-         (merge {:formats (remove response-only-mimes formats)
-                 :handle-error handle-req-error}
-                params-opts))
-        (wrap-restful-response
-         (merge {:formats formats
-                 :predicate serializable?}
-                response-opts))
+        (wrap-publish-swagger-formats format-opts)
+        (wrap-formats (merge {:handle-error handle-req-error
+                              :predicate serializable?}
+                             format-opts))
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))
