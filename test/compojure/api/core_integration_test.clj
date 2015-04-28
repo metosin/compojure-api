@@ -535,6 +535,30 @@
           return-ref => truthy
           (find-definition spec body-ref) => truthy)))))
 
+(s/defschema Urho {:kaleva {:kekkonen {s/Keyword s/Any}}})
+(s/defschema Olipa {:kerran {:avaruus {s/Keyword s/Any}}})
+
+; https://github.com/metosin/compojure-api/issues/94
+(facts "preserves deeply nested schema names"
+  (defapi api
+    (swagger-docs)
+    (POST* "/" []
+      :return Urho
+      :body [_ Olipa]
+      identity))
+
+  (fact "api-docs"
+    (let [[status spec] (get* api "/swagger.json" {})]
+
+      (fact "are found"
+        status => 200)
+
+        (fact "nested models are discovered correctly"
+          (-> spec :definitions keys set)
+
+          => #{:Urho :UrhoKaleva :UrhoKalevaKekkonen
+               :Olipa :OlipaKerran :OlipaKerranAvaruus}))))
+
 (fact "swagger-docs works with the :middlewares"
   (defapi api
     (swagger-docs)

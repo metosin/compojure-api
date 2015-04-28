@@ -197,7 +197,7 @@
       (fn [responses]
         (into {} (map
                    (fn [[k v]]
-                     [k (swagger/with-named-sub-schemas v "Responses")])
+                     [k (update-in v [:schema] swagger/with-named-sub-schemas "Response")])
                    responses))))
     route-with-meta))
 
