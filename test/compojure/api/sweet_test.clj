@@ -170,14 +170,16 @@
                                                                                   :schema {:items {:type "string"}
                                                                                            :type "array"}}}}}
                          (keyword "/ping") {:get {:responses {:default {:description ""}}}}}
-                 :definitions {:Band {:properties {:description {:type "string"}
+                 :definitions {:Band {:type "object"
+                                      :properties {:description {:type "string"}
                                                    :id {:format "int64", :type "integer"}
                                                    :name {:type "string"}
                                                    :toppings {:items {:enum ["olives" "pepperoni" "ham" "cheese" "habanero"]
                                                                       :type "string"}
                                                               :type "array"}}
                                       :required ["id" "name" "toppings"]}
-                               :NewBand {:properties {:description {:type "string"}
+                               :NewBand {:type "object"
+                                         :properties {:description {:type "string"}
                                                       :name {:type "string"}
                                                       :toppings {:items {:enum ["olives" "pepperoni" "ham" "cheese" "habanero"]
                                                                          :type "string"}

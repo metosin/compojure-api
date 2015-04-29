@@ -1,10 +1,10 @@
-## x.xx.x
+## 0.20.1
 
 * Preserve response-schema names, fixes [#93](https://github.com/metosin/compojure-api/issues/93).
 * updated dependencies:
 
 ```clojure
-[metosin/ring-swagger "0.20.1"] is available but we use "0.20.0"
+[metosin/ring-swagger "0.20.2-SNAPSHOT"] is available but we use "0.20.0"
 ```
 
 ## 0.20.0 (24.4.2015)
