@@ -1,5 +1,6 @@
 (ns compojure.api.core-integration-test
   (:require [cheshire.core :as cheshire]
+            [clojure.test :refer [deftest]]
             [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
@@ -804,3 +805,20 @@
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :paths vals first :get :summary) => "active-ping")))
+
+(deftest test-response-descriptions
+  (defroutes* response-descriptions-routes
+    (GET* "/x" []
+          :responses {500 ^{:message "Server error"} s/Str}
+          :return s/Str
+          "x"))
+  (defapi response-descriptions-api
+    (swagger-docs)
+    (context* "/api" []
+              :tags ["api"]
+              response-descriptions-routes))
+  (fact (let [[status spec]
+              (get* response-descriptions-api "/swagger.json" {})]
+          status => 200
+          (-> spec :paths vals first :get :responses :500 :description)
+          => "Server error")))
