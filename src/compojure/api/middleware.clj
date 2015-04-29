@@ -8,7 +8,7 @@
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.swagger.common :refer [deep-merge]]
-            ring.swagger.middleware
+            [ring.swagger.middleware :as rsm]
             [ring.util.http-response :refer :all])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
@@ -69,12 +69,7 @@
 
 (def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
-(defn wrap-publish-swagger-formats [handler & [{:keys [response-formats request-formats]}]]
-  (fn [request]
-    (-> request
-        (assoc-in [:meta :consumes] (map mime-types request-formats))
-        (assoc-in [:meta :produces] (map mime-types response-formats))
-        handler)))
+(defn ->mime-types [formats] (map mime-types formats))
 
 (defn handle-req-error [^Throwable e handler req]
   (cond
@@ -131,11 +126,10 @@
         {:keys [formats params-opts response-opts]} (:format options)]
     (-> handler
         ring.middleware.http-response/wrap-http-response
-        (ring.swagger.middleware/wrap-validation-errors (:validation-errors options))
+        (rsm/wrap-validation-errors (:validation-errors options))
         (wrap-exceptions (:exceptions options))
-        (wrap-publish-swagger-formats
-         {:request-formats (remove response-only-mimes formats)
-          :response-formats formats})
+        (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
+                                :consumes (->mime-types formats)})
         (wrap-restful-params
          (merge {:formats (remove response-only-mimes formats)
                  :handle-error handle-req-error}

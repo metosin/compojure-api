@@ -12,6 +12,7 @@
             [ring.swagger.swagger2-schema :as ss]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
+            [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
             [ring.swagger.swagger2 :as swagger2]
@@ -315,10 +316,7 @@
     `(routes
        (GET* ~path {:as request#}
          :no-doc true
-         (let [produces# (-> request# :meta :produces (or []))
-               consumes# (-> request# :meta :consumes (or []))
-               runtime-info# {:produces produces#
-                              :consumes consumes#}]
+         (let [runtime-info# (rsm/get-swagger-data request#)]
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info

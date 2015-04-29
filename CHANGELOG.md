@@ -1,5 +1,6 @@
 ## 0.20.1
 
+* use ring-swagger swagger-data injection instead of own custom mechanism.
 * Preserve response-schema names, fixes [#93](https://github.com/metosin/compojure-api/issues/93).
 * updated dependencies:
 
