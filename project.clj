@@ -10,7 +10,7 @@
                  [potemkin "0.3.13"]
                  [cheshire "5.4.0"]
                  [compojure "1.3.3"]
-                 [prismatic/schema "0.4.1"]
+                 [prismatic/schema "0.4.2"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [metosin/ring-http-response "0.6.1"]
                  [metosin/ring-swagger "0.20.2-SNAPSHOT"]

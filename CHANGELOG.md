@@ -6,6 +6,7 @@
 
 ```clojure
 [metosin/ring-swagger "0.20.2-SNAPSHOT"] is available but we use "0.20.0"
+[prismatic/schema "0.4.2"] is available but we use "0.4.1"
 ```
 
 ## 0.20.0 (24.4.2015)
