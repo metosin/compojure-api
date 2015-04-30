@@ -4,6 +4,7 @@
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
             [peridot.core :as p]
+            [flatland.ordered.map :as om]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
 
@@ -804,3 +805,26 @@
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :paths vals first :get :summary) => "active-ping")))
+
+(s/defschema Kikka
+  (om/ordered-map
+    :a s/Str, :b s/Str, :c s/Str, :d s/Str, :e s/Str, :f s/Str, :g s/Str, :h s/Str))
+
+(defapi api
+  (swagger-docs)
+  (GET* "/ping" []
+    :return Kikka
+    (continue)))
+
+(fact "ordered schema test"
+  (let [data {:a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"}]
+
+    (fact "first route matches with Compojure"
+      (let [[status body] (get* api "/ping" {})]
+        status => 100
+        body => nil)))
+
+  (fact "generate correct swagger-spec"
+      (let [[status spec] (get* api "/swagger.json" {})]
+        status => 200
+        (-> spec :definitions :Kikka :properties keys) => (keys Kikka))))
