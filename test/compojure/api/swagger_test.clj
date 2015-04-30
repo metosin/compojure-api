@@ -112,38 +112,9 @@
       (select-swagger2-parameters
         info) => info)))
 
-(facts "swagger-info"
-
-  (fact "with keyword-parameters"
-    (first
-      (swagger-info
-        '(:title ..title..
-          :description ..description..
-          :paths ..overridded..
-          (context "/api" []
-            (GET "/user/:id" [] identity)))))
-
-    => {:title  ..title..
-        :description ..description..
-        :paths {"/api/user/:id" {:get {:parameters {:path {:id String}}}}}})
-
-  (fact "with map-parameters"
-    (first
-      (swagger-info
-        '({:title ..title..
-           :description ..description..
-           :paths ..overridded..}
-          (context "/api" []
-            (GET "/user/:id" [] identity)))))
-
-    => {:title  ..title..
-        :description ..description..
-        :paths {"/api/user/:id" {:get {:parameters {:path {:id String}}}}}})
-
-  (fact "context* meta-data"
-
-    (first
-     (swagger-info
+(fact "context* meta-data"
+  (first
+    (swagger-info
       '((context* "/api/:id" []
           :summary "top-summary"
           :path-params [id :- String]
@@ -160,16 +131,16 @@
             (GET* "/kakka" []
               identity))))))
 
-    => {:paths {"/api/:id/kikka" {:get {:summary "top-summary"
-                                        :tags #{:kiss}
-                                        :parameters {:path {:id String}}}}
-                "/api/:id/ipa/kukka/:kukka" {:get {:summary "bottom-summary"
-                                                   :tags #{:venom}
-                                                   :parameters {:path {:id String
-                                                                       :kukka String}}}}
-                "/api/:id/ipa/kakka" {:get {:summary "mid-summary"
-                                            :tags #{:wasp}
-                                            :parameters {:path {:id String}}}}}}))
+  => {:paths {"/api/:id/kikka" {:get {:summary "top-summary"
+                                      :tags #{:kiss}
+                                      :parameters {:path {:id String}}}}
+              "/api/:id/ipa/kukka/:kukka" {:get {:summary "bottom-summary"
+                                                 :tags #{:venom}
+                                                 :parameters {:path {:id String
+                                                                     :kukka String}}}}
+              "/api/:id/ipa/kakka" {:get {:summary "mid-summary"
+                                          :tags #{:wasp}
+                                          :parameters {:path {:id String}}}}}})
 
 (facts "duplicate context merge"
   (first

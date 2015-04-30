@@ -244,10 +244,7 @@
        (apply deep-merge {})))
 
 (defn swagger-info [body]
-  (let [[parameters body] (extract-parameters body)
-        routes (extract-routes body)
-        details (assoc parameters :paths routes)]
-    [details body]))
+  [{:paths (extract-routes body)} body])
 
 (defn- deprecated! [& args]
   (apply println (concat ["DEPRECATED:"] args)))
