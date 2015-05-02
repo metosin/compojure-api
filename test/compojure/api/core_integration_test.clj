@@ -810,21 +810,22 @@
   (om/ordered-map
     :a s/Str, :b s/Str, :c s/Str, :d s/Str, :e s/Str, :f s/Str, :g s/Str, :h s/Str))
 
+(def data (om/ordered-map :a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"))
+
 (defapi api
   (swagger-docs)
   (GET* "/ping" []
     :return Kikka
-    (continue)))
+    (ok data)))
 
 (fact "ordered schema test"
-  (let [data {:a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"}]
 
-    (fact "first route matches with Compojure"
-      (let [[status body] (get* api "/ping" {})]
-        status => 100
-        body => nil)))
+  (fact "first route matches with Compojure"
+    (let [[status body] (get* api "/ping" {})]
+      status => 200
+      body => data))
 
   (fact "generate correct swagger-spec"
-      (let [[status spec] (get* api "/swagger.json" {})]
-        status => 200
-        (-> spec :definitions :Kikka :properties keys) => (keys Kikka))))
+    (let [[status spec] (get* api "/swagger.json" {})]
+      status => 200
+      (-> spec :definitions :Kikka :properties keys) => (keys Kikka))))
