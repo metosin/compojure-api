@@ -1,12 +1,12 @@
-## 0.20.1
+## 0.20.1 (2.5.2015)
 
-* use ring-swagger swagger-data injection instead of own custom mechanism.
-* fixed [#95](https://github.com/metosin/compojure-api/issues/95)
+* use ring-swagger middleware swagger-data injection instead of own custom mechanism.
+* fixed [#98](https://github.com/metosin/compojure-api/issues/98): 2.0 UI works when running with context on (Servlet-based) app-servers.
 * Preserve response-schema names, fixes [#93](https://github.com/metosin/compojure-api/issues/93).
 * updated dependencies:
 
 ```clojure
-[metosin/ring-swagger "0.20.2-SNAPSHOT"] is available but we use "0.20.0"
+[metosin/ring-swagger "0.20.2"] is available but we use "0.20.0"
 [prismatic/schema "0.4.2"] is available but we use "0.4.1"
 ```
 
