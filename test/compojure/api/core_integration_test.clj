@@ -808,29 +808,32 @@
       status => 200
       (-> spec :paths vals first :get :summary) => "active-ping")))
 
-(s/defschema Kikka
-  (om/ordered-map
-    :a s/Str, :b s/Str, :c s/Str, :d s/Str, :e s/Str, :f s/Str, :g s/Str, :h s/Str))
+(comment
+  "https://github.com/Prismatic/schema/pull/212"
 
-(def data (om/ordered-map :a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"))
+  (s/defschema Kikka
+    (om/ordered-map
+      :a s/Str, :b s/Str, :c s/Str, :d s/Str, :e s/Str, :f s/Str, :g s/Str, :h s/Str))
 
-(defapi api
-  (swagger-docs)
-  (GET* "/ping" []
-    :return Kikka
-    (ok data)))
+  (def data (om/ordered-map :a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"))
 
-(fact "ordered schema test"
+  (defapi api
+    (swagger-docs)
+    (GET* "/ping" []
+      :return Kikka
+      (ok data)))
 
-  (fact "first route matches with Compojure"
-    (let [[status body] (get* api "/ping" {})]
-      status => 200
-      body => data))
+  (fact "ordered schema test"
 
-  (fact "generates correct swagger-spec"
-    (let [[status spec] (get* api "/swagger.json" {})]
-      status => 200
-      (-> spec :definitions :Kikka :properties keys) => (keys Kikka))))
+    (fact "first route matches with Compojure"
+      (let [[status body] (get* api "/ping" {})]
+        status => 200
+        body => data))
+
+    (fact "generates correct swagger-spec"
+      (let [[status spec] (get* api "/swagger.json" {})]
+        status => 200
+        (-> spec :definitions :Kikka :properties keys) => (keys Kikka)))))
 
 ; https://github.com/metosin/compojure-api/issues/98
 (fact "basePath"
