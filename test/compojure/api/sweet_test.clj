@@ -118,6 +118,7 @@
                                   :url "http://www.metosin.fi"}
                         :license {:name "Eclipse Public License"
                                   :url "http://www.eclipse.org/legal/epl-v10.html"}}
+                 :basePath "/"
                  :consumes ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"],
                  :produces ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"]
                  :paths {(keyword "/api/bands") {:get {:operationId "getBands"

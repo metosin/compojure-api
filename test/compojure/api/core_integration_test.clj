@@ -6,7 +6,8 @@
             [peridot.core :as p]
             [flatland.ordered.map :as om]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [ring.swagger.core :as rsc]))
 
 ;;
 ;; common
@@ -474,6 +475,7 @@
       body => {:swagger "2.0"
                :info {:title "Swagger API"
                       :version "0.0.1"}
+               :basePath "/"
                :consumes ["application/json" "application/edn"]
                :produces ["application/json" "application/edn"]
                :definitions {}
@@ -825,7 +827,19 @@
       status => 200
       body => data))
 
-  (fact "generate correct swagger-spec"
+  (fact "generates correct swagger-spec"
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :definitions :Kikka :properties keys) => (keys Kikka))))
+
+; https://github.com/metosin/compojure-api/issues/98
+(fact "basePath"
+  (defapi api
+    (swagger-docs))
+  (fact "no context"
+    (let [[_ spec] (get* api "/swagger.json" {})]
+      (:basePath spec) => "/"))
+  (fact "app-servers with given context"
+    (against-background (rsc/context anything) => "/v2")
+    (let [[_ spec] (get* api "/swagger.json" {})]
+      (:basePath spec) => "/v2")))

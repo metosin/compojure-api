@@ -249,6 +249,10 @@
 (defn- deprecated! [& args]
   (apply println (concat ["DEPRECATED:"] args)))
 
+(defn base-path [request]
+  (let [context (swagger/context request)]
+    (if (= "" context) "/" context)))
+
 ;;
 ;; Public api
 ;;
@@ -313,10 +317,12 @@
     `(routes
        (GET* ~path {:as request#}
          :no-doc true
-         (let [runtime-info# (rsm/get-swagger-data request#)]
+         (let [runtime-info# (rsm/get-swagger-data request#)
+               base-path-info# {:basePath (base-path request#)}]
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info
+                                   base-path-info#
                                    ~routes/+compojure-api-routes+)
                    result# (swagger2/swagger-json swagger#)]
                result#)))))))
