@@ -318,11 +318,11 @@
        (GET* ~path {:as request#}
          :no-doc true
          (let [runtime-info# (rsm/get-swagger-data request#)
-               base-path-info# {:basePath (base-path request#)}]
+               base-path# {:basePath (base-path request#)}]
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info
-                                   base-path-info#
+                                   base-path#
                                    ~routes/+compojure-api-routes+)
                    result# (swagger2/swagger-json swagger#)]
                result#)))))))
