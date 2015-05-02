@@ -734,7 +734,7 @@
       status => 200
       body => burger))
 
-  (fact "generate correct swagger-spec"
+  (fact "generates correct swagger-spec"
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :definitions keys set) => #{:Topping :Pizza :Burger :Beef})))
@@ -754,7 +754,7 @@
       status => 200
       body => {:ping "active"}))
 
-  (fact "generate correct swagger-spec"
+  (fact "generates correct swagger-spec"
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :paths vals first :get :summary) => "active-ping")))
@@ -778,7 +778,7 @@
       status => 200
       body => {:ping "active"}))
 
-  (fact "generate correct swagger-spec"
+  (fact "generates correct swagger-spec"
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :paths vals first :get :summary) => "active-ping")))
@@ -801,7 +801,7 @@
       status => 200
       body => {:ping "active"}))
 
-  (fact "generate correct swagger-spec"
+  (fact "generates correct swagger-spec"
     (let [[status spec] (get* api "/swagger.json" {})]
       status => 200
       (-> spec :paths vals first :get :summary) => "active-ping")))
