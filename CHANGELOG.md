@@ -1,3 +1,12 @@
+## 0.20.2 
+
+* update dependencies:
+
+```clojure
+[prismatic/plumbing "0.4.3"] is available but we use "0.4.2"
+[peridot "0.4.0"] is available but we use "0.3.1"
+```
+
 ## 0.20.1 (2.5.2015)
 
 * use ring-swagger middleware swagger-data injection instead of own custom mechanism.
