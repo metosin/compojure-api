@@ -1,5 +1,6 @@
 ## 0.20.2 
 
+* welcome `compojure.api.core/api`, the work-horse behind `compojure.api.core/defapi`.
 * update dependencies:
 
 ```clojure

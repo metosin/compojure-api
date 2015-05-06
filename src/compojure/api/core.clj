@@ -8,23 +8,40 @@
             [ring.swagger.common :refer [extract-parameters]]
             [backtick :refer [syntax-quote]]))
 
+(defmacro api
+  "Returna a ring handler wrapped in compojure.api.middleware/api-middlware.
+   Defines a local var +routes+ which is used to store the route tables. Currently
+   there can be only one api in one namespace. The mounted api-middleware can
+   be configured by options map as the first parameter:
+
+      (api
+        {:formats [:json :edn}
+        (context* \"/api\" []
+          ...))
+
+   ... see compojure.api.middleware/api-middleware for possible options."
+  [& body]
+  (let [[opts body] (extract-parameters body)]
+    `(api-middleware
+       (routes/api-root ~@body)
+       ~opts)))
+
 (defmacro defapi
-  "Defines a ring handler wrapped in compojure.api.middleware/api-middlware.
+  "Defines a ring handler wrapped in compojure.api.core/api.
    Defines a local var +routes+ which is used to store the route tables. Currently
    there can be only one defapi in one namespace. The mounted api-middleware can
    be configured by options map as the first parameter:
 
       (defapi app
-        {:options 123}
-        ...)
+        {:formats [:json :edn}
+        (context* \"/api\" []
+          ...))
 
    ... see compojure.api.middleware/api-middleware for possible options."
   [name & body]
-  (let [[opts body] (extract-parameters body)]
-    `(defroutes ~name
-       (api-middleware
-         (routes/api-root ~@body)
-         ~opts))))
+  `(def ~name
+     (api ~@body
+       (routes/api-root ~@body))))
 
 (import-vars [compojure.api.meta middlewares])
 
