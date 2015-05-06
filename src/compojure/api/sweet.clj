@@ -19,6 +19,7 @@
   ;; with enchanced methods
   [compojure.api.core
 
+   api
    defapi
    middlewares
 
