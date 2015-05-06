@@ -5,6 +5,7 @@
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
+            [ring.swagger.middleware :as rsm]
             [ring.swagger.common :refer [extract-parameters]]
             [backtick :refer [syntax-quote]]))
 
@@ -22,9 +23,11 @@
    ... see compojure.api.middleware/api-middleware for possible options."
   [& body]
   (let [[opts body] (extract-parameters body)]
-    `(api-middleware
-       (routes/api-root ~@body)
-       ~opts)))
+    `(let [handler# (routes/api-root ~@body)]
+       (-> handler#
+           (api-middleware ~opts)
+           (rsm/wrap-swagger-data (meta handler#))
+           (with-meta (meta handler#))))))
 
 (defmacro defapi
   "Defines a ring handler wrapped in compojure.api.core/api.
@@ -40,8 +43,7 @@
    ... see compojure.api.middleware/api-middleware for possible options."
   [name & body]
   `(def ~name
-     (api ~@body
-       (routes/api-root ~@body))))
+     (api ~@body)))
 
 (import-vars [compojure.api.meta middlewares])
 
