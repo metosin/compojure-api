@@ -148,7 +148,7 @@ To help setting up custom middleware there is a `middlewares` macro:
             [compojure.api.routes :refer [api-root]]]
             [compojure.core :refer :all]))
 
-(defroutes app
+(def app
   (middlewares [api-middleware]
     (api-root
       (context "/api" []
@@ -225,8 +225,8 @@ Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for r
 
 Enabling Swagger route documentation in your application is done by:
 
-- defining your api via `compojure.api.core/defapi`
-  - `defapi` uses `compojure.api.routes/api-root` to initialize an empty route tree to your namespace and assigns the static route tree for your app to it.
+- defining your api via `defapi` (or via `api`).
+  - `api` uses `compojure.api.routes/api-root` to create a route tree, passed into swagger-endpoints via request injection **TODO** link to ring-swagger.
     - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected. **Note:** since `0.20.0` the `defroutes*` are automatically referenced over a Var to get smoother development flow.
 - to group your endpoints in the swagger-ui, you can `:tags` metadata to routes

@@ -322,8 +322,7 @@
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info
-                                   base-path#
-                                   ~routes/+compojure-api-routes+)
+                                   base-path#)
                    result# (swagger2/swagger-json swagger#)]
                result#)))))))
 

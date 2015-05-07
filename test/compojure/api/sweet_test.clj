@@ -20,7 +20,7 @@
 
 (defroutes* ping-routes (GET* "/ping" [] identity))
 
-(defapi api
+(defapi app
   (swagger-docs
     {:info {:version "1.0.0"
             :title "Sausages"
@@ -71,7 +71,7 @@
 (facts "api documentation"
   (fact "details are generated"
 
-    (routes/get-routes)
+    (meta app)
 
     => {:paths {"/ping" {:get nil}
                 "/api/ping" {:get nil}
@@ -101,7 +101,7 @@
                                                               :description ""}}}}}})
 
   (fact "api-listing works"
-    (let [{:keys [body status]} (api (request :get "/swagger.json"))
+    (let [{:keys [body status]} (app (request :get "/swagger.json"))
           body (parse-body body)]
 
       (fact "is ok"

@@ -5,14 +5,26 @@
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
+            [ring.swagger.middleware :as rsm]
             [ring.swagger.common :refer [extract-parameters]]
             [backtick :refer [syntax-quote]]))
 
+(defn api-middleware-with-swagger-data
+  "Returns a compojure.api.middleware/api-middlware wrapped handler,
+  which publishes the handler meta as swagger-data and has it's own
+  meta data."
+  [handler options]
+  (let [swagger-data (meta handler)]
+    (-> handler
+        (rsm/wrap-swagger-data swagger-data)
+        (api-middleware options)
+        (with-meta swagger-data))))
+
 (defmacro api
-  "Returna a ring handler wrapped in compojure.api.middleware/api-middlware.
-   Defines a local var +routes+ which is used to store the route tables. Currently
-   there can be only one api in one namespace. The mounted api-middleware can
-   be configured by options map as the first parameter:
+  "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
+   Creates the route-table at compile-time and passes that into the request via
+   ring-swagger middlewares. The mounted api-middleware can be configured by
+   optional options map as the first parameter:
 
       (api
         {:formats [:json :edn}
@@ -22,15 +34,15 @@
    ... see compojure.api.middleware/api-middleware for possible options."
   [& body]
   (let [[opts body] (extract-parameters body)]
-    `(api-middleware
+    `(api-middleware-with-swagger-data
        (routes/api-root ~@body)
        ~opts)))
 
 (defmacro defapi
-  "Defines a ring handler wrapped in compojure.api.core/api.
-   Defines a local var +routes+ which is used to store the route tables. Currently
-   there can be only one defapi in one namespace. The mounted api-middleware can
-   be configured by options map as the first parameter:
+  "Returns a ring handler wrapped in a `api`. Behind the scenes,
+   creates the route-table at compile-time and passes that into the request via
+   ring-swagger middlewares. The mounted api-middleware can be configured by
+   optional options map as the first parameter:
 
       (defapi app
         {:formats [:json :edn}
@@ -40,8 +52,7 @@
    ... see compojure.api.middleware/api-middleware for possible options."
   [name & body]
   `(def ~name
-     (api ~@body
-       (routes/api-root ~@body))))
+     (api ~@body)))
 
 (import-vars [compojure.api.meta middlewares])
 
