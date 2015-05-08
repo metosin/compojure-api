@@ -6,6 +6,7 @@
 * update dependencies:
 
 ```clojure
+[metosin/ring-swagger "0.20.3-SNAPSHOT"] is available but we use "0.20.2"
 [prismatic/plumbing "0.4.3"] is available but we use "0.4.2"
 [peridot "0.4.0"] is available but we use "0.3.1"
 ```
