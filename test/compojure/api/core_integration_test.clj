@@ -842,3 +842,20 @@
       (against-background (rsc/context anything) => "/v2")
       (let [[_ spec] (get* app "/swagger.json" {})]
         (:basePath spec) => "/v2"))))
+
+(fact "multiple different models with same name"
+
+  (fact "schemas with same regexps are not equal"
+    {:d #"\D"} =not=> {:d #"\D"})
+
+  (fact "api-spec with 2 schemas with non-equal contents"
+    (let [app (api
+                (swagger-docs)
+                (GET* "/" []
+                  :responses {200 (s/schema-with-name {:a {:d #"\D"}} "Kikka")
+                              201 (s/schema-with-name {:a {:d #"\D"}} "Kikka")}
+                  identity))]
+      (fact "api spec doesn't fail (#102)"
+        (let [[status spec] (get* app "/swagger.json" {})]
+          status => 200
+          spec => anything)))))
