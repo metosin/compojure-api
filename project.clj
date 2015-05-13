@@ -9,7 +9,7 @@
                  [prismatic/plumbing "0.4.3"]
                  [potemkin "0.3.13"]
                  [cheshire "5.4.0"]
-                 [compojure "1.3.3"]
+                 [compojure "1.3.4"]
                  [prismatic/schema "0.4.2"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [metosin/ring-http-response "0.6.1"]
@@ -23,7 +23,7 @@
                        :dependencies [[http-kit "2.1.19"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
-                             [lein-ring "0.9.3"]]
+                             [lein-ring "0.9.4"]]
                    :dependencies [[peridot "0.4.0"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.7.0-SNAPSHOT"]
