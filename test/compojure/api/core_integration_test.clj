@@ -859,3 +859,17 @@
         (let [[status spec] (get* app "/swagger.json" {})]
           status => 200
           spec => anything)))))
+
+(defroutes* over-the-hills-and-far-away
+  (POST* "/" []
+    :body-params [a :- s/Str]
+    identity))
+
+(fact "anonymous body models over defroutes*"
+  (let [app (api
+              (swagger-docs)
+              over-the-hills-and-far-away)]
+    (fact "generated model doesn't have namespaced keys"
+      (let [[status spec] (get* app "/swagger.json" {})]
+        status => 200
+        (-> spec :definitions vals first :properties keys first) => :a))))

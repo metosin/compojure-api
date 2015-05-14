@@ -191,7 +191,8 @@
 (defn ensure-parameter-schema-names [route-with-meta]
   (if (get-in route-with-meta [:metadata :parameters :body])
     (update-in route-with-meta [:metadata :parameters :body]
-               #(swagger/with-named-sub-schemas % "Body"))
+               #(swagger/with-named-sub-schemas
+                 (remove-keyword-namespaces %) "Body"))
     route-with-meta))
 
 (defn ensure-return-schema-names [route-with-meta]
