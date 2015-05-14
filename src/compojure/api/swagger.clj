@@ -68,13 +68,16 @@
 
 (defn parse-meta-data [container]
   (when-let [meta (m/unwrap-meta-container container)]
-    (let [meta (update-in meta [:return] eval)
-          meta (reduce
+    (let [meta (reduce
                  (fn [acc x]
                    (update-in acc [:parameters x] eval))
                  meta
                  (-> meta :parameters keys))
-          meta (update-in meta [:responses] eval)]
+          meta (reduce
+                 (fn [acc x]
+                   (update-in acc [:responses x :schema] eval))
+                 meta
+                 (-> meta :responses keys))]
       (remove-empty-keys meta))))
 
 (defn route-metadata [body]
