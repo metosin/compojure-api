@@ -66,19 +66,10 @@
   "like instanceof? but compares .toString of a classes"
   [c x] (= (str c) (str (class x))))
 
+; TODO: shoudn't eval code at compile-time
 (defn parse-meta-data [container]
   (when-let [meta (m/unwrap-meta-container container)]
-    (let [meta (reduce
-                 (fn [acc x]
-                   (update-in acc [:parameters x] eval))
-                 meta
-                 (-> meta :parameters keys))
-          meta (reduce
-                 (fn [acc x]
-                   (update-in acc [:responses x :schema] eval))
-                 meta
-                 (-> meta :responses keys))]
-      (remove-empty-keys meta))))
+    (remove-empty-keys (eval meta))))
 
 (defn route-metadata [body]
   (parse-meta-data (first (drop 2 body))))
