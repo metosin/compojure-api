@@ -126,90 +126,82 @@ lein new compojure-api my-api +clojure-test
 
 # Building Documented Apis
 
-## Middlewares
+## Api middleware
 
 There is prepackaged middleware `compojure.api.middleware/api-middleware` for common web api usage. It's a enhanced version of `compojure.handler/api` adding the following:
 
 - catching slingshotted http-errors (`ring.middleware.http-response/catch-response`)
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
+- catching unhandler exceptions (`compojure.api.middleware/wrap-exceptions`)
 - support for different protocols via `ring.middleware.format-params/wrap-restful-params` and `ring.middleware.format-response/wrap-restful-response`
-    - default supported protocols are:
-       - `:json-kw`, `:yaml-kw`, `:edn`, `:transit-json` and `:transit-msgpack`
+    - default supported protocols are: `:json-kw`, `:yaml-kw`, `:edn`, `:transit-json` and `:transit-msgpack`
+    - enabled protocol support is also published into Swagger docs via `ring.swagger.middleware/wrap-swagger-data`.
+    
+All middlewares are preconfigured with good/opinionated defaults, but one can override the configurations by passing a options Map into the `api-middleware`. See api-docs for details.
 
-### Mounting middlewares
+## Api macro
 
-To help setting up custom middleware there is a `middlewares` macro:
+To get all the benefits of Compojure-api, one should wrap the apis into `compojure.api.core/api`-macro. It is responsible for creating and publishing
+the compile-time route-tree from your api, enabling the Swagger documentation. It takes an optional map as a first parameter which is passed directly
+to the underlaying `api-middleware` for configuring the used middlewares.
 
 ```clojure
-(ns example
+(ns example.handler
   (:require [ring.util.http-response :refer [ok]]
-            [compojure.api.middleware :refer [api-middleware]]
-            [compojure.api.core :refer [middlewares]]
-            [compojure.api.routes :refer [api-root]]]
+            [compojure.api.core :refer :all]
             [compojure.core :refer :all]))
 
 (def app
-  (middlewares [api-middleware]
-    (api-root
-      (context "/api" []
-        (GET "/ping" [] (ok {:ping "pong"})))))
+  (api
+    {:formats [:json-kw]}
+    (context "/api" []
+      (GET "/ping" [] (ok {:ping "pong"})))))
+      
+(slurp (:body (app {:request-method :get :uri "/api/ping"})))
+; => "{\"ping\":\"pong\"}"
 ```
 
-There is also `defapi` as a short form for the common case of defining routes with `api-middleware`. It also adds
-`compojure.api.routes/api-root`, which is the actual macro responsible for generating the route-tree:
+## Defapi
+
+`compojure.api.core/defapi` is ust a shortcut for defining an api:
 
 ```clojure
-(ns example2
-  (:require [ring.util.http-response :refer [ok]]
-            [compojure.api.core :refer [defapi]]
-            [compojure.core :refer :all]))
-
 (defapi app
+  {:formats [:json-kw]}
   (context "/api" []
     (GET "/ping" [] (ok {:ping "pong"}))))
 ```
 
-`defapi` takes a bunch of options for api parametrization (and passed them 1:1 to `api-middleware`). 
-See `api-middleware` documentation for details.
+## Custom middlewares
+
+To help setting up custom middleware there is a `compojure.api.core/middlewares` macro:
 
 ```clojure
+(require '[ring.middleware.head :refer [wrap-head]])
+
 (defapi app
-  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
-            :params-opts {}
-            :response-opts {}}
-   :validation-errors {:error-handler nil
-                       :catch-core-errors? nil}
-   :exceptions {:exception-handler default-exception-handler}}
-  ...)
+  (middlewares [wrap-head]
+    (context "/api" []
+      (GET "/ping" [] (ok {:ping "pong"})))))
 ```
 
-## Request & response formats
+## Route macros
 
-Middlewares (and other handlers) can publish their capabilities to consume & produce different wire-formats. This information is passed to `ring-swagger` and added to swagger-docs & is available in the swagger-ui.
+One can use either [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enhanced versions from `compojure.api.core`.
+Enhanced versions have `*` in their name (`GET*`, `POST*`, `context*`, `defroutes*` etc.) so that they don't get mixed up with the originals.
+Enhanced version can be used exactly as their ancestors but also allow new features via extendable meta-data handlers.
 
-The default middlewares on Compojure-API includes [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format) which supports multiple formats. If the first element of `defapi` body is a map it will be used to pass parameters to `api-middleware`, e.g. the formats which should be enabled.
+## Sweet
 
-```clojure
-(defapi app
-  {:formats [:transit-json :edn]}
-  (context "/api" [] ...))
-```
-
-One can add own format middlewares (XML etc.) and add expose their capabilities by adding the
-supported content-type into request under keys `[:meta :consumes]` and `[:meta :produces]` accordingly.
-
-## Routes
-
-You can use [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enhanced versions from `compojure.api.core`. Enhanced versions have `*` in their name (`GET*`, `POST*`, `context*`, `defroutes*` etc.) so that they don't get mixed up with the originals. Enhanced version can be used exactly as their ancestors but have also new behavior, more on that later.
-
-Namespace `compojure.api.sweet` is a public entry point for all routing - importing Vars from `compojure.api.core`, `compojure.api.swagger` and `compojure.core`.
+Namespace `compojure.api.sweet` is a public entry point for all routing macros. It imports the enchanced route macros from `compojure.api.core`,
+swagger-stuff from `compojure.api.swagger` and few extras from `compojure.core`. 
 
 There is also `compojure.api.legacy` namespace which contains rest of the public vars from `compojure.core` (the `GET`, `POST` etc. endpoint macros which are not contained in `sweet`). Using `sweet` in conjunction with `legacy` should provide a drop-in-replacement for `compojure.core` - with new new route goodies.
 
 ### sample sweet application
 
 ```clojure
-(ns example3
+(ns example.handler2
   (:require [ring.util.http-response :refer [ok]]
             [compojure.api.sweet :refer :all]))
 
@@ -225,20 +217,23 @@ Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for r
 
 Enabling Swagger route documentation in your application is done by:
 
-- defining your api via `defapi` (or via `api`).
-  - `api` uses `compojure.api.routes/api-root` to create a route tree, passed into swagger-endpoints via request injection **TODO** link to ring-swagger.
+- Wrap your api-applicaiton into an `api` (or `defapi`).
+  - Internally, `api` uses `compojure.api.routes/api-root` to create a route tree, passed into swagger-endpoints via request injection (`ring.swagger.middleware/wrap-swagger-data`).
     - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected. **Note:** since `0.20.0` the `defroutes*` are automatically referenced over a Var to get smoother development flow.
-- to group your endpoints in the swagger-ui, you can `:tags` metadata to routes
-- mounting `compojure.api.swagger/swagger-docs` to publish the swagger spec
-- **optionally** mounting `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/metosin/ring-swagger-ui) to the web app
+- Add `compojure.api.swagger/swagger-docs` route to publish the swagger spec
+- **optionally** Mount `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/metosin/ring-swagger-ui) to the web app.
 
-Currently, there can be only one `defapi` or `with-routes` per namespace.
-
-### sample minimalistic swagger 2.0 app
+If the embedded (Ring-)Swagger-UI isn't good for you, you can exclude it from dependencies and create & package your own UI from the [sources](https://github.com/swagger-api/swagger-ui):
 
 ```clojure
-(ns example4
+[metosin/compojure-api "0.20.3" :exclusions [metosin/ring-sagger-ui]]
+```
+
+### Sample Swagger 2.0 App
+
+```clojure
+(ns example.handler3
   (:require [ring.util.http-response :refer [ok]]
             [compojure.api.sweet :refer :all]))
 
@@ -254,7 +249,7 @@ Currently, there can be only one `defapi` or `with-routes` per namespace.
     (POST* "/echo" {body :body-params} (ok body))))
 ```
 
-By default, Swagger-UI is mounted to the root `/` and api-listing to `/swagger.json`.
+The above sample application mounts swagger-docs to root `/` and serves the swagger-docs from `/swagger.json`.
 
 ### The Swagger Docs
 
@@ -265,15 +260,16 @@ The resulting swagger-spec data (published by the `swagger-docs`) is combined fr
 
 #### Compile-time route & schema information
 
-Having a `defapi` in the same namespace as the `swagger-docs` does this for you.
+Passed in automatically via request injection.
 
 #### Run-time injected information
 
-Currently, only the application wire-format serialization capabilities (`:produces` and `:consumes`) 
-are injected in from `compojure.api.middleware.wrap-publish-swagger-formats` middleware.
+By default, the application wire-format serialization capabilities (`:produces` and `:consumes`)
+are injected in automatially by the `api` machinery.
 
-In future, there should be a extendable interface for external middlewares to contribute information this way.
-
+One can contribute extra arbitrary swagger-data (like swagger security definitions) to the docs via
+`ring.swagger.middleware/wrap-swagger-data` middleware.
+ 
 #### User-set custom information
 
 The `swagger-docs` can be used without parameters, but one can set any valid root-level Swagger Data via it.
@@ -308,13 +304,17 @@ See [wiki](https://github.com/metosin/compojure-api/wiki/Validating-the-Swagger-
 ## Models
 
 Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,
-backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas. For Map-based schemas, Keyword keys should be used instead of Strings.
+backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
+**Note**: for Map-based schemas, Keyword keys should be used instead of Strings.
 
 Two coercers are available (and automatically selected with smart destructuring): 
 one for json and another for string-based formats (query-parameters & path-parameters). 
 See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
 
 ### sample schema and coercion
+
+Compojure-api selects the right coercer and does the coercion behalf of the user, but if one
+wan't to call the coersion manually, here's a sample:
 
 ```clojure
 (require '[ring.swagger.schema :refer [coerce!])
@@ -330,45 +330,55 @@ See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for 
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags disallowed-key, :tag missing-required-key}}  ring.swagger.schema/coerce! (schema.clj:88)
 ```
 
+The thrown exception by `coerce!` is caught by the `api-middleware` and the results are returned to the
+api user in decent format (overridable, of course).
+
 ## Models, routes and meta-data
 
 The enhanced route-macros allow you to define extra meta-data by adding a) meta-data as a map or b) as pair of
-keyword-values in Liberator-style. With meta-data you can set both input and return models and some Swagger-specific
-data like nickname and summary. Input models have smart schema-aware destructuring and do automatic data coercion.
+keyword-values in Liberator-style. Keys are used as a dispatch value into `restructure` multimethod,
+which generates extra code into the endpoints. If one tries to use a key that doesn't have a dispatch function,
+a compile-time error is raised.
+
+There is lot's of available keys in [meta](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/meta.clj)
+namespace, which are always available. These include:
+- input & output schema definitions (with automatic coersion and swagger-data extraction)
+- extra swagger-documentation like `:summary`, `:description`, `:tags`
+
+One can also easily create own dispatch handlers, just add new dispatch function to the multimethod.
 
 ```clojure
-  (POST* "/echo" []
-    :return   FlatThingie
-    :query    [flat-thingie FlatThingie]
-    :summary  "echoes a FlatThingie from query-params"
-    :operationId "echoFlatThingiePost"
-    (ok flat-thingie)) ;; here be coerced thingie
+(s/defschema User {:name s/Str
+                   :sex (s/enum :male :female)
+                   :address {:street s/Str
+                             :zip s/Str}})
+  
+(POST* "/echo" []
+  :summary "echoes a user from a body" ; for swagger-documentation
+  :body [user User]                    ; validates/coerces the body to be User-schema, assignes it to user (lexically scoped for the endpoint body) & generated the needed swagger-docs
+  :return User                         ; validates/coerces the 200 response to be User-schema, generates needed swagger-docs
+  (ok user))                           ; the body itself.
 ```
 
-```clojure
-  (GET* "/echo" []
-    :return   Thingie
-    :query    [thingie Thingie]
-    :summary  "echoes a thingie from query-params"
-    :operationId "echoThingieQuery"
-    (ok thingie)) ;; here be coerced thingie
-```
+Everything happens at compile-time, so you can macroexpand the previous to learn what happens behind the scenes.
 
-You can also wrap models in containers (`vector` and `set`) and add extra metadata:
+### More about models  
+  
+You can also wrap models in containers (`vector` and `set`) and add descriptions:
 
 ```clojure
-  (POST* "/echos" []
-    :return   [Thingie]
-    :body     [thingies (describe #{Thingie} "set on thingies")]
-    (ok thingies))
+(POST* "/echos" []
+  :return [User]
+  :body [users (describe #{Users} "a set on users")]
+  (ok users))
 ```
 
 Schema-predicate wrappings work too:
 
 ```clojure
-  (POST* "/nachos" []
-    :return (s/maybe {:a s/Str})
-    (ok nil))
+(POST* "/nachos" []
+  :return (s/maybe {:a s/Str})
+  (ok nil))
 ```
 
 And anonoymous schemas:
@@ -514,16 +524,12 @@ macroexpanding-1 it too see what's get generated:
 
 ```clojure
 (clojure.pprint/pprint
-    (macroexpand-1 `(GET* "/current-session" []
-                          :auth token
-                          (ok {:token token}))))
+  (macroexpand-1 `(GET* "/current-session" []
+                    :auth token
+                    (ok {:token token}))))
 
-(compojure.core/GET
- "/current-session"
- [:as +compojure-api-request+]
- (clojure.core/let
-  [{{examples.thingie/token "x-accesstoken"} :headers}
-   +compojure-api-request+]
+(compojure.core/GET "/current-session" [:as +compojure-api-request+]
+ (clojure.core/let [{{examples.thingie/token "x-accesstoken"} :headers} +compojure-api-request+]
   (do
    (if
     (clojure.core/= examples.thingie/token "123")
