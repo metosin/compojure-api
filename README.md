@@ -163,7 +163,7 @@ to the underlaying `api-middleware` for configuring the used middlewares.
 
 ## Defapi
 
-`compojure.api.core/defapi` is ust a shortcut for defining an api:
+`compojure.api.core/defapi` is just a shortcut for defining an api:
 
 ```clojure
 (defapi app
