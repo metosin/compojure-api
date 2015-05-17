@@ -227,7 +227,7 @@ Enabling Swagger route documentation in your application is done by:
 If the embedded (Ring-)Swagger-UI isn't good for you, you can exclude it from dependencies and create & package your own UI from the [sources](https://github.com/swagger-api/swagger-ui):
 
 ```clojure
-[metosin/compojure-api "0.20.3" :exclusions [metosin/ring-sagger-ui]]
+[metosin/compojure-api "0.20.3" :exclusions [metosin/ring-swagger-ui]]
 ```
 
 ### Sample Swagger 2.0 App
