@@ -466,6 +466,21 @@ to swagger `responseMessages` description. Models can be decorated with `:messag
     :404 (not-found {:reason "lost"})))
 ```
 
+The `:return` maps the model just to the response 200, so one can also say:
+
+```clojure
+(GET* "/" []
+  :query-params [return :- (s/enum :200 :403 :404)]
+  :responses    {200 (with-meta Total {:message "happy path"})
+                 403 (with-meta {:code s/Str} {:message "spiders?"})
+                 404 (with-meta {:reason s/Str} {:message "lost?"})}
+  :summary      "multiple returns models"
+  (case return
+    :200 (ok {:total 42})
+    :403 (forbidden {:code "forest"})
+    :404 (not-found {:reason "lost"})))
+```
+
 ## Route-specific middlewares
 
 Key `:middlewares` takes a vector of middlewares to be applied to the route.
