@@ -454,15 +454,16 @@ Key `:responses` takes a map of http-status-code -> model map, which translates 
 to swagger `responseMessages` description. Models can be decorated with `:message` meta-data.
 
 ```clojure
-(POST* "/number" []
-  :query-params [x :- Long y :- Long]
-  :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
-  :return       Long
-  :summary      "x-y with body-parameters."
-  (let [total (- x y)]
-    (if (pos? total)
-      (ok total)
-      (forbidden {:message "difference is negative"}))))
+(GET* "/" []
+  :query-params [return :- (s/enum :200 :403 :404)]
+  :responses    {403 (with-meta {:code s/Str} "spiders?")
+                 404 (with-meta {:reason s/Str} {:message "lost?"})}
+  :return       Total
+  :summary      "multiple returns models"
+  (case return
+    :200 (ok {:total 42})
+    :403 (forbidden {:code "forest"})
+    :404 (not-found {:reason "lost"})))
 ```
 
 ## Route-specific middlewares
