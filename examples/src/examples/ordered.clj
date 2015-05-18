@@ -4,6 +4,7 @@
             [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]))
 
+;; does not work with AOT
 (s/defschema Ordered
   (fom/ordered-map
     :a s/Str

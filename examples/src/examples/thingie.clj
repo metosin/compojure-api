@@ -89,7 +89,7 @@
 
   pizza-routes
 
-  ordered-routes
+  #_ordered-routes
 
   (context* "/dates" []
     :tags ["dates"]
