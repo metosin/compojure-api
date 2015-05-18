@@ -456,7 +456,7 @@ to swagger `responseMessages` description. Models can be decorated with `:messag
 ```clojure
 (GET* "/" []
   :query-params [return :- (s/enum :200 :403 :404)]
-  :responses    {403 (with-meta {:code s/Str} "spiders?")
+  :responses    {403 (with-meta {:code s/Str} {:message "spiders?"})
                  404 (with-meta {:reason s/Str} {:message "lost?"})}
   :return       Total
   :summary      "multiple returns models"
