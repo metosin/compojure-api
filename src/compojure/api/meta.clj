@@ -77,7 +77,10 @@
 
 (defn- convert-responses [responses]
   (into {} (for [[code schema] responses]
-             [code {:description (or (some-> schema meta :message) "")
+             [code {:description (or
+                                   (some-> schema meta :message)
+                                   (some-> schema eval meta :message)
+                                   "")
                     :schema schema}])))
 
 ;;

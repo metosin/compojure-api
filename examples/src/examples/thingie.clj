@@ -16,8 +16,6 @@
 
 (s/defschema Total {:total Long})
 
-(s/defschema ErrorEnvelope {:message String})
-
 ;;
 ;; Routes
 ;;
@@ -97,15 +95,16 @@
 
   (context* "/responses" []
     :tags ["responses"]
-    (POST* "/number" []
-      :query-params [x :- Long y :- Long]
-      :responses    {403 ^{:message "Underflow"} ErrorEnvelope}
+    (GET* "/" []
+      :query-params [return :- (s/enum :200 :403 :404)]
+      :responses    {403 ^{:message "spiders?"} {:code s/Str}
+                     404 (with-meta {:reason s/Str} {:message "lost?"})}
       :return       Total
-      :summary      "x-y with body-parameters."
-      (let [total (- x y)]
-        (if (>= total 0)
-          (ok {:total (- x y)})
-          (forbidden {:message "difference is negative"})))))
+      :summary      "multiple returns models"
+      (case return
+        :200 (ok {:total 42})
+        :403 (forbidden {:code "forest"})
+        :404 (not-found {:reason "lost"}))))
 
   (context* "/primitives" []
     :tags ["primitives"]

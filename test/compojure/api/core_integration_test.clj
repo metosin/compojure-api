@@ -873,3 +873,17 @@
       (let [[status spec] (get* app "/swagger.json" {})]
         status => 200
         (-> spec :definitions vals first :properties keys first) => :a))))
+
+(defroutes* response-descriptions-routes
+  (GET* "/x" []
+    :responses {500 (with-meta {:code String} {:message "Horror"})}
+    identity))
+
+(fact "response descriptions"
+  (let [app (api
+              (swagger-docs)
+              response-descriptions-routes)
+        [status spec] (get* app "/swagger.json" {})]
+    status => 200
+    (-> spec :paths vals first :get :responses :500 :description)
+    => "Horror"))
