@@ -142,7 +142,7 @@
       (IllegalArgumentException.
         (str
           "You are using old format with :responses. Since Compojure-api 0.21.0, "
-          "naked ring-swagger 2.0 models are used. Example:\n\n"
+          "plain ring-swagger 2.0 models are used. Example:\n\n"
           ":responses {400 {:schema ErrorSchema}}\n"
           ":responses {400 {:schema ErrorSchema, :description \"Error\"}}\n\n"
           "You had:\n\n:responses " responses "\n\n")))))
