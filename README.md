@@ -485,7 +485,8 @@ The `:return` maps the model just to the response 200, so one can also say:
 
 Key `:responses` takes a map of http-status-code to schema-definitions map
 (with optional `:schema`, `:description` and `:headers` keys). `:schema` defines the return model
-and get's automatic coersion for it.
+and get's automatic coersion for it. If a route tries to return an invalid response value,
+an `InternalServerError` is raised with the schema validation errors.
 
 ```clojure
 (GET* "/" []
