@@ -258,8 +258,8 @@
                 (swagger-docs)
                 (GET* "/lotto/:x" []
                   :path-params [x :- Long]
-                  :responses {403 [String]
-                              440 [String]}
+                  :responses {403 {:schema [String]}
+                              440 {:schema [String]}}
                   :return [Long]
                   (case x
                     1 (ok [1])
@@ -304,7 +304,7 @@
                 (GET* "/lotto/:x" []
                   :path-params [x :- Long]
                   :return {:return String}
-                  :responses {200 {:value String}}
+                  :responses {200 {:schema {:value String}}}
                   (case x
                     1 (ok {:return "ok"})
                     2 (ok {:value "ok"}))))]
@@ -324,7 +324,7 @@
     (let [app (api
                 (GET* "/lotto/:x" []
                   :path-params [x :- Long]
-                  :responses {200 {:value String}}
+                  :responses {200 {:schema {:value String}}}
                   :return {:return String}
                   (case x
                     1 (ok {:return "ok"})
@@ -852,8 +852,8 @@
     (let [app (api
                 (swagger-docs)
                 (GET* "/" []
-                  :responses {200 (s/schema-with-name {:a {:d #"\D"}} "Kikka")
-                              201 (s/schema-with-name {:a {:d #"\D"}} "Kikka")}
+                  :responses {200 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}
+                              201 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}}
                   identity))]
       (fact "api spec doesn't fail (#102)"
         (let [[status spec] (get* app "/swagger.json" {})]
@@ -876,7 +876,8 @@
 
 (defroutes* response-descriptions-routes
   (GET* "/x" []
-    :responses {500 (with-meta {:code String} {:message "Horror"})}
+    :responses {500 {:schema {:code String}
+                     :description "Horror"}}
     identity))
 
 (fact "response descriptions"

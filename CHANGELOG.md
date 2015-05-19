@@ -1,3 +1,13 @@
+## 0.21.0 
+
+* **breaking**: use plain Ring-Swagger 2.0 models with `:responses`. A helpful `IllegalArgumentException` will be thrown at compile-time with old models.
+* new way:
+
+```clojure
+:responses {400 {:schema ErrorSchema}}
+:responses {400 {:schema ErrorSchema, :description "Eror"}}
+```
+
 ## 0.20.4 (18.5.2015)
 
 * response descriptions can be given also with run-time meta-data (`with-meta`), fixes [#96](https://github.com/metosin/compojure-api/issues/96)

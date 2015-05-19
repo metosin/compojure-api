@@ -97,8 +97,8 @@
     :tags ["responses"]
     (GET* "/" []
       :query-params [return :- (s/enum :200 :403 :404)]
-      :responses    {403 ^{:message "spiders?"} {:code s/Str}
-                     404 (with-meta {:reason s/Str} {:message "lost?"})}
+      :responses    {403 {:schema {:code s/Str, :description "spiders?"}}
+                     404 {:schema {:reson s/Str}, :description "lost?"}}
       :return       Total
       :summary      "multiple returns models"
       (case return

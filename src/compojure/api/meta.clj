@@ -6,6 +6,7 @@
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :refer :all]
             [ring.swagger.schema :as schema]
+            [ring.swagger.json-schema :as js]
             [ring.util.http-response :refer [internal-server-error]]
             [schema.core :as s]))
 
@@ -52,7 +53,7 @@
 (defn body-coercer-middleware [handler responses]
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
-      (if-let [schema (responses status)]
+      (if-let [schema (:schema (responses status))]
         (let [body (schema/coerce schema (:body response))]
           (if (schema/error? body)
             (internal-server-error {:errors (:error body)})
@@ -71,17 +72,25 @@
        (~key ~+compojure-api-request+))
      ~type))
 
-;;
-;; Response messages mangling
-;;
+(defn- convert-return [schema]
+  {200 {:schema schema
+        :description (or (js/json-schema-meta schema) "")}})
 
-(defn- convert-responses [responses]
-  (into {} (for [[code schema] responses]
-             [code {:description (or
-                                   (some-> schema meta :message)
-                                   (some-> schema eval meta :message)
-                                   "")
-                    :schema schema}])))
+(defn ensure-new-format! [responses]
+  (doseq [[k v] responses
+          :let [deprecated? (cond
+                              (not (map? v)) true
+                              (or (:schema v) (:description v)) false
+                              :else true)]
+          :when deprecated?]
+    (throw
+      (IllegalArgumentException.
+        (str
+          "You are using old format with :responses. Since Compojure-api 0.21.0, "
+          "plain ring-swagger 2.0 models are used. Example:\n\n"
+          ":responses {400 {:schema ErrorSchema}}\n"
+          ":responses {400 {:schema ErrorSchema, :description \"Error\"}}\n\n"
+          "You had:\n\n:responses " responses "\n\n")))))
 
 ;;
 ;; Extension point
@@ -127,21 +136,22 @@
 ; :return {:value String}
 ; :return #{{:key (s/maybe Long)}}
 (defmethod restructure-param :return [_ schema acc]
-  (let [messages (convert-responses {200 schema})]
+  (let [response (convert-return schema)]
     (-> acc
-        (update-in [:parameters :responses] deep-merge messages)
-        (update-in [:responses] assoc 200 schema))))
+        (update-in [:parameters :responses] merge response)
+        (update-in [:responses] merge response))))
 
 ; value is a map of http-response-code -> Schema. Translates to both swagger
 ; parameters and return schema coercion. Schemas can be decorated with meta-data.
 ; Examples:
-; :responses {403 ErrorEnvelope}
-; :responses {403 (with-meta ErrorEnvelope {:message \"Underflow\"}}
+; :responses {403 {:schema ErrorEnvelope}}
+; :responses {403 {:schema ErrorEnvelope, :description \"Underflow\"}}
+
 (defmethod restructure-param :responses [_ responses acc]
-  (let [messages (convert-responses responses)]
-    (-> acc
-        (update-in [:parameters :responses] merge messages)
-        (update-in [:responses] merge responses))))
+  (ensure-new-format! responses)
+  (-> acc
+      (update-in [:parameters :responses] merge responses)
+      (update-in [:responses] merge responses)))
 
 ; reads body-params into a enchanced let. First parameter is the let symbol,
 ; second is the Schema to coerced! against.
