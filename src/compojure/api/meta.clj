@@ -76,6 +76,22 @@
   {200 {:schema schema
         :description (or (js/json-schema-meta schema) "")}})
 
+(defn ensure-new-format! [responses]
+  (doseq [[k v] responses
+          :let [deprecated? (cond
+                              (not (map? v)) true
+                              (or (:schema v) (:description v)) false
+                              :else true)]
+          :when deprecated?]
+    (throw
+      (IllegalArgumentException.
+        (str
+          "You are using old format with :responses. Since Compojure-api 0.21.0, "
+          "plain ring-swagger 2.0 models are used. Example:\n\n"
+          ":responses {400 {:schema ErrorSchema}}\n"
+          ":responses {400 {:schema ErrorSchema, :description \"Error\"}}\n\n"
+          "You had:\n\n:responses " responses "\n\n")))))
+
 ;;
 ;; Extension point
 ;;
@@ -130,22 +146,6 @@
 ; Examples:
 ; :responses {403 {:schema ErrorEnvelope}}
 ; :responses {403 {:schema ErrorEnvelope, :description \"Underflow\"}}
-
-(defn ensure-new-format! [responses]
-  (doseq [[k v] responses
-          :let [deprecated? (cond
-                              (not (map? v)) true
-                              (or (:schema v) (:description v)) false
-                              :else true)]
-          :when deprecated?]
-    (throw
-      (IllegalArgumentException.
-        (str
-          "You are using old format with :responses. Since Compojure-api 0.21.0, "
-          "plain ring-swagger 2.0 models are used. Example:\n\n"
-          ":responses {400 {:schema ErrorSchema}}\n"
-          ":responses {400 {:schema ErrorSchema, :description \"Error\"}}\n\n"
-          "You had:\n\n:responses " responses "\n\n")))))
 
 (defmethod restructure-param :responses [_ responses acc]
   (ensure-new-format! responses)
