@@ -515,6 +515,8 @@ The `:return` maps the model just to the response 200, so one can also say:
     :404 (not-found {:reason "lost"})))
 ```
 
+There is also a `:default` status code available, which stands for "all undefined codes".
+
 ## Route-specific middlewares
 
 Key `:middlewares` takes a vector of middlewares to be applied to the route.
