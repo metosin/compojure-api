@@ -448,7 +448,7 @@ app supports), opposed to the [Ring Spec](https://github.com/mmcgrana/ring/blob/
     (ok (str "hello, " name))))
 ```
 
-## Response-models
+## Response-models (pre 0.21.0)
 
 Key `:responses` takes a map of http-status-code -> model map, which translates to both return model coercion and
 to swagger `responseMessages` description. Models can be decorated with `:message` meta-data.
@@ -474,6 +474,40 @@ The `:return` maps the model just to the response 200, so one can also say:
   :responses    {200 (with-meta Total {:message "happy path"})
                  403 (with-meta {:code s/Str} {:message "spiders?"})
                  404 (with-meta {:reason s/Str} {:message "lost?"})}
+  :summary      "multiple returns models"
+  (case return
+    :200 (ok {:total 42})
+    :403 (forbidden {:code "forest"})
+    :404 (not-found {:reason "lost"})))
+```
+
+## Response-models (post 0.21.0)
+
+Key `:responses` takes a map of http-status-code to schema-definitions map
+(with optional `:schema`, `:description` and `:headers` keys). `:schema` defines the return model
+and get's automatic coersion for it.
+
+```clojure
+(GET* "/" []
+  :query-params [return :- (s/enum :200 :403 :404)]
+  :responses    {403 {:schema {:code s/Str, :description "spiders?"}}
+                 404 {:schema {:reson s/Str}, :description "lost?"}}
+  :return       Total
+  :summary      "multiple returns models"
+  (case return
+    :200 (ok {:total 42})
+    :403 (forbidden {:code "forest"})
+    :404 (not-found {:reason "lost"})))
+```
+
+The `:return` maps the model just to the response 200, so one can also say:
+
+```clojure
+(GET* "/" []
+  :query-params [return :- (s/enum :200 :403 :404)]
+  :responses    {200 {:schema Total, :description "happy path"}
+                 403 {:schema {:code s/Str, :description "spiders?"}}
+                 404 {:schema {:reson s/Str}, :description "lost?"}}
   :summary      "multiple returns models"
   (case return
     :200 (ok {:total 42})
