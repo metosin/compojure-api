@@ -136,7 +136,7 @@
 ; parameters and return schema coercion. Schemas can be decorated with meta-data.
 ; Examples:
 ; :responses {403 ErrorEnvelope}
-; :responses {403 ^{:message \"Underflow\"} ErrorEnvelope}
+; :responses {403 (with-meta ErrorEnvelope {:message \"Underflow\"}}
 (defmethod restructure-param :responses [_ responses acc]
   (let [messages (convert-responses responses)]
     (-> acc
