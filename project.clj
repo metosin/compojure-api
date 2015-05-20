@@ -12,7 +12,7 @@
                  [compojure "1.3.4"]
                  [prismatic/schema "0.4.2"]
                  [org.tobereplaced/lettercase "1.0.0"]
-                 [metosin/ring-http-response "0.6.1"]
+                 [metosin/ring-http-response "0.6.2"]
                  [metosin/ring-swagger "0.20.3"]
                  [metosin/ring-middleware-format "0.6.0"]
                  [backtick "0.3.2"]
