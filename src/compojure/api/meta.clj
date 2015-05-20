@@ -79,6 +79,7 @@
 (defn ensure-new-format! [responses]
   (doseq [[k v] responses
           :let [deprecated? (cond
+                              (nil? v) false
                               (not (map? v)) true
                               (or (:schema v) (:description v)) false
                               :else true)]
@@ -88,6 +89,7 @@
         (str
           "You are using old format with :responses. Since Compojure-api 0.21.0, "
           "plain ring-swagger 2.0 models are used. Example:\n\n"
+          ":responses {400 nil}\n"
           ":responses {400 {:schema ErrorSchema}}\n"
           ":responses {400 {:schema ErrorSchema, :description \"Error\"}}\n\n"
           "You had:\n\n:responses " responses "\n\n")))))
@@ -144,6 +146,7 @@
 ; value is a map of http-response-code -> Schema. Translates to both swagger
 ; parameters and return schema coercion. Schemas can be decorated with meta-data.
 ; Examples:
+; :responses {403 nil}
 ; :responses {403 {:schema ErrorEnvelope}}
 ; :responses {403 {:schema ErrorEnvelope, :description \"Underflow\"}}
 
