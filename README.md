@@ -503,7 +503,7 @@ an `InternalServerError` is raised with the schema validation errors.
 ```clojure
 (GET* "/" []
   :query-params [return :- (s/enum :200 :403 :404)]
-  :responses    {403 {:schema {:code s/Str, :description "spiders?"}}
+  :responses    {403 {:schema {:code s/Str}, :description "spiders?"}}
                  404 {:schema {:reson s/Str}, :description "lost?"}}
   :return       Total
   :summary      "multiple returns models"
@@ -519,7 +519,7 @@ The `:return` maps the model just to the response 200, so one can also say:
 (GET* "/" []
   :query-params [return :- (s/enum :200 :403 :404)]
   :responses    {200 {:schema Total, :description "happy path"}
-                 403 {:schema {:code s/Str, :description "spiders?"}}
+                 403 {:schema {:code s/Str}, :description "spiders?"}}
                  404 {:schema {:reson s/Str}, :description "lost?"}}
   :summary      "multiple returns models"
   (case return
