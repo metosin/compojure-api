@@ -301,6 +301,18 @@ See the [Swagger-spec](https://github.com/swagger-api/swagger-spec/blob/master/v
 As one might accidentally pass invalid swagger data in, you should validate the end results.
 See [wiki](https://github.com/metosin/compojure-api/wiki/Validating-the-Swagger-SPEC) for details.
 
+### Customizing Swagger output
+
+One can configure Ring-Swagger by providing options to `api-middleware` for key `:ring-swagger`. See [Ring-Swagger docs](https://github.com/metosin/ring-swagger#customizing-swagger-spec-output) for possible options and examples.
+
+```clojure
+(defapi app
+  {:ring-swagger {:ignore-missing-mappings? true}})
+  (swagger-docs)
+  (swagger-ui)
+  ...)
+```
+
 ## Models
 
 Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,

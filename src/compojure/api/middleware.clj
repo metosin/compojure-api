@@ -53,6 +53,21 @@
         (exception-handler e)))))
 
 ;;
+;; Ring-swagger options
+;;
+
+(defn wrap-ring-swagger-options
+  "Injects ring-swagger options into the request."
+  [handler options]
+  (fn [request]
+    (handler (assoc request ::ring-swagger-options options))))
+
+(defn get-ring-swagger-options
+  "Extracts ring-swagger options from the request."
+  [request]
+  (get request ::ring-swagger-options))
+
+;;
 ;; ring-middleware-format stuff
 ;;
 
@@ -104,7 +119,8 @@
             :response-opts {}}
    :validation-errors {:error-handler nil
                        :catch-core-errors? nil}
-   :exceptions {:exception-handler default-exception-handler}})
+   :exceptions {:exception-handler default-exception-handler}
+   :ring-swagger nil})
 
 (defn api-middleware
   "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
@@ -120,7 +136,9 @@
      :param-opts         - for ring.middleware.format-params/wrap-restful-params,
                            e.g. {:transit-json {:options {:handlers readers}}}
      :response-opts      - for ring.middleware.format-params/wrap-restful-response,
-                           e.g. {:transit-json {:handlers writers}}"
+                           e.g. {:transit-json {:handlers writers}}
+   :ring-swagger         - options for ring-swagger's swagger-json method.
+                           e.g. {:ignore-missing-mappings? true}"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
         {:keys [formats params-opts response-opts]} (:format options)]
@@ -130,6 +148,7 @@
         (wrap-exceptions (:exceptions options))
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
+        (wrap-ring-swagger-options (:ring-swagger options))
         (wrap-restful-params
          (merge {:formats (remove response-only-mimes formats)
                  :handle-error handle-req-error}

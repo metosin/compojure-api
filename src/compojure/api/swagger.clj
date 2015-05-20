@@ -7,6 +7,7 @@
             [compojure.api.meta :as m]
             [compojure.core :refer :all]
             [compojure.api.core :refer [GET*]]
+            [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
             [schema-tools.core :as st]
             [ring.swagger.swagger2-schema :as ss]
@@ -313,12 +314,13 @@
        (GET* ~path {:as request#}
          :no-doc true
          (let [runtime-info# (rsm/get-swagger-data request#)
-               base-path# {:basePath (base-path request#)}]
+               base-path# {:basePath (base-path request#)}
+               options# (mw/get-ring-swagger-options request#)]
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info
                                    base-path#)
-                   result# (swagger2/swagger-json swagger#)]
+                   result# (swagger2/swagger-json swagger# options#)]
                result#)))))))
 
 (defmacro swaggered

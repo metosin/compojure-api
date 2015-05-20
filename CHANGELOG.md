@@ -8,6 +8,16 @@
 :responses {400 {:schema ErrorSchema, :description "Eror"}}
 ```
 
+* allow configuring of Ring-Swagger via `api-middleware` options with key `:ring-swagger`:
+
+```clojure
+(defapi app
+  {:ring-swagger {:ignore-missing-mappings? true}})
+  (swagger-docs)
+  (swagger-ui)
+  ...)
+```
+
 * updated dependencies:
 
 ```clojure

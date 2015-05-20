@@ -7,7 +7,8 @@
             [flatland.ordered.map :as om]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [ring.swagger.core :as rsc]))
+            [ring.swagger.core :as rsc]
+            [ring.util.http-status :as status]))
 
 ;;
 ;; common
@@ -888,3 +889,15 @@
     status => 200
     (-> spec :paths vals first :get :responses :500 :description)
     => "Horror"))
+
+(fact "ring-swagger options"
+  (let [app (api
+              {:ring-swagger {:default-response-description-fn status/get-description}}
+              (swagger-docs)
+              (GET* "/ping" []
+                :responses {500 nil}
+                identity))
+        [status spec] (get* app "/swagger.json" {})]
+    status => 200
+    (-> spec :paths vals first :get :responses :500 :description)
+    => "There was an internal server error."))
