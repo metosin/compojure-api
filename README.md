@@ -468,8 +468,8 @@ to swagger `responseMessages` description. Models can be decorated with `:messag
 ```clojure
 (GET* "/" []
   :query-params [return :- (s/enum :200 :403 :404)]
-  :responses    {403 (with-meta {:code s/Str} {:message "spiders?"})
-                 404 (with-meta {:reason s/Str} {:message "lost?"})}
+  :responses    {403 ^{:message "spiders?"} {:code s/Str}
+                 404 ^{:message "lost?"} {:reason s/Str}}
   :return       Total
   :summary      "multiple returns models"
   (case return
@@ -483,9 +483,9 @@ The `:return` maps the model just to the response 200, so one can also say:
 ```clojure
 (GET* "/" []
   :query-params [return :- (s/enum :200 :403 :404)]
-  :responses    {200 (with-meta Total {:message "happy path"})
-                 403 (with-meta {:code s/Str} {:message "spiders?"})
-                 404 (with-meta {:reason s/Str} {:message "lost?"})}
+  :responses    {200 ^{:message "happy path"} Total
+  :responses    {403 ^{:message "spiders?"} {:code s/Str}
+                 404 ^{:message "lost?"} {:reason s/Str}}
   :summary      "multiple returns models"
   (case return
     :200 (ok {:total 42})
@@ -494,6 +494,8 @@ The `:return` maps the model just to the response 200, so one can also say:
 ```
 
 ## Response-models (post 0.21.0)
+
+This stuff works with `0.21.0-SNAPSHOT`.
 
 Key `:responses` takes a map of http-status-code to schema-definitions map
 (with optional `:schema`, `:description` and `:headers` keys). `:schema` defines the return model
