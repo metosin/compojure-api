@@ -24,7 +24,7 @@
 [metosin/ring-http-response "0.6.2"] is available but we use "0.6.1"
 ```
 
-## 0.20.4 (18.5.2015)
+## 0.20.4 (20.5.2015)
 
 * response descriptions can be given also with run-time meta-data (`with-meta`), fixes [#96](https://github.com/metosin/compojure-api/issues/96)
   * in next MINOR version, we'll switch to (Ring-)Swagger 2.0 format.
