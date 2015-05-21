@@ -35,13 +35,14 @@
                       :url "http://www.eclipse.org/legal/epl-v10.html"}}
      :tags [{:name "math", :description "Math with parameters"}
             {:name "pizzas", :description "Pizza API"}
-            {:name "failing", :description "handling uncaught exceptions"}
+            {:name "failing", :description "Handling uncaught exceptions"}
             {:name "dates", :description "Dates API"}
-            {:name "responses", :description "responses demo"}
-            {:name "primitives", :description "returning primitive values"}
+            {:name "responses", :description "Responses demo"}
+            {:name "primitives", :description "Returning primitive values"}
             {:name "context*", :description "context* routes"}
-            {:name "echo", :description "echoes data"}
-            {:name "ordered" :description "ordered schema"}]})
+            {:name "echo", :description "Echoes data"}
+            {:name "ordered", :description "Ordered schema"}
+            {:name "file", :description "File upload"}]})
 
   (context* "/math" []
     :tags ["math"]
