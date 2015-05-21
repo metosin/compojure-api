@@ -122,6 +122,7 @@
 
 (defmethod restructure-param :produces [k v acc]
   (update-in acc [:parameters] assoc k v))
+
 ;;
 ;; Smart restructurings
 ;;
@@ -239,12 +240,6 @@
 (defmethod restructure-param :middlewares [_ middlewares acc]
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
-
-(defmethod restructure-param :consumes [_ consumes acc]
-  (assoc-in acc [:parameters :consumes] consumes))
-
-(defmethod restructure-param :produces [_ produces acc]
-  (assoc-in acc [:parameters :produces] produces))
 
 ;;
 ;; Api
