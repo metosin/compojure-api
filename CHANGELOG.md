@@ -1,5 +1,6 @@
 ## 0.21.0 
 
+* **experimental**: File upload support using `compojure.api.upload` namespace
 * **breaking**: use plain Ring-Swagger 2.0 models with `:responses`. A helpful `IllegalArgumentException` will be thrown at compile-time with old models.
 * new way:
 

@@ -8,7 +8,8 @@
             [ring.swagger.schema :as schema]
             [ring.swagger.json-schema :as js]
             [ring.util.http-response :refer [internal-server-error]]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [schema-tools.core :as st]))
 
 ;;
 ;; Meta Evil
@@ -202,7 +203,13 @@
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
         (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)])
-        (assoc-in [:parameters :parameters :formData] schema))))
+        (update-in [:parameters :parameters :formData] st/merge schema))))
+
+(defmethod restructure-param :multipart-params [_ params acc]
+  (let [schema (strict (fnk-schema params))]
+    (-> acc
+        (update-in [:letks] into [params (src-coerce! schema :multipart-params :query)])
+        (update-in [:parameters :parameters :formData] st/merge schema))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]
@@ -232,6 +239,12 @@
 (defmethod restructure-param :middlewares [_ middlewares acc]
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
+
+(defmethod restructure-param :consumes [_ consumes acc]
+  (assoc-in acc [:parameters :consumes] consumes))
+
+(defmethod restructure-param :produces [_ produces acc]
+  (assoc-in acc [:parameters :produces] produces))
 
 ;;
 ;; Api

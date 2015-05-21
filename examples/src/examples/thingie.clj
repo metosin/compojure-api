@@ -1,6 +1,7 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
+            [compojure.api.upload :refer :all]
             [schema.core :as s]
             ring.swagger.json-schema-dirty
             [examples.pizza :refer [pizza-routes Pizza]]
@@ -180,4 +181,13 @@
       (ok))
     (GET* "/info" []
       :summary "from examples.thingie ns"
-      (ok {:source "examples.thingie"}))))
+      (ok {:source "examples.thingie"})))
+
+  (context* "/file" []
+    :tags ["file"]
+
+    (POST* "/upload" []
+      :multipart-params [file :- TempFileUpload]
+      :middlewares [wrap-multipart-params]
+      :consumes ["multipart/form-data"]
+      (ok (dissoc file :tempfile)))))
