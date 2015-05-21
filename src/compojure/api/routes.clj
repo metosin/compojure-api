@@ -6,9 +6,13 @@
 
 (defn route-lookup-table [routes]
   (for-map [[path endpoints] (:paths routes)
-            [method {:keys [x-name]}] endpoints
+            [method {:keys [x-name parameters]}] endpoints
+            :let [params (:path parameters)]
             :when x-name]
-    x-name {path method}))
+    x-name {path (merge
+                   {:method method}
+                   (if params
+                     {:params params}))}))
 
 (defmacro api-root [& body]
   (let [[routes body] (collect-routes body)

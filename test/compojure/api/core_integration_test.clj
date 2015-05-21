@@ -928,7 +928,8 @@
                   (ok {:country country
                        :zip zip}))
                 (GET* "/api/ping" []
-                  (moved-permanently (path-for :lost {:country "FI", :zip "33200"}))))]
+                  (moved-permanently
+                    (path-for :lost {:country "FI", :zip "33200"}))))]
       (fact "path-for resolution"
         (let [[status body] (get* app "/api/ping" {})]
           status => 200

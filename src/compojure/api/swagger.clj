@@ -335,13 +335,12 @@
 (defmacro path-for
   "Extracts the lookup-table from request and finds a route by name."
   [route-name & [params]]
-  `(let [path# (some-> ~'+compojure-api-request+
-                       mw/get-options
-                       :lookup
-                       ~route-name
-                       keys
-                       first)
-         path-params# (zipmap (path-params path#) (repeat s/Any))]
+  `(let [[path# details#] (some-> ~'+compojure-api-request+
+                                  mw/get-options
+                                  :lookup
+                                  ~route-name
+                                  first)
+         path-params# (:params details#)]
      (if (seq path-params#)
        (->path path# ~params)
        path#)))
