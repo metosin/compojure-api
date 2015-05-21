@@ -10,7 +10,7 @@
    wrap-multipart-params])
 
 ; Works exactly like map schema but wrapped in record for json-type dispatch
-(defrecord File [m]
+(defrecord Upload [m]
   schema.core.Schema
   (walker [this]
     (let [sub-walker (s/subschema-walker m)]
@@ -20,15 +20,17 @@
          (sub-walker x)))))
   (explain [this] (cons 'file m)))
 
-(def temp-file
-  (File. {:filename s/Str
-          :content-type s/Str
-          :size s/Int
-          (s/optional-key :tempfile) java.io.File}))
+(def TempFileUpload
+  "Schema for file param created by ring.middleware.multipart-params.temp-file store."
+  (->Upload {:filename s/Str
+             :content-type s/Str
+             :size s/Int
+             (s/optional-key :tempfile) java.io.File}))
 
-(def byte-array
-  (File. {:filename s/Str
-          :content-type s/Str
-          :bytes s/Any}))
+(def ByteArrayUpload
+  "Schema for file param created by ring.middleware.multipart-params.byte-array store."
+  (->Upload {:filename s/Str
+             :content-type s/Str
+             :bytes s/Any}))
 
-(defmethod js/json-type File [_] {:type "file"})
+(defmethod js/json-type Upload [_] {:type "file"})

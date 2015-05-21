@@ -187,7 +187,7 @@
     :tags ["file"]
 
     (POST* "/upload" []
-      :multipart-params [file :- temp-file]
+      :multipart-params [file :- TempFileUpload]
       :middlewares [wrap-multipart-params]
       :consumes ["multipart/form-data"]
       (ok (dissoc file :tempfile)))))
