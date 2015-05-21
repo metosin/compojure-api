@@ -932,6 +932,5 @@
       (fact "path-for resolution"
         (let [[status body] (get* app "/api/ping" {})]
           status => 200
-          body => {:contry "FI"
+          body => {:country "FI"
                    :zip 33200})))))
-
