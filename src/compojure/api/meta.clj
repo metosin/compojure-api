@@ -135,6 +135,12 @@
 (defmethod restructure-param :no-doc [k v acc]
   (update-in acc [:parameters] assoc k v))
 
+; Route name, used with path-for
+; Example:
+; :name :user-route
+(defmethod restructure-param :name [k v acc]
+  (update-in acc [:parameters] assoc k v))
+
 ; Tags for api categorization. Ignores duplicates.
 ; Examples:
 ; :tags [:admin]

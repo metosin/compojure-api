@@ -38,6 +38,8 @@
   ;; swaggered
   [compojure.api.swagger
 
+   path-for
+
    swagger-ui
    swagger-docs
    swaggered]

@@ -315,13 +315,24 @@
          :no-doc true
          (let [runtime-info# (rsm/get-swagger-data request#)
                base-path# {:basePath (base-path request#)}
-               options# (mw/get-ring-swagger-options request#)]
+               options# (:ring-swagger (mw/get-options request#))]
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info
                                    base-path#)
                    result# (swagger2/swagger-json swagger# options#)]
                result#)))))))
+
+(defmacro path-for
+  "Extracts the lookup-table from request and finds a route
+  by name."
+  [route-name]
+  `(some-> ~'+compojure-api-request+
+           mw/get-options
+           :lookup
+           ~route-name
+           keys
+           first))
 
 (defmacro swaggered
   "DEPRECATED. Use context* with :tags instead:

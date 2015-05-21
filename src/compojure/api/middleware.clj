@@ -56,16 +56,16 @@
 ;; Ring-swagger options
 ;;
 
-(defn wrap-ring-swagger-options
-  "Injects ring-swagger options into the request."
+(defn wrap-options
+  "Injects compojure-api options into the request."
   [handler options]
   (fn [request]
-    (handler (assoc request ::ring-swagger-options options))))
+    (handler (update-in request [::options] merge options))))
 
-(defn get-ring-swagger-options
-  "Extracts ring-swagger options from the request."
+(defn get-options
+  "Extracts compojure-api options from the request."
   [request]
-  (get request ::ring-swagger-options))
+  (::options request))
 
 ;;
 ;; ring-middleware-format stuff
@@ -148,7 +148,7 @@
         (wrap-exceptions (:exceptions options))
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
-        (wrap-ring-swagger-options (:ring-swagger options))
+        (wrap-options (select-keys options [:ring-swagger]))
         (wrap-restful-params
          (merge {:formats (remove response-only-mimes formats)
                  :handle-error handle-req-error}

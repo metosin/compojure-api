@@ -16,13 +16,19 @@
 
 (defn json [x] (cheshire/generate-string x))
 
+(defn follow-redirect [state]
+  (if (some-> state :response :headers (get "Location"))
+    (p/follow-redirect state)
+    state))
+
 (defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :get
                        :params (or params {})
-                       :headers (or headers {})))]
+                       :headers (or headers {}))
+            follow-redirect)]
     [status (read-body body) headers]))
 
 (defn get* [app uri & [params headers]]
@@ -901,3 +907,16 @@
     status => 200
     (-> spec :paths vals first :get :responses :500 :description)
     => "There was an internal server error."))
+
+(fact "path-for"
+  (let [app (api
+              (swagger-docs)
+              (GET* "/api/pong" []
+                :name :pong
+                (ok {:pong "pong"}))
+              (GET* "/api/ping" []
+                (moved-permanently (path-for :pong))))]
+    (fact "path-for resolution"
+      (let [[status body] (get* app "/api/ping" {})]
+        status => 200
+        body => {:pong "pong"}))))
