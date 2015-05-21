@@ -138,8 +138,8 @@
 ; Route name, used with path-for
 ; Example:
 ; :name :user-route
-(defmethod restructure-param :name [k v acc]
-  (update-in acc [:parameters] assoc k v))
+(defmethod restructure-param :name [_ v acc]
+  (update-in acc [:parameters] assoc :x-name v))
 
 ; Tags for api categorization. Ignores duplicates.
 ; Examples:

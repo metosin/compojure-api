@@ -36,6 +36,7 @@
     ;; defroutes* over a Var
     #'ping-routes
     (GET* "/bands" []
+      :name :bands
       :return   [Band]
       :summary  "Gets all Bands"
       :description "bands bands bands"
@@ -75,7 +76,8 @@
 
     => {:paths {"/ping" {:get nil}
                 "/api/ping" {:get nil}
-                "/api/bands" {:get {:operationId "getBands"
+                "/api/bands" {:get {:x-name :bands
+                                    :operationId "getBands"
                                     :description "bands bands bands"
                                     :responses {200 {:schema [Band]
                                                      :description ""}}
@@ -121,7 +123,8 @@
                  :basePath "/"
                  :consumes ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"],
                  :produces ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"]
-                 :paths {(keyword "/api/bands") {:get {:operationId "getBands"
+                 :paths {(keyword "/api/bands") {:get {:x-name "bands"
+                                                       :operationId "getBands"
                                                        :description "bands bands bands"
                                                        :responses {:200 {:description ""
                                                                          :schema {:items {:$ref "#/definitions/Band"}
