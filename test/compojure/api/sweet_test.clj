@@ -71,7 +71,7 @@
 (facts "api documentation"
   (fact "details are generated"
 
-    (meta app)
+    (-> app meta :routes)
 
     => {:paths {"/ping" {:get nil}
                 "/api/ping" {:get nil}
