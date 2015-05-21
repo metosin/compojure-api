@@ -326,13 +326,14 @@
 (defmacro path-for
   "Extracts the lookup-table from request and finds a route
   by name."
-  [route-name]
-  `(some-> ~'+compojure-api-request+
-           mw/get-options
-           :lookup
-           ~route-name
-           keys
-           first))
+  [route-name & [path-params]]
+  `(let [path# (some-> ~'+compojure-api-request+
+                      mw/get-options
+                      :lookup
+                      ~route-name
+                      keys
+                      first)]
+     path#))
 
 (defmacro swaggered
   "DEPRECATED. Use context* with :tags instead:

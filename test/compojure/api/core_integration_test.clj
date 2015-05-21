@@ -909,14 +909,27 @@
     => "There was an internal server error."))
 
 (fact "path-for"
-  (let [app (api
-              (swagger-docs)
-              (GET* "/api/pong" []
-                :name :pong
-                (ok {:pong "pong"}))
-              (GET* "/api/ping" []
-                (moved-permanently (path-for :pong))))]
-    (fact "path-for resolution"
-      (let [[status body] (get* app "/api/ping" {})]
-        status => 200
-        body => {:pong "pong"}))))
+  (fact "simple case"
+    (let [app (api
+                (GET* "/api/pong" []
+                  :name :pong
+                  (ok {:pong "pong"}))
+                (GET* "/api/ping" []
+                  (moved-permanently (path-for :pong))))]
+      (fact "path-for works"
+        (let [[status body] (get* app "/api/ping" {})]
+          status => 200
+          body => {:pong "pong"}))))
+  (fact "with path parameters"
+    (let [app (api
+                (GET* "/lost-in/:country/:zip" []
+                  :name :lost
+                  :path-params [country s/Str, zip s/Int]
+                  (ok {:pong "pong"}))
+                (GET* "/api/ping" []
+                  (moved-permanently (path-for :lost {:country "FI", :zip "33200"}))))]
+      (fact "path-for resolution"
+        (let [[status body] (get* app "/api/ping" {})]
+          status => 200
+          body => {:pong "pong"})))))
+
