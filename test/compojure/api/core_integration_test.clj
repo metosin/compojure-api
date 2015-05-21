@@ -925,11 +925,13 @@
                 (GET* "/lost-in/:country/:zip" []
                   :name :lost
                   :path-params [country :- s/Str, zip :- s/Int]
-                  (ok {:pong "pong"}))
+                  (ok {:country country
+                       :zip zip}))
                 (GET* "/api/ping" []
                   (moved-permanently (path-for :lost {:country "FI", :zip "33200"}))))]
       (fact "path-for resolution"
         (let [[status body] (get* app "/api/ping" {})]
           status => 200
-          body => {:pong "pong"})))))
+          body => {:contry "FI"
+                   :zip 33200})))))
 
