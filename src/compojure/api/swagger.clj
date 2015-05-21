@@ -155,6 +155,15 @@
 (defn path-params [s]
   (map (comp keyword second) (re-seq #":(.[^:|(/]*)[/]?" s)))
 
+(defn ->path [s params]
+  (->> s
+       (re-seq #"(.*?):(.[^:|(/]*)([/]?)")
+       (map (comp vec rest))
+       (map #(update-in % [1] keyword))
+       flatten
+       (map (fn [token] (if (keyword? token) (token params) token)))
+       (apply str)))
+
 (defn string-path-parameters [uri]
   (let [params (path-params uri)]
     (if (seq params)
@@ -324,16 +333,18 @@
                result#)))))))
 
 (defmacro path-for
-  "Extracts the lookup-table from request and finds a route
-  by name."
-  [route-name & [path-params]]
+  "Extracts the lookup-table from request and finds a route by name."
+  [route-name & [params]]
   `(let [path# (some-> ~'+compojure-api-request+
-                      mw/get-options
-                      :lookup
-                      ~route-name
-                      keys
-                      first)]
-     path#))
+                       mw/get-options
+                       :lookup
+                       ~route-name
+                       keys
+                       first)
+         path-params# (zipmap (path-params path#) (repeat s/Any))]
+     (if (seq path-params#)
+       (->path path# ~params)
+       path#)))
 
 (defmacro swaggered
   "DEPRECATED. Use context* with :tags instead:

@@ -924,7 +924,7 @@
     (let [app (api
                 (GET* "/lost-in/:country/:zip" []
                   :name :lost
-                  :path-params [country s/Str, zip s/Int]
+                  :path-params [country :- s/Str, zip :- s/Int]
                   (ok {:pong "pong"}))
                 (GET* "/api/ping" []
                   (moved-permanently (path-for :lost {:country "FI", :zip "33200"}))))]
