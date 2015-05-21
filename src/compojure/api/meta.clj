@@ -116,6 +116,11 @@
 (defmethod restructure-param :operationId [k v acc]
   (update-in acc [:parameters] assoc k v))
 
+(defmethod restructure-param :consumes [k v acc]
+  (update-in acc [:parameters] assoc k v))
+
+(defmethod restructure-param :produces [k v acc]
+  (update-in acc [:parameters] assoc k v))
 ;;
 ;; Smart restructurings
 ;;
