@@ -78,11 +78,13 @@
         :description (or (js/json-schema-meta schema) "")}})
 
 (defn ensure-new-format! [responses]
-  (doseq [[k v] responses
+  (doseq [v (vals responses)
           :let [deprecated? (cond
                               (nil? v) false
                               (not (map? v)) true
-                              (or (:schema v) (:description v)) false
+                              (or (:schema v)
+                                  (:description v)
+                                  (:headers v)) false
                               :else true)]
           :when deprecated?]
     (throw
