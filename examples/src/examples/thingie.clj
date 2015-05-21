@@ -1,9 +1,9 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
+            [compojure.api.upload :refer :all]
             [schema.core :as s]
             ring.swagger.json-schema-dirty
-            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [examples.pizza :refer [pizza-routes Pizza]]
             [examples.ordered :refer [ordered-routes]]
             [examples.dates :refer [date-routes]])
@@ -187,7 +187,7 @@
     :tags ["file"]
 
     (POST* "/upload" []
-      :multipart-params [file :- ring.swagger.json-schema/file]
+      :multipart-params [file :- temp-file]
       :middlewares [wrap-multipart-params]
       :consumes ["multipart/form-data"]
       (ok (dissoc file :tempfile)))))
