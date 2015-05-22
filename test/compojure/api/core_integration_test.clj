@@ -16,13 +16,19 @@
 
 (defn json [x] (cheshire/generate-string x))
 
+(defn follow-redirect [state]
+  (if (some-> state :response :headers (get "Location"))
+    (p/follow-redirect state)
+    state))
+
 (defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :get
                        :params (or params {})
-                       :headers (or headers {})))]
+                       :headers (or headers {}))
+            follow-redirect)]
     [status (read-body body) headers]))
 
 (defn get* [app uri & [params headers]]
@@ -901,3 +907,42 @@
     status => 200
     (-> spec :paths vals first :get :responses :500 :description)
     => "There was an internal server error."))
+
+(fact "path-for"
+  (fact "simple case"
+    (let [app (api
+                (GET* "/api/pong" []
+                  :name :pong
+                  (ok {:pong "pong"}))
+                (GET* "/api/ping" []
+                  (moved-permanently (path-for :pong))))]
+      (fact "path-for works"
+        (let [[status body] (get* app "/api/ping" {})]
+          status => 200
+          body => {:pong "pong"}))))
+
+  (fact "with path parameters"
+    (let [app (api
+                (GET* "/lost-in/:country/:zip" []
+                  :name :lost
+                  :path-params [country :- (s/enum :FI :EN), zip :- s/Int]
+                  (ok {:country country
+                       :zip zip}))
+                (GET* "/api/ping" []
+                  (moved-permanently
+                    (path-for :lost {:country :FI, :zip 33200}))))]
+      (fact "path-for resolution"
+        (let [[status body] (get* app "/api/ping" {})]
+          status => 200
+          body => {:country "FI"
+                   :zip 33200}))))
+
+  (fact "multiple routes with same name fail at compile-time"
+    (let [api' `(api
+                  (GET* "/api/pong" []
+                    :name :pong
+                    identity)
+                  (GET* "/api/ping" []
+                    :name :pong
+                    identity))]
+      (eval api') => (throws RuntimeException))))

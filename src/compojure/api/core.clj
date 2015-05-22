@@ -1,7 +1,7 @@
 (ns compojure.api.core
   (:require [clojure.tools.macro :refer [name-with-attributes]]
             [compojure.api.meta :refer [restructure]]
-            [compojure.api.middleware :refer [api-middleware]]
+            [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
@@ -9,16 +9,18 @@
             [ring.swagger.common :refer [extract-parameters]]
             [backtick :refer [syntax-quote]]))
 
-(defn api-middleware-with-swagger-data
+(defn api-middleware-with-swagger-and-lookup-data
   "Returns a compojure.api.middleware/api-middlware wrapped handler,
-  which publishes the handler meta as swagger-data and has it's own
-  meta data."
+  which publishes the swagger route-data via ring-swagger and route
+  lookup table via wrap-options. Returned handler retains the original
+  meta-data."
   [handler options]
-  (let [swagger-data (meta handler)]
+  (let [{:keys [routes lookup] :as meta} (meta handler)]
     (-> handler
-        (rsm/wrap-swagger-data swagger-data)
-        (api-middleware options)
-        (with-meta swagger-data))))
+        (rsm/wrap-swagger-data routes)
+        (mw/api-middleware options)
+        (mw/wrap-options {:lookup lookup})
+        (with-meta meta))))
 
 (defmacro api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
@@ -34,7 +36,7 @@
    ... see compojure.api.middleware/api-middleware for possible options."
   [& body]
   (let [[opts body] (extract-parameters body)]
-    `(api-middleware-with-swagger-data
+    `(api-middleware-with-swagger-and-lookup-data
        (routes/api-root ~@body)
        ~opts)))
 

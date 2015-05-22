@@ -78,11 +78,13 @@
         :description (or (js/json-schema-meta schema) "")}})
 
 (defn ensure-new-format! [responses]
-  (doseq [[k v] responses
+  (doseq [v (vals responses)
           :let [deprecated? (cond
                               (nil? v) false
                               (not (map? v)) true
-                              (or (:schema v) (:description v)) false
+                              (or (:schema v)
+                                  (:description v)
+                                  (:headers v)) false
                               :else true)]
           :when deprecated?]
     (throw
@@ -132,6 +134,12 @@
 ; :no-doc true
 (defmethod restructure-param :no-doc [k v acc]
   (update-in acc [:parameters] assoc k v))
+
+; Route name, used with path-for
+; Example:
+; :name :user-route
+(defmethod restructure-param :name [_ v acc]
+  (update-in acc [:parameters] assoc :x-name v))
 
 ; Tags for api categorization. Ignores duplicates.
 ; Examples:

@@ -17,7 +17,9 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
             [ring.swagger.swagger2 :as swagger2]
-            [schema.core :as s]))
+            [cheshire.core :as json]
+            [schema.core :as s]
+            [clojure.string :as str]))
 
 ;;
 ;; Source Linking
@@ -154,6 +156,26 @@
 
 (defn path-params [s]
   (map (comp keyword second) (re-seq #":(.[^:|(/]*)[/]?" s)))
+
+(defn ->path [s params]
+  (->> s
+       (re-seq #"(.*?):(.[^:|(/]*)([/]?)")
+       (map (comp vec rest))
+       (map #(update-in % [1] keyword))
+       flatten
+       (map (fn [token]
+              (if (keyword? token)
+                (str/replace
+                  (json/generate-string
+                    (or (token params)
+                        (throw
+                          (IllegalArgumentException.
+                            (str "Missing path-parameter "
+                                 token " for path " s)))))
+                  #"^\"(.+(?=\"$))\"$"
+                  "$1")
+                token)))
+       (apply str)))
 
 (defn string-path-parameters [uri]
   (let [params (path-params uri)]
@@ -315,13 +337,31 @@
          :no-doc true
          (let [runtime-info# (rsm/get-swagger-data request#)
                base-path# {:basePath (base-path request#)}
-               options# (mw/get-ring-swagger-options request#)]
+               options# (:ring-swagger (mw/get-options request#))]
            (ok
              (let [swagger# (merge runtime-info#
                                    ~extra-info
                                    base-path#)
                    result# (swagger2/swagger-json swagger# options#)]
                result#)))))))
+
+(defn path-for*
+  "Extracts the lookup-table from request and finds a route by name."
+  [route-name request & [params]]
+  (let [[path details] (some-> request
+                               mw/get-options
+                               :lookup
+                               route-name
+                               first)
+        path-params (:params details)]
+    (if (seq path-params)
+      (->path path params)
+      path)))
+
+(defmacro path-for
+  "Extracts the lookup-table from request and finds a route by name."
+  [route-name & [params]]
+  `(path-for* ~route-name ~'+compojure-api-request+ ~params))
 
 (defmacro swaggered
   "DEPRECATED. Use context* with :tags instead:

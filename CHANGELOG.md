@@ -19,6 +19,22 @@
   ...)
 ```
 
+* Bidirectinal routing, inspired by [bidi](https://github.com/juxt/bidi) - named routes & `path-for`:
+
+```clojure
+(fact "bidirectional routing"
+  (let [app (api
+              (GET* "/api/pong" []
+                :name :pong
+                (ok {:pong "pong"}))
+              (GET* "/api/ping" []
+                (moved-permanently (path-for :pong))))]
+    (fact "path-for resolution"
+      (let [[status body] (get* app "/api/ping" {})]
+        status => 200
+        body => {:pong "pong"}))))
+```
+
 * updated dependencies:
 
 ```clojure
