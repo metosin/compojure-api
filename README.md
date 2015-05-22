@@ -314,6 +314,34 @@ One can configure Ring-Swagger by providing options to `api-middleware` for key 
   ...)
 ```
 
+### Bi-directional routing
+
+Inspired by the awesome [bidi](https://github.com/juxt/bidi), Compojure-api also supports bi-directional routing. Routes can be attached with a
+`:name` and other endpoints can refer to them via `path-for` macro (or `path-for*` function). `path-for` takes the route-name and optionally a map
+of path-parameters needed to construct the full route. Normal ring-swagger path-parameter serialization is used, so one can use all supported Schema
+elements as the provided parameters.
+
+Route names should be keywords. Compojure-api ensures that there are no duplicate endpoint names within an `api`, raising a `IllegalArgumentException`
+at compile-time if it founds multiple routes with same name. Route name is published as `:x-name` into the Swagger docs.
+
+```clojure
+(fact "bi-directional routing with path-parameters"
+    (let [app (api
+                (GET* "/lost-in/:country/:zip" []
+                  :name :lost
+                  :path-params [country :- (s/enum :FI :EN), zip :- s/Int]
+                  (ok {:country country
+                       :zip zip}))
+                (GET* "/api/ping" []
+                  (moved-permanently
+                    (path-for :lost {:country :FI, :zip 33200}))))]
+      (fact "path-for resolution"
+        (let [[status body] (get* app "/api/ping" {})]
+          status => 200
+          body => {:country "FI"
+                   :zip 33200}))))
+```
+
 ## Models
 
 Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,
@@ -608,19 +636,6 @@ macroexpanding-1 it too see what's get generated:
 ## Running the embedded example
 
 `lein start-samples`
-
-## Features and weird things
-
-- All routes are collected at compile-time
-  - there is basically no runtime penalty for describing your apis
-  - all runtime code between route-macros are ignored when macro-peeling route-trees. See [tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/swagger_test.clj)
-  - `api-root` peels the macros until it reaches `compojure.core` Vars. You can write your own DSL-macros on top of those
-
-## Roadmap
-
-- don't pollute api namespaces with `+routes+` var, use lexically/dynamically scoped route tree instead
-- type-safe `:params` destructuring
-- `url-for` for endpoints (bidi, bidi, bidi)
 
 ## License
 
