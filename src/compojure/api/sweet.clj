@@ -35,10 +35,13 @@
    POST*
    PUT*]
 
+  ;; routes
+  [compojure.api.routes
+
+   path-for]
+
   ;; swaggered
   [compojure.api.swagger
-
-   path-for
 
    swagger-ui
    swagger-docs

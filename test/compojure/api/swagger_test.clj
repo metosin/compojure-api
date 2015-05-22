@@ -170,19 +170,3 @@
            '(r1 r2)))
   => {:paths {"/:id"       {:get {:parameters {:path {:id String}}}}
               "/kukka/:id" {:get {:parameters {:path {:id Long}}}}}})
-
-(facts "->path"
-
-  (fact "missing path parameter"
-    (->path "/api/:kikka" {})
-    => (throws IllegalArgumentException))
-
-  (fact "missing serialization"
-    (->path "/api/:kikka" {:kikka (java.security.SecureRandom.)})
-    => (throws com.fasterxml.jackson.core.JsonGenerationException))
-
-  (fact "happy path"
-    (->path "/a/:b/:c/d/:e" {:b (LocalDate/parse "2015-05-22")
-                             :c 12345
-                             :e :kikka})
-    => "/a/2015-05-22/12345/d/kikka"))
