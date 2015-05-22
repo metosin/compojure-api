@@ -302,7 +302,6 @@
                :license {:name: \"Eclipse Public License\"
                          :url: \"http://www.eclipse.org/legal/epl-v10.html\"}}
         :tags [{:name \"sausages\", :description \"Sausage api-set}]}"
-  {:doc/format :markdown}
   [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]

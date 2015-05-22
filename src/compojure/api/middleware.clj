@@ -139,7 +139,6 @@
                                  e.g. `{:transit-json {:handlers writers}}`
    - **:ring-swagger**         options for ring-swagger's swagger-json method.
                                e.g. `{:ignore-missing-mappings? true}`"
-  {:doc/format :markdown}
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
         {:keys [formats params-opts response-opts]} (:format options)]
