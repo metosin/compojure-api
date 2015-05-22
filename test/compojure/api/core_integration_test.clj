@@ -476,7 +476,7 @@
                 (continue)))]
 
     (fact "api-listing"
-      (let [[status body] (get* app "/swagger.json" {})]
+      (let [[status body] (get* app "/swagger.json")]
         status => 200
         body => {:swagger "2.0"
                  :info {:title "Swagger API"
@@ -496,7 +496,7 @@
                 identity))]
 
     (fact "api-docs"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
 
         (fact "are found"
           status => 200)
@@ -528,7 +528,7 @@
                 identity))]
 
     (fact "api-docs"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
 
         (fact "are found"
           status => 200)
@@ -557,7 +557,7 @@
                 identity))]
 
     (fact "api-docs"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
 
         (fact "are found"
           status => 200)
@@ -577,7 +577,7 @@
                 (ok 2)))]
 
     (fact "api-docs"
-      (let [[status body] (get* app "/swagger.json" {})]
+      (let [[status body] (get* app "/swagger.json")]
         status => 200
         (-> body :paths vals first) =>
         {:get {:parameters [{:description ""
@@ -619,7 +619,7 @@
 
     ;; TODO: order!
     #_(fact "swagger-docs have trailing slashes removed"
-      (let [[status body] (get* api "/swagger.json" {})]
+      (let [[status body] (get* api "/swagger.json")]
         status => 200
         (->> body
              :paths
@@ -710,7 +710,7 @@
         body => "b"))
 
     (fact "swaggered pushes tag to endpoints"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
         (:paths spec) => {:/api/a {:get {:responses {:default {:description ""}}
                                          :tags ["a"]}}
@@ -741,7 +741,7 @@
         body => burger))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
         (-> spec :definitions keys set) => #{:Topping :Pizza :Burger :Beef}))))
 
@@ -761,7 +761,7 @@
         body => {:ping "active"}))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
         (-> spec :paths vals first :get :summary) => "active-ping"))))
 
@@ -785,7 +785,7 @@
         body => {:ping "active"}))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
         (-> spec :paths vals first :get :summary) => "active-ping"))))
 
@@ -808,7 +808,7 @@
         body => {:ping "active"}))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
         (-> spec :paths vals first :get :summary) => "active-ping"))))
 
@@ -835,7 +835,7 @@
         body => data))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* api "/swagger.json" {})]
+      (let [[status spec] (get* api "/swagger.json")]
         status => 200
         (-> spec :definitions :Kikka :properties keys) => (keys Kikka)))))
 
@@ -843,11 +843,11 @@
 (fact "basePath"
   (let [app (api (swagger-docs))]
     (fact "no context"
-      (let [[_ spec] (get* app "/swagger.json" {})]
+      (let [[_ spec] (get* app "/swagger.json")]
         (:basePath spec) => "/"))
     (fact "app-servers with given context"
       (against-background (rsc/context anything) => "/v2")
-      (let [[_ spec] (get* app "/swagger.json" {})]
+      (let [[_ spec] (get* app "/swagger.json")]
         (:basePath spec) => "/v2"))))
 
 (fact "multiple different models with same name"
@@ -863,7 +863,7 @@
                               201 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}}
                   identity))]
       (fact "api spec doesn't fail (#102)"
-        (let [[status spec] (get* app "/swagger.json" {})]
+        (let [[status spec] (get* app "/swagger.json")]
           status => 200
           spec => anything)))))
 
@@ -877,7 +877,7 @@
               (swagger-docs)
               over-the-hills-and-far-away)]
     (fact "generated model doesn't have namespaced keys"
-      (let [[status spec] (get* app "/swagger.json" {})]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
         (-> spec :definitions vals first :properties keys first) => :a))))
 
@@ -891,7 +891,7 @@
   (let [app (api
               (swagger-docs)
               response-descriptions-routes)
-        [status spec] (get* app "/swagger.json" {})]
+        [status spec] (get* app "/swagger.json")]
     status => 200
     (-> spec :paths vals first :get :responses :500 :description)
     => "Horror"))
@@ -903,7 +903,7 @@
               (GET* "/ping" []
                 :responses {500 nil}
                 identity))
-        [status spec] (get* app "/swagger.json" {})]
+        [status spec] (get* app "/swagger.json")]
     status => 200
     (-> spec :paths vals first :get :responses :500 :description)
     => "There was an internal server error."))
