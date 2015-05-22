@@ -9,21 +9,21 @@
         :when (> freq 1)] id))
 
 (defn- route-lookup-table [routes]
-  (let [entrys (for [[path endpoints] (:paths routes)
-                     [method {:keys [x-name parameters]}] endpoints
-                     :let [params (:path parameters)]
-                     :when x-name]
-                 [x-name {path (merge
-                                 {:method method}
-                                 (if params
-                                   {:params params}))}])
-        route-names (map first entrys)
+  (let [entries (for [[path endpoints] (:paths routes)
+                      [method {:keys [x-name parameters]}] endpoints
+                      :let [params (:path parameters)]
+                      :when x-name]
+                  [x-name {path (merge
+                                  {:method method}
+                                  (if params
+                                    {:params params}))}])
+        route-names (map first entries)
         duplicate-route-names (duplicates route-names)]
     (when (seq duplicate-route-names)
       (throw (IllegalArgumentException.
                (str "Found multiple routes with same name: "
                     (string/join "," duplicate-route-names)))))
-    (into {} entrys)))
+    (into {} entries)))
 
 (defmacro api-root [& body]
   (let [[routes body] (collect-routes body)
