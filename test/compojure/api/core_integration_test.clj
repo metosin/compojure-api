@@ -920,6 +920,7 @@
         (let [[status body] (get* app "/api/ping" {})]
           status => 200
           body => {:pong "pong"}))))
+
   (fact "with path parameters"
     (let [app (api
                 (GET* "/lost-in/:country/:zip" []
@@ -934,4 +935,14 @@
         (let [[status body] (get* app "/api/ping" {})]
           status => 200
           body => {:country "FI"
-                   :zip 33200})))))
+                   :zip 33200}))))
+
+  (fact "multiple routes with same name fail at compile-time"
+    (let [api' `(api
+                  (GET* "/api/pong" []
+                    :name :pong
+                    identity)
+                  (GET* "/api/ping" []
+                    :name :pong
+                    identity))]
+      (eval api') => (throws RuntimeException))))

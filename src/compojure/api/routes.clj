@@ -1,18 +1,29 @@
 (ns compojure.api.routes
   (:require [compojure.core :refer :all]
-            [plumbing.core :refer [for-map]]))
+            [clojure.string :as string]))
 
 (defmulti collect-routes identity)
 
+(defn duplicates [seq]
+  (for [[id freq] (frequencies seq)
+        :when (> freq 1)] id))
+
 (defn route-lookup-table [routes]
-  (for-map [[path endpoints] (:paths routes)
-            [method {:keys [x-name parameters]}] endpoints
-            :let [params (:path parameters)]
-            :when x-name]
-    x-name {path (merge
-                   {:method method}
-                   (if params
-                     {:params params}))}))
+  (let [entrys (for [[path endpoints] (:paths routes)
+                     [method {:keys [x-name parameters]}] endpoints
+                     :let [params (:path parameters)]
+                     :when x-name]
+                 [x-name {path (merge
+                                 {:method method}
+                                 (if params
+                                   {:params params}))}])
+        route-names (map first entrys)
+        duplicate-route-names (duplicates route-names)]
+    (when (seq duplicate-route-names)
+      (throw (IllegalArgumentException.
+               (str "Found multiple routes with same name: "
+                    (string/join "," duplicate-route-names)))))
+    (into {} entrys)))
 
 (defmacro api-root [& body]
   (let [[routes body] (collect-routes body)
