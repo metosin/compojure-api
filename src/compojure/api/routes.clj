@@ -4,11 +4,11 @@
 
 (defmulti collect-routes identity)
 
-(defn duplicates [seq]
+(defn- duplicates [seq]
   (for [[id freq] (frequencies seq)
         :when (> freq 1)] id))
 
-(defn route-lookup-table [routes]
+(defn- route-lookup-table [routes]
   (let [entrys (for [[path endpoints] (:paths routes)
                      [method {:keys [x-name parameters]}] endpoints
                      :let [params (:path parameters)]
