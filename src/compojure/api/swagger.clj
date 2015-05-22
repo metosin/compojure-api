@@ -17,7 +17,9 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
             [ring.swagger.swagger2 :as swagger2]
-            [schema.core :as s]))
+            [cheshire.core :as json]
+            [schema.core :as s]
+            [clojure.string :as str]))
 
 ;;
 ;; Source Linking
@@ -161,7 +163,18 @@
        (map (comp vec rest))
        (map #(update-in % [1] keyword))
        flatten
-       (map (fn [token] (if (keyword? token) (token params) token)))
+       (map (fn [token]
+              (if (keyword? token)
+                (str/replace
+                  (json/generate-string
+                    (or (token params)
+                        (throw
+                          (IllegalArgumentException.
+                            (str "Missing path-parameter "
+                                 token " for path " s)))))
+                  #"^\"(.+(?=\"$))\"$"
+                  "$1")
+                token)))
        (apply str)))
 
 (defn string-path-parameters [uri]
