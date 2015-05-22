@@ -26,12 +26,13 @@
    ring-swagger middlewares. The mounted api-middleware can be configured by
    optional options map as the first parameter:
 
-      (api
-        {:formats [:json :edn}
-        (context* \"/api\" []
-          ...))
+       (api
+         {:formats [:json :edn}
+         (context* \"/api\" []
+           ...))
 
    ... see compojure.api.middleware/api-middleware for possible options."
+  {:doc/format :markdown}
   [& body]
   (let [[opts body] (extract-parameters body)]
     `(api-middleware-with-swagger-data
@@ -44,12 +45,13 @@
    ring-swagger middlewares. The mounted api-middleware can be configured by
    optional options map as the first parameter:
 
-      (defapi app
-        {:formats [:json :edn}
-        (context* \"/api\" []
-          ...))
+       (defapi app
+         {:formats [:json :edn}
+         (context* \"/api\" []
+           ...))
 
    ... see compojure.api.middleware/api-middleware for possible options."
+  {:doc/format :markdown}
   [name & body]
   `(def ~name
      (api ~@body)))

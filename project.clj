@@ -23,7 +23,8 @@
                        :dependencies [[http-kit "2.1.19"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
-                             [lein-ring "0.9.4"]]
+                             [lein-ring "0.9.4"]
+                             [funcool/codeina "0.1.0"]]
                    :dependencies [[peridot "0.4.0"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.7.0-SNAPSHOT"]
@@ -36,6 +37,10 @@
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0-beta1"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
+  :codeina {:sources ["src"]
+            :output-dir "gh-pages/doc"
+            :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
+            :src-linenum-anchor-prefix "L" }
   :aliases {"all" ["with-profile" "dev:dev,1.7"]
             "start-thingie" ["ring" "server"]
             "http-kit-thingie" ["run"]

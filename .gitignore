@@ -11,3 +11,4 @@ pom.xml.asc
 .settings
 bower_components
 *.log
+gh-pages

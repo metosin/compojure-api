@@ -292,16 +292,17 @@
    Meta-data can be any valid swagger 2.0 data. Common
    case is to introduce API Info and Tags here:
 
-   {:info {:version \"1.0.0\"
-           :title \"Sausages\"
-           :description \"Sausage description\"
-           :termsOfService \"http://helloreverb.com/terms/\"
-           :contact {:name \"My API Team\"
-                     :email \"foo@example.com\"
-                     :url \"http://www.metosin.fi\"}
-           :license {:name: \"Eclipse Public License\"
-                     :url: \"http://www.eclipse.org/legal/epl-v10.html\"}}
-    :tags [{:name \"sausages\", :description \"Sausage api-set}]"
+       {:info {:version \"1.0.0\"
+               :title \"Sausages\"
+               :description \"Sausage description\"
+               :termsOfService \"http://helloreverb.com/terms/\"
+               :contact {:name \"My API Team\"
+                         :email \"foo@example.com\"
+                         :url \"http://www.metosin.fi\"}
+               :license {:name: \"Eclipse Public License\"
+                         :url: \"http://www.eclipse.org/legal/epl-v10.html\"}}
+        :tags [{:name \"sausages\", :description \"Sausage api-set}]}"
+  {:doc/format :markdown}
   [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
