@@ -345,18 +345,23 @@
                    result# (swagger2/swagger-json swagger# options#)]
                result#)))))))
 
+(defn path-for*
+  "Extracts the lookup-table from request and finds a route by name."
+  [route-name request & [params]]
+  (let [[path details] (some-> request
+                               mw/get-options
+                               :lookup
+                               route-name
+                               first)
+        path-params (:params details)]
+    (if (seq path-params)
+      (->path path params)
+      path)))
+
 (defmacro path-for
   "Extracts the lookup-table from request and finds a route by name."
   [route-name & [params]]
-  `(let [[path# details#] (some-> ~'+compojure-api-request+
-                                  mw/get-options
-                                  :lookup
-                                  ~route-name
-                                  first)
-         path-params# (:params details#)]
-     (if (seq path-params#)
-       (->path path# ~params)
-       path#)))
+  `(path-for* ~route-name ~'+compojure-api-request+ ~params))
 
 (defmacro swaggered
   "DEPRECATED. Use context* with :tags instead:
