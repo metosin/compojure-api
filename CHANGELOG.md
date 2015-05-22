@@ -118,7 +118,7 @@ refers to it directly, you need remove the direct reference.
 
 * Swagger-documentation default uri is changed from `/api/api-docs` to `/swagger.json`.
 * `compojure.api.swagger/swaggered` is deprecated - not relevant with 2.0. Works, but prints out a warning to STDOUT
-** in 2.0, apis are categorized byt Tags, one can set them either to endpoints or to paths:
+** in 2.0, apis are categorized by Tags, one can set them either to endpoints or to paths:
 
 ```clojure
 (GET* "/api/pets/" []
@@ -182,7 +182,7 @@ refers to it directly, you need remove the direct reference.
 
 - added destructuring for `:headers`, thanks to [tchagnon](https://github.com/tchagnon)!
 - `:path-param` allows any keywords, needed for the partial parameter matching with `context*`
-- **BREAKING**: parameters are collected in (Ring-)Swagger 2.0 format, might break client-side `compojure.api.meta/restructure-param` dispatch functions - for the swagger documentation part. see https://github.com/metosin/ring-swagger/blob/master/test/ring/swagger/swagger2_test.clj & https://github.com/metosin/compojure-api/blob/master/src/compojure/api/meta.clj for examples of the new schemas.
+- **BREAKING**: parameters are collected in (Ring-)Swagger 2.0 format, might break client-side `compojure.api.meta/restructure-param` dispatch functions - for the swagger documentation part. See https://github.com/metosin/ring-swagger/blob/master/test/ring/swagger/swagger2_test.clj & https://github.com/metosin/compojure-api/blob/master/src/compojure/api/meta.clj for examples of the new schemas.
 - `context*` to allow setting meta-data to mid-routes. Mid-route meta-data are deep-merged into endpoint swagger-definitions at compile-time. At runtime, code is executed in place.
 
 ```clojure
@@ -222,7 +222,7 @@ refers to it directly, you need remove the direct reference.
   ...)
 ```
 - import `compojure.core/wrap-routes` into `compojure.api.sweet`
-- **BREAKING**: in `compojure.api.middleware`, `ex-info-support` is now parametrizable `wrap-exception`
+- **BREAKING**: in `compojure.api.middleware`, `ex-info-support` is now parameterizable `wrap-exception`
   - fixes [#68](https://github.com/metosin/compojure-api/issues/68)
 - Update dependencies
 ```
@@ -239,7 +239,7 @@ refers to it directly, you need remove the direct reference.
 - Depend on forked version of [`ring-middleware-format`](https://github.com/metosin/ring-middleware-format)
   - Transit support should now work
   - If you are depending on ring-middleware-format directly, you'll want to either
-  update your dependency or exclude one from compojure-api
+  update your dependency or exclude one from Compojure-api
 - Update dependencies:
 ```clojure
 [cheshire "5.4.0"] is available but we use "5.3.1"
@@ -259,7 +259,7 @@ refers to it directly, you need remove the direct reference.
 
 ## 0.16.5 (21.11.2014)
 
-- fix anonyous Body & Return model naming issue [56](https://github.com/metosin/compojure-api/issues/56) by [Michael Blume](https://github.com/MichaelBlume)
+- fix anonymous Body & Return model naming issue [56](https://github.com/metosin/compojure-api/issues/56) by [Michael Blume](https://github.com/MichaelBlume)
 - update deps:
 
 ```clojure
@@ -302,7 +302,7 @@ refers to it directly, you need remove the direct reference.
 ## 0.16.0 (10.9.2014)
 
 - Some cleaning
-  - Requires now clojure 1.6.0 for `clojure.walk`
+  - Requires now Clojure 1.6.0 for `clojure.walk`
 - Support other formats in addition to JSON
   - Uses the [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format) to parse requests and encode responses
 - Fixes #43: Middlewares added to route with :middlewares shouldn't leak to other routes in same context anymore
@@ -379,15 +379,15 @@ refers to it directly, you need remove the direct reference.
 ## 0.12.0 (17.6.2014)
 
 - **possibly breaking change**: `middlewares` macro and `:middlewares` restructuring now use thread-first to apply middlewares
-- update ring-swagger to `0.9.1` with support for vanila `schema.core/defschema` schemas
-  - big internal cleanup, removing model var-resolutions, lot's of internal fn's removed
+- update ring-swagger to `0.9.1` with support for vanilla `schema.core/defschema` schemas
+  - big internal cleanup, removing model var-resolutions, lot's of internal fns removed
 - added `defroutes` to `compojure.api.legacy`
 - removed defns from `compojure.api.common`: `->Long`, `fn->`, `fn->>`
 - cleaner output from `compojure.api.meta/restructure` (doesn't generate empty `lets` & `letks`)
 
 ## 0.11.6 (5.6.2014)
 
-- added `compojure.api.legacy` ns to have the old Compojure http-method macros (`GET`, `POST`,...)
+- added `compojure.api.legacy` ns to have the old Compojure HTTP-method macros (`GET`, `POST`,...)
 
 ## 0.11.5 (1.6.2014)
 
@@ -403,12 +403,12 @@ refers to it directly, you need remove the direct reference.
 
 ## 0.11.4 (19.5.2014)
 
-- Really updated ring-swagger dependancy as I forgot that last with previous release
+- Really updated ring-swagger dependency as I forgot that last with previous release
 
 ## 0.11.3 (12.5.2014)
 
-- remove non-first trailing spaces from compojure-routes for swagger-docs.
-- updated depedencies:
+- remove non-first trailing spaces from Compojure-routes for swagger-docs.
+- updated dependencies:
   - `[metosin/ring-swagger "0.8.7"]`
   - `[metosin/ring-swagger-ui "2.6.16-2"]`
 - Moved swagger-ui handler to ring-swagger
@@ -463,7 +463,7 @@ refers to it directly, you need remove the direct reference.
 
 ## 0.10.0 (10.4.2014)
 
-- fixed bug with missing `+compojure-api-request+` when having both compojure descruction & compojure-api desruction in place
+- fixed bug with missing `+compojure-api-request+` when having both Compojure destructuring & Compojure-api destructuring in place
 - added support for `:body-params` (with strict schema):
 
 ```clojure
@@ -475,7 +475,7 @@ refers to it directly, you need remove the direct reference.
 
 ## 0.9.1 (9.4.2014)
 
-- update `ring-swagger` to `0.8.4` to get better basepath-resolution (with reverse-proxys)
+- update `ring-swagger` to `0.8.4` to get better basepath-resolution (with reverse-proxies)
 
 ## 0.9.0 (6.4.2014)
 
@@ -507,13 +507,13 @@ refers to it directly, you need remove the direct reference.
 
 ## 0.8.4 (25.3.2014)
 
-- update `ring-swagger` to `0.8.1`, all json-schema generation now done there.
+- update `ring-swagger` to `0.8.1`, all JSON-schema generation now done there.
 
 ## 0.8.3 (15.3.2014)
 
 - coerce return values with smart destructuring, thanks to [Arttu Kaipiainen](https://github.com/arttuka).
 - update `ring-http-response` to `0.4.0`
-- handle json-parse-errors by returning json
+- handle json-parse-errors by returning JSON
 - rewrite `compojure.api.core-integration-test` using `peridot.core`
 
 ## 0.8.2 (10.3.2014)
@@ -577,7 +577,7 @@ refers to it directly, you need remove the direct reference.
 
 - update `ring-swagger` to `0.7.0`
   - support for `schema/maybe` and `schema/both`
-  - consume `Date` & `DateTime` both with and without millis: `"2014-02-18T18:25:37.456Z"` & `"2014-02-18T18:25:37Z"`
+  - consume `Date` & `DateTime` both with and without milliseconds: `"2014-02-18T18:25:37.456Z"` & `"2014-02-18T18:25:37Z"`
 - name-parameter of `swaggered` is stripped out of spaces.
 
 ## 0.7.0 (19.2.2014)
@@ -612,7 +612,7 @@ refers to it directly, you need remove the direct reference.
 
 ## 0.4.1 (16.2.2014)
 
-- Fixed JSON Array -> Clojure Set coarcing with Strings
+- Fixed JSON Array -> Clojure Set coercing with Strings
 
 ## 0.4.0 (13.2.2014)
 
