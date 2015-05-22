@@ -1,6 +1,15 @@
 ## 0.21.0 
 
-* **experimental**: File upload support using `compojure.api.upload` namespace
+* **experimental**: File upload support using `compojure.api.upload` namespace.
+
+```clojure
+(POST* "/upload" []
+  :multipart-params [file :- TempFileUpload]
+  :middlewares [wrap-multipart-params]
+  :consumes ["multipart/form-data"]
+  (ok (dissoc file :tempfile))))
+```
+
 * **breaking**: use plain Ring-Swagger 2.0 models with `:responses`. A helpful `IllegalArgumentException` will be thrown at compile-time with old models.
 * new way:
 

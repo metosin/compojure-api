@@ -560,6 +560,18 @@ The `:return` maps the model just to the response 200, so one can also say:
 
 There is also a `:default` status code available, which stands for "all undefined codes".
 
+### Swagger-aware File-uploads
+
+Experimental. Hit `lein start-thingie` to see it in action.
+
+```
+(POST* "/upload" []
+  :multipart-params [file :- TempFileUpload]
+  :middlewares [wrap-multipart-params]
+  :consumes ["multipart/form-data"]
+  (ok (dissoc file :tempfile))))
+```
+
 ## Route-specific middlewares
 
 Key `:middlewares` takes a vector of middlewares to be applied to the route.
