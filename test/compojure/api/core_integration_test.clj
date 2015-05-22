@@ -476,9 +476,9 @@
                 (continue)))]
 
     (fact "api-listing"
-      (let [[status body] (get* app "/swagger.json")]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
-        body => {:swagger "2.0"
+        spec => {:swagger "2.0"
                  :info {:title "Swagger API"
                         :version "0.0.1"}
                  :basePath "/"
@@ -577,9 +577,9 @@
                 (ok 2)))]
 
     (fact "api-docs"
-      (let [[status body] (get* app "/swagger.json")]
+      (let [[status spec] (get* app "/swagger.json")]
         status => 200
-        (-> body :paths vals first) =>
+        (-> spec :paths vals first) =>
         {:get {:parameters [{:description ""
                              :in "query"
                              :name "x"
@@ -619,9 +619,9 @@
 
     ;; TODO: order!
     #_(fact "swagger-docs have trailing slashes removed"
-      (let [[status body] (get* api "/swagger.json")]
+      (let [[status spec] (get* api "/swagger.json")]
         status => 200
-        (->> body
+        (->> spec
              :paths
              keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
 
@@ -842,12 +842,16 @@
 ; https://github.com/metosin/compojure-api/issues/98
 (fact "basePath"
   (let [app (api (swagger-docs))]
+
     (fact "no context"
-      (let [[_ spec] (get* app "/swagger.json")]
+      (let [[status spec] (get* app "/swagger.json")]
+        status => 200
         (:basePath spec) => "/"))
+
     (fact "app-servers with given context"
       (against-background (rsc/context anything) => "/v2")
-      (let [[_ spec] (get* app "/swagger.json")]
+      (let [[status spec] (get* app "/swagger.json")]
+        status => 200
         (:basePath spec) => "/v2"))))
 
 (fact "multiple different models with same name"
