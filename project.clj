@@ -34,7 +34,7 @@
                           :reload-paths ["src" "examples/src"]}
                    :source-paths ["examples/src"]
                    :main examples.server}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-beta1"]]}}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-rc1"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
