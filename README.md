@@ -330,8 +330,7 @@ at compile-time if it founds multiple routes with same name. Route name is publi
                 (GET* "/lost-in/:country/:zip" []
                   :name :lost
                   :path-params [country :- (s/enum :FI :EN), zip :- s/Int]
-                  (ok {:country country
-                       :zip zip}))
+                  (ok {:country country, :zip zip}))
                 (GET* "/api/ping" []
                   (moved-permanently
                     (path-for :lost {:country :FI, :zip 33200}))))]
