@@ -1,0 +1,442 @@
+@import url(http://fonts.googleapis.com/css?family=Droid+Sans+Mono:200,300,400);
+@import url(http://fonts.googleapis.com/css?family=Lato:light,regular);
+@import url(http://fonts.googleapis.com/css?family=Ubuntu:300,400,500);
+
+body {
+    font-family: "Lato", Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    color:#585858;
+    font-size: 100%;
+    margin: 0px;
+}
+
+pre, code {
+    font-family: "Droid Sans Mono","DejaVu Sans Mono","Monospace",monospace;
+    font-weight: 300;
+}
+
+section.container {
+    display: flex;
+    font-size: 100%;
+}
+
+h2 {
+    font-weight: normal;
+    font-size: 3em;
+    padding: 10px 0 2px 0;
+    margin: 0;
+}
+
+header {
+    color: #333;
+    padding: 10px;
+}
+
+header small {
+    font-style: italic;
+}
+
+header h1 {
+    margin: 0;
+    padding: 0;
+    /* font-size: 12pt; */
+    font-weight: lighter;
+    /* text-shadow: -1px -1px 0px #333; */
+}
+
+header h1 a {
+    color: #333;
+    /* font-size: 32px; */
+    font-weight: 400;
+    text-decoration: none;
+}
+
+#content {
+    overflow: auto;
+    background: #fff;
+    color: #333;
+    padding: 0 18px;
+    font-size: 1.3em;
+}
+
+#namespaces {
+    border-right: solid 1px #cccccc;
+    min-width: 200px;
+    padding-right: 15px;
+}
+
+#vars {
+    border-right: solid 1px #cccccc;
+    width: 200px;
+}
+
+.sidebar {
+    overflow: auto;
+}
+
+.sidebar a {
+    color: #333;
+    display: block;
+    text-decoration: none;
+}
+
+.sidebar h3 {
+    margin: 0;
+    padding: 10px 10px 0 10px;
+    font-size: 19px;
+    font-weight: normal;
+}
+
+.sidebar ul {
+    padding: 0.5em 0em;
+    margin: 0;
+}
+
+.sidebar li {
+    display: block;
+    vertical-align: middle;
+}
+
+.sidebar li a, .sidebar li .no-link {
+    border-left: 3px solid transparent;
+    padding: 0 15px;
+    white-space: nowrap;
+}
+
+.sidebar li .no-link {
+    display: block;
+    color: #777;
+    font-style: italic;
+}
+
+.sidebar li .inner {
+    display: inline-block;
+    padding-top: 7px;
+    height: 24px;
+}
+
+.sidebar li a, .sidebar li .tree {
+    height: 31px;
+    /* height: 25px; */
+}
+
+.depth-1 .inner { padding-left: 2px; }
+.depth-2 .inner { padding-left: 6px; }
+.depth-3 .inner { padding-left: 20px; }
+.depth-4 .inner { padding-left: 34px; }
+.depth-5 .inner { padding-left: 48px; }
+.depth-6 .inner { padding-left: 62px; }
+
+.sidebar li .tree {
+    display: block;
+    float: left;
+    position: relative;
+    top: -10px;
+    margin: 0 4px 0 0;
+    padding: 0;
+}
+
+.sidebar li.depth-1 .tree {
+    display: none;
+}
+
+.sidebar li .tree .top, .sidebar li .tree .bottom {
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 7px;
+}
+
+.sidebar li .tree .top {
+    border-left: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
+    height: 19px;
+}
+
+.sidebar li .tree .bottom {
+    height: 22px;
+}
+
+.sidebar li.branch .tree .bottom {
+    border-left: 1px solid #aaa;
+}
+
+#namespaces li.current a {
+    border-left: 3px solid #a33;
+    border-left: 3px solid #7a2518;
+    color: #a33;
+    color: #7a2518;
+
+}
+
+#vars li.current a {
+    border-left: 3px solid #33a;
+    color: #33a;
+}
+
+.namespace-docs h2 {
+    color: #7a2518;
+}
+
+.namespace-docs h3 a {
+    color: #ba3925;
+    font-family: "Droid Sans Mono","DejaVu Sans Mono","Monospace",monospace;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.namespace-docs .usage code {
+    display: block;
+    color: #777;
+    margin: 2px 0;
+    font-size: 0.6em;
+}
+
+/* .usage code:first-child { */
+/*     padding-top: 10px; */
+/* } */
+
+
+
+.namespace-index h3 a {
+    text-decoration: none;
+    color: #ba3925;
+    font-family: "Droid Sans Mono","DejaVu Sans Mono","Monospace",monospace;
+    font-weight: 300;
+}
+
+.public h3 {
+    margin: 0;
+}
+
+.public {
+    margin: 0;
+    border-top: 1px solid #efefef;
+    padding-top: 14px;
+    padding-bottom: 6px;
+}
+
+.public:last-child {
+    margin-bottom: 20%;
+}
+
+.members .public:last-child {
+    margin-bottom: 0;
+}
+
+.members {
+    margin: 15px 0;
+}
+
+.members h4 {
+    color: #555;
+    font-weight: normal;
+    font-variant: small-caps;
+    margin: 0 0 5px 0;
+}
+
+.members .inner {
+    padding-top: 5px;
+    padding-left: 12px;
+    margin-top: 2px;
+    margin-left: 7px;
+    border-left: 1px solid #bbb;
+}
+
+#content .members .inner h3 {
+    /* font-size: 12pt; */
+}
+
+.members .public {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 6px;
+    padding-bottom: 0;
+}
+
+.members .public:first-child {
+    padding-top: 0;
+}
+
+h4.type,
+h4.dynamic,
+h4.added,
+h4.deprecated {
+    margin: 3px 10px 10spx 0;
+    font-weight: bold;
+    font-variant: small-caps;
+}
+
+.public h4.type,
+.public h4.dynamic,
+.public h4.added,
+.public h4.deprecated {
+    font-weight: bold;
+    /* margin: 3px 0 0 10px; */
+    font-size: 0.7em;
+}
+
+.members h4.type,
+.members h4.added,
+.members h4.deprecated {
+    margin-top: 1px;
+}
+
+h4.type {
+    color: #717171;
+}
+
+h4.dynamic {
+    color: #9933aa;
+}
+
+h4.added {
+    color: #508820;
+}
+
+h4.deprecated {
+    color: #880000;
+}
+
+.namespace {
+    margin-bottom: 40px;
+}
+
+.namespace:last-child {
+    margin-bottom: 10%;
+}
+
+.index {
+    padding: 0;
+    margin: 15px 0;
+}
+
+.index * {
+    display: inline;
+}
+
+.index p {
+    padding-right: 3px;
+}
+
+.index li {
+    padding-right: 5px;
+}
+
+.index li a {
+    color: #333;
+    font-family: "Droid Sans Mono","DejaVu Sans Mono","Monospace",monospace;
+    font-size: 0.8em;
+    text-decoration: none;
+    font-weight: 300;
+}
+
+.index ul {
+    padding-left: 0;
+}
+
+p {
+    margin: 15px 0;
+}
+
+.public p:first-child, .public pre.plaintext {
+    margin-top: 12px;
+}
+
+.doc {
+    margin: 0 0 26px 0;
+    clear: both;
+}
+
+.public .doc {
+    margin: 0;
+}
+
+.namespace-index .doc {
+    margin-bottom: 20px;
+}
+
+.namespace-index .namespace .doc {
+    margin-bottom: 10px;
+}
+
+.markdown {
+    /* line-height: 18px; */
+    /* font-size: 16px; */
+}
+
+.doc, .public, .namespace .index {
+    max-width: 780px;
+    overflow-x: visible;
+}
+
+.markdown code, .src-link a {
+    border-radius: 2px;
+    font-size: 0.8em;
+    color: #444;
+}
+
+.markdown pre {
+    background: #f4f4f4;
+    border: 1px solid #e0e0e0;
+    /* border-radius: 2px; */
+    padding: 5px 5px;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.markdown pre code {
+    background: transparent;
+    border: none;
+}
+
+.doc ul, .doc ol {
+    padding-left: 30px;
+}
+
+.doc table {
+    border-collapse: collapse;
+    margin: 0 10px;
+}
+
+.doc table td, .doc table th {
+    border: 1px solid #dddddd;
+    padding: 4px 6px;
+}
+
+.doc table th {
+    background: #f2f2f2;
+}
+
+.doc dl {
+    margin: 0 10px 20px 10px;
+}
+
+.doc dl dt {
+    font-weight: bold;
+    margin: 0;
+    padding: 3px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.doc dl dd {
+    padding: 5px 0;
+    margin: 0 0 5px 10px;
+}
+
+.doc abbr {
+    border-bottom: 1px dotted #333;
+    font-variant: none
+                      cursor: help;
+}
+
+.src-link {
+    margin-bottom: 15px;
+}
+
+.src-link a {
+    /* font-size: 70%; */
+    padding: 1px 4px;
+    text-decoration: none;
+    color: #5555bb;
+}
