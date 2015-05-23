@@ -6,11 +6,11 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [prismatic/plumbing "0.4.3"]
+                 [prismatic/plumbing "0.4.4"]
                  [potemkin "0.3.13"]
                  [cheshire "5.4.0"]
                  [compojure "1.3.4"]
-                 [prismatic/schema "0.4.2"]
+                 [prismatic/schema "0.4.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [metosin/ring-http-response "0.6.2"]
                  [metosin/ring-swagger "0.20.3"]

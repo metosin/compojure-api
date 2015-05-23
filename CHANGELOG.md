@@ -48,6 +48,8 @@
 
 ```clojure
 [metosin/ring-http-response "0.6.2"] is available but we use "0.6.1"
+[prismatic/plumbing "0.4.4"] is available but we use "0.4.3"
+[prismatic/schema "0.4.3"] is available but we use "0.4.2"
 ```
 
 ## 0.20.4 (20.5.2015)
