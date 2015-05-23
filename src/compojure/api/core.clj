@@ -20,7 +20,7 @@
         (rsm/wrap-swagger-data routes)
         (mw/api-middleware options)
         (mw/wrap-options {:lookup lookup})
-        (with-meta meta))))
+        (with-meta (assoc meta :options options)))))
 
 (defmacro api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
