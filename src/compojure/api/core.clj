@@ -9,7 +9,7 @@
             [ring.swagger.common :refer [extract-parameters]]
             [backtick :refer [syntax-quote]]))
 
-(defn api-middleware-with-swagger-and-lookup-data
+(defn api-middleware-with-routes
   "Returns a compojure.api.middleware/api-middlware wrapped handler,
   which publishes the swagger route-data via ring-swagger and route
   lookup table via wrap-options. Returned handler retains the original
@@ -36,7 +36,7 @@
    ... see compojure.api.middleware/api-middleware for possible options."
   [& body]
   (let [[opts body] (extract-parameters body)]
-    `(api-middleware-with-swagger-and-lookup-data
+    `(api-middleware-with-routes
        (routes/api-root ~@body)
        ~opts)))
 
