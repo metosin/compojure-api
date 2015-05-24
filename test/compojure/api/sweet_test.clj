@@ -96,7 +96,8 @@
                                                          s/Keyword s/Any}}}}
                 "/api/header" {:get {:parameters {:header {:hp Boolean
                                                            s/Keyword s/Any}}}}
-                "/api/form" {:post {:parameters {:formData {:fp Boolean}}}}
+                "/api/form" {:post {:parameters {:formData {:fp Boolean}}
+                                    :consumes ["application/x-www-form-urlencoded"]}}
                 "/api/primitive" {:get {:responses {200 {:schema String
                                                          :description ""}}}}
                 "/api/primitiveArray" {:get {:responses {200 {:schema [String]
@@ -166,7 +167,8 @@
                                                                      :description ""
                                                                      :required true
                                                                      :type "boolean"}]
-                                                        :responses {:default {:description ""}}}}
+                                                        :responses {:default {:description ""}}
+                                                        :consumes ["application/x-www-form-urlencoded"]}}
                          (keyword "/api/ping") {:get {:responses {:default {:description ""}}}}
                          (keyword "/api/primitive") {:get {:responses {:200 {:description ""
                                                                              :schema {:type "string"}}}}}
