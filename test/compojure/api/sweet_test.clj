@@ -74,8 +74,8 @@
 
     (-> app meta :routes)
 
-    => {:paths {"/ping" {:get nil}
-                "/api/ping" {:get nil}
+    => {:paths {"/ping" {:get {}}
+                "/api/ping" {:get {}}
                 "/api/bands" {:get {:x-name :bands
                                     :operationId "getBands"
                                     :description "bands bands bands"

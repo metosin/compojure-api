@@ -942,11 +942,11 @@
                    :zip 33200}))))
 
   (fact "multiple routes with same name fail at compile-time"
-    (let [api' `(api
+    (let [app' `(api
                   (GET* "/api/pong" []
                     :name :pong
                     identity)
                   (GET* "/api/ping" []
                     :name :pong
                     identity))]
-      (eval api') => (throws RuntimeException))))
+      (eval app') => (throws RuntimeException))))
