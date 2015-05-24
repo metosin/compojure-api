@@ -44,6 +44,26 @@
         body => {:pong "pong"}))))
 ```
 
+* a compile-time validator for the api:
+
+```clojure
+(require '[compojure.api.sweet :refer :all])
+(require '[compojure.api.swagger :refer [validate])
+
+(defrecord NonSwaggerRecord [data])
+
+(def app
+  (validate
+    (api
+      (swagger-docs)
+      (GET* "/ping" []
+        :return NonSwaggerRecord
+        (ok (->NonSwaggerRecord "ping"))))))
+
+; clojure.lang.Compiler$CompilerException: java.lang.IllegalArgumentException:
+; don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord
+```
+
 * updated dependencies:
 
 ```clojure
