@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [clojure.string :as string]
             [cheshire.core :as json]
+            [ring.swagger.swagger2 :as rss]
             [compojure.api.middleware :as mw]))
 
 (defn ->path [s params]
@@ -49,22 +50,6 @@
 ;; Endpoint Trasformers
 ;;
 
-(defn transform-paths
-  "Transforms the :paths of a Ring Swagger spec by applying (f endpoint)
-  to all endpoints. If the function returns nil, the given route is removed,
-  otherwise return value of the function call is used as a new value for the
-  route."
-  [f routes]
-  (let [transformed (for [[path endpoints] (:paths routes)
-                          [method endpoint] endpoints
-                          :let [endpoint (f endpoint)]]
-                      [[path method] endpoint])
-        paths (reduce (fn [acc [kv endpoint]]
-                        (if endpoint
-                          (assoc-in acc kv endpoint)
-                          acc)) {} transformed)]
-    (assoc-in routes [:paths] paths)))
-
 (defn strip-no-doc-endpoints
   "Endpoint transformer, strips all endpoints that have :x-no-doc true."
   [endpoint]
@@ -85,8 +70,8 @@
   (let [[all-routes body] (collect-routes body)
         lookup (route-lookup-table all-routes)
         documented-routes (->> all-routes
-                               (transform-paths non-nil-routes)
-                               (transform-paths strip-no-doc-endpoints))]
+                               (rss/transform-paths non-nil-routes)
+                               (rss/transform-paths strip-no-doc-endpoints))]
     `(with-meta (routes ~@body) {:routes '~documented-routes
                                  :lookup ~lookup})))
 
