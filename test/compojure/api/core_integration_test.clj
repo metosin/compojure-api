@@ -970,3 +970,90 @@
   (fact "follows defined path"
     (let [app (api (swagger-docs "/api/api-docs/swagger.json"))]
       (caw/swagger-spec-path app) => "/api/api-docs/swagger.json")))
+
+(defrecord NonSwaggerRecord [data])
+
+(fact "api validation"
+
+  (fact "a swagger api with valid swagger records"
+    (let [app (api
+                (swagger-docs)
+                (GET* "/ping" []
+                  :return {:data s/Str}
+                  (ok {:data "ping"})))]
+
+      (fact "works"
+        (let [[status body] (get* app "/ping")]
+          status => 200
+          body => {:data "ping"}))
+
+      (fact "a swagger-api"
+        (caw/swagger-api? app) => true)
+
+      (fact "the api is valid"
+        (caw/validate app) => truthy)))
+
+  (fact "a pre-validated swagger api with valid swagger records"
+    (let [app (caw/validate
+                (api
+                  (swagger-docs)
+                  (GET* "/ping" []
+                    :return {:data s/Str}
+                    (ok {:data "ping"}))))]
+
+      (fact "works"
+        (let [[status body] (get* app "/ping")]
+          status => 200
+          body => {:data "ping"}))))
+
+  (fact "a swagger api with invalid swagger records"
+    (let [app (api
+                (swagger-docs)
+                (GET* "/ping" []
+                  :return NonSwaggerRecord
+                  (ok (->NonSwaggerRecord "ping"))))]
+
+      (fact "works"
+        (let [[status body] (get* app "/ping")]
+          status => 200
+          body => {:data "ping"}))
+
+      (fact "it's a swagger-api"
+        (caw/swagger-api? app) => true)
+
+      (fact "the api is invalid"
+        (caw/validate app)
+        => (throws
+             IllegalArgumentException
+             "don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord"))))
+
+  (fact "a pre-validated swagger api with invalid swagger records"
+    (let [app' `(caw/validate
+                  (api
+                    (swagger-docs)
+                    (GET* "/ping" []
+                      :return NonSwaggerRecord
+                      (ok (->NonSwaggerRecord "ping")))))]
+
+      (fact "fails at compile-time"
+        (eval app')
+        => (throws
+             IllegalArgumentException
+             "don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord"))))
+
+  (fact "a non-swagger api with invalid swagger records"
+    (let [app (api
+                (GET* "/ping" []
+                  :return NonSwaggerRecord
+                  (ok (->NonSwaggerRecord "ping"))))]
+
+      (fact "works"
+        (let [[status body] (get* app "/ping")]
+          status => 200
+          body => {:data "ping"}))
+
+      (fact "not a swagger-api"
+        (caw/swagger-api? app) => false)
+
+      (fact "the api is valid"
+        (caw/validate app) => truthy))))

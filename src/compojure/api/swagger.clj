@@ -341,3 +341,24 @@
 
 (defn swagger-api? [api]
   (boolean (swagger-spec-path api)))
+
+(defn validate
+  "Validates a api. If the api is Swagger-enabled, the swagger-docs
+  endpoint is requested. Returns either the (valid) api or throws an
+  exception."
+  [api]
+  (let [{:keys [routes options]} (meta api)]
+    (assert (not (nil? routes)) "Api did not contain route definitions.")
+    (when (swagger-api? api)
+
+      ;; validate routes locally to get the unmasked root cause
+      (s/with-fn-validation
+        (swagger2/swagger-json routes options))
+
+      ;; validate the swagger spec
+      (let [{:keys [status body]} (api {:request-method :get
+                                        :uri (swagger-spec-path api)
+                                        mw/rethrow-exceptions? true})]
+        (if-not (= status 200)
+          (throw (IllegalArgumentException. (slurp body))))))
+    api))
