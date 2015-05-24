@@ -17,8 +17,7 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
             [ring.swagger.swagger2 :as swagger2]
-            [schema.core :as s]
-            [clojure.string :as str]))
+            [schema.core :as s]))
 
 ;;
 ;; Source Linking
@@ -223,9 +222,6 @@
     (->CompojureRoutes "" {} (filter-routes body))
     body))
 
-(defn remove-hidden-routes [routes]
-  (remove (fn [route] (some-> route vals first vals first :x-no-doc true?)) routes))
-
 (defn extract-routes [body]
   (->> body
        peel
@@ -237,7 +233,6 @@
        path-vals
        (map create-api-route)
        (map attach-meta-data-to-route)
-       remove-hidden-routes
        (apply deep-merge {})))
 
 (defn swagger-info [body]
