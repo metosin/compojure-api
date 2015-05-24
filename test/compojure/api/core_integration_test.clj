@@ -8,6 +8,7 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [ring.swagger.core :as rsc]
+            [compojure.api.swagger :as caw]
             [ring.util.http-status :as status]))
 
 ;;
@@ -950,3 +951,22 @@
                     :name :pong
                     identity))]
       (eval app') => (throws RuntimeException))))
+
+(fact "swagger-api?"
+  (fact "false, when no swagger-docs is mounted"
+    (let [app (api
+                (GET* "/ping" [] identity))]
+      (caw/swagger-api? app) => false))
+  (fact "true, when swagger-docs is mounted"
+    (let [app (api
+                (swagger-docs)
+                (GET* "/ping" [] identity))]
+      (caw/swagger-api? app) => true)))
+
+(fact "swagger-spec-path"
+  (fact "defaults to swagger.json"
+    (let [app (api (swagger-docs))]
+      (caw/swagger-spec-path app) => "/swagger.json"))
+  (fact "follows defined path"
+    (let [app (api (swagger-docs "/api/api-docs/swagger.json"))]
+      (caw/swagger-spec-path app) => "/api/api-docs/swagger.json")))

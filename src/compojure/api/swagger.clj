@@ -309,6 +309,7 @@
     `(routes
        (GET* ~path {:as request#}
          :no-doc true
+         :name ::swagger
          (let [runtime-info# (rsm/get-swagger-data request#)
                base-path# {:basePath (base-path request#)}
                options# (:ring-swagger (mw/get-options request#))]
@@ -334,3 +335,9 @@
 
 (defmethod routes/collect-routes :default [body]
   (swagger-info body))
+
+(defn swagger-spec-path [api]
+  (some-> api meta :lookup ::swagger first first))
+
+(defn swagger-api? [api]
+  (boolean (swagger-spec-path api)))
