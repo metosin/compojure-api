@@ -212,13 +212,15 @@
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
         (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)])
-        (update-in [:parameters :parameters :formData] st/merge schema))))
+        (update-in [:parameters :parameters :formData] st/merge schema)
+        (assoc-in [:parameters :consumes] ["application/x-www-form-urlencoded"]))))
 
 (defmethod restructure-param :multipart-params [_ params acc]
   (let [schema (strict (fnk-schema params))]
     (-> acc
         (update-in [:letks] into [params (src-coerce! schema :multipart-params :query)])
-        (update-in [:parameters :parameters :formData] st/merge schema))))
+        (update-in [:parameters :parameters :formData] st/merge schema)
+        (assoc-in [:parameters :consumes] ["multipart/form-data"]))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]

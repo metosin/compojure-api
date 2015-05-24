@@ -1,12 +1,13 @@
-## 0.21.0 
+## 0.21.0
 
+* `:multipart-params` now sets `:consumes ["multipart/form-data"]` and `:form-params` sets
+`:consumes ["application/x-www-form-urlencoded"]`
 * **experimental**: File upload support using `compojure.api.upload` namespace.
 
 ```clojure
 (POST* "/upload" []
   :multipart-params [file :- TempFileUpload]
   :middlewares [wrap-multipart-params]
-  :consumes ["multipart/form-data"]
   (ok (dissoc file :tempfile))))
 ```
 
