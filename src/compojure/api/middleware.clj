@@ -33,6 +33,8 @@
 ;; Catch exceptions
 ;;
 
+(def rethrow-exceptions? ::rethrow-exceptions?)
+
 (defn default-exception-handler [^Exception e]
   (.printStackTrace e)
   (internal-server-error {:type  "unknown-exception"
@@ -50,7 +52,9 @@
     (try
       (handler request)
       (catch Exception e
-        (exception-handler e)))))
+        (if (rethrow-exceptions? request)
+          (throw e)
+          (exception-handler e))))))
 
 ;;
 ;; Ring-swagger options
