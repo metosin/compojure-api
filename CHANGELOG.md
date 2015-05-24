@@ -44,7 +44,7 @@
         body => {:pong "pong"}))))
 ```
 
-* a compile-time validator for the api:
+* a validator for the api
 
 ```clojure
 (require '[compojure.api.sweet :refer :all])
