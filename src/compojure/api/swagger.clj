@@ -224,7 +224,7 @@
     body))
 
 (defn remove-hidden-routes [routes]
-  (remove (fn [route] (some-> route vals first vals first :no-doc true?)) routes))
+  (remove (fn [route] (some-> route vals first vals first :x-no-doc true?)) routes))
 
 (defn extract-routes [body]
   (->> body

@@ -132,8 +132,8 @@
 ; Boolean to discard the route out from api documentation
 ; Example:
 ; :no-doc true
-(defmethod restructure-param :no-doc [k v acc]
-  (update-in acc [:parameters] assoc k v))
+(defmethod restructure-param :no-doc [_ v acc]
+  (update-in acc [:parameters] assoc :x-no-doc v))
 
 ; Route name, used with path-for
 ; Example:
