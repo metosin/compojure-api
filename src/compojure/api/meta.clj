@@ -1,6 +1,7 @@
 (ns compojure.api.meta
   (:require [clojure.walk :refer [keywordize-keys]]
             [compojure.api.common :refer :all]
+            [compojure.api.middleware :refer [get-components]]
             [compojure.core :refer [routes]]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
@@ -250,6 +251,10 @@
 (defmethod restructure-param :middlewares [_ middlewares acc]
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
+
+; Bind to stuff in request components using letk syntax
+(defmethod restructure-param :components [_ components acc]
+  (update-in acc [:letks] into [components `(get-components ~+compojure-api-request+)]))
 
 ;;
 ;; Api
