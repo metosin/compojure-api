@@ -1,4 +1,4 @@
-## 0.21.0
+## 0.21.0 (25.5.2015)
 
 * `:multipart-params` now sets `:consumes ["multipart/form-data"]` and `:form-params` sets
 `:consumes ["application/x-www-form-urlencoded"]`
@@ -68,7 +68,9 @@
 * updated dependencies:
 
 ```clojure
+[metosin/ring-swagger "0.20.4"] is available but we use "0.20.3"
 [metosin/ring-http-response "0.6.2"] is available but we use "0.6.1"
+[metosin/ring-swagger-ui "2.1.5-M2"]
 [prismatic/plumbing "0.4.4"] is available but we use "0.4.3"
 [prismatic/schema "0.4.3"] is available but we use "0.4.2"
 ```
