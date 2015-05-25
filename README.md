@@ -316,13 +316,14 @@ One can configure Ring-Swagger by providing options to `api-middleware` for key 
 
 ### Api Validation
 
-To ensure that your API is valid, one can validate it, using `compojure.api.swagger/validate. Validation takes the api (the ring handler returned by `api` or `defapi`) and returns itself of throws an Exception. The validation does the following:
+To ensure that your API is valid, one can call `compojure.api.swagger/validate. It takes the api (the ring handler returned by `api` or `defapi`) as an parameter and returns the api of throws an Exception. The validation does the following:
 
 1. if the api is not an swagger api (does not the `swagger-docs` mounted) and compiles, it's valid
 2. if the api is an swagger api (does have the `swagger-docs` mounted):
-   - Ring Swagger is called to verify that all Schemas can be transformed to Swagger JSON Schema
+   - Ring Swagger is called to verify that all Schemas can be transformed to Swagger JSON Schemas
    - the swagger-spec endpoint is called with 200 responses status
-   - **TODO**: optionally [validating](https://github.com/metosin/compojure-api/wiki/Validating-the-Swagger-SPEC) the swagger spec itself againt the JSON Schema.
+
+**TODO**: optionally [validate](https://github.com/metosin/compojure-api/wiki/Validating-the-Swagger-SPEC) the swagger spec itself againt the JSON Schema.
 
 ```clojure
 (require '[compojure.api.sweet :refer :all])
