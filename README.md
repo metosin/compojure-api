@@ -409,6 +409,8 @@ the `:components` restucturing:
     (ok (get-user db id))))
 ```
 
+To see this in action, try `lein run` and navigate api `http://localhost:3000/index.html#!/component/get_component_example`.
+
 ## Models
 
 Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,
