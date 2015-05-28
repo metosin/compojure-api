@@ -376,7 +376,7 @@ at compile-time if it founds multiple routes with same name. Route name is publi
 
 Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a great library for managing the stateful
 resources of your app. There are [several strategies](http://www.infoq.com/presentations/Clojure-Large-scale-patterns-techniques)
-to use it. Here are some samples.
+to use it. Here are some samples how to use Component with Compojure-api:
 
 ### Component as a function argument (to create the handler)
 
