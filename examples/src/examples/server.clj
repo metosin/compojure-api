@@ -20,7 +20,7 @@
                             (wrap-components
                               #'app
                               (select-keys this [:example]))
-                            {:port 8080})))
+                            {:port 3000})))
   (stop [this]
     (if-let [http-kit (:http-kit this)]
       (http-kit))

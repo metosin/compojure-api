@@ -46,8 +46,7 @@
             :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-linenum-anchor-prefix "L" }
   :aliases {"all" ["with-profile" "dev:dev,1.7"]
-            "start-thingie" ["ring" "server"]
-            "http-kit-thingie" ["run"]
+            "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
             "deploy!" ^{:doc "Recompile sources, then deploy if tests succeed."}
