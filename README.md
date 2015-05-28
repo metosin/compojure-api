@@ -393,7 +393,7 @@ to use it. Here are some samples.
 ### Inject components into a request
 
 Compojure-api ships with middleware (`compojure.api.middleware/wrap-components`) to inject the components into a request.
-One can add it manually or use `api-middleware` options `:components` to pass them in.
+One can add the middleware manually or use `api-middleware` with options `:components`.
 
 Components can be read from the request using `compojure.api.middleware/get-components` or using 
 the `:components` restucturing:
