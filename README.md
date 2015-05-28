@@ -378,7 +378,7 @@ Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a grea
 resources of your app. There are [several strategies](http://www.infoq.com/presentations/Clojure-Large-scale-patterns-techniques)
 to use it. Here are some samples.
 
-### Create a root handler using a function
+### Component as a function argument (to create the handler)
 
 ```clojure
 (defn create-handler [{:keys [db] :as system}]
@@ -392,10 +392,11 @@ to use it. Here are some samples.
 
 ### Inject components into a request
 
-Compojure-api ships with middleware to inject the components into a request - `compojure.api.middleware/wrap-components`.
-One can also use `api-middleware` with options `:components`. 
+Compojure-api ships with middleware (`compojure.api.middleware/wrap-components`) to inject the components into a request.
+One can add it manually or use `api-middleware` options `:components` to pass them in.
 
-Components can be read from the request using `compojure.api.middleware/get-components` or the `:components` restucturing.
+Components can be read from the request using `compojure.api.middleware/get-components` or using 
+the `:components` restucturing:
 
 ```clojure
 (def system ...)
@@ -405,7 +406,7 @@ Components can be read from the request using `compojure.api.middleware/get-comp
   (GET* "/user/:id" []
     :path-params [id :- s/Str]
     :components [db]
-      (ok (get-user db id))))
+    (ok (get-user db id))))
 ```
 
 ## Models
