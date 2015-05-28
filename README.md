@@ -109,11 +109,12 @@ from 1.2 to 2.0. See [Migration guide](https://github.com/metosin/compojure-api/
              :kakka kakka})))))
 ```
 
-To try it yourself, clone this repository and type
-- `lein start-thingie` (Jetty)
-- `lein http-kit-thingie` (Http-kit)
+To try it yourself, clone this repository and do either:
 
-## Quick start for a new project
+1. `lein run`
+2. `lein repl` & `(go)`
+
+## Quick start for  new project
 
 Clone the [examples-repository](https://github.com/metosin/compojure-api-examples).
 
@@ -371,6 +372,42 @@ at compile-time if it founds multiple routes with same name. Route name is publi
                    :zip 33200}))))
 ```
 
+## Component integration
+
+Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a great library for managing the stateful
+resources of your app. There are [several strategies](http://www.infoq.com/presentations/Clojure-Large-scale-patterns-techniques)
+to use it. Here are some samples.
+
+### Create a root handler using a function
+
+```clojure
+(defn create-handler [{:keys [db] :as system}]
+  (api
+    (swagger-docs)
+    (swagger-ui)
+    (GET* "/user/:id" []
+      :path-params [id :- s/Str]
+      (ok (get-user db id)))))
+```
+
+### Inject components into a request
+
+Compojure-api ships with middleware to inject the components into a request - `compojure.api.middleware/wrap-components`.
+One can also use `api-middleware` with options `:components`. 
+
+Components can be read from the request using `compojure.api.middleware/get-components` or the `:components` restucturing.
+
+```clojure
+(def system ...)
+
+(defapi app
+  {:components system}
+  (GET* "/user/:id" []
+    :path-params [id :- s/Str]
+    :components [db]
+      (ok (get-user db id))))
+```
+
 ## Models
 
 Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,
@@ -557,7 +594,7 @@ There is also a `:default` status code available, which stands for "all undefine
 
 ### Swagger-aware File-uploads
 
-Experimental. Hit `lein start-thingie` to see it in action.
+Experimental. Run `lein run` to see it in action.
 
 ```
 (POST* "/upload" []
@@ -638,10 +675,6 @@ macroexpanding-1 it too see what's get generated:
     (do (ring.util.http-response/ok {:token examples.thingie/token}))
     (ring.util.http-response/forbidden "Auth required")))))
 ```
-
-## Running the embedded example
-
-`lein start-samples`
 
 ## License
 
