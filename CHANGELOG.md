@@ -5,6 +5,10 @@
   to associate the components with your API. Then you can use `:components`-restructuring
   to destructure your components using letk syntax.
 
+```clojure
+[cheshire "5.5.0"] is available but we use "5.4.0"
+```
+
 ## 0.21.0 (25.5.2015)
 
 * `:multipart-params` now sets `:consumes ["multipart/form-data"]` and `:form-params` sets

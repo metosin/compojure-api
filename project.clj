@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [prismatic/plumbing "0.4.4"]
                  [potemkin "0.3.13"]
-                 [cheshire "5.4.0"]
+                 [cheshire "5.5.0"]
                  [compojure "1.3.4"]
                  [prismatic/schema "0.4.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
