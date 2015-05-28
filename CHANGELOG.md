@@ -1,3 +1,10 @@
+## 0.21.1-SNAPSHOT
+
+* Optional integration with [Component](https://github.com/stuartsierra/component).
+  Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
+  to associate the components with your API. Then you can use `:components`-restructuring
+  to destructure your components using letk syntax.
+
 ## 0.21.0 (25.5.2015)
 
 * `:multipart-params` now sets `:consumes ["multipart/form-data"]` and `:form-params` sets

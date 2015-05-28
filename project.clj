@@ -20,8 +20,10 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/src"]
-                       :dependencies [[http-kit "2.1.19"]]}
-             :dev {:plugins [[lein-clojars "0.9.1"]
+                       :dependencies [[http-kit "2.1.19"]
+                                      [com.stuartsierra/component "0.2.3"]]}
+             :dev {:repl-options {:init-ns user}
+                   :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
                              [lein-ring "0.9.4"]
                              [funcool/codeina "0.1.0"]]
@@ -29,10 +31,12 @@
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.7.0-SNAPSHOT"]
                                   [metosin/scjsv "0.2.0"]
+                                  [com.stuartsierra/component "0.2.3"]
+                                  [reloaded.repl "0.1.0"]
                                   [http-kit "2.1.19"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/src"]}
-                   :source-paths ["examples/src"]
+                   :source-paths ["examples/src" "examples/dev-src"]
                    :main examples.server}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0-RC1"]]}}
   :eastwood {:namespaces [:source-paths]

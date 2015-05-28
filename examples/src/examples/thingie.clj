@@ -190,4 +190,10 @@
     (POST* "/upload" []
       :multipart-params [file :- TempFileUpload]
       :middlewares [wrap-multipart-params]
-      (ok (dissoc file :tempfile)))))
+      (ok (dissoc file :tempfile))))
+
+  (context* "/component" []
+    :tags ["component"]
+    (GET* "/example" req
+      :components [example]
+      (ok example))))

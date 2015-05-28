@@ -57,6 +57,20 @@
           (exception-handler e))))))
 
 ;;
+;; Component integration
+;;
+
+(defn wrap-components
+  "Assoc given components to the request."
+  [handler components]
+  (fn [req]
+    (handler
+      (assoc req ::components components))))
+
+(defn get-components [req]
+  (::components req))
+
+;;
 ;; Ring-swagger options
 ;;
 
@@ -142,11 +156,16 @@
        - **:response-opts**      for *ring.middleware.format-params/wrap-restful-response*,
                                  e.g. `{:transit-json {:handlers writers}}`
    - **:ring-swagger**         options for ring-swagger's swagger-json method.
-                               e.g. `{:ignore-missing-mappings? true}`"
+                               e.g. `{:ignore-missing-mappings? true}`
+   - **:components**           Components which should be accessible to handlers using
+                               :components restructuring. (If you are using defapi,
+                               you might want to take look at using wrap-components
+                               middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {:keys [formats params-opts response-opts]} (:format options)]
+        {:keys [formats params-opts response-opts components]} (:format options)]
     (-> handler
+        (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
         (rsm/wrap-validation-errors (:validation-errors options))
         (wrap-exceptions (:exceptions options))
