@@ -374,9 +374,7 @@ at compile-time if it founds multiple routes with same name. Route name is publi
 
 ## Component integration
 
-Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a great library for managing the stateful
-resources of your app. There are [several strategies](http://www.infoq.com/presentations/Clojure-Large-scale-patterns-techniques)
-to use it. Here are some samples how to use Component with compojure-api:
+Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a great library for managing the stateful resources of your app. There are [several strategies](http://www.infoq.com/presentations/Clojure-Large-scale-patterns-techniques) to use it. Here are some samples how to use Component with compojure-api:
 
 ### Component as a function argument (to create the handler)
 
@@ -392,11 +390,11 @@ to use it. Here are some samples how to use Component with compojure-api:
 
 ### Inject components into a request
 
-Compojure-api ships with middleware (`compojure.api.middleware/wrap-components`) to inject the components into a request.
-One can add the middleware manually or use `api-middleware` with options `:components`.
+Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
+to associate the components with your API. 
 
 Components can be read from the request using `compojure.api.middleware/get-components` or using 
-the `:components` restucturing:
+the `:components` restucturing with letk-syntax:
 
 ```clojure
 (def system ...)
@@ -409,7 +407,7 @@ the `:components` restucturing:
     (ok (get-user db id))))
 ```
 
-To see this in action, try `lein run` and navigate api `http://localhost:3000/index.html#!/component/get_component_example`.
+To see this in action, try `lein run` and navigate to Components api group.
 
 ## Models
 
