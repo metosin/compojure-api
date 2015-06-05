@@ -49,6 +49,11 @@ from 1.2 to 2.0. See [Migration guide](https://github.com/metosin/compojure-api/
   (swagger-ui)
   (swagger-docs 
     {:info {:title "Sample api"}})
+    
+  (GET* "/"
+    :no-doc true
+    (ok "hello world"))
+
   (context* "/api" []
     :tags ["thingie"]
 
@@ -223,6 +228,7 @@ Enabling Swagger route documentation in your application is done by:
   - Internally, `api` uses `compojure.api.routes/api-root` to create a route tree, passed into swagger-endpoints via request injection (`ring.swagger.middleware/wrap-swagger-data`).
     - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected. **Note:** since `0.20.0` the `defroutes*` are automatically referenced over a Var to get smoother development flow.
+  - Add `:no-doc` metadata to any routes you don't want to appear in the documentation
 - Add `compojure.api.swagger/swagger-docs` route to publish the swagger spec
 - **optionally** Mount `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/metosin/ring-swagger-ui) to the web app.
 
