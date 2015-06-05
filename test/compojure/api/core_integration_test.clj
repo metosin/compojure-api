@@ -1057,3 +1057,15 @@
 
       (fact "the api is valid"
         (caw/validate app) => truthy))))
+
+(fact "component integration"
+  (fact "via options"
+    (let [system {:magic 42}
+          app (api
+                {:components system}
+                (GET* "/magic" []
+                  :components [magic]
+                  (ok {:magic magic})))]
+      (let [[status body] (get* app "/magic")]
+        status => 200
+        body => {:magic 42}))))

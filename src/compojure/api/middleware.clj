@@ -163,7 +163,7 @@
                                middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {:keys [formats params-opts response-opts components]} (:format options)]
+        {{:keys [formats params-opts response-opts]} :format :keys [components]} options]
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
