@@ -256,6 +256,14 @@
 (defmethod restructure-param :components [_ components acc]
   (update-in acc [:letks] into [components `(get-components ~+compojure-api-request+)]))
 
+; Applies the given function as the innermost middleware for the route
+; default to body-coercer-middleware
+; the function must have an arity of two where the first is the handler
+; and the second is bound to the value of swagger :responses
+;
+(defmethod restructure-param :middleware-coerce [_ middleware acc]
+  (assert ((comp ifn? eval) middleware))
+  (assoc acc :middleware-coerce middleware))
 ;;
 ;; Api
 ;;
@@ -296,19 +304,20 @@
   (let [body-wrap (or body-wrap 'do)
         method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
         [parameters body] (extract-parameters args)
-        [lets letks responses middlewares] [[] [] nil nil]
+        [lets letks responses middlewares middleware-coerce] [[] [] nil nil body-coercer-middleware]
         [lets arg-with-request arg] (destructure-compojure-api-request lets arg)
 
         {:keys [lets
                 letks
                 responses
                 middlewares
+                middleware-coerce
                 parameters
                 body]}
         (reduce
           (fn [acc [k v]]
             (restructure-param k v (update-in acc [:parameters] dissoc k)))
-          (map-of lets letks responses middlewares parameters body)
+          (map-of lets letks responses middlewares middleware-coerce parameters body)
           parameters)
 
         body `(~body-wrap ~@body)
@@ -317,5 +326,5 @@
         body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
         body (if (seq parameters) `(meta-container ~parameters ~body) body)
         body `(~method-symbol ~path ~arg-with-request ~body)
-        body (if responses `(body-coercer-middleware ~body  ~responses) body)]
+        body (if responses `(~middleware-coerce ~body  ~responses) body)]
     body))
