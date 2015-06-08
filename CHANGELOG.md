@@ -4,6 +4,11 @@
   Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
   to associate the components with your API. Then you can use `:components`-restructuring
   to destructure your components using letk syntax.
+* File support moved to ring-swagger. Use `ring.swagger.upload` instead of
+`compojure.api.upload`.
+* (Through ring-swagger) Support for collections in query parameters. E.g.
+`:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being
+`[1 2 3]`.
 
 ```clojure
 [cheshire "5.5.0"] is available but we use "5.4.0"
