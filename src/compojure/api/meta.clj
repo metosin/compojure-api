@@ -49,8 +49,8 @@
 
 (defn fnk-schema [bind]
   (:input-schema
-   (fnk-impl/letk-input-schema-and-body-form
-     nil (with-meta bind {:schema s/Any}) [] nil)))
+    (fnk-impl/letk-input-schema-and-body-form
+      nil (with-meta bind {:schema s/Any}) [] nil)))
 
 (defn body-coercer-middleware [handler responses]
   (fn [request]
@@ -317,5 +317,5 @@
         body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
         body (if (seq parameters) `(meta-container ~parameters ~body) body)
         body `(~method-symbol ~path ~arg-with-request ~body)
-        body (if responses `(body-coercer-middleware ~body  ~responses) body)]
+        body (if responses `(body-coercer-middleware ~body ~responses) body)]
     body))
