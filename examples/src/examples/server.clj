@@ -33,4 +33,4 @@
 
 (defn -main []
   (component/start (new-system))
-  (println "server started"))
+  (println "server started at port 3000"))
