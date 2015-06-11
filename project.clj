@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.21.1-SNAPSHOT"
+(defproject metosin/compojure-api "0.22.0-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -25,7 +25,7 @@
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
-                             [lein-ring "0.9.4"]
+                             [lein-ring "0.9.5"]
                              [funcool/codeina "0.1.0"]]
                    :dependencies [[peridot "0.4.0"]
                                   [javax.servlet/servlet-api "2.5"]

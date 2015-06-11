@@ -1,18 +1,19 @@
-## 0.21.1-SNAPSHOT
+## 0.22.0-SNAPSHOT
 
 * Optional integration with [Component](https://github.com/stuartsierra/component).
   Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
   to associate the components with your API. Then you can use `:components`-restructuring
   to destructure your components using letk syntax.
-* File support moved to ring-swagger. Use `ring.swagger.upload` instead of
-`compojure.api.upload`.
-* (Through ring-swagger) Support for collections in query parameters. E.g.
-`:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being
-`[1 2 3]`.
+* Ring-swagger 0.21.0
+  * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
+  * **BREAKING**: File support moved to ring-swagger. Use `ring.swagger.upload` instead of `compojure.api.upload`.
+  * Support for collections in query parameters. E.g. `:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being `[1 2 3]`.
 
 ```clojure
+[metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
 [cheshire "5.5.0"] is available but we use "5.4.0"
 [backtick "0.3.3"] is available but we use "0.3.2"
+[lein-ring "0.9.5"] is available but we use "0.9.4"
 ```
 
 ## 0.21.0 (25.5.2015)
