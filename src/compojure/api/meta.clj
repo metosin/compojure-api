@@ -58,11 +58,11 @@
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
           (let [body (schema/coerce schema (:body response) matcher)]
-          (if (schema/error? body)
-            (internal-server-error {:errors (:error body)})
-            (assoc response
-              ::serializable? true
-              :body body)))
+            (if (schema/error? body)
+              (internal-server-error {:errors (:error body)})
+              (assoc response
+                ::serializable? true
+                :body body)))
           response)
         response))))
 
