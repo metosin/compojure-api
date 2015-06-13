@@ -9,6 +9,7 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.swagger.common :refer [deep-merge]]
             [ring.swagger.middleware :as rsm]
+            [ring.swagger.coerce :as rsc]
             [ring.util.http-response :refer :all])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
@@ -84,6 +85,23 @@
   "Extracts compojure-api options from the request."
   [request]
   (::options request))
+
+;;
+;; coercion-matcher-provider
+;;
+
+(def default-coercion-matchers
+  {:json rsc/json-schema-coercion-matcher
+   :query rsc/query-schema-coercion-matcher
+   :response rsc/json-schema-coercion-matcher})
+
+(def no-response-coercion
+  (dissoc default-coercion-matchers :response))
+
+(defn get-coercion-matcher-provider [request]
+  (let [provider (or (:coercion-matcher-provider (get-options request))
+                     (fn [_] default-coercion-matchers))]
+    (provider request)))
 
 ;;
 ;; ring-middleware-format stuff
@@ -172,7 +190,7 @@
         (wrap-exceptions exceptions)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
-        (wrap-options (select-keys options [:ring-swagger]))
+        (wrap-options (select-keys options [:ring-swagger :coercion-matcher-provider]))
         (wrap-restful-params
          (merge {:formats (remove response-only-mimes formats)
                  :handle-error handle-req-error}

@@ -9,7 +9,8 @@
             [schema.core :as s]
             [ring.swagger.core :as rsc]
             [compojure.api.swagger :as caw]
-            [ring.util.http-status :as status]))
+            [ring.util.http-status :as status]
+            [compojure.api.middleware :as mw]))
 
 ;;
 ;; common
@@ -1069,3 +1070,85 @@
       (let [[status body] (get* app "/magic")]
         status => 200
         body => {:magic 42}))))
+
+(fact "custom coercion-matcher-provider"
+
+  (fact "response coercion"
+    (let [ping-route (GET* "/ping" []
+                       :return {:pong s/Str}
+                       (ok {:pong 123}))]
+
+      (fact "by default, applies response coercion"
+        (let [app (api
+                    ping-route)]
+          (let [[status body] (get* app "/ping")]
+            status => 500
+            body => (contains {:errors irrelevant}))))
+
+      (fact "response-coersion can ba disabled"
+        (let [app (api
+                    {:coercion-matcher-provider mw/no-response-coercion}
+                    ping-route)]
+          (let [[status body] (get* app "/ping")]
+            status => 200
+            body => {:pong 123})))))
+
+  (fact "body coersion"
+    (let [beer-route (POST* "/beer" []
+                       :body [body {:beers #{(s/enum "ipa" "apa")}}]
+                       (ok body))]
+
+      (fact "by default, applies body coercion (to set)"
+        (let [app (api
+                    beer-route)]
+          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+            status => 200
+            body => {:beers ["ipa" "apa"]})))
+
+      (fact "body-coersion can ba disabled"
+        (let [no-body-coercion (fn [_] (dissoc mw/default-coercion-matchers :json))
+              app (api
+                    {:coercion-matcher-provider no-body-coercion}
+                    beer-route)]
+          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+            status => 200
+            body => {:beers ["ipa" "apa" "ipa"]})))
+
+      (fact "body-coersion can ba changed"
+        (let [nop-body-coercion (fn [_] (assoc mw/default-coercion-matchers :json (constantly nil)))
+              app (api
+                    {:coercion-matcher-provider nop-body-coercion}
+                    beer-route)]
+          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+            status => 400
+            body => (contains {:errors irrelevant}))))))
+
+  (fact "query coersion"
+    (let [query-route (GET* "/query" []
+                        :query-params [i :- s/Int]
+                        (ok {:i i}))]
+
+      (fact "by default, applies query coercion (string->int)"
+        (let [app (api
+                    query-route)]
+          (let [[status body] (get* app "/query" {:i 10})]
+            status => 200
+            body => {:i 10})))
+
+      (fact "query-coersion can ba disabled"
+        (let [no-query-coercion (fn [_] (dissoc mw/default-coercion-matchers :query))
+              app (api
+                    {:coercion-matcher-provider no-query-coercion}
+                    query-route)]
+          (let [[status body] (get* app "/query" {:i 10})]
+            status => 200
+            body => {:i "10"})))
+
+      (fact "query-coersion can ba changed"
+        (let [nop-query-coercion (fn [_] (assoc mw/default-coercion-matchers :query (constantly nil)))
+              app (api
+                    {:coercion-matcher-provider nop-query-coercion}
+                    query-route)]
+          (let [[status body] (get* app "/query" {:i 10})]
+            status => 400
+            body => (contains {:errors irrelevant})))))))

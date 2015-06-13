@@ -56,23 +56,24 @@
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
-        (let [body (schema/coerce schema (:body response))]
+        (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
+          (let [body (schema/coerce schema (:body response) matcher)]
           (if (schema/error? body)
             (internal-server-error {:errors (:error body)})
             (assoc response
               ::serializable? true
               :body body)))
+          response)
         response))))
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type,
    extracted from a key in a ring request."
   [schema key type]
-  `(schema/coerce!
-     ~schema
-     (keywordize-keys
-       (~key ~+compojure-api-request+))
-     ~type))
+  `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
+     (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
+       (schema/coerce! ~schema value# matcher#)
+       value#)))
 
 (defn- convert-return [schema]
   {200 {:schema schema
