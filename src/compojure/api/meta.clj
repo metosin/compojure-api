@@ -1,7 +1,7 @@
 (ns compojure.api.meta
   (:require [clojure.walk :refer [keywordize-keys]]
             [compojure.api.common :refer :all]
-            [compojure.api.middleware :refer [get-components]]
+            [compojure.api.middleware :as mw]
             [compojure.core :refer [routes]]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
@@ -254,7 +254,7 @@
 
 ; Bind to stuff in request components using letk syntax
 (defmethod restructure-param :components [_ components acc]
-  (update-in acc [:letks] into [components `(get-components ~+compojure-api-request+)]))
+  (update-in acc [:letks] into [components `(mw/get-components ~+compojure-api-request+)]))
 
 ;;
 ;; Api
