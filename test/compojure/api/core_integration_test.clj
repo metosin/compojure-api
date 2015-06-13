@@ -1087,7 +1087,7 @@
 
       (fact "response-coersion can ba disabled"
         (let [app (api
-                    {:coercion-matcher-provider mw/no-response-coercion}
+                    {:coercion mw/no-response-coercion}
                     ping-route)]
           (let [[status body] (get* app "/ping")]
             status => 200
@@ -1108,7 +1108,7 @@
       (fact "body-coersion can ba disabled"
         (let [no-body-coercion (fn [_] (dissoc mw/default-coercion-matchers :json))
               app (api
-                    {:coercion-matcher-provider no-body-coercion}
+                    {:coercion no-body-coercion}
                     beer-route)]
           (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
             status => 200
@@ -1117,7 +1117,7 @@
       (fact "body-coersion can ba changed"
         (let [nop-body-coercion (fn [_] (assoc mw/default-coercion-matchers :json (constantly nil)))
               app (api
-                    {:coercion-matcher-provider nop-body-coercion}
+                    {:coercion nop-body-coercion}
                     beer-route)]
           (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
             status => 400
@@ -1138,7 +1138,7 @@
       (fact "query-coersion can ba disabled"
         (let [no-query-coercion (fn [_] (dissoc mw/default-coercion-matchers :query))
               app (api
-                    {:coercion-matcher-provider no-query-coercion}
+                    {:coercion no-query-coercion}
                     query-route)]
           (let [[status body] (get* app "/query" {:i 10})]
             status => 200
@@ -1147,7 +1147,7 @@
       (fact "query-coersion can ba changed"
         (let [nop-query-coercion (fn [_] (assoc mw/default-coercion-matchers :query (constantly nil)))
               app (api
-                    {:coercion-matcher-provider nop-query-coercion}
+                    {:coercion nop-query-coercion}
                     query-route)]
           (let [[status body] (get* app "/query" {:i 10})]
             status => 400

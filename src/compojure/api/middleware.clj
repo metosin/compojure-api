@@ -87,7 +87,7 @@
   (::options request))
 
 ;;
-;; coercion-matcher-provider
+;; coercion
 ;;
 
 (def default-coercion-matchers
@@ -99,7 +99,7 @@
   (dissoc default-coercion-matchers :response))
 
 (defn get-coercion-matcher-provider [request]
-  (let [provider (or (:coercion-matcher-provider (get-options request))
+  (let [provider (or (:coercion (get-options request))
                      (fn [_] default-coercion-matchers))]
     (provider request)))
 
@@ -179,7 +179,7 @@
    - **:ring-swagger**              options for ring-swagger's swagger-json method.
                                     e.g. `{:ignore-missing-mappings? true}`
 
-   - **:coercion-matcher-provider** A function from request->type->coercion-matcher, used
+   - **:coercion**                  A function from request->type->coercion-matcher, used
                                     in enpoint coersion for :json, :query and :response.
                                     Defaults to `compojure.api.middleware/default-coercion-matchers`
 
@@ -198,7 +198,7 @@
         (wrap-exceptions exceptions)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
-        (wrap-options (select-keys options [:ring-swagger :coercion-matcher-provider]))
+        (wrap-options (select-keys options [:ring-swagger :coercion]))
         (wrap-restful-params
          (merge {:formats (remove response-only-mimes formats)
                  :handle-error handle-req-error}
