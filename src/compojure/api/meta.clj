@@ -257,6 +257,10 @@
 (defmethod restructure-param :components [_ components acc]
   (update-in acc [:letks] into [components `(mw/get-components ~+compojure-api-request+)]))
 
+; route-spesific override for coercers
+(defmethod restructure-param :coercion [_ coercion acc]
+  (update-in acc [:middlewares] conj `(mw/wrap-coercion ~coercion)))
+
 ;;
 ;; Api
 ;;

@@ -103,6 +103,10 @@
                      (fn [_] default-coercion-matchers))]
     (provider request)))
 
+(defn wrap-coercion [handler coercion]
+  (fn [request]
+    (handler (assoc-in request [::options :coercion] coercion))))
+
 ;;
 ;; ring-middleware-format stuff
 ;;

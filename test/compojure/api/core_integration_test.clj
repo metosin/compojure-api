@@ -1151,4 +1151,30 @@
                     query-route)]
           (let [[status body] (get* app "/query" {:i 10})]
             status => 400
-            body => (contains {:errors irrelevant})))))))
+            body => (contains {:errors irrelevant}))))))
+
+  (fact "route-spesific coercion"
+    (let [app (api
+                (GET* "/default" []
+                  :query-params [i :- s/Int]
+                  (ok {:i i}))
+                (GET* "/disabled-coercion" []
+                  :coercion (fn [_] (assoc mw/default-coercion-matchers :query (constantly nil)))
+                  :query-params [i :- s/Int]
+                  (ok {:i i}))
+                (GET* "/no-coercion" []
+                  :coercion (constantly nil)
+                  :query-params [i :- s/Int]
+                  (ok {:i i})))]
+      (fact "default coercion"
+        (let [[status body] (get* app "/default" {:i 10})]
+          status => 200
+          body => {:i 10}))
+      (fact "disabled coercion"
+        (let [[status body] (get* app "/disabled-coercion" {:i 10})]
+          status => 400
+          body => (contains {:errors irrelevant})))
+      (fact "no coercion"
+        (let [[status body] (get* app "/no-coercion" {:i 10})]
+          status => 200
+          body => {:i "10"})))))
