@@ -163,12 +163,13 @@
                                middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {{:keys [formats params-opts response-opts]} :format :keys [components]} options]
+        {:keys [exceptions validation-erros format components]} options
+        {:keys [formats params-opts response-opts]} format]
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
-        (rsm/wrap-validation-errors (:validation-errors options))
-        (wrap-exceptions (:exceptions options))
+        (rsm/wrap-validation-errors validation-erros)
+        (wrap-exceptions exceptions)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
         (wrap-options (select-keys options [:ring-swagger]))
