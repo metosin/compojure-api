@@ -64,14 +64,30 @@
               :body body)))
         response))))
 
+(defn sequentialize-args [schema args]
+  (->>
+    args
+    (into [])
+    (map (fn [[param val]]
+           (if (and
+                 (sequential? (param schema))
+                 (not (sequential? val)))
+               [param [val]]
+               [param val])))
+    (into {})))
+
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercer type,
-   extracted from a key in a ring request."
+   extracted from a key in a ring request.
+
+   Does special coercing for sequential query parameters."
   [schema key type]
   `(schema/coerce!
      ~schema
-     (keywordize-keys
-       (~key ~+compojure-api-request+))
+     (-> ~+compojure-api-request+
+         ~key
+         keywordize-keys
+         (cond->> (= ~type :query) (sequentialize-args ~schema)))
      ~type))
 
 (defn- convert-return [schema]
