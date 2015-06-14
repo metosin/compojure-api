@@ -1071,7 +1071,7 @@
         status => 200
         body => {:magic 42}))))
 
-(fact "custom coercion-matcher-provider"
+(fact "custom coercion"
 
   (fact "response coercion"
     (let [ping-route (GET* "/ping" []
