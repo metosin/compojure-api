@@ -1,67 +1,14 @@
-(ns compojure.api.core-integration-test
-  (:require [cheshire.core :as cheshire]
-            [compojure.api.sweet :refer :all]
+(ns compojure.api.integration-test
+  (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
-            [peridot.core :as p]
             [flatland.ordered.map :as om]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [ring.swagger.core :as rsc]
             [compojure.api.swagger :as caw]
-            [ring.util.http-status :as status]))
-
-;;
-;; common
-;;
-
-(defn json [x] (cheshire/generate-string x))
-
-(defn follow-redirect [state]
-  (if (some-> state :response :headers (get "Location"))
-    (p/follow-redirect state)
-    state))
-
-(defn raw-get* [app uri & [params headers]]
-  (let [{{:keys [status body headers]} :response}
-        (-> (p/session app)
-            (p/request uri
-                       :request-method :get
-                       :params (or params {})
-                       :headers (or headers {}))
-            follow-redirect)]
-    [status (read-body body) headers]))
-
-(defn get* [app uri & [params headers]]
-  (let [[status body headers]
-        (raw-get* app uri params headers)]
-    [status (parse-body body) headers]))
-
-(defn form-post* [app uri params]
-  (let [{{:keys [status body]} :response}
-        (-> (p/session app)
-            (p/request uri
-                       :request-method :post
-                       :params params))]
-    [status (parse-body body)]))
-
-(defn raw-post* [app uri & [data content-type headers]]
-  (let [{{:keys [status body]} :response}
-        (-> (p/session app)
-            (p/request uri
-                       :request-method :post
-                       :headers (or headers {})
-                       :content-type (or content-type "application/json")
-                       :body (.getBytes data)))]
-    [status (read-body body)]))
-
-(defn post* [app uri & [data]]
-  (let [[status body] (raw-post* app uri data)]
-    [status (parse-body body)]))
-
-(defn headers-post* [app uri headers]
-  (let [[status body] (raw-post* app uri "" nil headers)]
-    [status (parse-body body)]))
+            [ring.util.http-status :as status]
+            [compojure.api.middleware :as mw]))
 
 ;;
 ;; Data
@@ -1025,7 +972,7 @@
         (caw/validate app)
         => (throws
              IllegalArgumentException
-             "don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord"))))
+             "don't know how to create json-type of: class compojure.api.integration_test.NonSwaggerRecord"))))
 
   (fact "a pre-validated swagger api with invalid swagger records"
     (let [app' `(caw/validate
@@ -1039,7 +986,7 @@
         (eval app')
         => (throws
              IllegalArgumentException
-             "don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord"))))
+             "don't know how to create json-type of: class compojure.api.integration_test.NonSwaggerRecord"))))
 
   (fact "a non-swagger api with invalid swagger records"
     (let [app (api
@@ -1069,3 +1016,111 @@
       (let [[status body] (get* app "/magic")]
         status => 200
         body => {:magic 42}))))
+
+(fact "custom coercion"
+
+  (fact "response coercion"
+    (let [ping-route (GET* "/ping" []
+                       :return {:pong s/Str}
+                       (ok {:pong 123}))]
+
+      (fact "by default, applies response coercion"
+        (let [app (api
+                    ping-route)]
+          (let [[status body] (get* app "/ping")]
+            status => 500
+            body => (contains {:errors irrelevant}))))
+
+      (fact "response-coersion can ba disabled"
+        (let [app (api
+                    {:coercion mw/no-response-coercion}
+                    ping-route)]
+          (let [[status body] (get* app "/ping")]
+            status => 200
+            body => {:pong 123})))))
+
+  (fact "body coersion"
+    (let [beer-route (POST* "/beer" []
+                       :body [body {:beers #{(s/enum "ipa" "apa")}}]
+                       (ok body))]
+
+      (fact "by default, applies body coercion (to set)"
+        (let [app (api
+                    beer-route)]
+          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+            status => 200
+            body => {:beers ["ipa" "apa"]})))
+
+      (fact "body-coersion can ba disabled"
+        (let [no-body-coercion (fn [_] (dissoc mw/default-coercion-matchers :body))
+              app (api
+                    {:coercion no-body-coercion}
+                    beer-route)]
+          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+            status => 200
+            body => {:beers ["ipa" "apa" "ipa"]})))
+
+      (fact "body-coersion can ba changed"
+        (let [nop-body-coercion (fn [_] (assoc mw/default-coercion-matchers :body (constantly nil)))
+              app (api
+                    {:coercion nop-body-coercion}
+                    beer-route)]
+          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+            status => 400
+            body => (contains {:errors irrelevant}))))))
+
+  (fact "query coersion"
+    (let [query-route (GET* "/query" []
+                        :query-params [i :- s/Int]
+                        (ok {:i i}))]
+
+      (fact "by default, applies query coercion (string->int)"
+        (let [app (api
+                    query-route)]
+          (let [[status body] (get* app "/query" {:i 10})]
+            status => 200
+            body => {:i 10})))
+
+      (fact "query-coersion can ba disabled"
+        (let [no-query-coercion (fn [_] (dissoc mw/default-coercion-matchers :string))
+              app (api
+                    {:coercion no-query-coercion}
+                    query-route)]
+          (let [[status body] (get* app "/query" {:i 10})]
+            status => 200
+            body => {:i "10"})))
+
+      (fact "query-coersion can ba changed"
+        (let [nop-query-coercion (fn [_] (assoc mw/default-coercion-matchers :string (constantly nil)))
+              app (api
+                    {:coercion nop-query-coercion}
+                    query-route)]
+          (let [[status body] (get* app "/query" {:i 10})]
+            status => 400
+            body => (contains {:errors irrelevant}))))))
+
+  (fact "route-spesific coercion"
+    (let [app (api
+                (GET* "/default" []
+                  :query-params [i :- s/Int]
+                  (ok {:i i}))
+                (GET* "/disabled-coercion" []
+                  :coercion (fn [_] (assoc mw/default-coercion-matchers :string (constantly nil)))
+                  :query-params [i :- s/Int]
+                  (ok {:i i}))
+                (GET* "/no-coercion" []
+                  :coercion (constantly nil)
+                  :query-params [i :- s/Int]
+                  (ok {:i i})))]
+      (fact "default coercion"
+        (let [[status body] (get* app "/default" {:i 10})]
+          status => 200
+          body => {:i 10}))
+      (fact "disabled coercion"
+        (let [[status body] (get* app "/disabled-coercion" {:i 10})]
+          status => 400
+          body => (contains {:errors irrelevant})))
+      (fact "no coercion"
+        (let [[status body] (get* app "/no-coercion" {:i 10})]
+          status => 200
+          body => {:i "10"})))))

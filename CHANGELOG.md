@@ -80,7 +80,7 @@
         (ok (->NonSwaggerRecord "ping"))))))
 
 ; clojure.lang.Compiler$CompilerException: java.lang.IllegalArgumentException:
-; don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord
+; don't know how to create json-type of: class compojure.api.integration_test.NonSwaggerRecord
 ```
 
 * updated dependencies:

@@ -345,7 +345,7 @@ To ensure that your API is valid, one can call `compojure.api.swagger/validate`.
         (ok (->NonSwaggerRecord "ping"))))))
 
 ; clojure.lang.Compiler$CompilerException: java.lang.IllegalArgumentException:
-; don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord
+; don't know how to create json-type of: class compojure.api.integration_test.NonSwaggerRecord
 
 ```
 
@@ -415,20 +415,33 @@ the `:components` restucturing with letk-syntax:
 
 To see this in action, try `lein run` and navigate to Components api group.
 
-## Models
+## Schemas
 
-Compojure-api uses the [Schema](https://github.com/Prismatic/schema)-based modeling,
-backed up by [ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger/JSON Schemas.
-**Note**: for Map-based schemas, Keyword keys should be used instead of Strings.
+Compojure-api uses the [Schema](https://github.com/Prismatic/schema) to describe data models, backed up by
+[ring-swagger](https://github.com/metosin/ring-swagger) for mapping the models int Swagger JSON Schemas.
+With Map-based schemas, Keyword keys should be used instead of Strings.
 
-Two coercers are available (and automatically selected with smart destructuring): 
-one for json and another for string-based formats (query-parameters & path-parameters). 
-See [Ring-Swagger](https://github.com/metosin/ring-swagger#schema-coersion) for more details.
+### Coercion
 
-### sample schema and coercion
+Input and output schemas are coerced automatically using a schema coercion matcher selected by a coercion type.
+There are three types of coercion:
 
-Compojure-api selects the right coercer and does the coercion behalf of the user, but if one
-wan't to call the coersion manually, here's a sample:
+- `:body`  coercion of the request body
+- `:string` coercion of query, path, header and form parameters
+- `:response` coercsion of response body
+
+Default implementation uses Ring-swagger coercion matchers, `json-schema-coercion-matcher` for `:body` and `:response`
+and `query-schema-coercion-matcher` for `:string`. One can override the defaults using an api-middleware option
+`:coercion` or using a restructuring key `:coercion`. Both expect a function value of type
+`ring-request->coercion-type->coercion-matcher`. This allows one to select the coercion matcher
+based on request parameters such as used transport, expected return format etc. See [the tests](./test/compojure/api/coercion_test.clj)
+for examples how to change the coercion.
+
+All coercion code uses the `ring.swagger.schema/coerce!` internally, which throws managed exceptions when a value
+can't be coerced. The `api-middleware` catches these exceptions and returns the validation error as serializable
+Clojure data structure, sent to the client.
+
+One can also call `ring.swagger.schema/coerce!` manually:
 
 ```clojure
 (require '[ring.swagger.schema :refer [coerce!])
@@ -443,9 +456,6 @@ wan't to call the coersion manually, here's a sample:
 (coerce! Thingie {:id 123, :tags "kakka"})
 ; => ExceptionInfo throw+: {:type :ring.swagger.schema/validation, :error {:tags disallowed-key, :tag missing-required-key}}  ring.swagger.schema/coerce! (schema.clj:88)
 ```
-
-The thrown exception by `coerce!` is caught by the `api-middleware` and the results are returned to the
-api user in decent format (overridable, of course).
 
 ## Models, routes and meta-data
 

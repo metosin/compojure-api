@@ -9,7 +9,9 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.swagger.common :refer [deep-merge]]
             [ring.swagger.middleware :as rsm]
-            [ring.util.http-response :refer :all])
+            [ring.swagger.coerce :as rsc]
+            [ring.util.http-response :refer :all]
+            [schema.core :as s])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
 
@@ -86,6 +88,29 @@
   (::options request))
 
 ;;
+;; coercion
+;;
+
+(s/defschema CoercionType (s/enum :body :string :response))
+
+(def default-coercion-matchers
+  {:body rsc/json-schema-coercion-matcher
+   :string rsc/query-schema-coercion-matcher
+   :response rsc/json-schema-coercion-matcher})
+
+(def no-response-coercion
+  (dissoc default-coercion-matchers :response))
+
+(defn get-coercion-matcher-provider [request]
+  (let [provider (or (:coercion (get-options request))
+                     (fn [_] default-coercion-matchers))]
+    (provider request)))
+
+(defn wrap-coercion [handler coercion]
+  (fn [request]
+    (handler (assoc-in request [::options :coercion] coercion))))
+
+;;
 ;; ring-middleware-format stuff
 ;;
 
@@ -144,34 +169,43 @@
   "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
    options for the used middlewares (see middlewares for full details on options):
 
-   - **:exceptions**           for *compojure.api.middleware/wrap-exceptions*
-       - **:exception-handler**  function to handle uncaught exceptions
-   - **:validation-errors**    for *ring.swagger.middleware/wrap-validation-errors*
-       - **:error-handler**      function to handle ring-swagger schema exceptions
-       - **:catch-core-errors?** whether to catch also `:schema.core/errors`
-   - **:format**               for ring-middleware-format middlewares
-       - **:formats**            sequence of supported formats, e.g. `[:json-kw :edn]`
-       - **:param-opts**         for *ring.middleware.format-params/wrap-restful-params*,
-                                 e.g. `{:transit-json {:options {:handlers readers}}}`
-       - **:response-opts**      for *ring.middleware.format-params/wrap-restful-response*,
-                                 e.g. `{:transit-json {:handlers writers}}`
-   - **:ring-swagger**         options for ring-swagger's swagger-json method.
-                               e.g. `{:ignore-missing-mappings? true}`
-   - **:components**           Components which should be accessible to handlers using
-                               :components restructuring. (If you are using defapi,
-                               you might want to take look at using wrap-components
-                               middleware manually.)"
+   - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
+       - **:exception-handler**       function to handle uncaught exceptions
+
+   - **:validation-errors**         for *ring.swagger.middleware/wrap-validation-errors*
+       - **:error-handler**           function to handle ring-swagger schema exceptions
+       - **:catch-core-errors?**      whether to catch also `:schema.core/errors`
+
+   - **:format**                    for ring-middleware-format middlewares
+       - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
+       - **:param-opts**              for *ring.middleware.format-params/wrap-restful-params*,
+                                      e.g. `{:transit-json {:options {:handlers readers}}}`
+       - **:response-opts**           for *ring.middleware.format-params/wrap-restful-response*,
+                                      e.g. `{:transit-json {:handlers writers}}`
+
+   - **:ring-swagger**              options for ring-swagger's swagger-json method.
+                                    e.g. `{:ignore-missing-mappings? true}`
+
+   - **:coercion**                  A function from request->type->coercion-matcher, used
+                                    in enpoint coersion for :json, :query and :response.
+                                    Defaults to `compojure.api.middleware/default-coercion-matchers`
+
+   - **:components**                Components which should be accessible to handlers using
+                                    :components restructuring. (If you are using defapi,
+                                    you might want to take look at using wrap-components
+                                    middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {{:keys [formats params-opts response-opts]} :format :keys [components]} options]
+        {:keys [exceptions validation-erros format components]} options
+        {:keys [formats params-opts response-opts]} format]
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
-        (rsm/wrap-validation-errors (:validation-errors options))
-        (wrap-exceptions (:exceptions options))
+        (rsm/wrap-validation-errors validation-erros)
+        (wrap-exceptions exceptions)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
-        (wrap-options (select-keys options [:ring-swagger]))
+        (wrap-options (select-keys options [:ring-swagger :coercion]))
         (wrap-restful-params
          (merge {:formats (remove response-only-mimes formats)
                  :handle-error handle-req-error}
