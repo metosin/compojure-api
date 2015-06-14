@@ -1022,6 +1022,11 @@
               (GET* "/ints" []
                 :query-params [i :- [s/Int]]
                 (ok {:i i})))]
-    (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
-      status => 200
-      body => {:i [1,2,3]})))
+    (fact "multiple values"
+      (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
+        status => 200
+        body => {:i [1, 2, 3]}))
+    (fact "single value"
+      (let [[status body] (get* app "/ints?i=42")]
+        status => 200
+        body => {:i [42]}))))
