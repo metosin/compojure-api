@@ -434,7 +434,8 @@ Default implementation uses Ring-swagger coercion matchers, `json-schema-coercio
 and `query-schema-coercion-matcher` for `:string`. One can override the defaults using an api-middleware option
 `:coercion` or using a restructuring key `:coerction`. Both expect a function value of type
 `ring-request->coercion-type->coercion-matcher`. This allows one to select the coercion matcher
-based on request parameters such as used transport, expected return format etc.
+based on request parameters such as used transport, expected return format etc. See [the tests](https://github.com/metosin/compojure-api/blob/91428f6cdc1872cb23eb5429ed915b7cc1ecc739/test/compojure/api/core_integration_test.clj#L1074-L1180)
+for examples how to change the coercion.
 
 All coercion code uses the `ring.swagger.schema/coerce!` internally, which throws managed exceptions when a value
 can't be coerced. The `api-middleware` catches these exceptions and returns the validation error as serializable
