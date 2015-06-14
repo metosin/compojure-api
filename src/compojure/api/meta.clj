@@ -66,10 +66,11 @@
           response)
         response))))
 
-(defn src-coerce!
-  "Return source code for coerce! for a schema with coercer type,
+(s/defn src-coerce!
+  "Return source code for coerce! for a schema with coercion type,
    extracted from a key in a ring request."
-  [schema key type]
+  [schema, key, type :- mw/CoercionType]
+  (assert (not (#{:query :json} type)) (str type " is DEPRECATED"))
   `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
      (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
        (schema/coerce! ~schema value# matcher#)
@@ -179,7 +180,7 @@
 ; :body [user User]
 (defmethod restructure-param :body [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :body-params :json)])
+      (update-in [:lets] into [value (src-coerce! schema :body-params :body)])
       (assoc-in [:parameters :parameters :body] schema)))
 
 ; reads query-params into a enchanced let. First parameter is the let symbol,
@@ -188,7 +189,7 @@
 ; :query [user User]
 (defmethod restructure-param :query [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :query-params :query)])
+      (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
       (assoc-in [:parameters :parameters :query] schema)))
 
 ; reads header-params into a enchanced let. First parameter is the let symbol,
@@ -197,7 +198,7 @@
 ; :headers [headers Headers]
 (defmethod restructure-param :headers [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :headers :query)])
+      (update-in [:lets] into [value (src-coerce! schema :headers :string)])
       (assoc-in [:parameters :parameters :header] schema)))
 
 ; restructures body-params with plumbing letk notation. Example:
@@ -205,7 +206,7 @@
 (defmethod restructure-param :body-params [_ body-params acc]
   (let [schema (strict (fnk-schema body-params))]
     (-> acc
-        (update-in [:letks] into [body-params (src-coerce! schema :body-params :json)])
+        (update-in [:letks] into [body-params (src-coerce! schema :body-params :body)])
         (assoc-in [:parameters :parameters :body] schema))))
 
 ; restructures form-params with plumbing letk notation. Example:
@@ -213,14 +214,14 @@
 (defmethod restructure-param :form-params [_ form-params acc]
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
-        (update-in [:letks] into [form-params (src-coerce! schema :form-params :query)])
+        (update-in [:letks] into [form-params (src-coerce! schema :form-params :string)])
         (update-in [:parameters :parameters :formData] st/merge schema)
         (assoc-in [:parameters :consumes] ["application/x-www-form-urlencoded"]))))
 
 (defmethod restructure-param :multipart-params [_ params acc]
   (let [schema (strict (fnk-schema params))]
     (-> acc
-        (update-in [:letks] into [params (src-coerce! schema :multipart-params :query)])
+        (update-in [:letks] into [params (src-coerce! schema :multipart-params :string)])
         (update-in [:parameters :parameters :formData] st/merge schema)
         (assoc-in [:parameters :consumes] ["multipart/form-data"]))))
 
@@ -229,7 +230,7 @@
 (defmethod restructure-param :header-params [_ header-params acc]
   (let [schema (fnk-schema header-params)]
     (-> acc
-        (update-in [:letks] into [header-params (src-coerce! schema :headers :query)])
+        (update-in [:letks] into [header-params (src-coerce! schema :headers :string)])
         (assoc-in [:parameters :parameters :header] schema))))
 
 ; restructures query-params with plumbing letk notation. Example:
@@ -237,7 +238,7 @@
 (defmethod restructure-param :query-params [_ query-params acc]
   (let [schema (fnk-schema query-params)]
     (-> acc
-        (update-in [:letks] into [query-params (src-coerce! schema :query-params :query)])
+        (update-in [:letks] into [query-params (src-coerce! schema :query-params :string)])
         (assoc-in [:parameters :parameters :query] schema))))
 
 ; restructures path-params by plumbing letk notation. Example:
@@ -245,7 +246,7 @@
 (defmethod restructure-param :path-params [_ path-params acc]
   (let [schema (fnk-schema path-params)]
     (-> acc
-        (update-in [:letks] into [path-params (src-coerce! schema :route-params :query)])
+        (update-in [:letks] into [path-params (src-coerce! schema :route-params :string)])
         (assoc-in [:parameters :parameters :path] schema))))
 
 ; Applies the given vector of middlewares for the route from left to right

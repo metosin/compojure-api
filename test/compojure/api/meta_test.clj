@@ -9,3 +9,8 @@
     (unwrap-meta-container '(meta-container :abba identity)) => (throws AssertionError))
   (fact "unwrapping non-meta-container returns empty map"
     (unwrap-meta-container 'identity) => {}))
+
+(fact "src-coerce! with deprecated types"
+  (src-coerce! nil nil :query) => (throws AssertionError)
+  (src-coerce! nil nil :json) => (throws AssertionError))
+

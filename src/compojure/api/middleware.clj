@@ -10,7 +10,8 @@
             [ring.swagger.common :refer [deep-merge]]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as rsc]
-            [ring.util.http-response :refer :all])
+            [ring.util.http-response :refer :all]
+            [schema.core :as s])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
 
@@ -90,9 +91,11 @@
 ;; coercion
 ;;
 
+(s/defschema CoercionType (s/enum :body :string :response))
+
 (def default-coercion-matchers
-  {:json rsc/json-schema-coercion-matcher
-   :query rsc/query-schema-coercion-matcher
+  {:body rsc/json-schema-coercion-matcher
+   :string rsc/query-schema-coercion-matcher
    :response rsc/json-schema-coercion-matcher})
 
 (def no-response-coercion
