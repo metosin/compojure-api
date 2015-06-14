@@ -833,14 +833,14 @@
         status => 200
         (-> spec :definitions vals first :properties keys first) => :a))))
 
-(defroutes* foo-routes
+(defroutes* foo
   (GET* "/foo" []
     (let [foo {:foo "bar"}]
       (ok foo))))
 
 (fact "defroutes with local symbol usage with same name (#123)"
   (let [app (api
-              foo-routes)]
+              foo)]
     (let [[status body] (get* app "/foo")]
       status => 200
       body => {:foo "bar"})))
