@@ -972,7 +972,7 @@
         (caw/validate app)
         => (throws
              IllegalArgumentException
-             "don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord"))))
+             "don't know how to create json-type of: class compojure.api.integration_test.NonSwaggerRecord"))))
 
   (fact "a pre-validated swagger api with invalid swagger records"
     (let [app' `(caw/validate
@@ -986,7 +986,7 @@
         (eval app')
         => (throws
              IllegalArgumentException
-             "don't know how to create json-type of: class compojure.api.core_integration_test.NonSwaggerRecord"))))
+             "don't know how to create json-type of: class compojure.api.integration_test.NonSwaggerRecord"))))
 
   (fact "a non-swagger api with invalid swagger records"
     (let [app (api
