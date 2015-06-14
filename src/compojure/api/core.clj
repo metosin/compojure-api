@@ -7,7 +7,7 @@
             [potemkin :refer [import-vars]]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.common :refer [extract-parameters]]
-            [backtick :refer [syntax-quote]]))
+            backtick))
 
 (defn api-middleware-with-routes
   "Returns a compojure.api.middleware/api-middlware wrapped handler,
@@ -69,7 +69,8 @@
   (let [source (drop 2 &form)
         [name routes] (name-with-attributes name routes)
         route-sym (symbol (str "_" name))
-        route-meta {:source `(syntax-quote ~source)
+        source `(backtick/syntax-quote ~source)
+        route-meta {:source source
                     :inline true}]
     `(do
        (def ~route-sym (with-meta (routes ~@routes) ~route-meta))
