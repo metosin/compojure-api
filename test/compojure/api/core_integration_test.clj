@@ -1,9 +1,7 @@
 (ns compojure.api.core-integration-test
-  (:require [cheshire.core :as cheshire]
-            [compojure.api.sweet :refer :all]
+  (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
-            [peridot.core :as p]
             [flatland.ordered.map :as om]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
@@ -11,58 +9,6 @@
             [compojure.api.swagger :as caw]
             [ring.util.http-status :as status]
             [compojure.api.middleware :as mw]))
-
-;;
-;; common
-;;
-
-(defn json [x] (cheshire/generate-string x))
-
-(defn follow-redirect [state]
-  (if (some-> state :response :headers (get "Location"))
-    (p/follow-redirect state)
-    state))
-
-(defn raw-get* [app uri & [params headers]]
-  (let [{{:keys [status body headers]} :response}
-        (-> (p/session app)
-            (p/request uri
-                       :request-method :get
-                       :params (or params {})
-                       :headers (or headers {}))
-            follow-redirect)]
-    [status (read-body body) headers]))
-
-(defn get* [app uri & [params headers]]
-  (let [[status body headers]
-        (raw-get* app uri params headers)]
-    [status (parse-body body) headers]))
-
-(defn form-post* [app uri params]
-  (let [{{:keys [status body]} :response}
-        (-> (p/session app)
-            (p/request uri
-                       :request-method :post
-                       :params params))]
-    [status (parse-body body)]))
-
-(defn raw-post* [app uri & [data content-type headers]]
-  (let [{{:keys [status body]} :response}
-        (-> (p/session app)
-            (p/request uri
-                       :request-method :post
-                       :headers (or headers {})
-                       :content-type (or content-type "application/json")
-                       :body (.getBytes data)))]
-    [status (read-body body)]))
-
-(defn post* [app uri & [data]]
-  (let [[status body] (raw-post* app uri data)]
-    [status (parse-body body)]))
-
-(defn headers-post* [app uri headers]
-  (let [[status body] (raw-post* app uri "" nil headers)]
-    [status (parse-body body)]))
 
 ;;
 ;; Data
