@@ -4,6 +4,7 @@
   Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
   to associate the components with your API. Then you can use `:components`-restructuring
   to destructure your components using letk syntax.
+* fix for [#123](https://github.com/metosin/compojure-api/issues/123)
 * Ring-swagger 0.21.0
   * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
   * **BREAKING**: File support moved to ring-swagger. Use `ring.swagger.upload` instead of `compojure.api.upload`.
