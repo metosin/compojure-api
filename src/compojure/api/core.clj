@@ -7,6 +7,7 @@
             [potemkin :refer [import-vars]]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.common :refer [extract-parameters]]
+            [clojure.walk :as walk]
             backtick))
 
 (defn api-middleware-with-routes
@@ -70,6 +71,8 @@
         [name routes] (name-with-attributes name routes)
         route-sym (symbol (str "_" name))
         source `(backtick/syntax-quote ~source)
+        ;; #125, muddle local bindings with defroutes name
+        source (walk/prewalk-replace {name (gensym name)} source)
         route-meta {:source source
                     :inline true}]
     `(do
