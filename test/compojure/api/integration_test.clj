@@ -1016,3 +1016,12 @@
       (let [[status body] (get* app "/magic")]
         status => 200
         body => {:magic 42}))))
+
+(fact "sequential string parameters"
+  (let [app (api
+              (GET* "/ints" []
+                :query-params [i :- [s/Int]]
+                (ok {:i i})))]
+    (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
+      status => 200
+      body => {:i [1,2,3]})))
