@@ -1,4 +1,4 @@
-(ns compojure.api.core-integration-test
+(ns compojure.api.integration-test
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
