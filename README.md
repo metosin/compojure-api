@@ -423,7 +423,7 @@ With Map-based schemas, Keyword keys should be used instead of Strings.
 
 ### Coercion
 
-Input and output schemas are coerced automatically using a schema coercion matcher selected by a coercion type.
+Input and output schemas are coerced automatically using a schema coercion matcher linked to a coercion type.
 There are three types of coercion:
 
 - `:body`  coercion of the request body
@@ -466,7 +466,7 @@ a compile-time error is raised.
 
 There is lot's of available keys in [meta](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/meta.clj)
 namespace, which are always available. These include:
-- input & output schema definitions (with automatic coersion and swagger-data extraction)
+- input & output schema definitions (with automatic coercion and swagger-data extraction)
 - extra swagger-documentation like `:summary`, `:description`, `:tags`
 
 One can also easily create own dispatch handlers, just add new dispatch function to the multimethod.
@@ -576,7 +576,7 @@ app supports), opposed to the [Ring Spec](https://github.com/mmcgrana/ring/blob/
 
 Key `:responses` takes a map of http-status-code to schema-definitions map
 (with optional `:schema`, `:description` and `:headers` keys). `:schema` defines the return model
-and get's automatic coersion for it. If a route tries to return an invalid response value,
+and get's automatic coercion for it. If a route tries to return an invalid response value,
 an `InternalServerError` is raised with the schema validation errors.
 
 ```clojure
