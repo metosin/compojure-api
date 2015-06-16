@@ -611,14 +611,17 @@ There is also a `:default` status code available, which stands for "all undefine
 
 ### Swagger-aware File-uploads
 
-Experimental. Run `lein run` to see it in action.
+Mostly provided by Ring-Swagger. Restructuring `:multipart-params` pushes also `multipart/form-data` as the only
+available consumption.
 
-```
-(POST* "/upload" []
-  :multipart-params [file :- TempFileUpload]
-  :middlewares [wrap-multipart-params]
-  :consumes ["multipart/form-data"]
-  (ok (dissoc file :tempfile))))
+```clojure
+(require '[ring.swagger.upload :as upload])
+
+(POST* 
+  "/upload" []
+  :multipart-params [file :- upload/TempFileUpload]
+  :middlewares [upload/wrap-multipart-params]
+  (ok (dissoc file :tempfile)))
 ```
 
 ## Route-specific middlewares
