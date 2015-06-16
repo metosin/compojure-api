@@ -1018,16 +1018,26 @@
         (caw/validate app) => truthy))))
 
 (fact "component integration"
-  (fact "via options"
-    (let [system {:magic 42}
-          app (api
-                {:components system}
-                (GET* "/magic" []
-                  :components [magic]
-                  (ok {:magic magic})))]
-      (let [[status body] (get* app "/magic")]
-        status => 200
-        body => {:magic 42}))))
+  (let [system {:magic 42}]
+    (fact "via options"
+      (let [app (api
+                  {:components system}
+                  (GET* "/magic" []
+                    :components [magic]
+                    (ok {:magic magic})))]
+        (let [[status body] (get* app "/magic")]
+          status => 200
+          body => {:magic 42})))
+
+    (fact "via middleware"
+      (let [handler (api
+                     (GET* "/magic" []
+                       :components [magic]
+                       (ok {:magic magic})))
+            app (mw/wrap-components handler system)]
+        (let [[status body] (get* app "/magic")]
+          status => 200
+          body => {:magic 42})))))
 
 (fact "sequential string parameters"
   (let [app (api

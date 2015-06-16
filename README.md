@@ -225,14 +225,13 @@ Compojure-api uses [Swagger](https://github.com/wordnik/swagger-core/wiki) for r
 Enabling Swagger route documentation in your application is done by:
 
 - Wrap your api-applicaiton into an `api` (or `defapi`).
-  - Internally, `api` uses `compojure.api.routes/api-root` to create a route tree, passed into swagger-endpoints via request injection (`ring.swagger.middleware/wrap-swagger-data`).
-    - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
+  - uses macro-peeling & source linking to reconstruct the route tree from route macros at macro-expansion time (~no runtime penalty)
   - if you intend to split your routes behind multiple Vars via `defroutes`, use `defroutes*` instead so that their routes get also collected. **Note:** since `0.20.0` the `defroutes*` are automatically referenced over a Var to get smoother development flow.
   - Add `:no-doc` metadata to any routes you don't want to appear in the documentation
 - Add `compojure.api.swagger/swagger-docs` route to publish the swagger spec
 - **optionally** Mount `compojure.api.swagger/swagger-ui` to add the [Swagger-UI](https://github.com/metosin/ring-swagger-ui) to the web app.
 
-If the embedded (Ring-)Swagger-UI isn't good for you, you can exclude it from dependencies and create & package your own UI from the [sources](https://github.com/swagger-api/swagger-ui):
+If the embedded (Ring-)Swagger-UI isn't enough for you, you can exclude it from dependencies and create & package your own UI from the [sources](https://github.com/swagger-api/swagger-ui):
 
 ```clojure
 [metosin/compojure-api "0.20.3" :exclusions [metosin/ring-swagger-ui]]
@@ -380,9 +379,11 @@ at compile-time if it founds multiple routes with same name. Route name is publi
 
 ## Component integration
 
-Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a great library for managing the stateful resources of your app. There are [several strategies](http://www.infoq.com/presentations/Clojure-Large-scale-patterns-techniques) to use it. Here are some samples how to use Component with compojure-api:
+Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a great library for managing the stateful
+resources of your app. There are [several strategies](http://www.infoq.com/presentations/Clojure-Large-scale-patterns-techniques)
+to use it. Here are some samples how to use Component with compojure-api:
 
-### Component as a function argument (to create the handler)
+### Lexical bind with Components as a function arguments
 
 ```clojure
 (defn create-handler [{:keys [db] :as system}]
@@ -394,19 +395,29 @@ Stuert Sierra's [Component](https://github.com/stuartsierra/component) is a grea
       (ok (get-user db id)))))
 ```
 
-### Inject components into a request
+### Passing Components via request
 
 Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
 to associate the components with your API. 
 
 Components can be read from the request using `compojure.api.middleware/get-components` or using 
-the `:components` restucturing with letk-syntax:
+the `:components` restucturing with letk-syntax.
 
 ```clojure
-(def system ...)
+(require '[compojure.api.middleware :as mw])
 
+(defapi handler
+  (GET* "/user/:id" []
+    :path-params [id :- s/Str]
+    :components [db]
+    (ok (get-user db id))))
+
+(defn app (mw/wrap-components handler (create-system))
+```
+
+```clojure
 (defapi app
-  {:components system}
+  {:components (create-system)}
   (GET* "/user/:id" []
     :path-params [id :- s/Str]
     :components [db]
