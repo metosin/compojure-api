@@ -428,7 +428,7 @@ There are three types of coercion:
 
 - `:body`  coercion of the request body
 - `:string` coercion of query, path, header and form parameters
-- `:response` coercsion of response body
+- `:response` coercion of response body
 
 Default implementation uses Ring-swagger coercion matchers, `json-schema-coercion-matcher` for `:body` and `:response`
 and `query-schema-coercion-matcher` for `:string`. One can override the defaults using an api-middleware option
