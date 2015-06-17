@@ -435,20 +435,29 @@ With Map-based schemas, Keyword keys should be used instead of Strings.
 ### Coercion
 
 Input and output schemas are coerced automatically using a schema coercion matcher linked to a coercion type.
-There are three types of coercion:
+There are three types of coercion and currently two different coercion matchers available (from Ring-Swagger).
 
-- `:body`  coercion of the request body
-- `:string` coercion of query, path, header and form parameters
-- `:response` coercion of response body
+The following table provides the default mapping from type -> coercion matcher.
 
-Default implementation uses Ring-swagger coercion matchers, `json-schema-coercion-matcher` for `:body` and `:response`
-and `query-schema-coercion-matcher` for `:string`. One can override the defaults using an api-middleware option
-`:coercion` or using a restructuring key `:coercion`. Both expect a function value of type
-`ring-request->coercion-type->coercion-matcher`. This allows one to select the coercion matcher
-based on request parameters such as used transport, expected return format etc. See [the tests](./test/compojure/api/coercion_test.clj)
-for examples how to change the coercion.
+| type       | default coercion matcher        | used with
+|------------|---------------------------------|--------------------------------------------
+|`:body`     | `json-schema-coercion-matcher`  | request body
+|`:string`   | `query-schema-coercion-matcher` | query, path, header and form parameters
+|`:response` | `json-schema-coercion-matcher`  | response body
 
-All coercion code uses the `ring.swagger.schema/coerce!` internally, which throws managed exceptions when a value
+One can override the default coercion behavior by providing a coercion function of type
+`ring-request->coercion-type->coercion-matcher` either by:
+
+1. api-middleware option `:coercion`
+2. route-level restructuring `:coercion`
+
+As the coercion function takes in the ring-request, one can select coercion matcher based on the user selected wire
+format or any other header. The plan is to provide extendable protocol-based coercion out-of-the-box (Transit doesn't
+need any coercion, XML requires some extra love with sequences). Stay tuned.
+
+Examples on overriding the default coercion can found in the [the tests](./test/compojure/api/coercion_test.clj).
+
+All coercion code uses the internally `ring.swagger.schema/coerce!`, which throws managed exceptions when a value
 can't be coerced. The `api-middleware` catches these exceptions and returns the validation error as serializable
 Clojure data structure, sent to the client.
 
