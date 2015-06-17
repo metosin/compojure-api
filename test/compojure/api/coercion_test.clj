@@ -99,12 +99,15 @@
                   :coercion (constantly nil)
                   :query-params [i :- s/Int]
                   (ok {:i i})))]
+
       (fact "default coercion"
         (let [[status body] (get* app "/default" {:i 10})]
           status => 200
           body => {:i 10}))
+
       (fact "disabled coercion"
         (get* app "/disabled-coercion" {:i 10}) => (fails-with 400))
+
       (fact "no coercion"
         (let [[status body] (get* app "/no-coercion" {:i 10})]
           status => 200
