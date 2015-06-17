@@ -6,6 +6,10 @@
             [schema.core :as s]
             [compojure.api.middleware :as mw]))
 
+(defn fails-with [expected-status]
+  (fn [[status body]]
+    (and (= status expected-status) (contains? body :errors))))
+
 (fact "custom coercion"
 
   (fact "response coercion"
@@ -16,9 +20,7 @@
       (fact "by default, applies response coercion"
         (let [app (api
                     ping-route)]
-          (let [[status body] (get* app "/ping")]
-            status => 500
-            body => (contains {:errors irrelevant}))))
+          (get* app "/ping") => (fails-with 500)))
 
       (fact "response-coersion can ba disabled"
         (let [app (api
@@ -54,9 +56,7 @@
               app (api
                     {:coercion nop-body-coercion}
                     beer-route)]
-          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
-            status => 400
-            body => (contains {:errors irrelevant}))))))
+          (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]})) => (fails-with 400)))))
 
   (fact "query coersion"
     (let [query-route (GET* "/query" []
@@ -84,9 +84,7 @@
               app (api
                     {:coercion nop-query-coercion}
                     query-route)]
-          (let [[status body] (get* app "/query" {:i 10})]
-            status => 400
-            body => (contains {:errors irrelevant}))))))
+          (get* app "/query" {:i 10}) => (fails-with 400)))))
 
   (fact "route-spesific coercion"
     (let [app (api
@@ -106,9 +104,7 @@
           status => 200
           body => {:i 10}))
       (fact "disabled coercion"
-        (let [[status body] (get* app "/disabled-coercion" {:i 10})]
-          status => 400
-          body => (contains {:errors irrelevant})))
+        (get* app "/disabled-coercion" {:i 10}) => (fails-with 400))
       (fact "no coercion"
         (let [[status body] (get* app "/no-coercion" {:i 10})]
           status => 200
