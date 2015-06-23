@@ -271,14 +271,8 @@
                          (assoc-in (mapping k) v)))
                    info))
                info
-               info)
-        Schema (-> ss/Swagger
-                   (st/select-keys [:info s/Keyword])
-                   (st/assoc (s/optional-key :tags)
-                             [{:name (s/either s/Str s/Keyword)
-                               (s/optional-key :description) s/Str
-                               ss/X- s/Any}]))]
-    (st/select-schema Schema info)))
+               info)]
+    info))
 
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
