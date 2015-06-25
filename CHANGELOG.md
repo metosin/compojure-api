@@ -5,6 +5,18 @@
   to associate the components with your API. Then you can use `:components`-restructuring
   to destructure your components using letk syntax.
 * fix for [#123](https://github.com/metosin/compojure-api/issues/123)
+* new restucturing `:swagger` just for swagger-docs. Does not do any coercion.
+
+```clojure
+(GET* "/documented" []
+  :swagger {:responses {200 {:schema User}
+                        404 {:schema Error
+                             :description "Not Found"} }
+            :paramerers {:query {:q s/Str}
+                         :body NewUser}}}
+  ...)
+```
+
 * Ring-swagger 0.21.0
   * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
   * **BREAKING**: File support moved to ring-swagger. Use `ring.swagger.upload` instead of `compojure.api.upload`.

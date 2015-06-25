@@ -138,6 +138,16 @@
 (defmethod restructure-param :no-doc [_ v acc]
   (update-in acc [:parameters] assoc :x-no-doc v))
 
+; publishes the data as swagger-parameters without any side-effects / coercion.
+; Examples:
+; :swagger {:responses {200 {:schema User}
+;                       404 {:schema Error
+;                            :description "Not Found"} }
+;           :paramerers {:query {:q s/Str}
+;                        :body NewUser}}}
+(defmethod restructure-param :swagger [_ swagger acc]
+  (update-in acc [:parameters] deep-merge swagger))
+
 ; Route name, used with path-for
 ; Example:
 ; :name :user-route

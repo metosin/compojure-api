@@ -1052,3 +1052,30 @@
       (let [[status body] (get* app "/ints?i=42")]
         status => 200
         body => {:i [42]}))))
+
+(fact ":swagger params just for ducumentation"
+  (let [app (api
+              (swagger-docs)
+              (GET* "/route" [q]
+                :swagger {:x-name :boolean
+                          :operationId "echoBoolean"
+                          :description "Ehcoes a boolean"
+                          :parameters {:query {:q s/Bool}}}
+                (ok {:q q})))]
+    (fact "there is no coercion"
+      (let [[status body] (get* app "/route" {:q "kikka"})]
+        status => 200
+        body => {:q "kikka"}))
+
+    (fact "swagger-docs are generated"
+      (let [[status spec] (get* app "/swagger.json" {})]
+        status => 200
+        (-> spec :paths vals first :get)
+        => (contains {:x-name "boolean"
+                      :operationId "echoBoolean"
+                      :description "Ehcoes a boolean"
+                      :parameters [{:description ""
+                                    :in "query"
+                                    :name "q"
+                                    :required true
+                                    :type "boolean"}]})))))
