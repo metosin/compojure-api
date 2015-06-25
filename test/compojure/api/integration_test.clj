@@ -1062,6 +1062,7 @@
                           :description "Ehcoes a boolean"
                           :parameters {:query {:q s/Bool}}}
                 (ok {:q q})))]
+
     (fact "there is no coercion"
       (let [[status body] (get* app "/route" {:q "kikka"})]
         status => 200
