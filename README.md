@@ -629,7 +629,7 @@ The `:return` maps the model just to the response 200, so one can also say:
 
 There is also a `:default` status code available, which stands for "all undefined codes".
 
-### I Just want the swagger-docs, without Coercion
+### I just want the swagger-docs, without coercion
 
 You can either use the normal restructuring (`:query`, `:path` etc.) to get the swagger docs and
 disable the coercion with:
@@ -638,10 +638,9 @@ disable the coercion with:
 (api
   :coercion (constantly nil)
   ...
-``
+```
 
-or instead of normal restructurings use the `:swagger` restructuring at your route, which just
-pushes the swagger docs for the routes:
+or use the `:swagger` restructuring at your route, which  pushes the swagger docs for the routes:
 
 ```clojure
 (GET* "/route" [q]
