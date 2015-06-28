@@ -144,7 +144,7 @@ There is prepackaged middleware `compojure.api.middleware/api-middleware` for co
     - default supported protocols are: `:json-kw`, `:yaml-kw`, `:edn`, `:transit-json` and `:transit-msgpack`
     - enabled protocol support is also published into Swagger docs via `ring.swagger.middleware/wrap-swagger-data`.
     
-All middlewares are preconfigured with good/opinionated defaults, but one can override the configurations by passing a options Map into the `api-middleware`. See api-docs for details.
+All middlewares are preconfigured with good/opinionated defaults, but one can override the configurations by passing a options Map into the `api-middleware`. See [api-docs](http://metosin.github.io/compojure-api/doc/compojure.api.middleware.html#var-api-middleware) for details.
 
 ## Api macro
 
