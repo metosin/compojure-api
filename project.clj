@@ -26,7 +26,7 @@
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
-                             [lein-ring "0.9.5"]
+                             [lein-ring "0.9.6"]
                              [funcool/codeina "0.1.0"]]
                    :dependencies [[peridot "0.4.0"]
                                   [javax.servlet/servlet-api "2.5"]
