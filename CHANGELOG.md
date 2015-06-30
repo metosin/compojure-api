@@ -29,10 +29,9 @@
 ```
 
 ```clojure
-[metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
 [cheshire "5.5.0"] is available but we use "5.4.0"
 [backtick "0.3.3"] is available but we use "0.3.2"
-[lein-ring "0.9.5"] is available but we use "0.9.4"
+[lein-ring "0.9.6"] is available but we use "0.9.4"
 ```
 
 ## 0.21.0 (25.5.2015)
