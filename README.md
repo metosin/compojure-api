@@ -658,6 +658,10 @@ Mostly provided by Ring-Swagger. Restructuring `:multipart-params` pushes also `
 available consumption.
 
 ```clojure
+;; versions before 0.23.0
+(require '[compojure.api.upload :as upload])
+
+;; versions 0.23.0+
 (require '[ring.swagger.upload :as upload])
 
 (POST* 

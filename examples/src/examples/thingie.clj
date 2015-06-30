@@ -1,7 +1,7 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
-            [ring.swagger.upload :refer :all]
+            [compojure.api.upload :refer :all]
             [schema.core :as s]
             ring.swagger.json-schema-dirty
             [examples.pizza :refer [pizza-routes Pizza]]

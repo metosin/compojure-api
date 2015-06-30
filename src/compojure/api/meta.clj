@@ -70,7 +70,7 @@
   "Return source code for coerce! for a schema with coercion type,
    extracted from a key in a ring request."
   [schema, key, type :- mw/CoercionType]
-  (assert (not (#{:query :json} type)) (str type " is DEPRECATED"))
+  (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
   `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
      (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
        (schema/coerce! ~schema value# matcher#)

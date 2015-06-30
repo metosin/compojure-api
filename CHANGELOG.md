@@ -1,10 +1,21 @@
-## 0.22.0-SNAPSHOT
+## 0.23.0-SNAPSHOT
+
+* Ring-swagger 0.21.0
+  * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
+  * **BREAKING**: File support moved to ring-swagger. Use `ring.swagger.upload` instead of `compojure.api.upload`.
+  * Support for collections in query parameters. E.g. `:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being `[1 2 3]`.
+
+## 0.22.0 (30.6.2015)
 
 * Optional integration with [Component](https://github.com/stuartsierra/component).
   Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
   to associate the components with your API. Then you can use `:components`-restructuring
   to destructure your components using letk syntax.
 * fix for [#123](https://github.com/metosin/compojure-api/issues/123)
+* support for pluggable coercion, at both api-level & endpoint-level with option `:coercion`. See the[the tests](./test/compojure/api/coercion_test.clj).
+  * coercion is a function of type - `ring-request->coercion-type->coercion-matcher` allowing protocol-based coercion in the future
+  ** BREAKING**: if you have created custom restructurings using `src-coerce`, they will break (nicely at compile-time)
+
 * new restucturing `:swagger` just for swagger-docs. Does not do any coercion.
 
 ```clojure
@@ -16,11 +27,6 @@
                          :body NewUser}}}
   ...)
 ```
-
-* Ring-swagger 0.21.0
-  * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
-  * **BREAKING**: File support moved to ring-swagger. Use `ring.swagger.upload` instead of `compojure.api.upload`.
-  * Support for collections in query parameters. E.g. `:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being `[1 2 3]`.
 
 ```clojure
 [metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
