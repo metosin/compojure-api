@@ -50,7 +50,7 @@ from 1.2 to 2.0. See [Migration guide](https://github.com/metosin/compojure-api/
   (swagger-docs 
     {:info {:title "Sample api"}})
     
-  (GET* "/"
+  (GET* "/" []
     :no-doc true
     (ok "hello world"))
 
