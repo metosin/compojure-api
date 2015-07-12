@@ -10,6 +10,16 @@
 [metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
 ```
 
+## 0.22.1 (12.7.2015)
+
+* fixes [137](https://github.com/metosin/compojure-api/issues/137) & [134](https://github.com/metosin/compojure-api/issues/134), thanks to @thomaswhitcomb!
+* updated deps:
+
+```clojure
+[metosin/ring-http-response "0.6.3"] is available but we use "0.6.2"
+[midje "1.7.0"] is available but we use "1.7.0-SNAPSHOT"
+```
+
 ## 0.22.0 (30.6.2015)
 
 * Optional integration with [Component](https://github.com/stuartsierra/component).
