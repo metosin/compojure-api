@@ -165,6 +165,7 @@
    :exceptions {:exception-handler default-exception-handler}
    :ring-swagger nil})
 
+;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
   "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
    options for the used middlewares (see middlewares for full details on options):
@@ -196,12 +197,12 @@
                                     middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {:keys [exceptions validation-erros format components]} options
+        {:keys [exceptions validation-errors format components]} options
         {:keys [formats params-opts response-opts]} format]
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
-        (rsm/wrap-validation-errors validation-erros)
+        (rsm/wrap-validation-errors validation-errors)
         (wrap-exceptions exceptions)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
