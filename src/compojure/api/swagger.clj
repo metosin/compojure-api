@@ -9,8 +9,6 @@
             [compojure.api.core :refer [GET*]]
             [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
-            [schema-tools.core :as st]
-            [ring.swagger.swagger2-schema :as ss]
             [potemkin :refer [import-vars]]
             [ring.swagger.common :refer :all]
             [ring.swagger.middleware :as rsm]
