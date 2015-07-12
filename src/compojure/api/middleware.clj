@@ -39,7 +39,7 @@
 
 (defn default-exception-handler [^Exception e]
   (.printStackTrace e)
-  (internal-server-error {:type  "unknown-exception"
+  (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
 
 (defn wrap-exceptions
@@ -208,13 +208,13 @@
                                 :consumes (->mime-types formats)})
         (wrap-options (select-keys options [:ring-swagger :coercion]))
         (wrap-restful-params
-         (merge {:formats (remove response-only-mimes formats)
-                 :handle-error handle-req-error}
-                params-opts))
+          (merge {:formats (remove response-only-mimes formats)
+                  :handle-error handle-req-error}
+                 params-opts))
         (wrap-restful-response
-         (merge {:formats formats
-                 :predicate serializable?}
-                response-opts))
+          (merge {:formats formats
+                  :predicate serializable?}
+                 response-opts))
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))
