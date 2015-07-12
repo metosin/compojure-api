@@ -788,6 +788,7 @@
         (-> spec :definitions :Kikka :properties keys) => (keys Kikka)))))
 
 ; https://github.com/metosin/compojure-api/issues/98
+; https://github.com/metosin/compojure-api/issues/134
 (fact "basePath"
   (let [app (api (swagger-docs))]
 
@@ -800,7 +801,19 @@
       (against-background (rsc/context anything) => "/v2")
       (let [[status spec] (get* app "/swagger.json")]
         status => 200
-        (:basePath spec) => "/v2"))))
+        (:basePath spec) => "/v2")))
+
+  (let [app (api (swagger-docs {:basePath "/serve/from/here"}))]
+    (fact "override it"
+      (let [[status spec] (get* app "/swagger.json")]
+          status => 200 
+          (:basePath spec) => "/serve/from/here")))
+
+  (let [app (api (swagger-docs {:basePath "/"}))]
+    (fact "can set it to the default"
+      (let [[status spec] (get* app "/swagger.json")]
+          status => 200 
+          (:basePath spec) => "/"))))
 
 (fact "multiple different models with same name"
 

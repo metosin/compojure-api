@@ -309,8 +309,8 @@
                options# (:ring-swagger (mw/get-options request#))]
            (ok
              (let [swagger# (merge runtime-info#
-                                   ~extra-info
-                                   base-path#)
+                                   base-path# 
+                                   ~extra-info)
                    result# (swagger2/swagger-json swagger# options#)]
                result#)))))))
 
