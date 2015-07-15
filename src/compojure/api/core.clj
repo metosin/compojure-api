@@ -30,7 +30,7 @@
    optional options map as the first parameter:
 
        (api
-         {:formats [:json :edn}
+         {:formats [:json :edn]}
          (context* \"/api\" []
            ...))
 
@@ -48,7 +48,7 @@
    optional options map as the first parameter:
 
        (defapi app
-         {:formats [:json :edn}
+         {:formats [:json :edn]}
          (context* \"/api\" []
            ...))
 
