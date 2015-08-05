@@ -14,6 +14,7 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
+            [flatland.ordered.map :as om]
             [ring.swagger.swagger2 :as swagger2]
             [schema.core :as s]))
 
@@ -231,7 +232,7 @@
        path-vals
        (map create-api-route)
        (map attach-meta-data-to-route)
-       (apply deep-merge {})))
+       (apply deep-merge (om/ordered-map))))
 
 (defn swagger-info [body]
   [{:paths (extract-routes body)} body])

@@ -16,7 +16,8 @@
   lookup table via wrap-options. Returned handler retains the original
   meta-data."
   [handler options]
-  (let [{:keys [routes lookup] :as meta} (meta handler)]
+  (let [{:keys [routes lookup] :as meta}
+        (-> handler meta (update-in [:routes] routes/route-vector-to-route-map))]
     (-> handler
         (rsm/wrap-swagger-data routes)
         (mw/api-middleware options)
