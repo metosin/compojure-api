@@ -37,7 +37,7 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn default-exception-handler [^Exception e]
+(defn default-exception-handler [^Exception e _]
   (.printStackTrace e)
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
@@ -45,18 +45,24 @@
 (defn wrap-exceptions
   "Catches all exceptions. Accepts the following options:
 
-  :exception-handler - a function to handle the exception. defaults
-                       to default-exception-handler"
-  [handler & [{:keys [exception-handler]
-               :or {exception-handler default-exception-handler}}]]
-  {:pre [(fn? exception-handler)]}
-  (fn [request]
-    (try
-      (handler request)
-      (catch Exception e
-        (if (rethrow-exceptions? request)
-          (throw e)
-          (exception-handler e))))))
+   :exception-handler - a function to handle the exception. defaults
+   to default-exception-handler
+   :rich-handler - an alternative handler that accepts the request as
+   its second argument"
+  [handler & [{:keys [exception-handler rich-handler]
+               :or {rich-handler default-exception-handler}}]]
+  {:pre [(or (fn? rich-handler)
+             (fn? exception-handler))]}
+  (let [handle-ex (if exception-handler
+                    (fn [e req] (exception-handler e))
+                    rich-handler)]
+    (fn [request]
+      (try
+        (handler request)
+        (catch Exception e
+          (if (rethrow-exceptions? request)
+            (throw e)
+            (handle-ex e request)))))))
 
 ;;
 ;; Component integration
@@ -172,6 +178,8 @@
 
    - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
        - **:exception-handler**       function to handle uncaught exceptions
+       - **:rich-handler**            alternative handler that receives request map
+                                      as its second argument
 
    - **:validation-errors**         for *ring.swagger.middleware/wrap-validation-errors*
        - **:error-handler**           function to handle ring-swagger schema exceptions

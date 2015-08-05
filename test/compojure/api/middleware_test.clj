@@ -43,6 +43,8 @@
 
     (fact "error-handler can be overridden"
       ((wrap-exceptions failure {:exception-handler (constantly (ok "FAIL"))}) request)
-      => (ok "FAIL"))))
-
-
+      => (ok "FAIL"))
+    
+    (fact "rich-handler gets request map as well"
+      ((wrap-exceptions failure {:rich-handler (fn [e req] (ok (:foo req)))}) {:foo "bar"})
+      => (ok "bar"))))
