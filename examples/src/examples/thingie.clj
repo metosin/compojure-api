@@ -5,7 +5,7 @@
             [schema.core :as s]
             ring.swagger.json-schema-dirty
             [examples.pizza :refer [pizza-routes Pizza]]
-            [examples.ordered :refer [ordered-routes]]
+            [examples.ordered-routes :refer [ordered-routes]]
             [examples.dates :refer [date-routes]])
   (:import [org.joda.time DateTime]))
 
@@ -88,8 +88,6 @@
       (throw (RuntimeException. "KOSH"))))
 
   pizza-routes
-
-  #_ordered-routes
 
   (context* "/dates" []
     :tags ["dates"]
@@ -196,4 +194,6 @@
     :tags ["component"]
     (GET* "/example" req
       :components [example]
-      (ok example))))
+      (ok example)))
+
+  ordered-routes)

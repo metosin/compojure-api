@@ -16,9 +16,25 @@
     :g s/Str
     :h s/Str))
 
+(defroutes* more-ordered-routes
+  (GET* "/6" [] identity)
+  (GET* "/7" [] identity)
+  (GET* "/8" [] identity))
+
 (defroutes* ordered-routes
   (context* "/ordered" []
     :tags ["ordered"]
+    (context "/a" []
+      (GET* "/1" [] (ok))
+      (GET* "/2" [] (ok))
+      (GET* "/3" [] (ok))
+      (context "/b" []
+        (GET* "/4" [] (ok))
+        (GET* "/5" [] (ok)))
+      (context "/c" []
+        more-ordered-routes
+        (GET* "/9" [] (ok))
+        (GET* "/10" [] (ok))))
     (GET* "/" []
       :return Ordered
       :summary "Ordered data"
