@@ -192,6 +192,13 @@ To help setting up custom middleware there is a `compojure.api.core/middlewares`
       (GET "/ping" [] (ok {:ping "pong"})))))
 ```
 
+If you want to wrap you complete app in some middlewares, `defapi` returns handler which you can wrap just like with regular `defroutes`:
+
+```clojure
+(defapi app' ...)
+(def app (-> app' (wrap-head)))
+```
+
 ## Route macros
 
 One can use either [vanilla Compojure routes](https://github.com/weavejester/compojure/wiki) or their enhanced versions from `compojure.api.core`.
