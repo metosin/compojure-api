@@ -10,6 +10,10 @@
 [metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
 ```
 
+## 0.22.2 (12.8.2015)
+
+* fixes [150](https://github.com/metosin/compojure-api/issues/150)
+ 
 ## 0.22.1 (12.7.2015)
 
 * fixes [137](https://github.com/metosin/compojure-api/issues/137) & [134](https://github.com/metosin/compojure-api/issues/134), thanks to @thomaswhitcomb!
