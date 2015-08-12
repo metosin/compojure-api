@@ -3,27 +3,28 @@
             [clojure.string :as string]
             [cheshire.core :as json]
             [ring.swagger.swagger2 :as rss]
-            [compojure.api.middleware :as mw]))
+            [compojure.api.middleware :as mw]
+            [clojure.string :as str]))
+
+(defn- un-quote [s]
+  (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
 
 (defn ->path [s params]
-  (->> s
-       (re-seq #"(.*?):(.[^:|(/]*)([/]?)")
-       (map (comp vec rest))
-       (map #(update-in % [1] keyword))
-       flatten
-       (map (fn [token]
-              (if (keyword? token)
-                (string/replace
-                  (json/generate-string
-                    (or (token params)
-                        (throw
-                          (IllegalArgumentException.
-                            (str "Missing path-parameter "
-                                 token " for path " s)))))
-                  #"^\"(.+(?=\"$))\"$"
-                  "$1")
-                token)))
-       (apply str)))
+  (-> s
+      (str/replace #":([^/]+)" " :$1 ")
+      (str/split #" ")
+      (->> (map
+             (fn [[head :as token]]
+               (if (= head \:)
+                 (let [key (keyword (subs token 1))
+                       value (key params)]
+                   (if value
+                     (un-quote (json/generate-string value))
+                     (throw
+                       (IllegalArgumentException.
+                         (str "Missing path-parameter " key " for path " s)))))
+                 token)))
+           (apply str))))
 
 (defn- duplicates [seq]
   (for [[id freq] (frequencies seq)

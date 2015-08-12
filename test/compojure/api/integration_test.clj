@@ -806,13 +806,13 @@
   (let [app (api (swagger-docs {:basePath "/serve/from/here"}))]
     (fact "override it"
       (let [[status spec] (get* app "/swagger.json")]
-          status => 200 
+          status => 200
           (:basePath spec) => "/serve/from/here")))
 
   (let [app (api (swagger-docs {:basePath "/"}))]
     (fact "can set it to the default"
       (let [[status spec] (get* app "/swagger.json")]
-          status => 200 
+          status => 200
           (:basePath spec) => "/"))))
 
 (fact "multiple different models with same name"
@@ -913,6 +913,18 @@
           status => 200
           body => {:country "FI"
                    :zip 33200}))))
+
+  (fact "https://github.com/metosin/compojure-api/issues/150"
+    (let [app (api
+                (GET* "/companies/:company-id/refresh" []
+                  :path-params [company-id :- s/Int]
+                  :name :refresh-company
+                  :return String
+                  (ok (path-for :refresh-company {:company-id company-id}))))]
+      (fact "path-for resolution"
+        (let [[status body] (get* app "/companies/4/refresh")]
+          status => 200
+          body => "/companies/4/refresh"))))
 
   (fact "multiple routes with same name fail at compile-time"
     (let [app' `(api

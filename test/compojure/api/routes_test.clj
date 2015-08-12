@@ -13,7 +13,7 @@
     => (throws com.fasterxml.jackson.core.JsonGenerationException))
 
   (fact "happy path"
-    (->path "/a/:b/:c/d/:e" {:b (org.joda.time.LocalDate/parse "2015-05-22")
-                             :c 12345
-                             :e :kikka})
-    => "/a/2015-05-22/12345/d/kikka"))
+    (->path "/a/:b/:c/d/:e/f" {:b (org.joda.time.LocalDate/parse "2015-05-22")
+                               :c 12345
+                               :e :kikka})
+    => "/a/2015-05-22/12345/d/kikka/f"))
