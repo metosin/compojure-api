@@ -12,9 +12,18 @@
    let-request
    routing
    routes
+   defroutes
    context
    let-routes
-   wrap-routes]
+   wrap-routes
+   GET
+   POST
+   PATCH
+   DELETE
+   PUT
+   OPTIONS
+   ANY
+   HEAD]
 
   ;; with enchanced methods
   [compojure.api.core
