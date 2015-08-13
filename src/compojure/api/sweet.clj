@@ -12,7 +12,6 @@
    let-request
    routing
    routes
-   context
    let-routes
    wrap-routes]
 

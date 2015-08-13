@@ -32,7 +32,7 @@
             :license {:name "Eclipse Public License"
                       :url "http://www.eclipse.org/legal/epl-v10.html"}}})
   ping-routes
-  (context "/api" []
+  (context* "/api" []
     ;; defroutes* over a Var
     #'ping-routes
     (GET* "/bands" []

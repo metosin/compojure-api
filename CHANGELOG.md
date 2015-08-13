@@ -4,6 +4,7 @@
   * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
   * **BREAKING**: File support moved to ring-swagger. Use `ring.swagger.upload` instead of `compojure.api.upload`.
   * Support for collections in query parameters. E.g. `:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being `[1 2 3]`.
+* move `context` from `compojure.api.sweet` to `compojure.api.legacy`. Use `context*` instead.
 * updated deps:
 
 ```clojure

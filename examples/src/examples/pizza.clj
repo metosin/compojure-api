@@ -53,7 +53,7 @@
 (defroutes* pizza-routes
   (context* "/api" []
     :tags ["pizzas"]
-    (context "/pizzas" []
+    (context* "/pizzas" []
       (GET* "/" []
         :return   [Pizza]
         :summary  "Gets all Pizzas"

@@ -66,7 +66,7 @@
 (facts "middlewares"
   (let [app (api
               (middlewares [middleware* (middleware* 2)]
-                (context "/middlewares" []
+                (context* "/middlewares" []
                   (GET* "/simple" req (reply-mw* req))
                   (middlewares [(middleware* 3) (middleware* 4)]
                     (GET* "/nested" req (reply-mw* req))
@@ -124,7 +124,7 @@
 
 (fact ":body, :query, :headers and :return"
   (let [app (api
-              (context "/models" []
+              (context* "/models" []
                 (GET* "/pertti" []
                   :return User
                   (ok pertti))
@@ -298,7 +298,7 @@
 
 (fact ":query-params, :path-params, :header-params , :body-params and :form-params"
   (let [app (api
-              (context "/smart" []
+              (context* "/smart" []
                 (GET* "/plus" []
                   :query-params [x :- Long y :- Long]
                   (ok {:total (+ x y)}))
@@ -347,7 +347,7 @@
 
 (fact "primitive support"
   (let [api (api
-              (context "/primitives" []
+              (context* "/primitives" []
                 (GET* "/return-long" []
                   :return Long
                   (ok 1))
@@ -374,7 +374,7 @@
 
 (fact "compojure destructuring support"
   (let [app (api
-              (context "/destructuring" []
+              (context* "/destructuring" []
                 (GET* "/regular" {{:keys [a]} :params}
                   (ok {:a a
                        :b (-> +compojure-api-request+ :params :b)}))
@@ -545,10 +545,10 @@
         app (api (swagger-docs)
                  (GET* "/" [] ok)
                  (GET* "/a" [] ok)
-                 (context "/b" []
-                   (context "/b1" []
+                 (context* "/b" []
+                   (context* "/b1" []
                      (GET* "/" [] ok))
-                   (context "/" []
+                   (context* "/" []
                      (GET* "/" [] ok)
                      (GET* "/b2" [] ok))))]
 

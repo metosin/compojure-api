@@ -7,6 +7,7 @@
   ;; compojure routing
   [compojure.core
 
+   context
    defroutes
 
    GET
