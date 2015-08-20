@@ -6,6 +6,7 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [ring.swagger.core :as rsc]
+            [ring.swagger.middleware :as rsm]
             [compojure.api.swagger :as caw]
             [ring.util.http-status :as status]
             [compojure.api.middleware :as mw]))
@@ -58,6 +59,21 @@
   [handler]
   (fn [req]
     (handler (update-in req [:query-params "x"] #(* (Integer. %) 2)))))
+
+(defn custom-validation-error-handler [error error-type request]
+  (let [error-body {:custom-error (:uri request)}]
+    (case error-type
+      :compojure.api.middleware/response-validation (not-implemented error-body)
+      (bad-request error-body))))
+
+(defn custom-exception-handler [^Exception exception error-type request]
+  (ok {:custom-exception (str exception)}))
+
+(defn custom-error-handler [error error-type request]
+  (ok {:custom-error (:data error)}))
+
+(defn deprecated-validation-error-handler [{:keys [error]}]
+  (bad-request {:deprecated-error (rsm/stringify-error error)}))
 
 ;;
 ;; Facts
@@ -872,6 +888,86 @@
     status => 200
     (-> spec :paths vals first :get :responses :500 :description)
     => "Horror"))
+
+(fact "exceptions options with custom validation error handler"
+  (let [app (api
+              {:exceptions {:error-handlers {:compojure.api.middleware/request-validation custom-validation-error-handler
+                                             :compojure.api.middleware/response-validation custom-validation-error-handler}}}
+              (swagger-docs)
+              (POST* "/get-long" []
+                    :body   [body {:x Long}]
+                    :return Long
+                    (case (:x body)
+                      1 (ok 1)
+                      (ok "not a number"))))]
+
+    (fact "return case, valid request & valid model"
+      (let [[status body] (post* app "/get-long" "{\"x\": 1}")]
+        status => 200
+        body => 1))
+
+    (fact "return case, invalid request"
+      (let [[status body] (post* app "/get-long" "{\"x\": \"1\"}")]
+        status => 400
+        body => (contains {:custom-error "/get-long"})))
+
+    (fact "return case, valid request & invalid model"
+      (let [[status body] (post* app "/get-long" "{\"x\": 2}")]
+        status => 501
+        body => (contains {:custom-error "/get-long"})))))
+
+(fact "exceptions options with custom exception and error handler"
+      (let [app (api
+                  {:exceptions {:error-handlers {:compojure.api.middleware/exception custom-exception-handler
+                                                 ::custom-error custom-error-handler}}}
+                  (swagger-docs)
+                  (GET* "/some-exception" []
+                        (throw (new RuntimeException)))
+                  (GET* "/some-error" []
+                        (throw (ex-info "some ex info" {:data "some error" :type ::some-error})))
+                  (GET* "/specific-error" []
+                        (throw (ex-info "my ex info" {:data "my error" :type ::custom-error}))))]
+
+        (fact "uses default exception handler for unknown exceptions"
+              (let [[status body] (get* app "/some-exception")]
+                status => 200
+                body => {:custom-exception "java.lang.RuntimeException"}))
+
+        (fact "uses default exception handler for unknown errors"
+              (let [[status body] (get* app "/some-error")]
+                status => 200
+                (:custom-exception body) => (contains ":data \"some error\"")))
+
+        (fact "uses specific error handler for ::custom-errors"
+              (let [[status body] (get* app "/specific-error")]
+                status => 200
+                body => {:custom-error "my error"}))))
+
+(fact "validation-errors options with deprecated error handler"
+      (let [app (api
+                  {:validation-errors {:error-handler deprecated-validation-error-handler}}
+                  (swagger-docs)
+                  (POST* "/get-long" []
+                         :body   [body {:x Long}]
+                         :return Long
+                         (case (:x body)
+                           1 (ok 1)
+                           (ok "not a number"))))]
+
+        (fact "return case, valid request & valid model"
+              (let [[status body] (post* app "/get-long" "{\"x\": 1}")]
+                status => 200
+                body => 1))
+
+        (fact "return case, invalid request"
+              (let [[status body] (post* app "/get-long" "{\"x\": \"1\"}")]
+                status => 400
+                body => (contains {:deprecated-error map?})))
+
+        (fact "return case, valid request & invalid model"
+              (let [[status body] (post* app "/get-long" "{\"x\": 2}")]
+                status => 500
+                body => (contains {:errors string?})))))
 
 (fact "ring-swagger options"
   (let [app (api

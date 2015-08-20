@@ -9,6 +9,7 @@
             [ring.swagger.schema :as schema]
             [ring.swagger.json-schema :as js]
             [ring.util.http-response :refer [internal-server-error]]
+            [slingshot.slingshot :refer [throw+]]
             [schema.core :as s]
             [schema-tools.core :as st]))
 
@@ -59,7 +60,7 @@
         (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
           (let [body (schema/coerce schema (:body response) matcher)]
             (if (schema/error? body)
-              (internal-server-error {:errors (:error body)})
+              (throw+ (assoc body :type ::response-validation))
               (assoc response
                 ::serializable? true
                 :body body)))
