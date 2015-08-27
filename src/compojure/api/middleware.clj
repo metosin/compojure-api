@@ -46,7 +46,7 @@
      - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
                                               by default prints stack trace."
   [handler {:keys [error-handlers]}]
-  (let [default-handler (get error-handlers ex/+default+ ex/print-stack-trace-exception-handler)]
+  (let [default-handler (get error-handlers ::ex/default ex/print-stack-trace-exception-handler)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
     (fn [request]
       (try+
@@ -155,9 +155,9 @@
   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
             :params-opts {}
             :response-opts {}}
-   :exceptions {:error-handlers {::ex/request-validation  ex/bad-request-error-handler
-                                 ::ex/response-validation ex/internal-server-error-handler
-                                 ::ex/default             ex/print-stack-trace-exception-handler}}
+   :exceptions {:error-handlers {::ex/request-validation  ex/request-validation-handler
+                                 ::ex/response-validation ex/response-validation-handler
+                                 ::ex/default             ex/safe-handler}}
    :ring-swagger nil})
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)

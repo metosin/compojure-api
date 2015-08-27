@@ -9,7 +9,7 @@
 ;; Default exception handlers
 ;;
 
-(defn print-stack-trace-exception-handler
+(defn safe-handler
   "Prints stacktrace to console and returns safe error response.
 
    Error response only contains class of the Exception so that it won't accidentally
@@ -19,7 +19,7 @@
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
 
-(defn stringify-schema-error
+(defn stringify-error
   "Stringifies symbols and validation errors in Schema error, keeping the structure intact."
   [error]
   (postwalk
@@ -33,16 +33,15 @@
               :else v))))
     error))
 
-(defn stringify-error [error]
-  (if (su/error? error)
-    (stringify-schema-error (su/error-val error))
-    (str error)))
+(defn response-validation-handler
+  "Creates error response based on Schema error."
+  [error error-type request]
+  (internal-server-error {:errors (stringify-error (su/error-val error))}))
 
-(defn internal-server-error-handler [error error-type request]
-  (internal-server-error {:errors (stringify-error error)}))
-
-(defn bad-request-error-handler [error error-type request]
-  (bad-request {:errors (stringify-error error)}))
+(defn request-validation-handler
+  "Creates error response based on Schema error."
+  [error error-type request]
+  (bad-request {:errors (stringify-error (su/error-val error))}))
 
 ;;
 ;; Mappings from other Exception types to our base types
