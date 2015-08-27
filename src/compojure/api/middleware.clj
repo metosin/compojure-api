@@ -46,7 +46,7 @@
      - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
                                               by default prints stack trace."
   [handler {:keys [error-handlers]}]
-  (let [default-handler (get error-handlers ::ex/default ex/print-stack-trace-exception-handler)]
+  (let [default-handler (get error-handlers ::ex/default ex/safe-handler)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
     (fn [request]
       (try+
@@ -135,7 +135,7 @@
 
 (defn handle-req-error [^Throwable e handler request]
   (if (or (instance? JsonParseException e) (instance? ParserException e))
-    (throw+ {:type ex/+request-validation+} e)
+    (throw+ {:type ::ex/request-validation} e)
     (throw+ e)))
 
 (defn serializable?
@@ -169,9 +169,9 @@
        - **:error-handlers**          map of error handlers for different error types.
                                       An error handler is a function of type specific error object (eg. schema.utils.ErrorContainer or java.lang.Exception), error type and request -> response
                                       Default:
-                                      {:compojure.api.exception/request-validation  compojure.api.exception/bad-request-error-handler
-                                       :compojure.api.exception/response-validation compojure.api.exception/internal-server-error-handler
-                                       :compojure.api.exception/default             compojure.api.exception/print-stack-trace-exception-handler}
+                                      {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
+                                       :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
+                                       :compojure.api.exception/default             compojure.api.exception/safe-handler}
                                       Note: Adding alias for exception namespace makes it easier to define these options.
 
    - **:format**                    for ring-middleware-format middlewares
