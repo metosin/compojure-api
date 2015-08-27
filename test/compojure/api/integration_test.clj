@@ -1,6 +1,7 @@
 (ns compojure.api.integration-test
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
+            [compojure.api.exception :as ex]
             [midje.sweet :refer :all]
             [flatland.ordered.map :as om]
             [ring.util.http-response :refer :all]
@@ -63,7 +64,7 @@
 (defn custom-validation-error-handler [error error-type request]
   (let [error-body {:custom-error (:uri request)}]
     (case error-type
-      :compojure.api.middleware/response-validation (not-implemented error-body)
+      ::ex/response-validation (not-implemented error-body)
       (bad-request error-body))))
 
 (defn custom-exception-handler [^Exception exception error-type request]
@@ -71,9 +72,6 @@
 
 (defn custom-error-handler [error error-type request]
   (ok {:custom-error (:data error)}))
-
-(defn deprecated-validation-error-handler [{:keys [error]}]
-  (bad-request {:deprecated-error (rsm/stringify-error error)}))
 
 ;;
 ;; Facts
@@ -890,8 +888,8 @@
 
 (fact "exceptions options with custom validation error handler"
   (let [app (api
-              {:exceptions {:error-handlers {:compojure.api.middleware/request-validation custom-validation-error-handler
-                                             :compojure.api.middleware/response-validation custom-validation-error-handler}}}
+              {:exceptions {:error-handlers {::ex/request-validation  custom-validation-error-handler
+                                             ::ex/response-validation custom-validation-error-handler}}}
               (swagger-docs)
               (POST* "/get-long" []
                     :body   [body {:x Long}]
@@ -922,7 +920,7 @@
 
 (fact "exceptions options with custom exception and error handler"
       (let [app (api
-                  {:exceptions {:error-handlers {:compojure.api.middleware/exception custom-exception-handler
+                  {:exceptions {:error-handlers {::ex/default   custom-exception-handler
                                                  ::custom-error custom-error-handler}}}
                   (swagger-docs)
                   (GET* "/some-exception" []
@@ -948,30 +946,13 @@
                 body => {:custom-error "my error"}))))
 
 (fact "validation-errors options with deprecated error handler"
-      (let [app (api
-                  {:validation-errors {:error-handler deprecated-validation-error-handler}}
-                  (swagger-docs)
-                  (POST* "/get-long" []
-                         :body   [body {:x Long}]
-                         :return Long
-                         (case (:x body)
-                           1 (ok 1)
-                           (ok "not a number"))))]
-
-        (fact "return case, valid request & valid model"
-              (let [[status body] (post* app "/get-long" "{\"x\": 1}")]
-                status => 200
-                body => 1))
-
-        (fact "return case, invalid request"
-              (let [[status body] (post* app "/get-long" "{\"x\": \"1\"}")]
-                status => 400
-                body => (contains {:deprecated-error map?})))
-
-        (fact "return case, valid request & invalid model"
-              (let [[status body] (post* app "/get-long" "{\"x\": 2}")]
-                status => 500
-                body => (contains {:errors string?})))))
+  (api {:validation-errors {:error-handler identity}} nil)
+  => (throws AssertionError)
+  (api {:validation-errors {:catch-core-errors? true}} nil)
+  => (throws AssertionError)
+  (api {:exceptions {:exception-handler identity}} nil)
+  => (throws AssertionError)
+  )
 
 (fact "ring-swagger options"
   (let [app (api

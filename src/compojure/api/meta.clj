@@ -2,6 +2,7 @@
   (:require [clojure.walk :refer [keywordize-keys]]
             [compojure.api.common :refer :all]
             [compojure.api.middleware :as mw]
+            [compojure.api.exception :as ex]
             [compojure.core :refer [routes]]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
@@ -60,7 +61,7 @@
         (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
           (let [body (schema/coerce schema (:body response) matcher)]
             (if (schema/error? body)
-              (throw+ (assoc body :type ::response-validation))
+              (throw+ (assoc body :type ::ex/response-validation))
               (assoc response
                 ::serializable? true
                 :body body)))

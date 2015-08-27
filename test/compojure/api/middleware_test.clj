@@ -31,16 +31,8 @@
         success (fn [_] (ok "SUCCESS"))
         request irrelevant]
 
-    (fact "passed through normal requests with deprecated exception-handler"
-      ((wrap-exceptions success (support-deprecated-error-handler-config (merge (:exceptions api-middleware-defaults) {:exception-handler (constantly (ok "FAIL"))}))) request)
-      => success)
-
     (fact "converts exceptions into safe internal server errors"
       ((wrap-exceptions failure (:error-handlers (:exceptions api-middleware-defaults))) request)
       => (contains {:status status/internal-server-error
                     :body (contains {:class exception-class
-                                     :type "unknown-exception"})}))
-
-    (fact "deprecated exception-handler still works"
-      ((wrap-exceptions failure (support-deprecated-error-handler-config (merge (:exceptions api-middleware-defaults) {:exception-handler (constantly (ok "FAIL"))}))) request)
-      => (ok "FAIL"))))
+                                     :type "unknown-exception"})}))))

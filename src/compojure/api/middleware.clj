@@ -1,6 +1,7 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
+            [compojure.api.exception :as ex]
             [ring.middleware.format-params :refer [wrap-restful-params]]
             [ring.middleware.format-response :refer [wrap-restful-response]]
             ring.middleware.http-response
@@ -39,77 +40,27 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn unknown-exception-body [^Exception e]
-  {:type "unknown-exception"
-   :class (.getName (.getClass e))})
-
-(defn print-stack-trace-exception-handler [^Exception e error-type request]
-  (.printStackTrace e)
-  (internal-server-error (unknown-exception-body e)))
-
-(defn stringify-error [error]
-  (if (su/error? error)
-    (rsm/stringify-error (su/error-val error))
-    (str error)))
-
-(defn create-errors-body [error]
-    {:errors (stringify-error error)})
-
-(defn internal-server-error-handler [error error-type request]
-  (internal-server-error (create-errors-body error)))
-
-(defn bad-request-error-handler [error error-type request]
-  (bad-request (create-errors-body error)))
-
-(defn- deprecated! [& args]
-  (apply println (concat ["DEPRECATED in compojure.api.middleware:"] args)))
-
-(defn support-deprecated-error-handler-config
-  [{:keys [error-handlers exception-handler error-handler catch-core-errors?]}]
-  (let [request-validation-error-handler (if (fn? error-handler)
-                                           (do
-                                             (deprecated! "{:validation-errors} config is deprecated, use {:exceptions {:error-handlers {:compojure.api.middleware/request-validation}}} instead. See docs for details")
-                                             {::request-validation error-handler})
-                                           {})
-        catch-core-errors (if catch-core-errors?
-                            (do
-                              (deprecated! "{:validation-errors} config is deprecated, use {:exceptions {:error-handlers {:schema.core/error}}} instead. See docs for details")
-                              {:schema.core/error (if (fn? error-handler) error-handler bad-request-error-handler)})
-                            {})
-        exception-handler (if (fn? exception-handler)
-                                (do
-                                  (deprecated! "{:exceptions {:exception-handler}} config is deprecated, use {:exceptions {:error-handlers {:compojure.api.middleware/exception}}} instead. See docs for details")
-                                  {::exception exception-handler})
-                                {})]
-  (merge error-handlers request-validation-error-handler catch-core-errors exception-handler)))
-
-(defn- call-error-handler [error-handler error error-type request]
-  {:pre [(fn? error-handler)]}
-  (try
-    (error-handler error error-type request)
-    (catch clojure.lang.ArityException e
-      (deprecated! "error-handler function without error-type and request arguments is deprecated, see docs for details.")
-      (error-handler error))))
-
 (defn wrap-exceptions
   "Catches all exceptions and delegates to right error handler accoring to :type of Exceptions
-    :error-handlers - a map from exception type to handler"
-  [handler error-handlers]
-  {:pre [(map? error-handlers) (contains? error-handlers ::response-validation) (contains? error-handlers ::request-validation) (contains? error-handlers ::exception)]}
-  (fn [request]
-    (try+
-      (handler request)
-      (catch [:type :ring.swagger.schema/validation] error-container
-        (call-error-handler (::request-validation error-handlers)  error-container ::request-validation request))
-      (catch [:type :compojure.api.meta/response-validation] error-container
-        (call-error-handler (::response-validation error-handlers) error-container ::response-validation request))
-      (catch (and (map? %) (contains? % :type) (contains? error-handlers (:type %))) error
-        (let [type (:type error)]
-          (call-error-handler (get error-handlers type) error type request)))
-      (catch Object _
-        (if (rethrow-exceptions? request)
-          (throw (:throwable &throw-context))
-          (call-error-handler (::exception error-handlers) (:throwable &throw-context) ::exception request))))))
+   - **:error-handlers** - a map from exception type to handler
+     - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
+                                              by default prints stack trace."
+  [handler {:keys [error-handlers]}]
+  (let [default-handler (get error-handlers ex/+default+ ex/print-stack-trace-exception-handler)]
+    (assert (fn? default-handler) "Default exception handler must be a function.")
+    (fn [request]
+      (try+
+        (handler request)
+        (catch (get % :type) {:keys [type] :as e}
+          (let [type (or (get ex/legacy-exception-types type) type)]
+            (if-let [handler (get error-handlers type)]
+              (handler e type request)
+              (default-handler (:throwable &throw-context) type request))))
+        (catch Object _
+          ; FIXME: Used for validate
+          (if (rethrow-exceptions? request)
+            (throw+)
+            (default-handler (:throwable &throw-context) ::exception request)))))))
 
 ;;
 ;; Component integration
@@ -182,18 +133,10 @@
 
 (defn ->mime-types [formats] (map mime-types formats))
 
-(defn handle-req-error [error-handlers]
-  {:pre [(map? error-handlers)]}
-  (fn [^Throwable e handler request]
-    (cond
-      (instance? JsonParseException e)
-      (call-error-handler (::request-validation error-handlers) e ::request-validation request)
-
-      (instance? ParserException e)
-      (call-error-handler (::request-validation error-handlers) e ::request-validation request)
-
-      :else
-      (call-error-handler (::exception error-handlers) e ::exception request))))
+(defn handle-req-error [^Throwable e handler request]
+  (if (or (instance? JsonParseException e) (instance? ParserException e))
+    (throw+ {:type ex/+request-validation+} e)
+    (throw+ e)))
 
 (defn serializable?
   "Predicate which return true if the response body is serializable.
@@ -212,9 +155,9 @@
   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
             :params-opts {}
             :response-opts {}}
-   :exceptions {:error-handlers {::request-validation bad-request-error-handler
-                                 ::response-validation internal-server-error-handler
-                                 ::exception print-stack-trace-exception-handler}}
+   :exceptions {:error-handlers {::ex/request-validation  ex/bad-request-error-handler
+                                 ::ex/response-validation ex/internal-server-error-handler
+                                 ::ex/default             ex/print-stack-trace-exception-handler}}
    :ring-swagger nil})
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
@@ -226,9 +169,10 @@
        - **:error-handlers**          map of error handlers for different error types.
                                       An error handler is a function of type specific error object (eg. schema.utils.ErrorContainer or java.lang.Exception), error type and request -> response
                                       Default:
-                                      {:compojure.api.middleware/request-validation compojure.api.middleware/bad-request-error-handler
-                                       :compojure.api.middleware/response-validation compojure.api.middleware/internal-server-error-handler
-                                       :compojure.api.middleware/exception compojure.api.middleware/print-stack-trace-exception-handler}
+                                      {:compojure.api.exception/request-validation  compojure.api.exception/bad-request-error-handler
+                                       :compojure.api.exception/response-validation compojure.api.exception/internal-server-error-handler
+                                       :compojure.api.exception/default             compojure.api.exception/print-stack-trace-exception-handler}
+                                      Note: Adding alias for exception namespace makes it easier to define these options.
 
    - **:format**                    for ring-middleware-format middlewares
        - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
@@ -250,24 +194,27 @@
                                     middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {:keys [exceptions validation-errors format components]} options
-        {:keys [formats params-opts response-opts]} format
-        error-handlers (support-deprecated-error-handler-config (merge exceptions validation-errors))]
+        {:keys [exceptions format components]} options
+        {:keys [formats params-opts response-opts]} format]
+    ; Break at compile time if there are deprecated options
+    (assert (not (:error-handler (:validation-errors options))) "Deprecated option: [:validation-errors :error-handler], use [:exceptions :error-handlers :compojure.api.middleware/request-validation] instead.")
+    (assert (not (:catch-core-errors? (:validation-errors options))) "Deprecated option: [:validation-errors :catch-core-errors?], use [:exceptions :error-handlers :compojure.api.exception/request-validation] instead.")
+    (assert (not (:exception-handler (:exceptions options))) "Deprecated option: [:exceptions :exception-handler], use [:exceptions :error-handlers :compojure.api.exception/default] instead.")
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
-        (wrap-exceptions error-handlers)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
         (wrap-options (select-keys options [:ring-swagger :coercion]))
         (wrap-restful-params
           (merge {:formats (remove response-only-mimes formats)
-                  :handle-error (handle-req-error error-handlers)}
+                  :handle-error handle-req-error}
                  params-opts))
         (wrap-restful-response
           (merge {:formats formats
                   :predicate serializable?}
                  response-opts))
+        (wrap-exceptions exceptions)
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))
