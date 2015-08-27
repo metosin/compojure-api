@@ -39,15 +39,21 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
+(defn unknown-exception-body [^Exception e]
+  {:type "unknown-exception"
+   :class (.getName (.getClass e))})
+
 (defn print-stack-trace-exception-handler [^Exception e error-type request]
   (.printStackTrace e)
-  (internal-server-error {:type "unknown-exception"
-                          :class (.getName (.getClass e))}))
+  (internal-server-error (unknown-exception-body e)))
+
+(defn stringify-error [error]
+  (if (su/error? error)
+    (rsm/stringify-error (su/error-val error))
+    (str error)))
 
 (defn create-errors-body [error]
-  (if (su/error? error)
-    {:errors (rsm/stringify-error (su/error-val error))}
-    {:errors (rsm/stringify-error error)}))
+    {:errors (stringify-error error)})
 
 (defn internal-server-error-handler [error error-type request]
   (internal-server-error (create-errors-body error)))
@@ -85,10 +91,11 @@
       (deprecated! "error-handler function without error-type and request arguments is deprecated, see docs for details.")
       (error-handler error))))
 
-(defn- wrap-exceptions-by-type
+(defn wrap-exceptions
   "Catches all exceptions and delegates to right error handler accoring to :type of Exceptions
     :error-handlers - a map from exception type to handler"
   [handler error-handlers]
+  {:pre [(map? error-handlers) (contains? error-handlers ::response-validation) (contains? error-handlers ::request-validation) (contains? error-handlers ::exception)]}
   (fn [request]
     (try+
       (handler request)
@@ -103,11 +110,6 @@
         (if (rethrow-exceptions? request)
           (throw (:throwable &throw-context))
           (call-error-handler (::exception error-handlers) (:throwable &throw-context) ::exception request))))))
-
-(defn wrap-exceptions
-  "Catches all errors and delegates to right error handler"
-  [handler config]
-  (wrap-exceptions-by-type handler (support-deprecated-error-handler-config config)))
 
 ;;
 ;; Component integration
@@ -180,19 +182,18 @@
 
 (defn ->mime-types [formats] (map mime-types formats))
 
-(defn handle-req-error [^Throwable e handler req]
-  (cond
-    (instance? JsonParseException e)
-    (bad-request {:type "json-parse-exception"
-                  :message (.getMessage e)})
+(defn handle-req-error [error-handlers]
+  {:pre [(map? error-handlers)]}
+  (fn [^Throwable e handler request]
+    (cond
+      (instance? JsonParseException e)
+      (call-error-handler (::request-validation error-handlers) e ::request-validation request)
 
-    (instance? ParserException e)
-    (bad-request {:type "yaml-parse-exception"
-                  :message (.getMessage e)})
+      (instance? ParserException e)
+      (call-error-handler (::request-validation error-handlers) e ::request-validation request)
 
-    :else
-    (internal-server-error {:type (str (class e))
-                            :message (.getMessage e)})))
+      :else
+      (call-error-handler (::exception error-handlers) e ::exception request))))
 
 (defn serializable?
   "Predicate which return true if the response body is serializable.
@@ -250,17 +251,18 @@
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
         {:keys [exceptions validation-errors format components]} options
-        {:keys [formats params-opts response-opts]} format]
+        {:keys [formats params-opts response-opts]} format
+        error-handlers (support-deprecated-error-handler-config (merge exceptions validation-errors))]
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
-        (wrap-exceptions (merge exceptions validation-errors))
+        (wrap-exceptions error-handlers)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
         (wrap-options (select-keys options [:ring-swagger :coercion]))
         (wrap-restful-params
           (merge {:formats (remove response-only-mimes formats)
-                  :handle-error handle-req-error}
+                  :handle-error (handle-req-error error-handlers)}
                  params-opts))
         (wrap-restful-response
           (merge {:formats formats

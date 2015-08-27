@@ -220,8 +220,7 @@
     (fact "Invalid json in body causes 400 with error message in json"
       (let [[status body] (post* app "/models/user" "{INVALID}")]
         status => 400
-        (:type body) => "json-parse-exception"
-        (:message body) => truthy))))
+        (:errors body) => contains "Unexpected character"))))
 
 (fact ":responses"
   (fact "normal cases"
@@ -906,10 +905,15 @@
         status => 200
         body => 1))
 
-    (fact "return case, invalid request"
+    (fact "return case, not schema valid request"
       (let [[status body] (post* app "/get-long" "{\"x\": \"1\"}")]
         status => 400
         body => (contains {:custom-error "/get-long"})))
+
+    (fact "return case, invalid json request"
+          (let [[status body] (post* app "/get-long" "{x: 1}")]
+            status => 400
+            body => (contains {:custom-error "/get-long"})))
 
     (fact "return case, valid request & invalid model"
       (let [[status body] (post* app "/get-long" "{\"x\": 2}")]
