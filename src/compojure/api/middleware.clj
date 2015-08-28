@@ -205,10 +205,15 @@
         {:keys [exceptions format components]} options
         {:keys [formats params-opts response-opts]} format]
     ; Break at compile time if there are deprecated options
-    (assert (not (:error-handler (:validation-errors options))) "Deprecated option: [:validation-errors :error-handler], use [:exceptions :handlers :compojure.api.middleware/request-validation] instead.")
+    (assert (not (:error-handler (:validation-errors options)))
+            (str "Deprecated option: [:validation-errors :error-handler], "
+                 "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."))
     (assert (not (:catch-core-errors? (:validation-errors options)))
-            "Deprecated option: [:validation-errors :catch-core-errors?], use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead.")
-    (assert (not (:exception-handler (:exceptions options))) "Deprecated option: [:exceptions :exception-handler], use [:exceptions :handlers :compojure.api.exception/default] instead.")
+            (str "Deprecated option: [:validation-errors :catch-core-errors?], "
+                 "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."))
+    (assert (not (:exception-handler (:exceptions options)))
+            (str "Deprecated option: [:exceptions :exception-handler], "
+                 "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."))
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
