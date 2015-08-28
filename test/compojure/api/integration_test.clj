@@ -952,8 +952,20 @@
   (api {:validation-errors {:catch-core-errors? true}} nil)
   => (throws AssertionError)
   (api {:exceptions {:exception-handler identity}} nil)
-  => (throws AssertionError)
-  )
+  => (throws AssertionError))
+
+(s/defn schema-error [a :- s/Int]
+  {:bar a})
+
+(fact "handling schema.core/error"
+  (let [app (api
+              {:exceptions {:handlers {:schema.core/error ex/schema-error-handler}}}
+              (GET* "/:a" []
+                :path-params [a :- s/Str]
+                (ok (s/with-fn-validation (schema-error a)))))]
+    (let [[status body] (get* app "/foo")]
+      status => 400
+      body => (contains {:errors vector?}))))
 
 (fact "ring-swagger options"
   (let [app (api

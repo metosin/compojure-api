@@ -45,6 +45,12 @@
   [_ data request]
   (bad-request {:errors (stringify-error (su/error-val data))}))
 
+(defn schema-error-handler
+  "Creates error response based on Schema error."
+  [ex data request]
+  ; FIXME: Why error is not wrapped to ErrorContainer here?
+  (bad-request {:errors (stringify-error (:error data))}))
+
 (defn request-parsing-handler
   [ex data request]
   (let [cause (.getCause ex)]

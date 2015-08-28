@@ -170,13 +170,16 @@
    options for the used middlewares (see middlewares for full details on options):
 
    - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
-       - **:handlers**                map of error handlers for different error types.
-                                      An error handler is a function of type specific error object (eg. schema.utils.ErrorContainer or java.lang.Exception), error type and request -> response
+       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
+                                      An error handler is a function of exception, ExceptionInfo data and request to response.
                                       Default:
                                       {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
-                                       :compojure.api.exception/request-parsing     compojure.api.exception/
+                                       :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
                                        :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
                                        :compojure.api.exception/default             compojure.api.exception/safe-handler}
+
+                                      Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
+
                                       Note: Adding alias for exception namespace makes it easier to define these options.
 
    - **:format**                    for ring-middleware-format middlewares
@@ -203,7 +206,8 @@
         {:keys [formats params-opts response-opts]} format]
     ; Break at compile time if there are deprecated options
     (assert (not (:error-handler (:validation-errors options))) "Deprecated option: [:validation-errors :error-handler], use [:exceptions :handlers :compojure.api.middleware/request-validation] instead.")
-    (assert (not (:catch-core-errors? (:validation-errors options))) "Deprecated option: [:validation-errors :catch-core-errors?], use [:exceptions :handlers :compojure.api.exception/request-validation] instead.")
+    (assert (not (:catch-core-errors? (:validation-errors options)))
+            "Deprecated option: [:validation-errors :catch-core-errors?], use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead.")
     (assert (not (:exception-handler (:exceptions options))) "Deprecated option: [:exceptions :exception-handler], use [:exceptions :handlers :compojure.api.exception/default] instead.")
     (-> handler
         (cond-> components (wrap-components components))
