@@ -61,17 +61,17 @@
   (fn [req]
     (handler (update-in req [:query-params "x"] #(* (Integer. %) 2)))))
 
-(defn custom-validation-error-handler [error error-type request]
+(defn custom-validation-error-handler [ex data request]
   (let [error-body {:custom-error (:uri request)}]
-    (case error-type
+    (case (:type data)
       ::ex/response-validation (not-implemented error-body)
       (bad-request error-body))))
 
-(defn custom-exception-handler [^Exception exception error-type request]
-  (ok {:custom-exception (str exception)}))
+(defn custom-exception-handler [^Exception ex data request]
+  (ok {:custom-exception (str ex)}))
 
-(defn custom-error-handler [error error-type request]
-  (ok {:custom-error (:data error)}))
+(defn custom-error-handler [ex data request]
+  (ok {:custom-error (:data data)}))
 
 ;;
 ;; Facts
@@ -218,7 +218,7 @@
     (fact "Invalid json in body causes 400 with error message in json"
       (let [[status body] (post* app "/models/user" "{INVALID}")]
         status => 400
-        (:errors body) => contains "Unexpected character"))))
+        (:message body) => (contains "Unexpected character")))))
 
 (fact ":responses"
   (fact "normal cases"
@@ -889,6 +889,7 @@
 (fact "exceptions options with custom validation error handler"
   (let [app (api
               {:exceptions {:error-handlers {::ex/request-validation  custom-validation-error-handler
+                                             ::ex/request-parsing     custom-validation-error-handler
                                              ::ex/response-validation custom-validation-error-handler}}}
               (swagger-docs)
               (POST* "/get-long" []

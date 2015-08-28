@@ -3,7 +3,9 @@
             [clojure.walk :refer [postwalk]]
             [plumbing.core :refer [for-map]]
             [schema.utils :as su])
-  (:import [schema.utils ValidationError]))
+  (:import [schema.utils ValidationError]
+           [com.fasterxml.jackson.core JsonParseException]
+           [org.yaml.snakeyaml.parser ParserException]))
 
 ;;
 ;; Default exception handlers
@@ -14,7 +16,7 @@
 
    Error response only contains class of the Exception so that it won't accidentally
    expose secret details."
-  [^Exception e error-type request]
+  [^Exception e data request]
   (.printStackTrace e)
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
@@ -35,13 +37,22 @@
 
 (defn response-validation-handler
   "Creates error response based on Schema error."
-  [error error-type request]
-  (internal-server-error {:errors (stringify-error (su/error-val error))}))
+  [_ data request]
+  (internal-server-error {:errors (stringify-error (su/error-val data))}))
 
 (defn request-validation-handler
   "Creates error response based on Schema error."
-  [error error-type request]
-  (bad-request {:errors (stringify-error (su/error-val error))}))
+  [_ data request]
+  (bad-request {:errors (stringify-error (su/error-val data))}))
+
+(defn request-parsing-handler
+  [ex data request]
+  (let [cause (.getCause ex)]
+    (bad-request {:type (cond
+                          (instance? JsonParseException cause) "json-parse-exception"
+                          (instance? ParserException cause) "yaml-parse-exception"
+                          :else "parse-exception")
+                  :message (.getMessage cause)})))
 
 ;;
 ;; Mappings from other Exception types to our base types

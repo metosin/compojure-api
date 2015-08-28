@@ -51,16 +51,16 @@
     (fn [request]
       (try+
         (handler request)
-        (catch (get % :type) {:keys [type] :as e}
+        (catch (get % :type) {:keys [type] :as data}
           (let [type (or (get ex/legacy-exception-types type) type)]
             (if-let [handler (get error-handlers type)]
-              (handler e type request)
-              (default-handler (:throwable &throw-context) type request))))
+              (handler (:throwable &throw-context) data request)
+              (default-handler (:throwable &throw-context) data request))))
         (catch Object _
           ; FIXME: Used for validate
           (if (rethrow-exceptions? request)
             (throw+)
-            (default-handler (:throwable &throw-context) ::exception request)))))))
+            (default-handler (:throwable &throw-context) nil request)))))))
 
 ;;
 ;; Component integration
@@ -134,8 +134,11 @@
 (defn ->mime-types [formats] (map mime-types formats))
 
 (defn handle-req-error [^Throwable e handler request]
+  ;; Ring-middleware-format catches all exceptions in req handling,
+  ;; i.e. (handler req) is inside try-catch. If r-m-f was changed to catch only
+  ;; exceptions from parsing the request, we wouldn't need to check the exception class.
   (if (or (instance? JsonParseException e) (instance? ParserException e))
-    (throw+ {:type ::ex/request-validation} e)
+    (throw+ {:type ::ex/request-parsing} e)
     (throw+ e)))
 
 (defn serializable?
@@ -156,6 +159,7 @@
             :params-opts {}
             :response-opts {}}
    :exceptions {:error-handlers {::ex/request-validation  ex/request-validation-handler
+                                 ::ex/request-parsing     ex/request-parsing-handler
                                  ::ex/response-validation ex/response-validation-handler
                                  ::ex/default             ex/safe-handler}}
    :ring-swagger nil})
@@ -170,6 +174,7 @@
                                       An error handler is a function of type specific error object (eg. schema.utils.ErrorContainer or java.lang.Exception), error type and request -> response
                                       Default:
                                       {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
+                                       :compojure.api.exception/request-parsing     compojure.api.exception/
                                        :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
                                        :compojure.api.exception/default             compojure.api.exception/safe-handler}
                                       Note: Adding alias for exception namespace makes it easier to define these options.
