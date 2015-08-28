@@ -32,7 +32,7 @@
         request irrelevant]
 
     (fact "converts exceptions into safe internal server errors"
-      ((wrap-exceptions failure (:error-handlers (:exceptions api-middleware-defaults))) request)
+      ((wrap-exceptions failure (:handlers (:exceptions api-middleware-defaults))) request)
       => (contains {:status status/internal-server-error
                     :body (contains {:class exception-class
                                      :type "unknown-exception"})}))))

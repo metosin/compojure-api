@@ -888,9 +888,9 @@
 
 (fact "exceptions options with custom validation error handler"
   (let [app (api
-              {:exceptions {:error-handlers {::ex/request-validation  custom-validation-error-handler
-                                             ::ex/request-parsing     custom-validation-error-handler
-                                             ::ex/response-validation custom-validation-error-handler}}}
+              {:exceptions {:handlers {::ex/request-validation  custom-validation-error-handler
+                                       ::ex/request-parsing     custom-validation-error-handler
+                                       ::ex/response-validation custom-validation-error-handler}}}
               (swagger-docs)
               (POST* "/get-long" []
                     :body   [body {:x Long}]
@@ -921,8 +921,8 @@
 
 (fact "exceptions options with custom exception and error handler"
       (let [app (api
-                  {:exceptions {:error-handlers {::ex/default   custom-exception-handler
-                                                 ::custom-error custom-error-handler}}}
+                  {:exceptions {:handlers {::ex/default   custom-exception-handler
+                                           ::custom-error custom-error-handler}}}
                   (swagger-docs)
                   (GET* "/some-exception" []
                         (throw (new RuntimeException)))

@@ -42,18 +42,18 @@
 
 (defn wrap-exceptions
   "Catches all exceptions and delegates to right error handler accoring to :type of Exceptions
-   - **:error-handlers** - a map from exception type to handler
+   - **:handlers** - a map from exception type to handler
      - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
                                               by default prints stack trace."
-  [handler {:keys [error-handlers]}]
-  (let [default-handler (get error-handlers ::ex/default ex/safe-handler)]
+  [handler {:keys [handlers]}]
+  (let [default-handler (get handlers ::ex/default ex/safe-handler)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
     (fn [request]
       (try+
         (handler request)
         (catch (get % :type) {:keys [type] :as data}
           (let [type (or (get ex/legacy-exception-types type) type)]
-            (if-let [handler (get error-handlers type)]
+            (if-let [handler (get handlers type)]
               (handler (:throwable &throw-context) data request)
               (default-handler (:throwable &throw-context) data request))))
         (catch Object _
@@ -158,10 +158,10 @@
   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
             :params-opts {}
             :response-opts {}}
-   :exceptions {:error-handlers {::ex/request-validation  ex/request-validation-handler
-                                 ::ex/request-parsing     ex/request-parsing-handler
-                                 ::ex/response-validation ex/response-validation-handler
-                                 ::ex/default             ex/safe-handler}}
+   :exceptions {:handlers {::ex/request-validation  ex/request-validation-handler
+                           ::ex/request-parsing     ex/request-parsing-handler
+                           ::ex/response-validation ex/response-validation-handler
+                           ::ex/default             ex/safe-handler}}
    :ring-swagger nil})
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
@@ -170,7 +170,7 @@
    options for the used middlewares (see middlewares for full details on options):
 
    - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
-       - **:error-handlers**          map of error handlers for different error types.
+       - **:handlers**                map of error handlers for different error types.
                                       An error handler is a function of type specific error object (eg. schema.utils.ErrorContainer or java.lang.Exception), error type and request -> response
                                       Default:
                                       {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
@@ -202,9 +202,9 @@
         {:keys [exceptions format components]} options
         {:keys [formats params-opts response-opts]} format]
     ; Break at compile time if there are deprecated options
-    (assert (not (:error-handler (:validation-errors options))) "Deprecated option: [:validation-errors :error-handler], use [:exceptions :error-handlers :compojure.api.middleware/request-validation] instead.")
-    (assert (not (:catch-core-errors? (:validation-errors options))) "Deprecated option: [:validation-errors :catch-core-errors?], use [:exceptions :error-handlers :compojure.api.exception/request-validation] instead.")
-    (assert (not (:exception-handler (:exceptions options))) "Deprecated option: [:exceptions :exception-handler], use [:exceptions :error-handlers :compojure.api.exception/default] instead.")
+    (assert (not (:error-handler (:validation-errors options))) "Deprecated option: [:validation-errors :error-handler], use [:exceptions :handlers :compojure.api.middleware/request-validation] instead.")
+    (assert (not (:catch-core-errors? (:validation-errors options))) "Deprecated option: [:validation-errors :catch-core-errors?], use [:exceptions :handlers :compojure.api.exception/request-validation] instead.")
+    (assert (not (:exception-handler (:exceptions options))) "Deprecated option: [:exceptions :exception-handler], use [:exceptions :handlers :compojure.api.exception/default] instead.")
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
