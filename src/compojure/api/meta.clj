@@ -75,7 +75,10 @@
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
   `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
      (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
-       (schema/coerce! ~schema value# matcher#)
+       (let [result# (schema/coerce ~schema value# matcher#)]
+         (if (schema/error? result#)
+           (throw+ (assoc result# :type ::ex/request-validation))
+           result#))
        value#)))
 
 (defn- convert-return [schema]
