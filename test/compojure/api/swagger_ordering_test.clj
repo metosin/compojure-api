@@ -22,8 +22,6 @@
                   (GET* "/9" [] identity)
                   (GET* "/10" [] identity))))]
 
-    (println (some-> (app {:uri "/swagger.json" :request-method :get}) :body slurp))
-
     (fact "swagger-api order is maintained"
       (->> app
            meta
