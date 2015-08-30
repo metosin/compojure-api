@@ -27,7 +27,7 @@
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
                              [lein-ring "0.9.6"]
-                             [funcool/codeina "0.2.0"]]
+                             [funcool/codeina "0.3.0"]]
                    :dependencies [[peridot "0.4.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.7.0"]
