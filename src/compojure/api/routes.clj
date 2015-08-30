@@ -71,8 +71,8 @@
   (let [[all-routes body] (collect-routes body)
         lookup (route-lookup-table all-routes)
         documented-routes (->> all-routes
-                               (rss/transform-paths non-nil-routes)
-                               (rss/transform-paths strip-no-doc-endpoints))]
+                               (rss/transform-operations non-nil-routes)
+                               (rss/transform-operations strip-no-doc-endpoints))]
     `(with-meta (routes ~@body) {:routes '~documented-routes
                                  :lookup ~lookup})))
 
