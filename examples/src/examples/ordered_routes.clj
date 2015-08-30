@@ -10,14 +10,14 @@
 (defroutes* ordered-routes
   (context* "/ordered" []
     :tags ["ordered"]
-    (context "/a" []
+    (context* "/a" []
       (GET* "/1" [] (ok))
       (GET* "/2" [] (ok))
       (GET* "/3" [] (ok))
-      (context "/b" []
+      (context* "/b" []
         (GET* "/4" [] (ok))
         (GET* "/5" [] (ok)))
-      (context "/c" []
+      (context* "/c" []
         more-ordered-routes
         (GET* "/9" [] (ok))
         (GET* "/10" [] (ok))))))
