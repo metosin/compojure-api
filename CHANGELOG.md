@@ -16,6 +16,7 @@
 [prismatic/schema "0.4.4"] is available but we use "0.4.3"
 [metosin/ring-http-response "0.6.4"] is available but we use "0.6.3"
 [metosin/schema-tools "0.5.2"] is available but we use "0.5.1"
+[metosin/ring-swagger-ui "2.1.2"] is available but we use "2.1.5-M2"
 [peridot "0.4.1"] is available but we use "0.4.0"
 ```
 
