@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.22.2"
+(defproject metosin/compojure-api "0.23.0-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -9,12 +9,12 @@
                  [prismatic/plumbing "0.4.4"]
                  [potemkin "0.4.1"]
                  [cheshire "5.5.0"]
-                 [compojure "1.3.4"]
-                 [prismatic/schema "0.4.3"]
+                 [compojure "1.4.0"]
+                 [prismatic/schema "0.4.4"]
                  [org.tobereplaced/lettercase "1.0.0"]
-                 [metosin/ring-http-response "0.6.3"]
-                 [metosin/ring-swagger "0.20.4"]
-                 [metosin/schema-tools "0.5.1"]
+                 [metosin/ring-http-response "0.6.4"]
+                 [metosin/ring-swagger "0.21.0-SNAPSHOT"]
+                 [metosin/schema-tools "0.5.2"]
                  [metosin/ring-middleware-format "0.6.0"]
                  [backtick "0.3.3"]
                  [metosin/ring-swagger-ui "2.1.5-M2"]]
@@ -28,7 +28,7 @@
                              [lein-midje "3.1.3"]
                              [lein-ring "0.9.6"]
                              [funcool/codeina "0.2.0"]]
-                   :dependencies [[peridot "0.4.0"]
+                   :dependencies [[peridot "0.4.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.7.0"]
                                   [metosin/scjsv "0.2.0"]
