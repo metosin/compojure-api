@@ -40,6 +40,13 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
+(defn- call-error-handler [error-handler error error-type request]
+  (try
+    (error-handler error error-type request)
+    (catch clojure.lang.ArityException e
+      (println "WARNING: Error-handler arity has been changed.")
+      (error-handler error))))
+
 (defn wrap-exceptions
   "Catches all exceptions and delegates to right error handler accoring to :type of Exceptions
    - **:handlers** - a map from exception type to handler
@@ -54,13 +61,13 @@
         (catch (get % :type) {:keys [type] :as data}
           (let [type (or (get ex/legacy-exception-types type) type)]
             (if-let [handler (get handlers type)]
-              (handler (:throwable &throw-context) data request)
-              (default-handler (:throwable &throw-context) data request))))
+              (call-error-handler handler (:throwable &throw-context) data request)
+              (call-error-handler default-handler (:throwable &throw-context) data request))))
         (catch Object _
           ; FIXME: Used for validate
           (if (rethrow-exceptions? request)
             (throw+)
-            (default-handler (:throwable &throw-context) nil request)))))))
+            (call-error-handler default-handler (:throwable &throw-context) nil request)))))))
 
 ;;
 ;; Component integration
@@ -205,15 +212,19 @@
         {:keys [exceptions format components]} options
         {:keys [formats params-opts response-opts]} format]
     ; Break at compile time if there are deprecated options
+    ; These three have been deprecated with 0.23
     (assert (not (:error-handler (:validation-errors options)))
-            (str "Deprecated option: [:validation-errors :error-handler], "
-                 "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."))
+            (str "ERROR: Option: [:validation-errors :error-handler] is no longer supported, "
+                 "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."
+                 "Also note that exception-handler arity has been changed."))
     (assert (not (:catch-core-errors? (:validation-errors options)))
-            (str "Deprecated option: [:validation-errors :catch-core-errors?], "
-                 "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."))
+            (str "ERROR: Option [:validation-errors :catch-core-errors?] is no longer supported, "
+                 "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."
+                 "Also note that exception-handler arity has been changed."))
     (assert (not (:exception-handler (:exceptions options)))
-            (str "Deprecated option: [:exceptions :exception-handler], "
-                 "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."))
+            (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
+                 "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
+                 "Also note that exception-handler arity has been changed."))
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response

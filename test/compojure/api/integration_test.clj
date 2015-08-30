@@ -946,13 +946,29 @@
                 status => 200
                 body => {:custom-error "my error"}))))
 
-(fact "validation-errors options with deprecated error handler"
-  (api {:validation-errors {:error-handler identity}} nil)
-  => (throws AssertionError)
-  (api {:validation-errors {:catch-core-errors? true}} nil)
-  => (throws AssertionError)
-  (api {:exceptions {:exception-handler identity}} nil)
-  => (throws AssertionError))
+(defn old-ex-handler [e]
+  {:status 500
+   :body {:type "unknown-exception"
+          :class (.getName (.getClass e))}})
+
+(fact "Deprecated options"
+  (facts "Old options throw assertion error"
+    (api {:validation-errors {:error-handler identity}} nil)
+    => (throws AssertionError)
+    (api {:validation-errors {:catch-core-errors? true}} nil)
+    => (throws AssertionError)
+    (api {:exceptions {:exception-handler identity}} nil)
+    => (throws AssertionError))
+  (facts "Old handler functions work, with a warning"
+    (let [app (api
+                {:exceptions {:handlers {::ex/default old-ex-handler}}}
+                (GET* "/" []
+                  (throw (RuntimeException.))))]
+      (let [[status body] (get* app "/")]
+        status => 500
+        body => {:type "unknown-exception"
+                 :class "java.lang.RuntimeException"}
+        (with-out-str (get* app "/")) => "WARNING: Error-handler arity has been changed.\n"))))
 
 (s/defn schema-error [a :- s/Int]
   {:bar a})
