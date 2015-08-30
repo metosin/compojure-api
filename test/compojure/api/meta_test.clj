@@ -13,4 +13,3 @@
 (fact "src-coerce! with deprecated types"
   (src-coerce! nil nil :query) => (throws AssertionError)
   (src-coerce! nil nil :json) => (throws AssertionError))
-

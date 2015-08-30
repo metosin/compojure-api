@@ -11,5 +11,4 @@
     (stringify-error (s/check {:foo s/Int} {:foo "foo"})) => {:foo "(not (integer? \"foo\"))"})
   (fact "NamedError"
     (class (s/check (s/named s/Int "name") "foo")) => NamedError
-    (stringify-error (s/check (s/named s/Int "name") "foo")) => "(named (not (integer? \"foo\")) \"name\")"
-    ))
+    (stringify-error (s/check (s/named s/Int "name") "foo")) => "(named (not (integer? \"foo\")) \"name\")"))

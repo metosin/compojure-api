@@ -4,8 +4,7 @@
             [compojure.api.swagger :refer :all]
             [compojure.core :refer :all]
             [midje.sweet :refer :all])
-  (:import [java.io StringWriter]
-           [org.joda.time LocalDate]))
+  (:import [java.io StringWriter]))
 
 (fact "extracting compojure paths"
 
@@ -15,12 +14,12 @@
          (routes
            (context "/b" []
              (let-routes []
-               (GET     "/c" [] identity)
-               (POST    "/d" [] identity)
-               (PUT     "/e" [] identity)
-               (DELETE  "/f" [] identity)
+               (GET "/c" [] identity)
+               (POST "/d" [] identity)
+               (PUT "/e" [] identity)
+               (DELETE "/f" [] identity)
                (OPTIONS "/g" [] identity)
-               (PATCH   "/h" [] identity)))
+               (PATCH "/h" [] identity)))
            (context "/:i/:j" []
              (GET "/k/:l/m/:n" [] identity)))))
 
@@ -149,24 +148,24 @@
           :tags [:kiss]
           (GET* "/kakka" []
             identity))
-        (context* "/api" []
-          :tags [:kiss]
-          (GET* "/kukka" []
-            identity)))))
+         (context* "/api" []
+           :tags [:kiss]
+           (GET* "/kukka" []
+             identity)))))
   => {:paths {"/api/kukka" {:get {:tags #{:kiss}}}
               "/api/kakka" {:get {:tags #{:kiss}}}}})
 
 (facts "defroutes* path-params"
   (defroutes* r1
-    (GET* "/:id" []
-      :path-params [id :- s/Str]
-      identity))
+              (GET* "/:id" []
+                :path-params [id :- s/Str]
+                identity))
   (defroutes* r2
-    (GET* "/kukka/:id" []
-      :path-params [id :- Long]
-      identity))
+              (GET* "/kukka/:id" []
+                :path-params [id :- Long]
+                identity))
 
   (first (swagger-info
            '(r1 r2)))
-  => {:paths {"/:id"       {:get {:parameters {:path {:id String}}}}
+  => {:paths {"/:id" {:get {:parameters {:path {:id String}}}}
               "/kukka/:id" {:get {:parameters {:path {:id Long}}}}}})

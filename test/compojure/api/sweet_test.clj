@@ -1,6 +1,5 @@
 (ns compojure.api.sweet-test
-  (:require [compojure.api.routes :as routes]
-            [compojure.api.sweet :refer :all]
+  (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
             [ring.mock.request :refer :all]
@@ -37,20 +36,20 @@
     #'ping-routes
     (GET* "/bands" []
       :name :bands
-      :return   [Band]
-      :summary  "Gets all Bands"
+      :return [Band]
+      :summary "Gets all Bands"
       :description "bands bands bands"
       :operationId "getBands"
       identity)
     (GET* "/bands/:id" [id]
-      :return   Band
-      :summary  "Gets a Band"
+      :return Band
+      :summary "Gets a Band"
       :operationId "getBand"
       identity)
     (POST* "/bands" []
-      :return   Band
-      :body     [band [NewBand]]
-      :summary  "Adds a Band"
+      :return Band
+      :body [band [NewBand]]
+      :summary "Adds a Band"
       :operationId "addBand"
       identity)
     (GET* "/query" []
@@ -147,8 +146,8 @@
                                                                           :name "id"
                                                                           :required true
                                                                           :type "string"}]
-                                                             :responses {:200 {:description ""
-                                                                               :schema {:$ref "#/definitions/Band"}}}
+                                                            :responses {:200 {:description ""
+                                                                              :schema {:$ref "#/definitions/Band"}}}
                                                             :summary "Gets a Band"}}
                          (keyword "/api/query") {:get {:parameters [{:in "query"
                                                                      :name "qp"
@@ -161,14 +160,14 @@
                                                                       :description ""
                                                                       :required true
                                                                       :type "boolean"}]
-                                                       :responses {:default {:description ""}}}}
+                                                        :responses {:default {:description ""}}}}
                          (keyword "/api/form") {:post {:parameters [{:in "formData"
                                                                      :name "fp"
                                                                      :description ""
                                                                      :required true
                                                                      :type "boolean"}]
-                                                        :responses {:default {:description ""}}
-                                                        :consumes ["application/x-www-form-urlencoded"]}}
+                                                       :responses {:default {:description ""}}
+                                                       :consumes ["application/x-www-form-urlencoded"]}}
                          (keyword "/api/ping") {:get {:responses {:default {:description ""}}}}
                          (keyword "/api/primitive") {:get {:responses {:200 {:description ""
                                                                              :schema {:type "string"}}}}}
