@@ -352,5 +352,5 @@
                                         :uri (swagger-spec-path api)
                                         mw/rethrow-exceptions? true})]
         (if-not (= status 200)
-          (throw (IllegalArgumentException. (slurp body))))))
+          (throw (IllegalArgumentException. ^String (slurp body))))))
     api))

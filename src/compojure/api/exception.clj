@@ -48,7 +48,7 @@
   (bad-request {:errors (stringify-error (:error data))}))
 
 (defn request-parsing-handler
-  [ex data request]
+  [^Exception ex data request]
   (let [cause (.getCause ex)]
     (bad-request {:type (cond
                           (instance? JsonParseException cause) "json-parse-exception"
