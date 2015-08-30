@@ -4,8 +4,12 @@
   * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
   * **BREAKING**: File support moved to ring-swagger. Use `ring.swagger.upload` instead of `compojure.api.upload`.
   * Support for collections in query parameters. E.g. `:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being `[1 2 3]`.
-* move `context` from `compojure.api.sweet` to `compojure.api.legacy`. Use `context*` instead.
-* updated deps:
+* **BREAKING**: `:validation-errors :error-handler`, `:validation-errors :catch-core-errors?`
+  and `:exceptions :exception-handler` options have been removed.
+  * These have been replaced with general `:exceptions :handler` options.
+  * **BREAKING**: New handler use different arity than old handler functions.
+* Move `context` from `compojure.api.sweet` to `compojure.api.legacy`. Use `context*` instead.
+* Updated deps:
 
 ```clojure
 [metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
@@ -14,7 +18,7 @@
 ## 0.22.2 (12.8.2015)
 
 * fixes [150](https://github.com/metosin/compojure-api/issues/150)
- 
+
 ## 0.22.1 (12.7.2015)
 
 * fixes [137](https://github.com/metosin/compojure-api/issues/137) & [134](https://github.com/metosin/compojure-api/issues/134), thanks to @thomaswhitcomb!
@@ -135,7 +139,7 @@
 
 * response descriptions can be given also with run-time meta-data (`with-meta`), fixes [#96](https://github.com/metosin/compojure-api/issues/96)
   * in next MINOR version, we'll switch to (Ring-)Swagger 2.0 format.
-   
+
 ```clojure
 (context* "/responses" []
   :tags ["responses"]

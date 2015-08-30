@@ -1,6 +1,7 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
+            [compojure.api.exception :as ex]
             [ring.middleware.format-params :refer [wrap-restful-params]]
             [ring.middleware.format-response :refer [wrap-restful-response]]
             ring.middleware.http-response
@@ -11,7 +12,9 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as rsc]
             [ring.util.http-response :refer :all]
-            [schema.core :as s])
+            [slingshot.slingshot :refer [try+ throw+]]
+            [schema.core :as s]
+            [schema.utils :as su])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
 
@@ -37,26 +40,34 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn default-exception-handler [^Exception e]
-  (.printStackTrace e)
-  (internal-server-error {:type "unknown-exception"
-                          :class (.getName (.getClass e))}))
+(defn- call-error-handler [error-handler error error-type request]
+  (try
+    (error-handler error error-type request)
+    (catch clojure.lang.ArityException e
+      (println "WARNING: Error-handler arity has been changed.")
+      (error-handler error))))
 
 (defn wrap-exceptions
-  "Catches all exceptions. Accepts the following options:
-
-  :exception-handler - a function to handle the exception. defaults
-                       to default-exception-handler"
-  [handler & [{:keys [exception-handler]
-               :or {exception-handler default-exception-handler}}]]
-  {:pre [(fn? exception-handler)]}
-  (fn [request]
-    (try
-      (handler request)
-      (catch Exception e
-        (if (rethrow-exceptions? request)
-          (throw e)
-          (exception-handler e))))))
+  "Catches all exceptions and delegates to right error handler accoring to :type of Exceptions
+   - **:handlers** - a map from exception type to handler
+     - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
+                                              by default prints stack trace."
+  [handler {:keys [handlers]}]
+  (let [default-handler (get handlers ::ex/default ex/safe-handler)]
+    (assert (fn? default-handler) "Default exception handler must be a function.")
+    (fn [request]
+      (try+
+        (handler request)
+        (catch (get % :type) {:keys [type] :as data}
+          (let [type (or (get ex/legacy-exception-types type) type)]
+            (if-let [handler (get handlers type)]
+              (call-error-handler handler (:throwable &throw-context) data request)
+              (call-error-handler default-handler (:throwable &throw-context) data request))))
+        (catch Object _
+          ; FIXME: Used for validate
+          (if (rethrow-exceptions? request)
+            (throw+)
+            (call-error-handler default-handler (:throwable &throw-context) nil request)))))))
 
 ;;
 ;; Component integration
@@ -129,19 +140,13 @@
 
 (defn ->mime-types [formats] (map mime-types formats))
 
-(defn handle-req-error [^Throwable e handler req]
-  (cond
-    (instance? JsonParseException e)
-    (bad-request {:type "json-parse-exception"
-                  :message (.getMessage e)})
-
-    (instance? ParserException e)
-    (bad-request {:type "yaml-parse-exception"
-                  :message (.getMessage e)})
-
-    :else
-    (internal-server-error {:type (str (class e))
-                            :message (.getMessage e)})))
+(defn handle-req-error [^Throwable e handler request]
+  ;; Ring-middleware-format catches all exceptions in req handling,
+  ;; i.e. (handler req) is inside try-catch. If r-m-f was changed to catch only
+  ;; exceptions from parsing the request, we wouldn't need to check the exception class.
+  (if (or (instance? JsonParseException e) (instance? ParserException e))
+    (throw+ {:type ::ex/request-parsing} e)
+    (throw+ e)))
 
 (defn serializable?
   "Predicate which return true if the response body is serializable.
@@ -160,9 +165,10 @@
   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
             :params-opts {}
             :response-opts {}}
-   :validation-errors {:error-handler nil
-                       :catch-core-errors? nil}
-   :exceptions {:exception-handler default-exception-handler}
+   :exceptions {:handlers {::ex/request-validation  ex/request-validation-handler
+                           ::ex/request-parsing     ex/request-parsing-handler
+                           ::ex/response-validation ex/response-validation-handler
+                           ::ex/default             ex/safe-handler}}
    :ring-swagger nil})
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
@@ -171,11 +177,17 @@
    options for the used middlewares (see middlewares for full details on options):
 
    - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
-       - **:exception-handler**       function to handle uncaught exceptions
+       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
+                                      An error handler is a function of exception, ExceptionInfo data and request to response.
+                                      Default:
+                                      {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
+                                       :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
+                                       :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
+                                       :compojure.api.exception/default             compojure.api.exception/safe-handler}
 
-   - **:validation-errors**         for *ring.swagger.middleware/wrap-validation-errors*
-       - **:error-handler**           function to handle ring-swagger schema exceptions
-       - **:catch-core-errors?**      whether to catch also `:schema.core/errors`
+                                      Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
+
+                                      Note: Adding alias for exception namespace makes it easier to define these options.
 
    - **:format**                    for ring-middleware-format middlewares
        - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
@@ -197,13 +209,25 @@
                                     middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
-        {:keys [exceptions validation-errors format components]} options
+        {:keys [exceptions format components]} options
         {:keys [formats params-opts response-opts]} format]
+    ; Break at compile time if there are deprecated options
+    ; These three have been deprecated with 0.23
+    (assert (not (:error-handler (:validation-errors options)))
+            (str "ERROR: Option: [:validation-errors :error-handler] is no longer supported, "
+                 "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."
+                 "Also note that exception-handler arity has been changed."))
+    (assert (not (:catch-core-errors? (:validation-errors options)))
+            (str "ERROR: Option [:validation-errors :catch-core-errors?] is no longer supported, "
+                 "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."
+                 "Also note that exception-handler arity has been changed."))
+    (assert (not (:exception-handler (:exceptions options)))
+            (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
+                 "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
+                 "Also note that exception-handler arity has been changed."))
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
-        (rsm/wrap-validation-errors validation-errors)
-        (wrap-exceptions exceptions)
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
         (wrap-options (select-keys options [:ring-swagger :coercion]))
@@ -215,6 +239,7 @@
           (merge {:formats formats
                   :predicate serializable?}
                  response-opts))
+        (wrap-exceptions exceptions)
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))
