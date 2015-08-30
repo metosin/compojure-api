@@ -4,7 +4,8 @@
             [cheshire.core :as json]
             [ring.swagger.swagger2 :as rss]
             [compojure.api.middleware :as mw]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [flatland.ordered.map :as om]))
 
 (defn- un-quote [s]
   (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
@@ -67,9 +68,8 @@
 
 (defmulti collect-routes identity)
 
-;; using flatland.ordered/map here causes AOT issues, so we use plain arraymap
 (defn route-vector-to-route-map [v]
-  {:paths (apply array-map (apply concat v))})
+  {:paths (apply om/ordered-map (apply concat v))})
 
 (defn route-map-to-route-vector [m]
   (->> m :paths (apply vector) reverse vec))
