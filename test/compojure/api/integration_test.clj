@@ -1174,20 +1174,19 @@
           status => 200
           body => {:magic 42})))))
 
-; TODO: works with 0.23.0-SNAPSHOT
-#_(fact "sequential string parameters"
-    (let [app (api
-                (GET* "/ints" []
-                  :query-params [i :- [s/Int]]
-                  (ok {:i i})))]
-      (fact "multiple values"
-        (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
-          status => 200
-          body => {:i [1, 2, 3]}))
-      (fact "single value"
-        (let [[status body] (get* app "/ints?i=42")]
-          status => 200
-          body => {:i [42]}))))
+(fact "sequential string parameters"
+  (let [app (api
+              (GET* "/ints" []
+                :query-params [i :- [s/Int]]
+                (ok {:i i})))]
+    (fact "multiple values"
+      (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
+        status => 200
+        body => {:i [1, 2, 3]}))
+    (fact "single value"
+      (let [[status body] (get* app "/ints?i=42")]
+        status => 200
+        body => {:i [42]}))))
 
 (fact ":swagger params just for ducumentation"
   (let [app (api
