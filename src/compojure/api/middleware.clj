@@ -235,11 +235,11 @@
           (merge {:formats (remove response-only-mimes formats)
                   :handle-error handle-req-error}
                  params-opts))
+        (wrap-exceptions exceptions)
         (wrap-restful-response
           (merge {:formats formats
                   :predicate serializable?}
                  response-opts))
-        (wrap-exceptions exceptions)
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))

@@ -1,9 +1,8 @@
 (ns compojure.api.exception
   (:require [ring.util.http-response :refer [internal-server-error bad-request]]
             [clojure.walk :refer [postwalk]]
-            [plumbing.core :refer [for-map]]
             [schema.utils :as su])
-  (:import [schema.utils ValidationError]
+  (:import [schema.utils ValidationError NamedError]
            [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
 
@@ -26,13 +25,10 @@
   [error]
   (postwalk
     (fn [x]
-      (if-not (map? x)
-        x
-        (for-map [[k v] x]
-          k (cond
-              (instance? ValidationError v) (str (su/validation-error-explain v))
-              (symbol? v) (str v)
-              :else v))))
+      (cond
+        (instance? ValidationError x) (str (su/validation-error-explain x))
+        (instance? NamedError x) (str (su/named-error-explain x))
+        :else x))
     error))
 
 (defn response-validation-handler
