@@ -5,8 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [prismatic/plumbing "0.4.4"]
+  :dependencies [[prismatic/plumbing "0.4.4"]
                  [potemkin "0.4.1"]
                  [cheshire "5.5.0"]
                  [compojure "1.4.0"]
@@ -28,7 +27,8 @@
                              [lein-midje "3.1.3"]
                              [lein-ring "0.9.6"]
                              [funcool/codeina "0.3.0"]]
-                   :dependencies [[peridot "0.4.1"]
+                   :dependencies [[org.clojure/clojure "1.7.0"]
+                                  [peridot "0.4.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.7.0"]
                                   [metosin/scjsv "0.2.0"]
@@ -39,14 +39,14 @@
                           :reload-paths ["src" "examples/src"]}
                    :source-paths ["examples/src" "examples/dev-src"]
                    :main examples.server}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
+             :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
             :output-dir "gh-pages/doc"
             :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-linenum-anchor-prefix "L" }
-  :aliases {"all" ["with-profile" "dev:dev,1.7"]
+  :aliases {"all" ["with-profile" "dev:dev,1.6"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
