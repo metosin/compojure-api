@@ -580,11 +580,11 @@
 
     ;; TODO: order!
     #_(fact "swagger-docs have trailing slashes removed"
-      (let [[status spec] (get* api "/swagger.json")]
-        status => 200
-        (->> spec
-             :paths
-             keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
+        (let [[status spec] (get* api "/swagger.json")]
+          status => 200
+          (->> spec
+               :paths
+               keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
 
 (fact "formats supported by ring-middleware-format"
   (let [app (api
@@ -819,14 +819,14 @@
   (let [app (api (swagger-docs {:basePath "/serve/from/here"}))]
     (fact "override it"
       (let [[status spec] (get* app "/swagger.json")]
-          status => 200
-          (:basePath spec) => "/serve/from/here")))
+        status => 200
+        (:basePath spec) => "/serve/from/here")))
 
   (let [app (api (swagger-docs {:basePath "/"}))]
     (fact "can set it to the default"
       (let [[status spec] (get* app "/swagger.json")]
-          status => 200
-          (:basePath spec) => "/"))))
+        status => 200
+        (:basePath spec) => "/"))))
 
 (fact "multiple different models with same name"
 
@@ -888,16 +888,16 @@
 
 (fact "exceptions options with custom validation error handler"
   (let [app (api
-              {:exceptions {:handlers {::ex/request-validation  custom-validation-error-handler
-                                       ::ex/request-parsing     custom-validation-error-handler
+              {:exceptions {:handlers {::ex/request-validation custom-validation-error-handler
+                                       ::ex/request-parsing custom-validation-error-handler
                                        ::ex/response-validation custom-validation-error-handler}}}
               (swagger-docs)
               (POST* "/get-long" []
-                    :body   [body {:x Long}]
-                    :return Long
-                    (case (:x body)
-                      1 (ok 1)
-                      (ok "not a number"))))]
+                :body [body {:x Long}]
+                :return Long
+                (case (:x body)
+                  1 (ok 1)
+                  (ok "not a number"))))]
 
     (fact "return case, valid request & valid model"
       (let [[status body] (post* app "/get-long" "{\"x\": 1}")]
@@ -910,9 +910,9 @@
         body => (contains {:custom-error "/get-long"})))
 
     (fact "return case, invalid json request"
-          (let [[status body] (post* app "/get-long" "{x: 1}")]
-            status => 400
-            body => (contains {:custom-error "/get-long"})))
+      (let [[status body] (post* app "/get-long" "{x: 1}")]
+        status => 400
+        body => (contains {:custom-error "/get-long"})))
 
     (fact "return case, valid request & invalid model"
       (let [[status body] (post* app "/get-long" "{\"x\": 2}")]
@@ -920,31 +920,31 @@
         body => (contains {:custom-error "/get-long"})))))
 
 (fact "exceptions options with custom exception and error handler"
-      (let [app (api
-                  {:exceptions {:handlers {::ex/default   custom-exception-handler
-                                           ::custom-error custom-error-handler}}}
-                  (swagger-docs)
-                  (GET* "/some-exception" []
-                        (throw (new RuntimeException)))
-                  (GET* "/some-error" []
-                        (throw (ex-info "some ex info" {:data "some error" :type ::some-error})))
-                  (GET* "/specific-error" []
-                        (throw (ex-info "my ex info" {:data "my error" :type ::custom-error}))))]
+  (let [app (api
+              {:exceptions {:handlers {::ex/default custom-exception-handler
+                                       ::custom-error custom-error-handler}}}
+              (swagger-docs)
+              (GET* "/some-exception" []
+                (throw (new RuntimeException)))
+              (GET* "/some-error" []
+                (throw (ex-info "some ex info" {:data "some error" :type ::some-error})))
+              (GET* "/specific-error" []
+                (throw (ex-info "my ex info" {:data "my error" :type ::custom-error}))))]
 
-        (fact "uses default exception handler for unknown exceptions"
-              (let [[status body] (get* app "/some-exception")]
-                status => 200
-                body => {:custom-exception "java.lang.RuntimeException"}))
+    (fact "uses default exception handler for unknown exceptions"
+      (let [[status body] (get* app "/some-exception")]
+        status => 200
+        body => {:custom-exception "java.lang.RuntimeException"}))
 
-        (fact "uses default exception handler for unknown errors"
-              (let [[status body] (get* app "/some-error")]
-                status => 200
-                (:custom-exception body) => (contains ":data \"some error\"")))
+    (fact "uses default exception handler for unknown errors"
+      (let [[status body] (get* app "/some-error")]
+        status => 200
+        (:custom-exception body) => (contains ":data \"some error\"")))
 
-        (fact "uses specific error handler for ::custom-errors"
-              (let [[status body] (get* app "/specific-error")]
-                status => 200
-                body => {:custom-error "my error"}))))
+    (fact "uses specific error handler for ::custom-errors"
+      (let [[status body] (get* app "/specific-error")]
+        status => 200
+        body => {:custom-error "my error"}))))
 
 (defn old-ex-handler [e]
   {:status 500
@@ -1166,9 +1166,9 @@
 
     (fact "via middleware"
       (let [handler (api
-                     (GET* "/magic" []
-                       :components [magic]
-                       (ok {:magic magic})))
+                      (GET* "/magic" []
+                        :components [magic]
+                        (ok {:magic magic})))
             app (mw/wrap-components handler system)]
         (let [[status body] (get* app "/magic")]
           status => 200
@@ -1176,18 +1176,18 @@
 
 ; TODO: works with 0.23.0-SNAPSHOT
 #_(fact "sequential string parameters"
-  (let [app (api
-              (GET* "/ints" []
-                :query-params [i :- [s/Int]]
-                (ok {:i i})))]
-    (fact "multiple values"
-      (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
-        status => 200
-        body => {:i [1, 2, 3]}))
-    (fact "single value"
-      (let [[status body] (get* app "/ints?i=42")]
-        status => 200
-        body => {:i [42]}))))
+    (let [app (api
+                (GET* "/ints" []
+                  :query-params [i :- [s/Int]]
+                  (ok {:i i})))]
+      (fact "multiple values"
+        (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
+          status => 200
+          body => {:i [1, 2, 3]}))
+      (fact "single value"
+        (let [[status body] (get* app "/ints?i=42")]
+          status => 200
+          body => {:i [42]}))))
 
 (fact ":swagger params just for ducumentation"
   (let [app (api
