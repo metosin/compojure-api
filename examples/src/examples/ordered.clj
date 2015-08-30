@@ -1,4 +1,4 @@
-(ns examples.ordered-routes
+(ns examples.ordered
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]))
 

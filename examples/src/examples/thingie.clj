@@ -5,7 +5,7 @@
             [schema.core :as s]
             ring.swagger.json-schema-dirty
             [examples.pizza :refer [pizza-routes Pizza]]
-            [examples.ordered-routes :refer [ordered-routes]]
+            [examples.ordered :refer [ordered-routes]]
             [examples.dates :refer [date-routes]])
   (:import [org.joda.time DateTime]))
 
@@ -41,7 +41,7 @@
             {:name "primitives", :description "Returning primitive values"}
             {:name "context*", :description "context* routes"}
             {:name "echo", :description "Echoes data"}
-            {:name "ordered", :description "Ordered schema"}
+            {:name "ordered", :description "Ordered routes"}
             {:name "file", :description "File upload"}]})
 
   (context* "/math" []
