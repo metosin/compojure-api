@@ -13,8 +13,7 @@
             [ring.swagger.coerce :as rsc]
             [ring.util.http-response :refer :all]
             [slingshot.slingshot :refer [try+ throw+]]
-            [schema.core :as s]
-            [schema.utils :as su])
+            [schema.core :as s])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
 
@@ -165,10 +164,10 @@
   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
             :params-opts {}
             :response-opts {}}
-   :exceptions {:handlers {::ex/request-validation  ex/request-validation-handler
-                           ::ex/request-parsing     ex/request-parsing-handler
+   :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
+                           ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
-                           ::ex/default             ex/safe-handler}}
+                           ::ex/default ex/safe-handler}}
    :ring-swagger nil})
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)

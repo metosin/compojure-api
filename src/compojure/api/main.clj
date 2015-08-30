@@ -4,11 +4,11 @@
 
 (defn resolve-start-fn []
   (let [start (some-> "./project.clj"
-                slurp
-                read-string
-                (->> (drop 1))
-                (->> (apply hash-map))
-                :start)
+                      slurp
+                      read-string
+                      (->> (drop 1))
+                      (->> (apply hash-map))
+                      :start)
         names (-> start str (s/split #"/") first symbol)]
     (require names)
     (resolve start)))

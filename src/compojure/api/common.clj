@@ -6,12 +6,12 @@
   [m]
   (letfn
     [(pvals [l p m]
-       (reduce
-         (fn [l [k v]]
-           (if (map? v)
-             (pvals l (conj p k) v)
-             (cons [(conj p k) v] l)))
-         l m))]
+            (reduce
+              (fn [l [k v]]
+                (if (map? v)
+                  (pvals l (conj p k) v)
+                  (cons [(conj p k) v] l)))
+              l m))]
     (pvals [] [] m)))
 
 (defn assoc-in-path-vals
@@ -22,11 +22,11 @@
   "Extracts original var from a (potemkined) var or a symbol or returns nil"
   [x]
   (let [evaluated (if (symbol? x) x (eval x))
-        resolved  (cond
-                    (var? evaluated)    evaluated
-                    (symbol? evaluated) (resolve evaluated)
-                    :else       nil)
-        metadata  (meta resolved)]
+        resolved (cond
+                   (var? evaluated) evaluated
+                   (symbol? evaluated) (resolve evaluated)
+                   :else nil)
+        metadata (meta resolved)]
     (if metadata
       (let [s (symbol (str (:ns metadata) "/" (:name metadata)))]
         `(var ~s)))))

@@ -45,16 +45,16 @@
     (fn [x]
       (cond
         (inline? x) (extract-source x)
-        (seq? x)    (let [sym (first x)]
-                      (if (and
-                            (symbol? sym)
-                            (or
-                              (compojure-macro? (eval-re-resolve sym))
-                              (m/meta-container? (eval-re-resolve sym))))
-                        (filter (comp not nil?) x)
-                        (let [result (macroexpand-1 x)]
-                          ;; stop if macro expands to itself
-                          (if (= result x) result (list result)))))
+        (seq? x) (let [sym (first x)]
+                   (if (and
+                         (symbol? sym)
+                         (or
+                           (compojure-macro? (eval-re-resolve sym))
+                           (m/meta-container? (eval-re-resolve sym))))
+                     (filter (comp not nil?) x)
+                     (let [result (macroexpand-1 x)]
+                       ;; stop if macro expands to itself
+                       (if (= result x) result (list result)))))
         :else x))
     form))
 
@@ -110,10 +110,10 @@
           (let [[m p] x
                 rm (and (symbol? m) (eval-re-resolve m))]
             (cond
-              (compojure-route? rm)     (->CompojureRoute p {} x)
-              (compojure-context? rm)   (->CompojureRoutes p (context-metadata x) (filter-routes x))
+              (compojure-route? rm) (->CompojureRoute p {} x)
+              (compojure-context? rm) (->CompojureRoutes p (context-metadata x) (filter-routes x))
               (compojure-letroutes? rm) (->CompojureRoutes "" (context-metadata x) (filter-routes x))
-              :else                     x)))
+              :else x)))
         x))
     form))
 
@@ -307,7 +307,7 @@
                options# (:ring-swagger (mw/get-options request#))]
            (ok
              (let [swagger# (merge runtime-info#
-                                   base-path# 
+                                   base-path#
                                    ~extra-info)
                    result# (swagger2/swagger-json swagger# options#)]
                result#)))))))
