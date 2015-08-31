@@ -138,7 +138,6 @@ lein new compojure-api my-api +clojure-test
 There is prepackaged middleware `compojure.api.middleware/api-middleware` for common web api usage. It's a enhanced version of `compojure.handler/api` adding the following:
 
 - catching slingshotted http-errors (`ring.middleware.http-response/catch-response`)
-- catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
 - catching unhandled exceptions (`compojure.api.middleware/wrap-exceptions`)
 - support for different protocols via `ring.middleware.format-params/wrap-restful-params` and `ring.middleware.format-response/wrap-restful-response`
     - default supported protocols are: `:json-kw`, `:yaml-kw`, `:edn`, `:transit-json` and `:transit-msgpack`
