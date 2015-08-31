@@ -437,7 +437,7 @@ To see this in action, try `lein run` and navigate to Components api group.
 All exceptions should be handled gracefully. Compojure-api ships with customizable exception handling with good
 defaults. Customization is done via `api` options - delegating to `compojure.api.middleware/wrap-exceptions`, which
 does the real work. It catches all thrown exceptions and selects a custom handler based on the thrown exception
-`ex-data` value of key `:type`. If an exception doesn't have ex-data (e.g. legacy Java Exceptions),
+`ex-data` or Slingshot value of key `:type`. If an exception doesn't have ex-data (e.g. legacy Java Exceptions),
 `:compojure.api.exception/default` type is used. Exception handlers are 3-arity functions, getting the exception,
 ex-data and request as arguments. Below are the default type definitions and default handling:
 
