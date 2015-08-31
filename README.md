@@ -139,7 +139,7 @@ There is prepackaged middleware `compojure.api.middleware/api-middleware` for co
 
 - catching slingshotted http-errors (`ring.middleware.http-response/catch-response`)
 - catching model validation errors (`ring.swagger.middleware/catch-validation-errors`)
-- catching unhandler exceptions (`compojure.api.middleware/wrap-exceptions`)
+- catching unhandled exceptions (`compojure.api.middleware/wrap-exceptions`)
 - support for different protocols via `ring.middleware.format-params/wrap-restful-params` and `ring.middleware.format-response/wrap-restful-response`
     - default supported protocols are: `:json-kw`, `:yaml-kw`, `:edn`, `:transit-json` and `:transit-msgpack`
     - enabled protocol support is also published into Swagger docs via `ring.swagger.middleware/wrap-swagger-data`.
@@ -432,6 +432,38 @@ the `:components` restucturing with letk-syntax.
 ```
 
 To see this in action, try `lein run` and navigate to Components api group.
+
+## Exception handling
+
+All exceptions should be handled gracefully. Compojure-api ships with customizable exception handling with good
+defaults. Customization is done via `api` options - delegating to `compojure.api.middleware/wrap-exceptions`, which
+does the real work. It catches all thrown exceptions and selects a custom handler based on the thrown exception
+`ex-data` value of key `:type`. If an exception doesn't have ex-data (e.g. legacy Java Exceptions),
+`:compojure.api.exception/default` type is used. Exception handlers are 3-arity functions, getting the exception,
+ex-data and request as arguments. Below are the default type definitions and default handling:
+
+| type                                          | what                                | default
+|-----------------------------------------------|-------------------------------------|---------
+|`:compojure.api.exception/request-parsing`     | Input data de-serialization errors. | 400 + error in body
+|`:compojure.api.exception/request-validation`  | Request Schema coercion errors.     | 400 + schema error in body
+|`:compojure.api.exception/response-validation` | Response Schema coercion errors.    | 500 + schema error in body
+|`:compojure.api.exception/default`             | Everything else.                    | 500 + print stacktrace + safe message
+
+example to override the default case + add a custom exception type + handler for it:
+
+```clojure
+(defn custom-handler [^Exception e data request]
+  (internal-server-error {:message (.getMessage e)}))
+
+(defn calm-handler [^Exception e data request]
+  (enhance-your-calm {:message (.getMessage e), :data data}))
+
+(defapi
+  {:exceptions {:handlers {:compojure.api.exception/default custom-handler
+                           ::calm calm-handler}}}
+  (GET* "/bang" [] (throw (RuntimeException. "kosh")))
+  (GET* "/calm" [] (throw (ex-info "fail" {:type ::calm, :oil "snake"}))))
+```
 
 ## Schemas
 

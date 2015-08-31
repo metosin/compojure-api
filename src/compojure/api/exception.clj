@@ -15,7 +15,7 @@
 
    Error response only contains class of the Exception so that it won't accidentally
    expose secret details."
-  [^Exception e data request]
+  [^Exception e _ _]
   (.printStackTrace e)
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
@@ -33,22 +33,22 @@
 
 (defn response-validation-handler
   "Creates error response based on Schema error."
-  [_ data request]
+  [_ data _]
   (internal-server-error {:errors (stringify-error (su/error-val data))}))
 
 (defn request-validation-handler
   "Creates error response based on Schema error."
-  [_ data request]
+  [_ data _]
   (bad-request {:errors (stringify-error (su/error-val data))}))
 
 (defn schema-error-handler
   "Creates error response based on Schema error."
-  [ex data request]
+  [_ data _]
   ; FIXME: Why error is not wrapped to ErrorContainer here?
   (bad-request {:errors (stringify-error (:error data))}))
 
 (defn request-parsing-handler
-  [^Exception ex data request]
+  [^Exception ex _ _]
   (let [cause (.getCause ex)]
     (bad-request {:type (cond
                           (instance? JsonParseException cause) "json-parse-exception"
