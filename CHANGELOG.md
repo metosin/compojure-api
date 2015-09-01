@@ -16,7 +16,7 @@
 [metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
 [compojure "1.4.0"] is available but we use "1.3.4"
 [prismatic/schema "0.4.4"] is available but we use "0.4.3"
-[metosin/ring-http-response "0.6.4"] is available but we use "0.6.3"
+[metosin/ring-http-response "0.6.5"] is available but we use "0.6.3"
 [metosin/schema-tools "0.5.2"] is available but we use "0.5.1"
 [metosin/ring-swagger-ui "2.1.2"] is available but we use "2.1.5-M2"
 [peridot "0.4.1"] is available but we use "0.4.0"
