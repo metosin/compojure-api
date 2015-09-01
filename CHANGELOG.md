@@ -1,4 +1,4 @@
-## 0.23.0-SNAPSHOT
+## 0.23.0 (1.9.2016)
 
 * Ring-swagger 0.21.0
   * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
