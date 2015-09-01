@@ -1,12 +1,14 @@
-## 0.23.0-SNAPSHOT
+## 0.23.0 (1.9.2016)
 
 * Ring-swagger 0.21.0
   * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
   * Support for collections in query parameters. E.g. `:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being `[1 2 3]`.
 * **BREAKING**: `:validation-errors :error-handler`, `:validation-errors :catch-core-errors?`
   and `:exceptions :exception-handler` options have been removed.
-  * These have been replaced with general `:exceptions :handler` options.
+  * These have been replaced with general `:exceptions :handlers` options.
+  * Fails nicely at compile-time
   * **BREAKING**: New handler use different arity than old handler functions.
+    * new arguments: Exception, ex-info and request.
 * Move `context` from `compojure.api.sweet` to `compojure.api.legacy`. Use `context*` instead.
 * Updated deps:
 
@@ -14,7 +16,7 @@
 [metosin/ring-swagger "0.21.0-SNAPSHOT"] is available but we use "0.20.4"
 [compojure "1.4.0"] is available but we use "1.3.4"
 [prismatic/schema "0.4.4"] is available but we use "0.4.3"
-[metosin/ring-http-response "0.6.4"] is available but we use "0.6.3"
+[metosin/ring-http-response "0.6.5"] is available but we use "0.6.3"
 [metosin/schema-tools "0.5.2"] is available but we use "0.5.1"
 [metosin/ring-swagger-ui "2.1.2"] is available but we use "2.1.5-M2"
 [peridot "0.4.1"] is available but we use "0.4.0"
