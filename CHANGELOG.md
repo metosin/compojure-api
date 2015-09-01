@@ -5,8 +5,10 @@
   * Support for collections in query parameters. E.g. `:query-params [x :- [Long]]` & url `?x=1&x=2&x=3` should result in `x` being `[1 2 3]`.
 * **BREAKING**: `:validation-errors :error-handler`, `:validation-errors :catch-core-errors?`
   and `:exceptions :exception-handler` options have been removed.
-  * These have been replaced with general `:exceptions :handler` options.
+  * These have been replaced with general `:exceptions :handlers` options.
+  * Fails nicely at compile-time
   * **BREAKING**: New handler use different arity than old handler functions.
+    * new arguments: Exception, ex-info and request.
 * Move `context` from `compojure.api.sweet` to `compojure.api.legacy`. Use `context*` instead.
 * Updated deps:
 
