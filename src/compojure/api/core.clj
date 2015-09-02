@@ -5,7 +5,6 @@
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
-            [ring.swagger.middleware :as rsm]
             [ring.swagger.common :refer [extract-parameters]]
             [clojure.walk :as walk]
             backtick))
@@ -16,13 +15,11 @@
   lookup table via wrap-options. Returned handler retains the original
   meta-data."
   [handler options]
-  (let [{:keys [routes lookup] :as meta}
-        (-> handler meta (update-in [:routes] routes/route-vector-to-route-map))]
+  (let [meta (-> handler meta (assoc :options options))]
     (-> handler
-        (rsm/wrap-swagger-data routes)
         (mw/api-middleware options)
-        (mw/wrap-options {:lookup lookup})
-        (with-meta (assoc meta :options options)))))
+        (mw/wrap-options (select-keys meta [:routes :lookup]))
+        (with-meta meta))))
 
 (defmacro api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
