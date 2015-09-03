@@ -41,7 +41,7 @@
             {:name "primitives", :description "Returning primitive values"}
             {:name "context*", :description "context* routes"}
             {:name "echo", :description "Echoes data"}
-            {:name "ordered", :description "Ordered schema"}
+            {:name "ordered", :description "Ordered routes"}
             {:name "file", :description "File upload"}]})
 
   (context* "/math" []
@@ -88,8 +88,6 @@
       (throw (RuntimeException. "KOSH"))))
 
   pizza-routes
-
-  #_ordered-routes
 
   (context* "/dates" []
     :tags ["dates"]
@@ -196,4 +194,6 @@
     :tags ["component"]
     (GET* "/example" req
       :components [example]
-      (ok example))))
+      (ok example)))
+
+  ordered-routes)

@@ -5,7 +5,8 @@
             [ring.mock.request :refer :all]
             [schema.core :as s]
             [clojure.java.io :as io]
-            [scjsv.core :as scjsv]))
+            [scjsv.core :as scjsv]
+            [compojure.api.routes :as routes]))
 
 (def validate
   (scjsv/validator (slurp (io/resource "ring/swagger/v2.0_schema.json"))))
@@ -71,7 +72,7 @@
 (facts "api documentation"
   (fact "details are generated"
 
-    (-> app meta :routes)
+    (-> app meta :routes routes/route-vector-to-route-map)
 
     => {:paths {"/ping" {:get {}}
                 "/api/ping" {:get {}}

@@ -20,7 +20,8 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/src"]
-                       :dependencies [[http-kit "2.1.19"]
+                       :dependencies [[org.clojure/clojure "1.7.0"]
+                                      [http-kit "2.1.19"]
                                       [com.stuartsierra/component "0.2.3"]]}
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]

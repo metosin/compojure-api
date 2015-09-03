@@ -14,6 +14,7 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
+            [flatland.ordered.map :as om]
             [ring.swagger.swagger2 :as swagger2]
             [schema.core :as s]))
 
@@ -231,7 +232,7 @@
        path-vals
        (map create-api-route)
        (map attach-meta-data-to-route)
-       (apply deep-merge {})))
+       (apply deep-merge (om/ordered-map))))
 
 (defn swagger-info [body]
   [{:paths (extract-routes body)} body])
@@ -304,9 +305,12 @@
          :name ::swagger
          (let [runtime-info# (rsm/get-swagger-data request#)
                base-path# {:basePath (base-path request#)}
-               options# (:ring-swagger (mw/get-options request#))]
+               options# (:ring-swagger (mw/get-options request#))
+               routes# (:routes (mw/get-options request#))
+               paths# (routes/route-vector-to-route-map routes#)]
            (ok
              (let [swagger# (merge runtime-info#
+                                   paths#
                                    base-path#
                                    ~extra-info)
                    result# (swagger2/swagger-json swagger# options#)]
@@ -339,7 +343,8 @@
   endpoint is requested. Returns either the (valid) api or throws an
   exception."
   [api]
-  (let [{:keys [routes options]} (meta api)]
+  (let [{:keys [routes options]} (meta api)
+        routes (routes/route-vector-to-route-map routes)]
     (assert (not (nil? routes)) "Api did not contain route definitions.")
     (when (swagger-api? api)
 
