@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.23.0"
+(defproject metosin/compojure-api "0.23.1"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -34,7 +34,7 @@
                                   [midje "1.7.0"]
                                   [metosin/scjsv "0.2.0"]
                                   [com.stuartsierra/component "0.2.3"]
-                                  [reloaded.repl "0.1.0"]
+                                  [reloaded.repl "0.2.0"]
                                   [http-kit "2.1.19"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/src"]}

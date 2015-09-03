@@ -1,3 +1,7 @@
+## 0.23.1 (3.9.2016)
+
+* Routes are kept in order for swagger docs, Fixes [#138](https://github.com/metosin/compojure-api/issues/138).
+
 ## 0.23.0 (1.9.2016)
 
 * Ring-swagger 0.21.0
