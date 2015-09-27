@@ -3,7 +3,8 @@
   (:require [org.httpkit.server :as httpkit]
             [compojure.api.middleware :refer [wrap-components]]
             [com.stuartsierra.component :as component]
-            [examples.thingie :refer [app]]))
+            [examples.thingie :refer [app]]
+            [reloaded.repl :refer [go set-init!]]))
 
 (defrecord Example []
   component/Lifecycle
@@ -15,7 +16,7 @@
 (defrecord HttpKit []
   component/Lifecycle
   (start [this]
-    (println this)
+    (println "Server started at http://localhost:3000")
     (assoc this :http-kit (httpkit/run-server
                             (wrap-components
                               #'app
@@ -32,5 +33,5 @@
     :http-kit (component/using (->HttpKit) [:example])))
 
 (defn -main []
-  (component/start (new-system))
-  (println "server started at port 3000"))
+  (set-init! #(new-system))
+  (go))
