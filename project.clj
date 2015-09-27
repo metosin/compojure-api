@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[prismatic/plumbing "0.4.4"]
+  :dependencies [[prismatic/plumbing "0.5.0"]
                  [potemkin "0.4.1"]
                  [cheshire "5.5.0"]
                  [compojure "1.4.0"]
@@ -16,13 +16,13 @@
                  [metosin/schema-tools "0.6.0"]
                  [metosin/ring-middleware-format "0.6.0"]
                  [backtick "0.3.3"]
-                 [metosin/ring-swagger-ui "2.1.2"]]
+                 [metosin/ring-swagger-ui "2.1.3"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/src"]
                        :dependencies [[org.clojure/clojure "1.7.0"]
                                       [http-kit "2.1.19"]
-                                      [com.stuartsierra/component "0.2.3"]]}
+                                      [com.stuartsierra/component "0.3.0"]]}
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.1.3"]
