@@ -563,7 +563,7 @@ Schema-predicate wrappings work too:
   (ok nil))
 ```
 
-And anonoymous schemas:
+And anonymous schemas:
 
 ```clojure
   (PUT* "/echos" []
