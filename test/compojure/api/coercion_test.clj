@@ -38,7 +38,7 @@
       (fact "by default, applies body coercion (to set)"
         (let [app (api
                     beer-route)]
-          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+          (let [[status body] (post* app "/beer" {:body (json {:beers ["ipa" "apa" "ipa"]})})]
             status => 200
             body => {:beers ["ipa" "apa"]})))
 
@@ -47,7 +47,7 @@
               app (api
                     {:coercion no-body-coercion}
                     beer-route)]
-          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+          (let [[status body] (post* app "/beer" {:body (json {:beers ["ipa" "apa" "ipa"]})})]
             status => 200
             body => {:beers ["ipa" "apa" "ipa"]})))
 
@@ -56,7 +56,7 @@
               app (api
                     {:coercion nop-body-coercion}
                     beer-route)]
-          (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]})) => (fails-with 400)))))
+          (post* app "/beer" {:body (json {:beers ["ipa" "apa" "ipa"]})}) => (fails-with 400)))))
 
   (fact "query coersion"
     (let [query-route (GET* "/query" []
