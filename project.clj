@@ -14,7 +14,7 @@
                  [metosin/ring-http-response "0.6.5"]
                  [metosin/ring-swagger "0.22.0-SNAPSHOT"]
                  [metosin/schema-tools "0.6.0"]
-                 [metosin/ring-middleware-format "0.6.0"]
+                 [ring-middleware-format "0.7.0-SNAPSHOT"]
                  [backtick "0.3.3"]
                  [metosin/ring-swagger-ui "2.1.3"]]
   :profiles {:uberjar {:aot :all
