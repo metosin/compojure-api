@@ -231,14 +231,14 @@
                                 :consumes (->mime-types formats)})
         (wrap-options (select-keys options [:ring-swagger :coercion]))
         (wrap-restful-params
-          (merge {:formats (remove response-only-mimes formats)
-                  :handle-error handle-req-error}
-                 params-opts))
+          {:formats (remove response-only-mimes formats)
+           :handle-error handle-req-error
+           :format-options params-opts})
         (wrap-exceptions exceptions)
         (wrap-restful-response
-          (merge {:formats formats
-                  :predicate serializable?}
-                 response-opts))
+          {:formats formats
+           :predicate serializable?
+           :format-options response-opts})
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))
