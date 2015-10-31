@@ -781,6 +781,10 @@ macroexpanding-1 it too see what's get generated:
     (ring.util.http-response/forbidden "Auth required")))))
 ```
 
+## Other resources
+
+- Using [Buddy](https://github.com/funcool/buddy) with Compojure-api: https://gist.github.com/Deraen/ef7f65d7ec26f048e2bb
+
 ## License
 
 Copyright © 2014-2015 [Metosin Oy](http://www.metosin.fi)
