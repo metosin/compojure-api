@@ -5,11 +5,11 @@
 * Updated deps:
 
 ```clojure
-[prismatic/schema "1.0.1"] is available but we use "0.4.4"
-[prismatic/plumbing "0.5.0"] is available but we use "0.4.4"
-[metosin/schema-tools "0.6.0"] is available but we use "0.5.2"
+[prismatic/schema "1.0.3"] is available but we use "0.4.4"
+[prismatic/plumbing "0.5.1] is available but we use "0.4.4"
+[metosin/schema-tools "0.6.2"] is available but we use "0.5.2"
 [metosin/ring-swagger "0.22.0"] is available but we use "0.21.0"
-[metosin/ring-swagger-ui "2.1.3"] is available but we use "2.1.2"
+[metosin/ring-swagger-ui "2.1.3-2"] is available but we use "2.1.2"
 ```
 
 ## 0.23.1 (3.9.2015)
