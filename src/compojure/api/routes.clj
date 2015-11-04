@@ -5,7 +5,7 @@
             [ring.swagger.swagger2 :as rss]
             [compojure.api.middleware :as mw]
             [clojure.string :as str]
-            [flatland.ordered.map :as om]))
+            [linked.core :as linked]))
 
 (defn- un-quote [s]
   (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
@@ -69,7 +69,7 @@
 (defmulti collect-routes identity)
 
 (defn route-vector-to-route-map [v]
-  {:paths (apply om/ordered-map (apply concat v))})
+  {:paths (into (linked/map) (concat v))})
 
 (defn route-map-to-route-vector [m]
   (->> m :paths (apply vector) reverse vec))

@@ -1,5 +1,7 @@
-## 0.24.0 (x.x.2015)
+## Unreleased
 
+- Uses now [linked](https://github.com/frankiesardo/linked) instead of
+[ordered](https://github.com/amalloy/ordered) for maps where order matters
 * Updated deps:
 
 ```clojure

@@ -3,7 +3,7 @@
             [compojure.api.test-utils :refer :all]
             [compojure.api.exception :as ex]
             [midje.sweet :refer :all]
-            [flatland.ordered.map :as om]
+            [linked.core :as linked]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [ring.swagger.core :as rsc]
@@ -776,10 +776,10 @@
   "https://github.com/Prismatic/schema/pull/212"
 
   (s/defschema Kikka
-    (om/ordered-map
+    (linked/map
       :a s/Str, :b s/Str, :c s/Str, :d s/Str, :e s/Str, :f s/Str, :g s/Str, :h s/Str))
 
-  (def data (om/ordered-map :a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"))
+  (def data (linked/map :a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"))
 
   (defapi api
     (swagger-docs)
