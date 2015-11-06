@@ -38,7 +38,9 @@
                                   [metosin/scjsv "0.2.0"]
                                   [com.stuartsierra/component "0.3.0"]
                                   [reloaded.repl "0.2.1"]
-                                  [http-kit "2.1.19"]]
+                                  [http-kit "2.1.19"]
+                                  ; Required when using with Java 1.6
+                                  [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/src"]}
                    :source-paths ["examples/src" "examples/dev-src"]
