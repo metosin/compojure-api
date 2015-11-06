@@ -32,9 +32,7 @@
                    :dependencies [[org.clojure/clojure "1.7.0"]
                                   [peridot "0.4.1"]
                                   [javax.servlet/servlet-api "2.5"]
-                                  [midje "1.8.1"]
-                                  ; Midje/such requires this
-                                  [commons-codec "1.7"]
+                                  [midje "1.8.2"]
                                   [metosin/scjsv "0.2.0"]
                                   [com.stuartsierra/component "0.3.0"]
                                   [reloaded.repl "0.2.1"]
