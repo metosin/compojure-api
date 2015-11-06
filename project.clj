@@ -43,14 +43,14 @@
                           :reload-paths ["src" "examples/src"]}
                    :source-paths ["examples/src" "examples/dev-src"]
                    :main examples.server}
-             :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}}
+             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-beta2"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
             :output-dir "gh-pages/doc"
             :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
-            :src-linenum-anchor-prefix "L" }
-  :aliases {"all" ["with-profile" "dev:dev,1.6"]
+            :src-linenum-anchor-prefix "L"}
+  :aliases {"all" ["with-profile" "dev:dev,1.8"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
