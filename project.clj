@@ -14,7 +14,7 @@
                  [frankiesardo/linked "1.2.6"]
                  [metosin/ring-http-response "0.6.5"]
                  [metosin/ring-swagger "0.22.0-SNAPSHOT"]
-                 [metosin/schema-tools "0.6.2"]
+                 [metosin/schema-tools "0.7.0-SNAPSHOT"]
                  [ring-middleware-format "0.7.0"]
                  [backtick "0.3.3"]
                  [metosin/ring-swagger-ui "2.1.3-2"]]
@@ -27,7 +27,7 @@
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2"]
-                             [lein-ring "0.9.6"]
+                             [lein-ring "0.9.7"]
                              [funcool/codeina "0.3.0"]]
                    :dependencies [[org.clojure/clojure "1.7.0"]
                                   [peridot "0.4.1"]
