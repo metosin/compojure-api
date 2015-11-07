@@ -1,7 +1,11 @@
 ## Unreleased
 
+- **BREAKING**: Dropped support for Clojure 1.6
+- **BREAKING**: Supports and depends on Schema 1.0.
 - Uses now [linked](https://github.com/frankiesardo/linked) instead of
 [ordered](https://github.com/amalloy/ordered) for maps where order matters
+- `swagger-ui` now supports passing arbitrary options to `SwaggerUI`
+([metosin/ring-swagger#67](https://github.com/metosin/ring-swagger/issues/67))
 * Updated deps:
 
 ```clojure
