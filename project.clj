@@ -47,7 +47,7 @@
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
-            :output-dir "gh-pages/doc"
+            :target "gh-pages/doc"
             :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-linenum-anchor-prefix "L"}
   :aliases {"all" ["with-profile" "dev:dev,1.8"]
