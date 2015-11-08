@@ -1,5 +1,7 @@
 ## 0.24.0 (8.11.2015)
 
+**[compare](https://github.com/metosin/compojure-api/compare/0.23.1...0.24.0)**
+
 - **BREAKING**: Dropped support for Clojure 1.6
 - **BREAKING**: Supports and depends on Schema 1.0.
 - Uses upstream [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format)
@@ -20,9 +22,13 @@ instead of Metosin fork.
 
 ## 0.23.1 (3.9.2015)
 
+**[compare](https://github.com/metosin/compojure-api/compare/0.23.0...0.23.1)**
+
 * Routes are kept in order for swagger docs, Fixes [#138](https://github.com/metosin/compojure-api/issues/138).
 
 ## 0.23.0 (1.9.2015)
+
+**[compare](https://github.com/metosin/compojure-api/compare/0.22.2...0.23.0)**
 
 * Ring-swagger 0.21.0
   * **BREAKING**: new signature for dispatching custom JSON Schema transformations, old signature will break (nicely at compile-time), see [Readme](https://github.com/metosin/ring-swagger/blob/master/README.md) for details.
@@ -48,9 +54,13 @@ instead of Metosin fork.
 
 ## 0.22.2 (12.8.2015)
 
+**[compare](https://github.com/metosin/compojure-api/compare/0.22.1...0.22.2)**
+
 * fixes [150](https://github.com/metosin/compojure-api/issues/150)
 
 ## 0.22.1 (12.7.2015)
+
+**[compare](https://github.com/metosin/compojure-api/compare/0.22.0...0.22.1)**
 
 * fixes [137](https://github.com/metosin/compojure-api/issues/137) & [134](https://github.com/metosin/compojure-api/issues/134), thanks to @thomaswhitcomb!
 * updated deps:
@@ -61,6 +71,8 @@ instead of Metosin fork.
 ```
 
 ## 0.22.0 (30.6.2015)
+
+**[compare](https://github.com/metosin/compojure-api/compare/0.21.0...0.22.0)**
 
 * Optional integration with [Component](https://github.com/stuartsierra/component).
   Use either `:components`-option of `api-middleware` or `wrap-components`-middleware
