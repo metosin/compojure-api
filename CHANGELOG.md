@@ -1,17 +1,19 @@
-## Unreleased
+## 0.24.0 (8.11.2015)
 
 - **BREAKING**: Dropped support for Clojure 1.6
 - **BREAKING**: Supports and depends on Schema 1.0.
+- Uses upstream [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format)
+instead of Metosin fork.
 - Uses now [linked](https://github.com/frankiesardo/linked) instead of
-[ordered](https://github.com/amalloy/ordered) for maps where order matters
+[ordered](https://github.com/amalloy/ordered) for maps where order matters.
 - `swagger-ui` now supports passing arbitrary options to `SwaggerUI`
-([metosin/ring-swagger#67](https://github.com/metosin/ring-swagger/issues/67))
+([metosin/ring-swagger#67](https://github.com/metosin/ring-swagger/issues/67)).
 * Updated deps:
 
 ```clojure
 [prismatic/schema "1.0.3"] is available but we use "0.4.4"
 [prismatic/plumbing "0.5.1] is available but we use "0.4.4"
-[metosin/schema-tools "0.6.2"] is available but we use "0.5.2"
+[metosin/schema-tools "0.7.0"] is available but we use "0.5.2"
 [metosin/ring-swagger "0.22.0"] is available but we use "0.21.0"
 [metosin/ring-swagger-ui "2.1.3-2"] is available but we use "2.1.2"
 ```
