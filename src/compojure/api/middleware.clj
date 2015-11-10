@@ -191,7 +191,7 @@
    - **:format**                    for ring-middleware-format middlewares
        - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
        - **:params-opts**             for *ring.middleware.format-params/wrap-restful-params*,
-                                      e.g. `{:transit-json {:options {:handlers readers}}}`
+                                      e.g. `{:transit-json {:handlers readers}}`
        - **:response-opts**           for *ring.middleware.format-params/wrap-restful-response*,
                                       e.g. `{:transit-json {:handlers writers}}`
 

@@ -4,6 +4,24 @@
 
 - **BREAKING**: Dropped support for Clojure 1.6
 - **BREAKING**: Supports and depends on Schema 1.0.
+- **BREAKING**: `ring-middleware-format` accepts transit options in a new format:
+
+```clj
+;; pre 0.24.0:
+
+(api
+  {:format {:response-opts {:transit-json {:handlers transit/writers}}
+            :params-opts   {:transit-json {:options {:handlers transit/readers}}}}}
+  ...)
+
+;; 0.24.0 +
+
+(api
+  {:format {:response-opts {:transit-json {:handlers transit/writers}}
+            :params-opts   {:transit-json {:handlers transit/readers}}}}
+  ...)
+```
+
 - Uses upstream [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format)
 instead of Metosin fork.
 - Uses now [linked](https://github.com/frankiesardo/linked) instead of
