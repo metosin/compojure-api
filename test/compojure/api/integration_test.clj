@@ -1193,11 +1193,7 @@
                                    "/extra" irrelevant
                                    "/runtime" irrelevant})})))
 
-;;
-;; with supported schemas
-;;
-
-(s/defschema Foo {:a s/Str})
+(s/defschema Foo {:a [s/Keyword]})
 
 (defapi with-defapi
   (swagger-docs)
@@ -1214,25 +1210,3 @@
 
 (fact "defapi & api define same results with supported schema types #159"
   (get-spec with-defapi) => (get-spec (with-api)))
-
-;;
-;; with unsupported schemas
-;;
-
-(s/defschema Foo2 [s/Keyword])
-
-(defapi with-defapi2
-  (swagger-docs)
-  (GET* "/foo" []
-    :return Foo2
-    (ok [:foo])))
-
-(defn with-api2 []
-  (api
-    (swagger-docs)
-    (GET* "/foo" []
-      :return Foo2
-      (ok [:foo]))))
-
-(fact "defapi & api define different results with unsuported schema types #159"
-  (get-spec with-defapi2) =not=> (get-spec (with-api2)))
