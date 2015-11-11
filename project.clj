@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[prismatic/plumbing "0.5.1"]
+  :dependencies [[prismatic/plumbing "0.5.2"]
                  [potemkin "0.4.1"]
                  [cheshire "5.5.0"]
                  [compojure "1.4.0"]

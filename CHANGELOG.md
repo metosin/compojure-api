@@ -1,3 +1,9 @@
+## Next
+
+```clojure
+[prismatic/plumbing "0.5.2] is available but we use "0.5.1"
+```
+
 ## 0.24.0 (8.11.2015)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.23.1...0.24.0)**
