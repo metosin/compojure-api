@@ -74,6 +74,22 @@
   (ok {:custom-error (:data data)}))
 
 ;;
+;; swagger-docs helper
+;;
+
+(defn get-spec [app]
+  (let [[status spec] (get* app "/swagger.json" {})]
+    (assert (= status 200))
+    (if (:paths spec)
+      (update-in spec [:paths] (fn [paths]
+                                 (into
+                                   (empty paths)
+                                   (for [[k v] paths]
+                                     [(if (= k (keyword "/"))
+                                        "/" (str "/" (name k))) v]))))
+      spec)))
+
+;;
 ;; Facts
 ;;
 
@@ -262,10 +278,7 @@
           status => 404))
 
       (fact "swagger-docs for multiple returns"
-        (let [[status spec] (get* app "/swagger.json" {})]
-          status => 200
-          (-> spec :paths vals first :get :responses keys set)
-          => #{:200 :440 :403}))))
+        (-> app get-spec :paths vals first :get :responses keys set))))
 
   (fact ":responses 200 and :return"
     (let [app (api
@@ -437,16 +450,14 @@
                 (continue)))]
 
     (fact "api-listing"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        spec => {:swagger "2.0"
-                 :info {:title "Swagger API"
-                        :version "0.0.1"}
-                 :basePath "/"
-                 :consumes ["application/json" "application/edn"]
-                 :produces ["application/json" "application/edn"]
-                 :definitions {}
-                 :paths {(keyword "/user") {:get {:responses {:default {:description ""}}}}}}))))
+      (get-spec app) => {:swagger "2.0"
+                         :info {:title "Swagger API"
+                                :version "0.0.1"}
+                         :basePath "/"
+                         :consumes ["application/json" "application/edn"]
+                         :produces ["application/json" "application/edn"]
+                         :definitions {}
+                         :paths {"/user" {:get {:responses {:default {:description ""}}}}}})))
 
 (facts "swagger-docs with anonymous Return and Body models"
   (let [app (api
@@ -457,10 +468,7 @@
                 identity))]
 
     (fact "api-docs"
-      (let [[status spec] (get* app "/swagger.json")]
-
-        (fact "are found"
-          status => 200)
+      (let [spec (get-spec app)]
 
         (let [operation (some-> spec :paths vals first :post)
               body-ref (some-> operation :parameters first :schema :$ref)
@@ -489,10 +497,7 @@
                 identity))]
 
     (fact "api-docs"
-      (let [[status spec] (get* app "/swagger.json")]
-
-        (fact "are found"
-          status => 200)
+      (let [spec (get-spec app)]
 
         (let [operation (some-> spec :paths vals first :post)
               body-ref (some-> operation :parameters first :schema :$ref)
@@ -518,10 +523,7 @@
                 identity))]
 
     (fact "api-docs"
-      (let [[status spec] (get* app "/swagger.json")]
-
-        (fact "are found"
-          status => 200)
+      (let [spec (get-spec app)]
 
         (fact "nested models are discovered correctly"
           (-> spec :definitions keys set)
@@ -538,15 +540,13 @@
                 (ok 2)))]
 
     (fact "api-docs"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (-> spec :paths vals first) =>
-        {:get {:parameters [{:description ""
-                             :in "query"
-                             :name "x"
-                             :required true
-                             :type "string"}]
-               :responses {:default {:description ""}}}}))))
+      (-> app get-spec :paths vals first)
+      => {:get {:parameters [{:description ""
+                              :in "query"
+                              :name "x"
+                              :required true
+                              :type "string"}]
+                :responses {:default {:description ""}}}})))
 
 (fact "sub-context paths"
   (let [response {:ping "pong"}
@@ -578,13 +578,9 @@
     (fact "invalid routes"
       (get* app "/b/b2") => not-ok?)
 
-    ;; TODO: order!
-    #_(fact "swagger-docs have trailing slashes removed"
-        (let [[status spec] (get* api "/swagger.json")]
-          status => 200
-          (->> spec
-               :paths
-               keys) => (map keyword ["/" "/a" "/b/b1" "/b" "/b//b2"])))))
+    (fact "swagger-docs have trailing slashes removed"
+      (->> app get-spec :paths keys)
+      => ["/" "/a" "/b/b1" "/b" "/b//b2"])))
 
 (fact "formats supported by ring-middleware-format"
   (let [app (api
@@ -671,12 +667,10 @@
         body => "b"))
 
     (fact "swaggered pushes tag to endpoints"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (:paths spec) => {:/api/a {:get {:responses {:default {:description ""}}
-                                         :tags ["a"]}}
-                          :/api/b {:get {:responses {:default {:description ""}}
-                                         :tags ["b"]}}}))))
+      (-> app get-spec :paths) => {"/api/a" {:get {:responses {:default {:description ""}}
+                                                   :tags ["a"]}}
+                                   "/api/b" {:get {:responses {:default {:description ""}}
+                                                   :tags ["b"]}}})))
 
 (require '[compojure.api.test-domain :refer [Pizza burger-routes]])
 
@@ -702,9 +696,7 @@
         body => burger))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (-> spec :definitions keys set) => #{:Topping :Pizza :Burger :Beef}))))
+      (-> app get-spec :definitions keys set) => #{:Topping :Pizza :Burger :Beef})))
 
 (fact "multiple routes with same path & method in same file"
   (let [app (api
@@ -722,9 +714,7 @@
         body => {:ping "active"}))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (-> spec :paths vals first :get :summary) => "active-ping"))))
+      (-> app get-spec :paths vals first :get :summary) => "active-ping")))
 
 (fact "multiple routes with same path & method over context*"
   (let [app (api
@@ -746,9 +736,7 @@
         body => {:ping "active"}))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (-> spec :paths vals first :get :summary) => "active-ping"))))
+      (-> app get-spec :paths vals first :get :summary) => "active-ping")))
 
 (fact "multiple routes with same overall path (with different path sniplets & method over context*"
   (let [app (api
@@ -769,9 +757,7 @@
         body => {:ping "active"}))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (-> spec :paths vals first :get :summary) => "active-ping"))))
+      (-> app get-spec :paths vals first :get :summary) => "active-ping")))
 
 (comment
   "https://github.com/Prismatic/schema/pull/212"
@@ -783,10 +769,10 @@
   (def data (linked/map :a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"))
 
   (defapi api
-    (swagger-docs)
-    (GET* "/ping" []
-      :return Kikka
-      (ok data)))
+          (swagger-docs)
+          (GET* "/ping" []
+            :return Kikka
+            (ok data)))
 
   (fact "ordered schema test"
 
@@ -796,9 +782,7 @@
         body => data))
 
     (fact "generates correct swagger-spec"
-      (let [[status spec] (get* api "/swagger.json")]
-        status => 200
-        (-> spec :definitions :Kikka :properties keys) => (keys Kikka)))))
+      (-> api get-spec :definitions :Kikka :properties keys) => (keys Kikka))))
 
 ; https://github.com/metosin/compojure-api/issues/98
 ; https://github.com/metosin/compojure-api/issues/134
@@ -806,27 +790,19 @@
   (let [app (api (swagger-docs))]
 
     (fact "no context"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (:basePath spec) => "/"))
+      (-> app get-spec :basePath) => "/")
 
     (fact "app-servers with given context"
       (against-background (rsc/context anything) => "/v2")
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (:basePath spec) => "/v2")))
+      (-> app get-spec :basePath) => "/v2"))
 
   (let [app (api (swagger-docs {:basePath "/serve/from/here"}))]
     (fact "override it"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (:basePath spec) => "/serve/from/here")))
+      (-> app get-spec :basePath) => "/serve/from/here"))
 
   (let [app (api (swagger-docs {:basePath "/"}))]
     (fact "can set it to the default"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (:basePath spec) => "/"))))
+      (-> app get-spec :basePath) => "/")))
 
 (fact "multiple different models with same name"
 
@@ -841,9 +817,7 @@
                               201 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}}
                   identity))]
       (fact "api spec doesn't fail (#102)"
-        (let [[status spec] (get* app "/swagger.json")]
-          status => 200
-          spec => anything)))))
+        (get-spec app) => anything))))
 
 (defroutes* over-the-hills-and-far-away
   (POST* "/" []
@@ -855,9 +829,7 @@
               (swagger-docs)
               over-the-hills-and-far-away)]
     (fact "generated model doesn't have namespaced keys"
-      (let [[status spec] (get* app "/swagger.json")]
-        status => 200
-        (-> spec :definitions vals first :properties keys first) => :a))))
+      (-> app get-spec :definitions vals first :properties keys first) => :a)))
 
 (defroutes* foo
   (GET* "/foo" []
@@ -880,11 +852,8 @@
 (fact "response descriptions"
   (let [app (api
               (swagger-docs)
-              response-descriptions-routes)
-        [status spec] (get* app "/swagger.json")]
-    status => 200
-    (-> spec :paths vals first :get :responses :500 :description)
-    => "Horror"))
+              response-descriptions-routes)]
+    (-> app get-spec :paths vals first :get :responses :500 :description) => "Horror"))
 
 (fact "exceptions options with custom validation error handler"
   (let [app (api
@@ -943,7 +912,6 @@
 
     (fact "uses specific error handler for ::custom-errors"
       (let [[status body] (get* app "/specific-error")]
-        status => 200
         body => {:custom-error "my error"}))))
 
 (defn old-ex-handler [e]
@@ -989,10 +957,8 @@
               (swagger-docs)
               (GET* "/ping" []
                 :responses {500 nil}
-                identity))
-        [status spec] (get* app "/swagger.json")]
-    status => 200
-    (-> spec :paths vals first :get :responses :500 :description)
+                identity))]
+    (-> app get-spec :paths vals first :get :responses :500 :description)
     => "There was an internal server error."))
 
 (fact "path-for"
@@ -1204,17 +1170,15 @@
         body => {:q "kikka"}))
 
     (fact "swagger-docs are generated"
-      (let [[status spec] (get* app "/swagger.json" {})]
-        status => 200
-        (-> spec :paths vals first :get)
-        => (contains {:x-name "boolean"
-                      :operationId "echoBoolean"
-                      :description "Ehcoes a boolean"
-                      :parameters [{:description ""
-                                    :in "query"
-                                    :name "q"
-                                    :required true
-                                    :type "boolean"}]})))))
+      (-> app get-spec :paths vals first :get)
+      => (contains {:x-name "boolean"
+                    :operationId "echoBoolean"
+                    :description "Ehcoes a boolean"
+                    :parameters [{:description ""
+                                  :in "query"
+                                  :name "q"
+                                  :required true
+                                  :type "boolean"}]}))))
 
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws"
   (let [app (api
@@ -1223,10 +1187,8 @@
                   {:info {:version "2.0.0"}
                    :paths {"/extra" {:get {}}}})
                 (GET* "/normal" [] (ok))))]
-    (let [[status spec] (get* app "/swagger.json")]
-      status => 200
-      spec => (contains
-                {:paths (just
-                          {(keyword "/normal") irrelevant
-                           (keyword "/extra") irrelevant
-                           (keyword "/runtime") irrelevant})}))))
+    (get-spec app) => (contains
+                        {:paths (just
+                                  {"/normal" irrelevant
+                                   "/extra" irrelevant
+                                   "/runtime" irrelevant})})))
