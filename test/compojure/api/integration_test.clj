@@ -1180,7 +1180,7 @@
                                   :required true
                                   :type "boolean"}]}))))
 
-(fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws"
+(fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
               (middlewares [(rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}})]
                 (swagger-docs
