@@ -9,7 +9,8 @@
             [ring.swagger.core :as rsc]
             [compojure.api.swagger :as caw]
             [ring.util.http-status :as status]
-            [compojure.api.middleware :as mw]))
+            [compojure.api.middleware :as mw]
+            [ring.swagger.middleware :as rsm]))
 
 ;;
 ;; Data
@@ -1214,3 +1215,18 @@
                                     :name "q"
                                     :required true
                                     :type "boolean"}]})))))
+
+(fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws"
+  (let [app (api
+              (middlewares [(rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}})]
+                (swagger-docs
+                  {:info {:version "2.0.0"}
+                   :paths {"/extra" {:get {}}}})
+                (GET* "/normal" [] (ok))))]
+    (let [[status spec] (get* app "/swagger.json")]
+      status => 200
+      spec => (contains
+                {:paths (just
+                          {(keyword "/normal") irrelevant
+                           (keyword "/extra") irrelevant
+                           (keyword "/runtime") irrelevant})}))))

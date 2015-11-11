@@ -309,10 +309,10 @@
                routes# (:routes (mw/get-options request#))
                paths# (routes/route-vector-to-route-map routes#)]
            (ok
-             (let [swagger# (merge runtime-info#
-                                   paths#
-                                   base-path#
-                                   ~extra-info)
+             (let [swagger# (deep-merge base-path#
+                                        paths#
+                                        ~extra-info
+                                        runtime-info#)
                    result# (swagger2/swagger-json swagger# options#)]
                result#)))))))
 
