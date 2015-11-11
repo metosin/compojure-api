@@ -30,6 +30,7 @@
                              [lein-ring "0.9.7"]
                              [funcool/codeina "0.3.0"]]
                    :dependencies [[org.clojure/clojure "1.7.0"]
+                                  [org.clojure/tools.logging "0.3.1"]
                                   [peridot "0.4.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.2"]
