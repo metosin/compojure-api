@@ -43,7 +43,7 @@
                           :reload-paths ["src" "examples/src"]}
                    :source-paths ["examples/src" "examples/dev-src"]
                    :main examples.server}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-beta2"]]}}
+             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC1"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
