@@ -1208,5 +1208,5 @@
       :return Foo
       (ok {:a "foo"}))))
 
-(fact "defapi & api define same results with supported schema types #159"
+(fact "defapi & api define same results, #159"
   (get-spec with-defapi) => (get-spec (with-api)))
