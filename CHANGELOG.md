@@ -1,5 +1,6 @@
 ## 0.24.1-SNAPSHOT
 
+* Fixes [#159](https://github.com/metosin/compojure-api/issues/159)
 * allow any swagger data to be overriden either via swagger-docs or via middlewares, fixes 
   [#170](https://github.com/metosin/compojure-api/issues/170).
 
