@@ -1,8 +1,9 @@
 ## 0.24.1-SNAPSHOT
 
-* Fixes [#159](https://github.com/metosin/compojure-api/issues/159)
-* allow any swagger data to be overriden either via swagger-docs or via middlewares, fixes 
-  [#170](https://github.com/metosin/compojure-api/issues/170).
+* `clojure.tools.logging` is used with default uncaugt exception handling if it's found
+on the classpath. Fixes [#172](https://github.com/metosin/compojure-api/issues/172).
+* Both `api` and `defapi` produce identical swagger-docs. Fixes [#159](https://github.com/metosin/compojure-api/issues/159)
+* allow any swagger data to be overriden at runtime either via swagger-docs or via middlewares. Fixes [#170](https://github.com/metosin/compojure-api/issues/170).
 
 ```clojure
 [prismatic/plumbing "0.5.2] is available but we use "0.5.1"
