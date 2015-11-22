@@ -1,21 +1,20 @@
-(ns compojure.api.logging)
+(ns compojure.api.logging
+  (:require [clojure.string :as str]))
 
-(defn resolve-logger []
-  (if (find-ns 'clojure.tools.logging)
-    (do
-      (require 'clojure.tools.logging)
-      (fn [level x]
-        (clojure.tools.logging/spy level x)))
-    (fn [level x & more]
-      (let [log (fn [level more]
-                  (println (.toUpperCase (name level)) (apply str more)))]
-        (if (instance? Throwable x)
-          (do
-            (log level (cons (.getMessage x) more))
-            (.printStackTrace x))
-          (log level (cons x more)))))))
+;; default to console logging
+(defn log! [level x & more]
+  (let [log (fn [level more] (println (.toUpperCase (name level)) (str/join " - " more)))]
+    (if (instance? Throwable x)
+      (do
+        (log level more)
+        (.printStackTrace x))
+      (log level (into [x] more)))))
 
-(def log (resolve-logger))
-
-(comment
-  (log :info (RuntimeException. "kosh")))
+;; use c.t.l logging if available
+(if (find-ns 'clojure.tools.logging)
+  (eval
+    `(do
+       (require 'clojure.tools.logging)
+       (defmacro ~'log! [& ~'args]
+         `(do
+            (clojure.tools.logging/log ~@~'args))))))

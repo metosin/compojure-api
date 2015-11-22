@@ -30,7 +30,6 @@
                              [lein-ring "0.9.7"]
                              [funcool/codeina "0.3.0"]]
                    :dependencies [[org.clojure/clojure "1.7.0"]
-                                  [org.clojure/tools.logging "0.3.1"]
                                   [peridot "0.4.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.2"]
@@ -44,6 +43,7 @@
                           :reload-paths ["src" "examples/src"]}
                    :source-paths ["examples/src" "examples/dev-src"]
                    :main examples.server}
+             :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC2"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
@@ -51,7 +51,7 @@
             :target "gh-pages/doc"
             :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-linenum-anchor-prefix "L"}
-  :aliases {"all" ["with-profile" "dev:dev,1.8"]
+  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.8"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
