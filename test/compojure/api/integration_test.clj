@@ -198,27 +198,27 @@
         body => pertti))
 
     (fact "POST* with smart destructuring"
-      (let [[status body] (post* app "/models/user" (json pertti))]
+          (let [[status body] (post* app "/models/user" {:body (json pertti)})]
         status => 200
         body => pertti))
 
     (fact "POST* with smart destructuring - lists"
-      (let [[status body] (post* app "/models/user_list" (json [pertti]))]
+          (let [[status body] (post* app "/models/user_list" {:body (json [pertti])})]
         status => 200
         body => [pertti]))
 
     (fact "POST* with smart destructuring - sets"
-      (let [[status body] (post* app "/models/user_set" (json #{pertti}))]
+          (let [[status body] (post* app "/models/user_set" {:body (json #{pertti})})]
         status => 200
         body => [pertti]))
 
     (fact "POST* with compojure destructuring"
-      (let [[status body] (post* app "/models/user_legacy" (json pertti))]
+          (let [[status body] (post* app "/models/user_legacy" {:body (json pertti)})]
         status => 200
         body => pertti))
 
     (fact "POST* with smart destructuring - headers"
-      (let [[status body] (headers-post* app "/models/user_headers" pertti)]
+          (let [[status body] (headers-post* app "/models/user_headers" pertti)]
         status => 200
         body => pertti))
 
@@ -232,7 +232,7 @@
         body => invalid-user))
 
     (fact "Invalid json in body causes 400 with error message in json"
-      (let [[status body] (post* app "/models/user" "{INVALID}")]
+          (let [[status body] (post* app "/models/user" {:body "{INVALID}"})]
         status => 400
         (:message body) => (contains "Unexpected character")))))
 
@@ -362,12 +362,12 @@
         body => {:total 2}))
 
     (fact "body-parameters"
-      (let [[status body] (post* app "/smart/minus" (json {:x 2 :y 3}))]
+          (let [[status body] (post* app "/smart/minus" {:body (json {:x 2 :y 3})})]
         status => 200
         body => {:total -1}))
 
     (fact "default parameters"
-      (let [[status body] (post* app "/smart/minus" (json {:x 2}))]
+          (let [[status body] (post* app "/smart/minus" {:body (json {:x 2})})]
         status => 200
         body => {:total 1}))))
 
@@ -592,12 +592,12 @@
       (facts
         (fact {:midje/description (str ?content-type " to json")}
           (let [[status body]
-                (raw-post* app "/echo" ?body ?content-type {:accept "application/json"})]
+                (raw-post* app "/echo" {:body ?body :content-type ?content-type :headers {:accept "application/json"}})]
             status => 200
             body => "{\"foo\":\"bar\"}"))
         (fact {:midje/description (str "json to " ?content-type)}
           (let [[status body]
-                (raw-post* app "/echo" "{\"foo\":\"bar\"}" "application/json" {:accept ?content-type})]
+                (raw-post* app "/echo" {:body "{\"foo\":\"bar\"}" :content-type "application/json" :headers {:accept ?content-type}})]
             status => 200
             body => ?body)))
 
@@ -685,13 +685,13 @@
 
     (fact "direct route with nested named schema works when called"
       (let [pizza {:toppings [{:name "cheese"}]}
-            [status body] (post* app "/pizza" (json pizza))]
+            [status body] (post* app "/pizza" {:body (json pizza)})]
         status => 200
         body => pizza))
 
     (fact "defroute*'d route with nested named schema works when called"
       (let [burger {:ingredients [{:name "beef"}, {:name "egg"}]}
-            [status body] (post* app "/burger" (json burger))]
+            [status body] (post* app "/burger" {:body (json burger)})]
         status => 200
         body => burger))
 
@@ -869,22 +869,22 @@
                   (ok "not a number"))))]
 
     (fact "return case, valid request & valid model"
-      (let [[status body] (post* app "/get-long" "{\"x\": 1}")]
+          (let [[status body] (post* app "/get-long" {:body "{\"x\": 1}"})]
         status => 200
         body => 1))
 
     (fact "return case, not schema valid request"
-      (let [[status body] (post* app "/get-long" "{\"x\": \"1\"}")]
+          (let [[status body] (post* app "/get-long" {:body "{\"x\": \"1\"}"})]
         status => 400
         body => (contains {:custom-error "/get-long"})))
 
     (fact "return case, invalid json request"
-      (let [[status body] (post* app "/get-long" "{x: 1}")]
+          (let [[status body] (post* app "/get-long" {:body "{x: 1}"})]
         status => 400
         body => (contains {:custom-error "/get-long"})))
 
     (fact "return case, valid request & invalid model"
-      (let [[status body] (post* app "/get-long" "{\"x\": 2}")]
+          (let [[status body] (post* app "/get-long" {:body "{\"x\": 2}"})]
         status => 501
         body => (contains {:custom-error "/get-long"})))))
 

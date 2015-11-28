@@ -17,7 +17,8 @@
                  [metosin/schema-tools "0.7.0"]
                  [ring-middleware-format "0.7.0"]
                  [backtick "0.3.3"]
-                 [metosin/ring-swagger-ui "2.1.3-2"]]
+                 [metosin/ring-swagger-ui "2.1.3-2"]
+                 [peridot "0.4.1"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/src"]
@@ -30,7 +31,6 @@
                              [lein-ring "0.9.7"]
                              [funcool/codeina "0.3.0"]]
                    :dependencies [[org.clojure/clojure "1.7.0"]
-                                  [peridot "0.4.1"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.2"]
                                   [metosin/scjsv "0.2.0"]

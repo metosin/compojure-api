@@ -61,20 +61,22 @@
                        :params params))]
     [status (parse-body body)]))
 
-(defn raw-post* [app uri & [data content-type headers]]
+(defn raw-post*
+  "Takes optional map, with optional keys :headers, :data and :content-type"
+  [app uri & [options]]
   (let [{{:keys [status body]} :response}
         (-> (p/session app)
             (p/request uri
                        :request-method :post
-                       :headers (or headers {})
-                       :content-type (or content-type "application/json")
-                       :body (.getBytes data)))]
+                       :headers (or (:headers options) {})
+                       :content-type (or (:content-type options) "application/json")
+                       :body (.getBytes (:body options))))]
     [status (read-body body)]))
 
-(defn post* [app uri & [data]]
-  (let [[status body] (raw-post* app uri data)]
+(defn post* [app uri & [options]]
+  (let [[status body] (raw-post* app uri options)]
     [status (parse-body body)]))
 
 (defn headers-post* [app uri headers]
-  (let [[status body] (raw-post* app uri "" nil headers)]
+  (let [[status body] (raw-post* app uri {:body "" :headers headers})]
     [status (parse-body body)]))
