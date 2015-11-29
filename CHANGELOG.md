@@ -1,6 +1,6 @@
 ## 0.24.1 (29.11.2015)
 
-**[compare](https://github.com/metosin/compojure-api/compare/0.24.1...0.24.0)**
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.0...0.24.1)**
 
 * uses [`[Ring-Swagger "0.22.1"]`](https://github.com/metosin/ring-swagger/blob/master/CHANGELOG.md#0221-29112015)
 * `clojure.tools.logging` is used with default uncaugt exception handling if it's found
