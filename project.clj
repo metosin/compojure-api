@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.24.1-SNAPSHOT"
+(defproject metosin/compojure-api "0.24.1"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -13,17 +13,17 @@
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.6"]
                  [metosin/ring-http-response "0.6.5"]
-                 [metosin/ring-swagger "0.22.1-SNAPSHOT"]
+                 [metosin/ring-swagger "0.22.1"]
                  [metosin/schema-tools "0.7.0"]
                  [ring-middleware-format "0.7.0"]
                  [backtick "0.3.3"]
-                 [metosin/ring-swagger-ui "2.1.3-2"]]
+                 [metosin/ring-swagger-ui "2.1.3-4"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/src"]
                        :dependencies [[org.clojure/clojure "1.7.0"]
                                       [http-kit "2.1.19"]
-                                      [com.stuartsierra/component "0.3.0"]]}
+                                      [com.stuartsierra/component "0.3.1"]]}
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2"]
@@ -34,7 +34,7 @@
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.2"]
                                   [metosin/scjsv "0.2.0"]
-                                  [com.stuartsierra/component "0.3.0"]
+                                  [com.stuartsierra/component "0.3.1"]
                                   [reloaded.repl "0.2.1"]
                                   [http-kit "2.1.19"]
                                   ; Required when using with Java 1.6

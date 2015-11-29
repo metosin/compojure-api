@@ -1,11 +1,16 @@
-## 0.24.1-SNAPSHOT
+## 0.24.1 (29.11.2015)
 
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.1...0.24.0)**
+
+* uses [`[Ring-Swagger "0.22.1"]`](https://github.com/metosin/ring-swagger/blob/master/CHANGELOG.md#0221-29112015)
 * `clojure.tools.logging` is used with default uncaugt exception handling if it's found
 on the classpath. Fixes [#172](https://github.com/metosin/compojure-api/issues/172).
 * Both `api` and `defapi` produce identical swagger-docs. Fixes [#159](https://github.com/metosin/compojure-api/issues/159)
 * allow any swagger data to be overriden at runtime either via swagger-docs or via middlewares. Fixes [#170](https://github.com/metosin/compojure-api/issues/170).
 
 ```clojure
+[metosin/ring-swagger "0.22.1"] is available but we use "0.22.0"
+[metosin/ring-swagger-ui "2.1.3-4"] is available but we use "2.1.3-2"
 [prismatic/plumbing "0.5.2] is available but we use "0.5.1"
 ```
 
