@@ -1,6 +1,7 @@
 (ns compojure.api.exception
   (:require [ring.util.http-response :refer [internal-server-error bad-request]]
             [clojure.walk :refer [postwalk]]
+            [compojure.api.impl.logging :as logging]
             [schema.utils :as su])
   (:import [schema.utils ValidationError NamedError]
            [com.fasterxml.jackson.core JsonParseException]
@@ -11,12 +12,12 @@
 ;;
 
 (defn safe-handler
-  "Prints stacktrace to console and returns safe error response.
+  "Writes :error to log with the exception message & stacktrace.
 
    Error response only contains class of the Exception so that it won't accidentally
    expose secret details."
   [^Exception e _ _]
-  (.printStackTrace e)
+  (logging/log! :error e (.getMessage e))
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
 

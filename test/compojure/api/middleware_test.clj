@@ -3,7 +3,21 @@
             [midje.sweet :refer :all]
             [ring.util.http-response :refer [ok]]
             [ring.util.http-status :as status]
-            ring.util.test))
+            ring.util.test)
+  (:import [java.io PrintStream ByteArrayOutputStream]))
+
+(defmacro without-err
+  "Evaluates exprs in a context in which *err* is bound to a fresh
+  StringWriter.  Returns the string created by any nested printing
+  calls."
+  [& body]
+  `(let [s# (PrintStream. (ByteArrayOutputStream.))
+         err# (System/err)]
+     (System/setErr s#)
+     (try
+       ~@body
+       (finally
+         (System/setErr err#)))))
 
 (facts serializable?
   (tabular
@@ -25,14 +39,14 @@
     (ring.util.test/string-input-stream "foobar") false false))
 
 (facts "wrap-exceptions"
-  (let [exception (proxy [RuntimeException] [] (printStackTrace []))
-        exception-class (.getName (.getClass exception))
-        failure (fn [_] (throw exception))
-        success (fn [_] (ok "SUCCESS"))
-        request irrelevant]
+  (with-out-str
+    (without-err
+      (let [exception (RuntimeException. "kosh")
+            exception-class (.getName (.getClass exception))
+            failure (fn [_] (throw exception))]
 
-    (fact "converts exceptions into safe internal server errors"
-      ((wrap-exceptions failure (:handlers (:exceptions api-middleware-defaults))) request)
-      => (contains {:status status/internal-server-error
-                    :body (contains {:class exception-class
-                                     :type "unknown-exception"})}))))
+        (fact "converts exceptions into safe internal server errors"
+          ((wrap-exceptions failure (:handlers (:exceptions api-middleware-defaults))) ..request..)
+          => (contains {:status status/internal-server-error
+                        :body (contains {:class exception-class
+                                         :type "unknown-exception"})}))))))
