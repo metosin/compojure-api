@@ -1,4 +1,4 @@
-(ns ^:no-doc compojure.api.logging
+(ns ^:no-doc compojure.api.impl.logging
   "Internal Compojure-api logging utility"
   (:require [clojure.string :as str]))
 

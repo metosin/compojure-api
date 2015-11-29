@@ -1,7 +1,7 @@
 (ns compojure.api.exception
   (:require [ring.util.http-response :refer [internal-server-error bad-request]]
             [clojure.walk :refer [postwalk]]
-            [compojure.api.logging :as log]
+            [compojure.api.impl.logging :as logging]
             [schema.utils :as su])
   (:import [schema.utils ValidationError NamedError]
            [com.fasterxml.jackson.core JsonParseException]
@@ -17,7 +17,7 @@
    Error response only contains class of the Exception so that it won't accidentally
    expose secret details."
   [^Exception e _ _]
-  (log/log! :error e (.getMessage e))
+  (logging/log! :error e (.getMessage e))
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
 
