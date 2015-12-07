@@ -2,9 +2,13 @@
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [criterium.core :as cc]
-            [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
+
+;;
+;; start repl with `lein perf repl`. note, all numbers are from Tommi's
+;; laptop.
+;;
 
 (defn title [s]
   (println
@@ -35,7 +39,7 @@
     (assert (= {:result 30} (second (call))))
     (cc/quick-bench (call)))
 
-  ; 32µs
+  ; 32µs => 30µs (-6%)
 
   (let [app (api
               (POST* "/plus" []
@@ -50,7 +54,7 @@
     (assert (= {:result 30} (second (call))))
     (cc/quick-bench (call)))
 
-  ;; 104µs
+  ;; 104µs => 73µs (-30%)
 
   (let [app (api
               (context* "/a" []
@@ -68,7 +72,7 @@
     (assert (= {:result 30} (second (call))))
     (cc/quick-bench (call)))
 
-  ;; 113µs
+  ;; 113µs => 80µs (-30%)
 
   (let [app (api
               (POST* "/echo" []
@@ -93,9 +97,9 @@
     (s/check Order (second (call)))
     (cc/quick-bench (call)))
 
-  ;; 343µs
+  ;; 343µs => 175µs (-49%)
 
   )
 
-
-(c-api-bench)
+(comment
+  (c-api-bench))

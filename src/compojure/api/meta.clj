@@ -7,11 +7,12 @@
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :refer :all]
-            [ring.swagger.schema :as schema]
             [ring.swagger.json-schema :as js]
             [ring.util.http-response :refer [internal-server-error]]
             [slingshot.slingshot :refer [throw+]]
             [schema.core :as s]
+            [schema.coerce :as sc]
+            [schema.utils :as su]
             [schema-tools.core :as st]))
 
 ;;
@@ -23,7 +24,7 @@
   '+compojure-api-request+)
 
 (def +compojure-api-meta+
-  "lexically bound meta-data for handlers. EXPERIMENTAL."
+  "lexically bound meta-data for handlers."
   '+compojure-api-meta+)
 
 (defmacro meta-container [meta & form]
@@ -46,6 +47,8 @@
 ;; Schema
 ;;
 
+(def memoized-coercer (memoize sc/coercer))
+
 (defn strict [schema]
   (dissoc schema 'schema.core/Keyword))
 
@@ -59,8 +62,9 @@
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
-          (let [body (schema/coerce schema (:body response) matcher)]
-            (if (schema/error? body)
+          (let [coerce (memoized-coercer (value-of schema) matcher)
+                body (coerce (:body response))]
+            (if (su/error? body)
               (throw+ (assoc body :type ::ex/response-validation))
               (assoc response
                 ::serializable? true
@@ -75,8 +79,9 @@
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
   `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
      (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
-       (let [result# (schema/coerce ~schema value# matcher#)]
-         (if (schema/error? result#)
+       (let [coerce# (memoized-coercer ~schema matcher#)
+             result# (coerce# value#)]
+         (if (su/error? result#)
            (throw+ (assoc result# :type ::ex/request-validation))
            result#))
        value#)))
