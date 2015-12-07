@@ -37,12 +37,14 @@
                                   [com.stuartsierra/component "0.3.1"]
                                   [reloaded.repl "0.2.1"]
                                   [http-kit "2.1.19"]
+                                  [criterium "0.4.3"]
                                   ; Required when using with Java 1.6
                                   [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/src"]}
                    :source-paths ["examples/src" "examples/dev-src"]
                    :main examples.server}
+             :perf {:jvm-opts ^:replace []}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC2"]]}}
   :eastwood {:namespaces [:source-paths]
@@ -55,5 +57,6 @@
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
+            "perf" ["with-profile" "default,dev,perf"]
             "deploy!" ^{:doc "Recompile sources, then deploy if tests succeed."}
                       ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
