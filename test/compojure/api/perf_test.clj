@@ -6,8 +6,18 @@
             [schema.core :as s]))
 
 ;;
-;; start repl with `lein perf repl`. note, all numbers are from Tommi's
-;; laptop.
+;; start repl with `lein perf repl`
+;; perf measured with the following setup:
+;;
+;; Model Name:	          MacBook Pro
+;; Model Identifier:	    MacBookPro11,3
+;; Processor Name:	      Intel Core i7
+;; Processor Speed:	      2,5 GHz
+;; Number of Processors:	1
+;; Total Number of Cores:	4
+;; L2 Cache (per Core):	  256 KB
+;; L3 Cache:	            6 MB
+;; Memory:	              16 GB
 ;;
 
 (defn title [s]
@@ -23,11 +33,12 @@
                     (s/optional-key :description) s/Str
                     :address (s/maybe {:street s/Str
                                        :country (s/enum "FI" "PO")})
-                    :orders [{:name s/Str
+                    :orders [{:name #"^k"
                               :price s/Any
                               :shipping s/Bool}]})
 
-(defn c-api-bench []
+(defn bench []
+
 
   (let [app (api
               (GET* "/30" []
@@ -37,9 +48,9 @@
     (title "GET JSON")
 
     (assert (= {:result 30} (second (call))))
-    (cc/quick-bench (call)))
+    (cc/bench (call)))
 
-  ; 32µs => 30µs (-6%)
+  ; 26µs => 26µs (-0%)
 
   (let [app (api
               (POST* "/plus" []
@@ -52,9 +63,9 @@
     (title "JSON POST with 2-way coercion")
 
     (assert (= {:result 30} (second (call))))
-    (cc/quick-bench (call)))
+    (cc/bench (call)))
 
-  ;; 104µs => 73µs (-30%)
+  ;; 87µs => 65µs (-25%)
 
   (let [app (api
               (context* "/a" []
@@ -70,9 +81,9 @@
     (title "JSON POST with 2-way coercion + contexts")
 
     (assert (= {:result 30} (second (call))))
-    (cc/quick-bench (call)))
+    (cc/bench (call)))
 
-  ;; 113µs => 80µs (-30%)
+  ;; 102µs => 78µs (-24%)
 
   (let [app (api
               (POST* "/echo" []
@@ -95,11 +106,11 @@
     (title "JSON POST with nested data")
 
     (s/check Order (second (call)))
-    (cc/quick-bench (call)))
+    (cc/bench (call)))
 
-  ;; 343µs => 175µs (-49%)
+  ;; 311µs => 194µs (-38%)
 
   )
 
 (comment
-  (c-api-bench))
+  (bench))
