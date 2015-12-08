@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.24.1"
+(defproject metosin/compojure-api "0.24.2"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -6,7 +6,7 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[prismatic/plumbing "0.5.2"]
-                 [potemkin "0.4.1"]
+                 [potemkin "0.4.2"]
                  [cheshire "5.5.0"]
                  [compojure "1.4.0"]
                  [prismatic/schema "1.0.3"]
@@ -30,7 +30,7 @@
                              [lein-ring "0.9.7"]
                              [funcool/codeina "0.3.0"]]
                    :dependencies [[org.clojure/clojure "1.7.0"]
-                                  [peridot "0.4.1"]
+                                  [peridot "0.4.2"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.2"]
                                   [metosin/scjsv "0.2.0"]
