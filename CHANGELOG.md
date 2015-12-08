@@ -1,5 +1,7 @@
 ## 0.24.2 (8.12.2015)
 
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.1...0.24.2)**
+
 * Memoize coercers (for `schema` & `matcher` -input) for better performance. 
   * [Tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/perf_test.clj) show 0-40% lower latency,
 depending on input & output schema complexity. 
