@@ -43,7 +43,7 @@
             body => {:beers ["ipa" "apa"]})))
 
       (fact "body-coersion can ba disabled"
-        (let [no-body-coercion (fn [_] (dissoc mw/default-coercion-matchers :body))
+        (let [no-body-coercion (constantly (dissoc mw/default-coercion-matchers :body))
               app (api
                     {:coercion no-body-coercion}
                     beer-route)]
@@ -52,7 +52,7 @@
             body => {:beers ["ipa" "apa" "ipa"]})))
 
       (fact "body-coersion can ba changed"
-        (let [nop-body-coercion (fn [_] (assoc mw/default-coercion-matchers :body (constantly nil)))
+        (let [nop-body-coercion (constantly (assoc mw/default-coercion-matchers :body (constantly nil)))
               app (api
                     {:coercion nop-body-coercion}
                     beer-route)]
@@ -71,7 +71,7 @@
             body => {:i 10})))
 
       (fact "query-coersion can ba disabled"
-        (let [no-query-coercion (fn [_] (dissoc mw/default-coercion-matchers :string))
+        (let [no-query-coercion (constantly (dissoc mw/default-coercion-matchers :string))
               app (api
                     {:coercion no-query-coercion}
                     query-route)]
@@ -80,7 +80,7 @@
             body => {:i "10"})))
 
       (fact "query-coersion can ba changed"
-        (let [nop-query-coercion (fn [_] (assoc mw/default-coercion-matchers :string (constantly nil)))
+        (let [nop-query-coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
               app (api
                     {:coercion nop-query-coercion}
                     query-route)]
@@ -92,7 +92,7 @@
                   :query-params [i :- s/Int]
                   (ok {:i i}))
                 (GET* "/disabled-coercion" []
-                  :coercion (fn [_] (assoc mw/default-coercion-matchers :string (constantly nil)))
+                  :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
                   :query-params [i :- s/Int]
                   (ok {:i i}))
                 (GET* "/no-coercion" []
