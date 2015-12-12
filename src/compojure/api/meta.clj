@@ -375,6 +375,8 @@
           (map-of lets letks responses middlewares parameters body)
           parameters)
 
+        pre-lets [+compojure-api-coercer+ `(memoized-coercer ~coercer-name)]
+
         body `(~body-wrap ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
@@ -382,5 +384,5 @@
         body (if (seq parameters) `(meta-container ~parameters ~body) body)
         body `(~method-symbol ~path ~arg-with-request ~body)
         body (if responses `(body-coercer-middleware ~body ~+compojure-api-coercer+ ~responses) body)
-        body `(let [~+compojure-api-coercer+ (memoized-coercer ~coercer-name)] ~body)]
+        body (if (seq pre-lets) `(let ~pre-lets ~body) body)]
     body))
