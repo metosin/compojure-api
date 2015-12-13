@@ -58,32 +58,18 @@
   memoized version of the function keeps a cache of the mapping from arguments
   to results and, when calls with the same arguments are repeated often, has
   higher performance at the expense of higher memory use. FIFO with 100 entries.
-  If the cached if filled, there will be a WARNING logged at least once -> root cause
-  is most propably that the route is using anonymous coercer, which doesn't hit
-  the cache. It will produce slower performance, but works otherwise as expected."
-  [name]
-  (let [cache (atom {:mem (linked/map), :overflow false})
+  Cache will be filled if anonymous coercers are used (does not match the cache)"
+  []
+  (let [cache (atom (linked/map))
         cache-size 100]
     (fn [& args]
-      (or (-> @cache :mem (get args))
+      (or (@cache args)
           (let [coercer (apply sc/coercer args)]
-            (swap! cache (fn [cache]
-                           (let [mem (assoc (:mem cache) args coercer)]
+            (swap! cache (fn [mem]
+                           (let [mem (assoc mem args coercer)]
                              (if (>= (count mem) cache-size)
-                               (do
-                                 (when-not (:overflow cache)
-                                   ;; side-effecting within a swap! might cause multiple writes.
-                                   ;; it's ok'ish as we are just reporting something that should be
-                                   ;; fixes at development time
-                                   (logging/log! :warning (str "Coercion memoization cache for " name
-                                                               " maxing at " cache-size ". "
-                                                               "You might recreate the coercer "
-                                                               "matcher on each request, causing "
-                                                               "coercer re-compilation per request, "
-                                                               "effecting coercion performance.")))
-                                 {:mem (dissoc mem (-> mem first first))
-                                  :overflow true})
-                               (assoc cache :mem mem)))))
+                               (dissoc mem (-> mem first first))
+                               mem))))
             coercer)))))
 
 (defn strict [schema]
@@ -152,9 +138,9 @@
 ;;
 
 (defmulti restructure-param
-          "Restructures a key value pair in smart routes. By default the key
-           is consumed form the :parameters map in acc. k = given key, v = value."
-          (fn [k v acc] k))
+  "Restructures a key value pair in smart routes. By default the key
+  is consumed form the :parameters map in acc. k = given key, v = value."
+  (fn [k v acc] k))
 
 ;;
 ;; Pass-through swagger metadata
@@ -358,7 +344,6 @@
 (defn restructure [method [path arg & args] & [{:keys [body-wrap]}]]
   (let [body-wrap (or body-wrap 'do)
         method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
-        coercer-name (str (keyword (.toLowerCase (name method-symbol))) " " path)
         [parameters body] (extract-parameters args)
         [lets letks responses middlewares] [[] [] nil nil]
         [lets arg-with-request arg] (destructure-compojure-api-request lets arg)
@@ -375,7 +360,7 @@
           (map-of lets letks responses middlewares parameters body)
           parameters)
 
-        pre-lets [+compojure-api-coercer+ `(memoized-coercer ~coercer-name)]
+        pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
 
         body `(~body-wrap ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
