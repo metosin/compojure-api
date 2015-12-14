@@ -1,3 +1,14 @@
+## 0.24.3 (13.12.2015)
+
+* coercer-cache is now per Route instead beeing global and based on a FIFO size 100 cache. Avoids potential memory
+leaks when using anonymous coercion matchers (which never hit the cache).
+
+* Updated deps:
+
+```clj
+[prismatic/schema "1.0.4"] is available but we use "1.0.3"
+```
+
 ## 0.24.2 (8.12.2015)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.1...0.24.2)**

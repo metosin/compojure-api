@@ -13,7 +13,9 @@
             [schema.core :as s]
             [schema.coerce :as sc]
             [schema.utils :as su]
-            [schema-tools.core :as st]))
+            [schema-tools.core :as st]
+            [linked.core :as linked]
+            [compojure.api.impl.logging :as logging]))
 
 ;;
 ;; Meta Evil
@@ -26,6 +28,10 @@
 (def +compojure-api-meta+
   "lexically bound meta-data for handlers."
   '+compojure-api-meta+)
+
+(def +compojure-api-coercer+
+  "lexically bound (caching) coercer for handlers."
+  '+compojure-api-coercer+)
 
 (defmacro meta-container [meta & form]
   `(let [accumulated-meta# (get-local +compojure-api-meta+)
@@ -47,7 +53,24 @@
 ;; Schema
 ;;
 
-(def memoized-coercer (memoize sc/coercer))
+(defn memoized-coercer
+  "Returns a memoized version of a referentially transparent coercer fn. The
+  memoized version of the function keeps a cache of the mapping from arguments
+  to results and, when calls with the same arguments are repeated often, has
+  higher performance at the expense of higher memory use. FIFO with 100 entries.
+  Cache will be filled if anonymous coercers are used (does not match the cache)"
+  []
+  (let [cache (atom (linked/map))
+        cache-size 100]
+    (fn [& args]
+      (or (@cache args)
+          (let [coercer (apply sc/coercer args)]
+            (swap! cache (fn [mem]
+                           (let [mem (assoc mem args coercer)]
+                             (if (>= (count mem) cache-size)
+                               (dissoc mem (-> mem first first))
+                               mem))))
+            coercer)))))
 
 (defn strict [schema]
   (dissoc schema 'schema.core/Keyword))
@@ -57,12 +80,12 @@
     (fnk-impl/letk-input-schema-and-body-form
       nil (with-meta bind {:schema s/Any}) [] nil)))
 
-(defn body-coercer-middleware [handler responses]
+(defn body-coercer-middleware [handler coercer responses]
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
-          (let [coerce (memoized-coercer (value-of schema) matcher)
+          (let [coerce (coercer (value-of schema) matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
               (throw+ (assoc body :type ::ex/response-validation))
@@ -79,7 +102,7 @@
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
   `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
      (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
-       (let [coerce# (memoized-coercer ~schema matcher#)
+       (let [coerce# (~+compojure-api-coercer+ ~schema matcher#)
              result# (coerce# value#)]
          (if (su/error? result#)
            (throw+ (assoc result# :type ::ex/request-validation))
@@ -116,7 +139,7 @@
 
 (defmulti restructure-param
   "Restructures a key value pair in smart routes. By default the key
-   is consumed form the :parameters map in acc. k = given key, v = value."
+  is consumed form the :parameters map in acc. k = given key, v = value."
   (fn [k v acc] k))
 
 ;;
@@ -337,11 +360,14 @@
           (map-of lets letks responses middlewares parameters body)
           parameters)
 
+        pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
+
         body `(~body-wrap ~@body)
         body (if (seq letks) `(letk ~letks ~body) body)
         body (if (seq lets) `(let ~lets ~body) body)
         body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
         body (if (seq parameters) `(meta-container ~parameters ~body) body)
         body `(~method-symbol ~path ~arg-with-request ~body)
-        body (if responses `(body-coercer-middleware ~body ~responses) body)]
+        body (if responses `(body-coercer-middleware ~body ~+compojure-api-coercer+ ~responses) body)
+        body (if (seq pre-lets) `(let ~pre-lets ~body) body)]
     body))
