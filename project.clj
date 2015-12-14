@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "0.24.2"
+(defproject metosin/compojure-api "0.24.3"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -46,7 +46,7 @@
                    :main examples.server}
              :perf {:jvm-opts ^:replace []}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC2"]]}}
+             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC3"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
