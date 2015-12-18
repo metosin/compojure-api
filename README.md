@@ -13,9 +13,11 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 [![Clojars Project](http://clojars.org/metosin/compojure-api/latest-version.svg)](http://clojars.org/metosin/compojure-api)
 
-## Wiki
+## For information and help
 
-[Check wiki for documentation](https://github.com/metosin/compojure-api/wiki)
+### [Check wiki for documentation](https://github.com/metosin/compojure-api/wiki)
+
+[Clojurians slack](https://clojurians.slack.com/) ([join](http://clojurians.net/)) has a channel [#ring-swagger](https://clojurians.slack.com/messages/ring-swagger/) for talk about any libraries using Ring-swagger. You can also ask questions about Compojure-api and Ring-swagger on other channels at Clojurians Slack or at #clojure on Freenode IRC (mention `compojure-api` or `ring-swagger` to highlight us).
 
 ## Migration from Swagger 1.2 to 2.0
 
