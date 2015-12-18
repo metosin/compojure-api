@@ -45,10 +45,6 @@ lein new compojure-api my-api +midje
 lein new compojure-api my-api +clojure-test
 ```
 
-## Other resources
-
-- Using [Buddy](https://github.com/funcool/buddy) with Compojure-api: https://gist.github.com/Deraen/ef7f65d7ec26f048e2bb
-
 ## License
 
 Copyright © 2014-2015 [Metosin Oy](http://www.metosin.fi)
