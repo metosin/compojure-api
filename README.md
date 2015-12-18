@@ -15,7 +15,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 ## Wiki
 
-[Check wiki for documentation](./wiki)
+[Check wiki for documentation](https://github.com/metosin/compojure-api/wiki)
 
 ## Migration from Swagger 1.2 to 2.0
 
