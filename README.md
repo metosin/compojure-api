@@ -5,7 +5,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - [API Docs](http://metosin.github.io/compojure-api/doc/)
 - [Schema](https://github.com/Prismatic/schema) for input & output data coercion
 - [Swagger 2.0](https://github.com/wordnik/swagger-core/wiki) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
-- simple extendable DSL via [metadata handlers](#creating-your-own-metadata-handlers)
+- simple extendable DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
 - bundled middleware for common api behavior (exception mapping, data formats & serialization)
 - route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
 
