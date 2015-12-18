@@ -19,11 +19,6 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 [Clojurians slack](https://clojurians.slack.com/) ([join](http://clojurians.net/)) has a channel [#ring-swagger](https://clojurians.slack.com/messages/ring-swagger/) for talk about any libraries using Ring-swagger. You can also ask questions about Compojure-api and Ring-swagger on other channels at Clojurians Slack or at #clojure on Freenode IRC (mention `compojure-api` or `ring-swagger` to highlight us).
 
-## Migration from Swagger 1.2 to 2.0
-
-If you are upgrading your existing pre `0.20.0` compojure-api app to use `0.20.0` or later, you have to migrate the Swagger models
-from 1.2 to 2.0. See [Migration guide](https://github.com/metosin/compojure-api/wiki/Migration-from-Swagger-1.2-to-2.0) for details.
-
 ## Sample application
 
 This repo contains [a sample application](./examples/src/examples/thingie.clj).
