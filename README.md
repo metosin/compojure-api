@@ -33,10 +33,10 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
   (GET* "/hello" []
     :query-params [name :- String]
     (ok {:message (str "Hello, " name)})))
- ```
-
- ### A Swagger API
-
+```
+ 
+### Api with Schema & Swagger-docs
+ 
  ```clj
  (ns example
   (:require [compojure.api.sweet :refer :all]
