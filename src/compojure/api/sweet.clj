@@ -23,7 +23,9 @@
    middlewares
 
    defroutes*
+   middlewares*
    context*
+   routes*
 
    GET*
    ANY*

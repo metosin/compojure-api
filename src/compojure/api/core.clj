@@ -1,6 +1,6 @@
 (ns compojure.api.core
   (:require [clojure.tools.macro :refer [name-with-attributes]]
-            [compojure.api.meta :refer [restructure]]
+            [compojure.api.meta :as meta]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
@@ -55,7 +55,7 @@
   `(def ~name
      (api ~@body)))
 
-(import-vars [compojure.api.meta middlewares])
+(import-vars [compojure.api.meta middlewares middlewares*])
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may

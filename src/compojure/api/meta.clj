@@ -338,6 +338,14 @@
   `(let [handlers# ~(vec handlers)]
      (compojure.api.routing/->Route "" :any {} handlers# (fn [request#] (some #(% request#) handlers#)))))
 
+(defmacro middlewares*
+  "Wraps routes with given middlewares using thread-first macro."
+  [middlewares & body]
+  (let [middlewares (reverse middlewares)
+        routes? (> (count body) 1)]
+    `(let [body# ~(if routes? `(routes* ~@body) (first body))]
+       (compojure.api.routing/->Route "" :any {} body# (-> body# ~@middlewares)))))
+
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
   [middlewares & body]
