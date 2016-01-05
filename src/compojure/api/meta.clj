@@ -15,7 +15,8 @@
             [schema.utils :as su]
             [schema-tools.core :as st]
             [linked.core :as linked]
-            [compojure.api.impl.logging :as logging]))
+            [compojure.api.routing :as routing]
+            [clojure.string :as str]))
 
 ;;
 ;; Meta Evil
@@ -309,8 +310,33 @@
   (update-in acc [:middlewares] conj `(mw/wrap-coercion ~coercion)))
 
 ;;
+;; Impl
+;;
+
+(defmacro letk*
+  "pimped letk-macro used in resolving route-docs. not part of normal invokation chain."
+  [bindings & body]
+  (reduce
+    (fn [cur-body-form [bind-form]]
+      (if (symbol? bind-form)
+        `(let [~bind-form nil] ~cur-body-form)
+        (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form
+                                            &env
+                                            (fnk-impl/ensure-schema-metadata &env bind-form)
+                                            []
+                                            cur-body-form)
+              body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
+          `(let [~map-sym nil] ~body-form))))
+    `(do ~@body)
+    (reverse (partition 2 bindings))))
+
+;;
 ;; Api
 ;;
+
+(defmacro routes* [& handlers]
+  `(let [handlers# ~(vec handlers)]
+     (compojure.api.routing/->Route "" :any {} handlers# (fn [request#] (some #(% request#) handlers#)))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
@@ -344,10 +370,13 @@
             (RuntimeException.
               (str "unknown compojure destruction syntax: " arg)))))
 
-(defn restructure [method [path arg & args] & [{:keys [body-wrap]}]]
-  (let [body-wrap (or body-wrap 'do)
-        method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
+(defn restructure [method [path arg & args] {:keys [routes?]}]
+  (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
+        method-kw (if routes? :any (-> method meta :name str str/lower-case keyword))
         [parameters body] (extract-parameters args)
+
+        wrap (if routes? 'compojure.api.meta/routes* 'do)
+
         [lets letks responses middlewares] [[] [] nil nil]
         [lets arg-with-request arg] (destructure-compojure-api-request lets arg)
 
@@ -365,12 +394,22 @@
 
         pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
 
-        body `(~body-wrap ~@body)
-        body (if (seq letks) `(letk ~letks ~body) body)
-        body (if (seq lets) `(let ~lets ~body) body)
-        body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
-        body (if (seq parameters) `(meta-container ~parameters ~body) body)
-        body `(~method-symbol ~path ~arg-with-request ~body)
-        body (if responses `(body-coercer-middleware ~body ~+compojure-api-coercer+ ~responses) body)
-        body (if (seq pre-lets) `(let ~pre-lets ~body) body)]
-    body))
+        form `(~wrap ~@body)
+        form (if (seq letks) `(letk ~letks ~form) form)
+        form (if (seq lets) `(let ~lets ~form) form)
+        form (if (seq middlewares) `(route-middlewares ~middlewares ~form ~arg) form)
+        form `(~method-symbol ~path ~arg-with-request ~form)
+        form (if responses `(body-coercer-middleware ~form ~+compojure-api-coercer+ ~responses) form)
+        form (if (seq pre-lets) `(let ~pre-lets ~form) form)
+
+        ;; for routes, create a separate lookup-function to find the inner routes
+        child-form (if routes?
+                     (let [form `(~wrap ~@body)
+                           form (if (seq letks) `(letk* ~letks ~form) form)
+                           form (if (seq lets) `(let ~lets ~form) form)
+                           form `(fn [~'+compojure-api-request+] ~form)
+                           form (if (seq pre-lets) `(let ~pre-lets ~form) form)]
+                       form))]
+
+    `(let [childs# ~(if routes? [`(~child-form {})] [])]
+       (routing/->Route ~path ~method-kw ~parameters childs# ~form))))
