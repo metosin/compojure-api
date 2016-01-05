@@ -95,19 +95,22 @@
           response)
         response))))
 
+(defn coerce! [schema key type coercer request]
+  (let [value (keywordize-keys (key request))]
+    (if-let [matcher (type (mw/get-coercion-matcher-provider request))]
+      (let [coerce (coercer schema matcher)
+            result (coerce value)]
+        (if (su/error? result)
+          (throw+ (assoc result :type ::ex/request-validation))
+          result))
+      value)))
+
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
    extracted from a key in a ring request."
   [schema, key, type :- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
-  `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
-     (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
-       (let [coerce# (~+compojure-api-coercer+ ~schema matcher#)
-             result# (coerce# value#)]
-         (if (su/error? result#)
-           (throw+ (assoc result# :type ::ex/request-validation))
-           result#))
-       value#)))
+  `(coerce! ~schema ~key ~type ~+compojure-api-coercer+ ~+compojure-api-request+))
 
 (defn- convert-return [schema]
   {200 {:schema schema
