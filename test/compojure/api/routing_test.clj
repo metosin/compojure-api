@@ -5,21 +5,7 @@
             [ring.util.http-predicates :refer :all]
             [compojure.api.test-utils :refer :all]
             [compojure.api.routing :as r]
-            [ring.swagger.common :refer [extract-parameters]]
-            [schema.core :as s]
-            [compojure.api.middleware :as mw]))
-
-(defn- ->old-compojure-api-route-format [[path method info]] [path {method info}])
-
-(defn api* [& body]
-  (let [[options handlers] (extract-parameters body)
-        handler (apply routes* handlers)
-        routes (mapv ->old-compojure-api-route-format (r/get-routes handler))
-        api-handler (-> handler
-                        (mw/api-middleware options)
-                        (mw/wrap-options {:routes routes
-                                          :lookup nil}))]
-    (r/->Route nil :any {} [handler] api-handler)))
+            [schema.core :as s]))
 
 (facts "nested routes"
   (let [middleware (fn [handler] (fn [request] (handler request)))
@@ -40,7 +26,7 @@
                      :query-params [name :- String]
                      (ok {:message (str "Hello, " name)}))
                    (more-routes version)))
-        app (api* routes)]
+        app (api routes)]
 
     (fact "all routes can be invoked"
       (let [[status body] (get* app "/api/v1/hello" {:name "Tommi"})]
