@@ -6,7 +6,7 @@
             [compojure.core :refer [routes]]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
-            [ring.swagger.common :refer :all]
+            [ring.swagger.common :as rsc]
             [ring.swagger.json-schema :as js]
             [ring.util.http-response :refer [internal-server-error]]
             [slingshot.slingshot :refer [throw+]]
@@ -86,7 +86,7 @@
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
-          (let [coerce (coercer (value-of schema) matcher)
+          (let [coerce (coercer (rsc/value-of schema) matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
               (throw+ (assoc body :type ::ex/response-validation))
@@ -183,7 +183,7 @@
 ;           :paramerers {:query {:q s/Str}
 ;                        :body NewUser}}}
 (defmethod restructure-param :swagger [_ swagger acc]
-  (update-in acc [:parameters] deep-merge swagger))
+  (update-in acc [:parameters] rsc/deep-merge swagger))
 
 ; Route name, used with path-for
 ; Example:

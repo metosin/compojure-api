@@ -26,7 +26,9 @@
                      :query-params [name :- String]
                      (ok {:message (str "Hello, " name)}))
                    (more-routes version)))
-        app (api routes)]
+        app (api
+              (swagger-docs)
+              routes)]
 
     (fact "all routes can be invoked"
       (let [[status body] (get* app "/api/v1/hello" {:name "Tommi"})]
@@ -43,10 +45,18 @@
 
     (fact "routes can be extracted at runtime"
       (r/get-routes app)
-      => [["/api/:version/ping" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]
+      => [["/swagger.json" :get {:x-no-doc true, :x-name :compojure.api.swagger/swagger}]
+          ["/api/:version/ping" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]
           ["/api/:version/ping" :post {:parameters {:path {:version String, s/Keyword s/Any}}}]
           ["/api/:version/hello" :get {:parameters {:query {:name String, s/Keyword s/Any}
                                                     :path {:version String, s/Keyword s/Any}}
                                        :responses {200 {:description "", :schema {:message String}}}
                                        :summary "cool ping"}]
-          ["/api/:version/more" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]])))
+          ["/api/:version/more" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]])
+
+    (fact "swagger-docs can be generated"
+      (-> app get-spec :paths keys)
+      => ["/swagger.json"
+          "/api/{version}/ping"
+          "/api/{version}/hello"
+          "/api/{version}/more"])))

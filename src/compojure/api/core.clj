@@ -2,9 +2,9 @@
   (:require [clojure.tools.macro :refer [name-with-attributes]]
             [compojure.api.meta :as meta]
             [compojure.api.middleware :as mw]
+            [compojure.api.common :refer [extract-parameters]]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
-            [ring.swagger.common :refer [extract-parameters]]
             [clojure.walk :as walk]
             backtick
             [compojure.api.routing :as r]))

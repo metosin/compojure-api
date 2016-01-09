@@ -8,9 +8,9 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
-            [ring.swagger.common :refer [deep-merge]]
+            [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
-            [ring.swagger.coerce :as rsc]
+            [ring.swagger.coerce :as coerce]
             [ring.util.http-response :refer :all]
             [slingshot.slingshot :refer [try+ throw+]]
             [schema.core :as s])
@@ -104,9 +104,9 @@
 (s/defschema CoercionType (s/enum :body :string :response))
 
 (def default-coercion-matchers
-  {:body rsc/json-schema-coercion-matcher
-   :string rsc/query-schema-coercion-matcher
-   :response rsc/json-schema-coercion-matcher})
+  {:body coerce/json-schema-coercion-matcher
+   :string coerce/query-schema-coercion-matcher
+   :response coerce/json-schema-coercion-matcher})
 
 (def no-response-coercion
   (dissoc default-coercion-matchers :response))
@@ -207,7 +207,7 @@
                                     you might want to take look at using wrap-components
                                     middleware manually.)"
   [handler & [options]]
-  (let [options (deep-merge api-middleware-defaults options)
+  (let [options (rsc/deep-merge api-middleware-defaults options)
         {:keys [exceptions format components]} options
         {:keys [formats params-opts response-opts]} format]
     ; Break at compile time if there are deprecated options

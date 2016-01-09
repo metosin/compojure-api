@@ -78,3 +78,19 @@
 (defn headers-post* [app uri headers]
   (let [[status body] (raw-post* app uri "" nil headers)]
     [status (parse-body body)]))
+
+;;
+;; get-spec
+;;
+
+(defn get-spec [app]
+  (let [[status spec] (get* app "/swagger.json" {})]
+    (assert (= status 200))
+    (if (:paths spec)
+      (update-in spec [:paths] (fn [paths]
+                                 (into
+                                   (empty paths)
+                                   (for [[k v] paths]
+                                     [(if (= k (keyword "/"))
+                                        "/" (str "/" (name k))) v]))))
+      spec)))

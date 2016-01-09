@@ -10,7 +10,7 @@
             [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
             [potemkin :refer [import-vars]]
-            [ring.swagger.common :refer :all]
+            [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
@@ -24,7 +24,7 @@
 
 (defn- purge-symbol-or-var-meta [x]
   (if (symbol? x)
-    (let [value (value-of (eval-re-resolve x))
+    (let [value (rsc/value-of (eval-re-resolve x))
           naked (if (var? value) (var-get value) value)]
       (meta naked))))
 
@@ -69,7 +69,7 @@
 ; TODO: shoudn't eval code at compile-time
 (defn parse-meta-data [container]
   (when-let [meta (m/unwrap-meta-container container)]
-    (remove-empty-keys (eval meta))))
+    (rsc/remove-empty-keys (eval meta))))
 
 (defn route-metadata [body]
   (parse-meta-data (first (drop 2 body))))
@@ -78,7 +78,7 @@
   (parse-meta-data (first (drop 3 body))))
 
 (defn merge-meta [& meta]
-  (apply deep-merge (map #(or % {}) meta)))
+  (apply rsc/deep-merge (map #(or % {}) meta)))
 
 ;; this is needed in order for the swaggered-macro to work, can be
 ;; removed when it's removed.
@@ -143,7 +143,7 @@
                   (reduce (fn [acc [k v]]
                             (assoc-map-ordered acc k (if (get acc k)
                                                        ;; match first compojure route
-                                                       (deep-merge v (get acc k))
+                                                       (rsc/deep-merge v (get acc k))
                                                        v)))
                           (array-map)))]))
 
@@ -232,7 +232,7 @@
        path-vals
        (map create-api-route)
        (map attach-meta-data-to-route)
-       (apply deep-merge (linked/map))))
+       (apply rsc/deep-merge (linked/map))))
 
 (defn swagger-info [body]
   [{:paths (extract-routes body)} body])
@@ -299,22 +299,21 @@
         extra-info (select-swagger2-parameters (if (map? first-value)
                                                  first-value
                                                  (apply hash-map key-values)))]
-    `(routes
-       (GET* ~path {:as request#}
-         :no-doc true
-         :name ::swagger
-         (let [runtime-info# (rsm/get-swagger-data request#)
-               base-path# {:basePath (base-path request#)}
-               options# (:ring-swagger (mw/get-options request#))
-               routes# (:routes (mw/get-options request#))
-               paths# (routes/route-vector-to-route-map routes#)]
-           (ok
-             (let [swagger# (deep-merge base-path#
-                                        paths#
-                                        ~extra-info
-                                        runtime-info#)
-                   result# (swagger2/swagger-json swagger# options#)]
-               result#)))))))
+    `(GET* ~path {:as request#}
+       :no-doc true
+       :name ::swagger
+       (let [runtime-info# (rsm/get-swagger-data request#)
+             base-path# {:basePath (base-path request#)}
+             options# (:ring-swagger (mw/get-options request#))
+             routes# (:routes (mw/get-options request#))
+             paths# (routes/route-vector-to-route-map routes#)]
+         (ok
+           (let [swagger# (rsc/deep-merge base-path#
+                                      paths#
+                                      ~extra-info
+                                      runtime-info#)
+                 result# (swagger2/swagger-json swagger# options#)]
+             result#))))))
 
 (defmacro swaggered
   "DEPRECATED. Use context* with :tags instead:

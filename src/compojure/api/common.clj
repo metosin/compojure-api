@@ -55,3 +55,29 @@
 
 (defmacro get-local [s]
   `(get (local-bindings) ~s))
+
+(defn plain-map?
+  "checks whether input is a map, but not a record"
+  [x] (and (map? x) (not (record? x))))
+
+(defn extract-parameters
+  "Extract parameters from head of the list. Parameters can be:
+
+   1. a map (if followed by any form) `[{:a 1 :b 2} :body]` => `{:a 1 :b 2}`
+   2. list of keywords & values `[:a 1 :b 2 :body]` => `{:a 1 :b 2}`
+   3. else => `{}`
+
+   Returns a tuple with parameters and body without the parameters"
+  [c]
+  {:pre [(sequential? c)]}
+  (if (and (plain-map? (first c)) (> (count c) 1))
+    [(first c) (rest c)]
+    (if (keyword? (first c))
+      (let [parameters (->> c
+                            (partition 2)
+                            (take-while (comp keyword? first))
+                            (mapcat identity)
+                            (apply array-map))
+            form       (drop (* 2 (count parameters)) c)]
+        [parameters form])
+      [{} c])))
