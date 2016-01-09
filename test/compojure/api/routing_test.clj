@@ -17,7 +17,7 @@
                  :path-params [version :- String]
                  (GET* "/ping" []
                    (ok {:message (str "pong - " version)}))
-                 (middlewares* [middleware]
+                 (middlewares [middleware]
                    (GET* "/hello" []
                      :return {:message String}
                      :summary "cool ping"

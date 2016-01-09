@@ -55,7 +55,7 @@
   `(def ~name
      (api ~@body)))
 
-(import-vars [compojure.api.meta middlewares middlewares*])
+(import-vars [compojure.api.meta middlewares])
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may
