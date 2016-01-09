@@ -344,7 +344,7 @@
   (let [middlewares (reverse middlewares)
         routes? (> (count body) 1)]
     `(let [body# ~(if routes? `(routes* ~@body) (first body))]
-       (compojure.api.routing/->Route "" :any {} body# (-> body# ~@middlewares)))))
+       (compojure.api.routing/->Route "" :any {} [body#] (-> body# ~@middlewares)))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."

@@ -43,10 +43,10 @@
         response => (contains {:body {:message "v3"}})))
 
     (fact "routes can be extracted at runtime"
-      (let [routes (r/get-routes routes)]
-        routes => [["/api/:version/ping" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]
-                   ["/api/:version/hello" :get {:parameters {:query {:name String, s/Keyword s/Any}
-                                                             :path {:version String, s/Keyword s/Any}}
-                                                :responses {200 {:description "", :schema {:message String}}}
-                                                :summary "cool ping"}]
-                   ["/api/:version/more" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]]))))
+      (r/get-routes routes)
+      => [["/api/:version/ping" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]
+          ["/api/:version/hello" :get {:parameters {:query {:name String, s/Keyword s/Any}
+                                                    :path {:version String, s/Keyword s/Any}}
+                                       :responses {200 {:description "", :schema {:message String}}}
+                                       :summary "cool ping"}]
+          ["/api/:version/more" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]])))
