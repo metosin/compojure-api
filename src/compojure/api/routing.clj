@@ -7,7 +7,7 @@
 ;;
 
 (defprotocol Routing
-  (get-routes [this]))
+  (get-routes [handler]))
 
 (extend-protocol Routing
   Object
@@ -27,7 +27,7 @@
   Routing
   (get-routes [_]
     (if (seq childs)
-      (seq
+      (vec
         (for [[p m i] (mapcat get-routes childs)]
           [(->paths path p) m (rsc/deep-merge info i)]))
       [[path method info]]))

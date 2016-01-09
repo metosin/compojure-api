@@ -5,7 +5,17 @@
             [ring.util.http-predicates :refer :all]
             [compojure.api.test-utils :refer :all]
             [compojure.api.routing :as r]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [compojure.api.middleware :as mw]))
+
+(defn api*
+  ([handler]
+   (api* nil handler))
+  ([options handler]
+   (let [api (-> handler
+                 (mw/api-middleware options)
+                 #_(mw/wrap-options (select-keys meta [:routes :lookup])))]
+     (r/->Route nil :any {} [handler] api))))
 
 (facts "nested routes"
   (let [middleware (fn [handler] (fn [request] (handler request)))
@@ -23,27 +33,24 @@
                      :summary "cool ping"
                      :query-params [name :- String]
                      (ok {:message (str "Hello, " name)}))
-                   (more-routes version)))]
+                   (more-routes version)))
+        app (api* routes)]
 
     (fact "all routes can be invoked"
-      (let [response (routes {:uri "/api/v1/hello"
-                              :request-method :get
-                              :query-params {:name "Tommi"}})]
-        response => ok?
-        response => (contains {:body {:message "Hello, Tommi"}}))
+      (let [[status body] (get* app "/api/v1/hello" {:name "Tommi"})]
+        status = 200
+        body => {:message "Hello, Tommi"})
 
-      (let [response (routes {:uri "/api/v1/ping"
-                              :request-method :get})]
-        response => ok?
-        response => (contains {:body {:message "pong - v1"}}))
+      (let [[status body] (get* app "/api/v1/ping")]
+        status = 200
+        body => {:message "pong - v1"})
 
-      (let [response (routes {:uri "/api/v3/more"
-                              :request-method :get})]
-        response => ok?
-        response => (contains {:body {:message "v3"}})))
+      (let [[status body] (get* app "/api/v3/more")]
+        status => 200
+        body => {:message "v3"}))
 
     (fact "routes can be extracted at runtime"
-      (r/get-routes routes)
+      (r/get-routes app)
       => [["/api/:version/ping" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]
           ["/api/:version/hello" :get {:parameters {:query {:name String, s/Keyword s/Any}
                                                     :path {:version String, s/Keyword s/Any}}
