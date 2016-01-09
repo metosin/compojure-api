@@ -5,17 +5,21 @@
             [ring.util.http-predicates :refer :all]
             [compojure.api.test-utils :refer :all]
             [compojure.api.routing :as r]
+            [ring.swagger.common :refer [extract-parameters]]
             [schema.core :as s]
             [compojure.api.middleware :as mw]))
 
-(defn api*
-  ([handler]
-   (api* nil handler))
-  ([options handler]
-   (let [api (-> handler
-                 (mw/api-middleware options)
-                 #_(mw/wrap-options (select-keys meta [:routes :lookup])))]
-     (r/->Route nil :any {} [handler] api))))
+(defn- ->old-compojure-api-route-format [[path method info]] [path {method info}])
+
+(defn api* [& body]
+  (let [[options handlers] (extract-parameters body)
+        handler (apply routes* handlers)
+        routes (mapv ->old-compojure-api-route-format (r/get-routes handler))
+        api-handler (-> handler
+                        (mw/api-middleware options)
+                        (mw/wrap-options {:routes routes
+                                          :lookup nil}))]
+    (r/->Route nil :any {} [handler] api-handler)))
 
 (facts "nested routes"
   (let [middleware (fn [handler] (fn [request] (handler request)))
@@ -26,6 +30,8 @@
         routes (context* "/api/:version" []
                  :path-params [version :- String]
                  (GET* "/ping" []
+                   (ok {:message (str "pong - " version)}))
+                 (POST* "/ping" []
                    (ok {:message (str "pong - " version)}))
                  (middlewares [middleware]
                    (GET* "/hello" []
@@ -52,6 +58,7 @@
     (fact "routes can be extracted at runtime"
       (r/get-routes app)
       => [["/api/:version/ping" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]
+          ["/api/:version/ping" :post {:parameters {:path {:version String, s/Keyword s/Any}}}]
           ["/api/:version/hello" :get {:parameters {:query {:name String, s/Keyword s/Any}
                                                     :path {:version String, s/Keyword s/Any}}
                                        :responses {200 {:description "", :schema {:message String}}}

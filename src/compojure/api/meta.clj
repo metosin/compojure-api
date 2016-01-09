@@ -334,9 +334,8 @@
 ;; Api
 ;;
 
-(defmacro routes* [& handlers]
-  `(let [handlers# ~(vec handlers)]
-     (compojure.api.routing/->Route "" :any {} handlers# (fn [request#] (some #(% request#) handlers#)))))
+(defn routes* [& handlers]
+  (compojure.api.routing/->Route "" :any {} (vec handlers) (fn [request] (some #(% request) handlers))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."

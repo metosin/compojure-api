@@ -55,7 +55,7 @@
   `(def ~name
      (api ~@body)))
 
-(import-vars [compojure.api.meta middlewares])
+(import-vars [compojure.api.meta routes* middlewares])
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may
@@ -87,4 +87,3 @@
 (defmacro POST*    [& args] (meta/restructure #'POST    args nil))
 (defmacro PUT*     [& args] (meta/restructure #'PUT     args nil))
 (defmacro context* [& args] (meta/restructure #'context args {:routes? true}))
-(defmacro routes*  [& handlers] `(meta/routes* ~@handlers))

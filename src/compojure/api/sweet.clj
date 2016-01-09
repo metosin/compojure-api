@@ -23,7 +23,6 @@
    middlewares
 
    defroutes*
-   middlewares*
    context*
    routes*
 
