@@ -14,7 +14,7 @@
 
 (defn api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
-   Creates the route-table at compile-time and passes that into the request via
+   Creates the route-table at run-time and passes that into the request via
    ring-swagger middlewares. The mounted api-middleware can be configured by
    optional options map as the first parameter:
 
@@ -38,21 +38,8 @@
                                           :lookup lookup}))]
     (r/route nil :any {} [handler] api-handler)))
 
-(defmacro defapi
-  "Returns a ring handler wrapped in a `api`. Behind the scenes,
-   creates the route-table at compile-time and passes that into the request via
-   ring-swagger middlewares. The mounted api-middleware can be configured by
-   optional options map as the first parameter:
-
-       (defapi app
-         {:formats [:json :edn]}
-         (context* \"/api\" []
-           ...))
-
-   ... see compojure.api.middleware/api-middleware for possible options."
-  [name & body]
-  `(def ~name
-     (api ~@body)))
+(defmacro defapi [name & body]
+  `(def ~name (api ~@body)))
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may
