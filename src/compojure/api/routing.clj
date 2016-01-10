@@ -1,17 +1,16 @@
 (ns compojure.api.routing
-  (:require [ring.swagger.common :as rsc])
+  (:require [ring.swagger.common :as rsc]
+            [compojure.api.impl.logging :as logging])
   (:import [clojure.lang AFn IFn]))
 
 ;;
 ;; Routing
 ;;
 
+(def ^:dynamic *fail-on-missing-route-info* true)
+
 (defprotocol Routing
   (get-routes [handler]))
-
-(extend-protocol Routing
-  Object
-  (routing [_] nil))
 
 ;;
 ;; Routes
@@ -28,7 +27,7 @@
   (get-routes [_]
     (if (seq childs)
       (vec
-        (for [[p m i] (mapcat get-routes childs)]
+        (for [[p m i] (mapcat get-routes (filter (partial satisfies? Routing) childs))]
           [(->paths path p) m (rsc/deep-merge info i)]))
       [[path method info]]))
 
@@ -37,3 +36,16 @@
     (handler request))
   (applyTo [this args]
     (AFn/applyToHelper this args)))
+
+(defn route [path method info childs handler]
+  (when-let [invalid-childs (seq (remove (partial satisfies? Routing) childs))]
+    (let [message "Not all child routes satisfy compojure.api.routing/Routing."
+          data {:path path
+                :method method
+                :info info
+                :childs childs
+                :invalid invalid-childs}]
+      (if *fail-on-missing-route-info*
+        (throw (ex-info message data))
+        (logging/log! :warning message data))))
+  (->Route path method info childs handler))

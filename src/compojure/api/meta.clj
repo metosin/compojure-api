@@ -335,7 +335,8 @@
 ;;
 
 (defn routes* [& handlers]
-  (compojure.api.routing/->Route "" :any {} (vec handlers) (fn [request] (some #(% request) handlers))))
+  (let [handlers (keep identity handlers)]
+    (compojure.api.routing/route "" :any {} (vec handlers) (fn [request] (some #(% request) handlers)))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
@@ -343,7 +344,7 @@
   (let [middlewares (reverse middlewares)
         routes? (> (count body) 1)]
     `(let [body# ~(if routes? `(routes* ~@body) (first body))]
-       (compojure.api.routing/->Route "" :any {} [body#] (-> body# ~@middlewares)))))
+       (compojure.api.routing/route "" :any {} [body#] (-> body# ~@middlewares)))))
 
 (defmacro route-middlewares
   "Wraps route body in mock-handler and middlewares."
@@ -412,4 +413,4 @@
                        form))]
 
     `(let [childs# ~(if routes? [`(~child-form {})] [])]
-       (routing/->Route ~path ~method-kw ~parameters childs# ~form))))
+       (routing/route  ~path ~method-kw ~parameters childs# ~form))))

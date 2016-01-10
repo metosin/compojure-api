@@ -36,7 +36,7 @@
                         (mw/api-middleware options)
                         (mw/wrap-options {:routes swagger
                                           :lookup lookup}))]
-    (r/->Route nil :any {} [handler] api-handler)))
+    (r/route nil :any {} [handler] api-handler)))
 
 (defmacro defapi
   "Returns a ring handler wrapped in a `api`. Behind the scenes,
