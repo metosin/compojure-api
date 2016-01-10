@@ -16,7 +16,6 @@
                  [metosin/ring-swagger "0.22.2"]
                  [metosin/schema-tools "0.7.0"]
                  [ring-middleware-format "0.7.0"]
-                 [backtick "0.3.3"]
                  [metosin/ring-swagger-ui "2.1.4-0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}

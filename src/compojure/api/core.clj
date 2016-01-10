@@ -6,8 +6,7 @@
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
-            [clojure.walk :as walk]
-            backtick
+            [clojure.tools.macro :as macro]
             [compojure.api.routing :as r]
             [ring.swagger.swagger2 :as rss]))
 
@@ -57,24 +56,10 @@
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may
-  optionally be followed by a doc-string and metadata map. Generates an
-  extra private Var with `_` + name to the given namespace holding the
-  actual routes, caller doesn't have to care about this. Accessing defroutes*
-  over Var add tiny run-time penalty, but allows massive better development
-  speed as the defroutes* can be compiled seperately."
+  optionally be followed by a doc-string and metadata map."
   [name & routes]
-  (let [source (drop 2 &form)
-        [name routes] (name-with-attributes name routes)
-        route-sym (symbol (str "_" name))
-        source `(backtick/syntax-quote ~source)
-        ;; #125, muddle local bindings with defroutes name
-        source (walk/prewalk-replace {name (gensym name)} source)
-        route-meta {:source source
-                    :inline true}]
-    `(do
-       (def ~route-sym (with-meta (routes ~@routes) ~route-meta))
-       (alter-meta! (var ~route-sym) assoc :private true)
-       (def ~name (var ~route-sym)))))
+  (let [[name routes] (macro/name-with-attributes name routes)]
+    `(def ~name (routes* ~@routes))))
 
 (defmacro GET* [& args] (meta/restructure #'GET args nil))
 (defmacro ANY* [& args] (meta/restructure #'ANY args nil))
