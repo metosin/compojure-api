@@ -23,6 +23,7 @@
    middlewares
 
    defroutes*
+   let-routes*
    context*
    routes*
 

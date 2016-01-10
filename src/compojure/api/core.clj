@@ -61,6 +61,12 @@
   (let [[name routes] (macro/name-with-attributes name routes)]
     `(def ~name (routes* ~@routes))))
 
+(defmacro let-routes*
+  "Takes a vector of bindings and a body of routes. Equivalent to:
+  (let [...] (routes* ...))"
+  [bindings & body]
+  `(let ~bindings (routes* ~@body)))
+
 (defmacro GET* [& args] (meta/restructure #'GET args nil))
 (defmacro ANY* [& args] (meta/restructure #'ANY args nil))
 (defmacro HEAD* [& args] (meta/restructure #'HEAD args nil))
