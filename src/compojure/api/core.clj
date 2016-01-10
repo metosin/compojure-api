@@ -3,15 +3,15 @@
             [compojure.api.meta :as meta]
             [compojure.api.middleware :as mw]
             [compojure.api.common :refer [extract-parameters]]
+            [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [potemkin :refer [import-vars]]
             [clojure.walk :as walk]
             backtick
-            [compojure.api.routing :as r]))
+            [compojure.api.routing :as r]
+            [ring.swagger.swagger2 :as rss]))
 
 (import-vars [compojure.api.meta routes* middlewares])
-
-(defn- ->old-compojure-api-route-format [[path method info]] [path {method info}])
 
 (defn api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
@@ -28,11 +28,15 @@
   [& body]
   (let [[options handlers] (extract-parameters body)
         handler (apply routes* handlers)
-        routes (mapv ->old-compojure-api-route-format (r/get-routes handler))
+        swagger (-> handler r/get-routes routes/->ring-swagger)
+        lookup (routes/route-lookup-table swagger)
+        swagger (->> swagger
+                     (rss/transform-operations routes/non-nil-routes)
+                     (rss/transform-operations routes/strip-no-doc-endpoints))
         api-handler (-> handler
                         (mw/api-middleware options)
-                        (mw/wrap-options {:routes routes
-                                          :lookup nil}))]
+                        (mw/wrap-options {:routes swagger
+                                          :lookup lookup}))]
     (r/->Route nil :any {} [handler] api-handler)))
 
 (defmacro defapi

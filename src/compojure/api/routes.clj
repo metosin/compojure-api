@@ -2,7 +2,6 @@
   (:require [compojure.core :refer :all]
             [clojure.string :as string]
             [cheshire.core :as json]
-            [ring.swagger.swagger2 :as rss]
             [compojure.api.middleware :as mw]
             [clojure.string :as str]
             [linked.core :as linked]))
@@ -31,8 +30,8 @@
   (for [[id freq] (frequencies seq)
         :when (> freq 1)] id))
 
-(defn- route-lookup-table [routes]
-  (let [entries (for [[path endpoints] (:paths routes)
+(defn route-lookup-table [swagger]
+  (let [entries (for [[path endpoints] (:paths swagger)
                       [method {:keys [x-name parameters]}] endpoints
                       :let [params (:path parameters)]
                       :when x-name]
@@ -48,6 +47,11 @@
                     (string/join "," duplicate-route-names)))))
     (into {} entries)))
 
+(defn ->ring-swagger [routes]
+  {:paths (->> routes
+               (map (fn [[path method info]] [path {method info}]))
+               (into (linked/map)))})
+
 ;;
 ;; Endpoint Trasformers
 ;;
@@ -58,8 +62,7 @@
   (if-not (some-> endpoint :x-no-doc true?)
     endpoint))
 
-(defn non-nil-routes
-  [endpoint]
+(defn non-nil-routes [endpoint]
   (or endpoint {}))
 
 ;;
@@ -70,19 +73,6 @@
 
 (defn route-vector-to-route-map [v]
   {:paths (into (linked/map) (concat v))})
-
-(defn route-map-to-route-vector [m]
-  (->> m :paths (apply vector) reverse vec))
-
-(defmacro api-root [& body]
-  (let [[all-routes body] (collect-routes body)
-        lookup (route-lookup-table all-routes)
-        documented-routes (->> all-routes
-                               (rss/transform-operations non-nil-routes)
-                               (rss/transform-operations strip-no-doc-endpoints))
-        route-vector (route-map-to-route-vector documented-routes)]
-    `(with-meta (routes ~@body) {:routes '~route-vector
-                                 :lookup ~lookup})))
 
 (defn path-for*
   "Extracts the lookup-table from request and finds a route by name."

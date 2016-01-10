@@ -56,7 +56,6 @@
 
     (fact "swagger-docs can be generated"
       (-> app get-spec :paths keys)
-      => ["/swagger.json"
-          "/api/{version}/ping"
+      => ["/api/{version}/ping"
           "/api/{version}/hello"
           "/api/{version}/more"])))

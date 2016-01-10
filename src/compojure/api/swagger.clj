@@ -36,10 +36,10 @@
 ;;
 
 ; TODO: #'wrap-routes
-(def compojure-route?     #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
-(def compojure-context?   #{#'context})
+(def compojure-route? #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
+(def compojure-context? #{#'context})
 (def compojure-letroutes? #{#'let-routes})
-(def compojure-macro?     (union compojure-route? compojure-context? compojure-letroutes?))
+(def compojure-macro? (union compojure-route? compojure-context? compojure-letroutes?))
 
 (defn macroexpand-to-compojure [form]
   (walk/prewalk
@@ -305,13 +305,12 @@
        (let [runtime-info# (rsm/get-swagger-data request#)
              base-path# {:basePath (base-path request#)}
              options# (:ring-swagger (mw/get-options request#))
-             routes# (:routes (mw/get-options request#))
-             paths# (routes/route-vector-to-route-map routes#)]
+             routes# (:routes (mw/get-options request#))]
          (ok
            (let [swagger# (rsc/deep-merge base-path#
-                                      paths#
-                                      ~extra-info
-                                      runtime-info#)
+                                          routes#
+                                          ~extra-info
+                                          runtime-info#)
                  result# (swagger2/swagger-json swagger# options#)]
              result#))))))
 
