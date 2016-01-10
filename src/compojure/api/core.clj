@@ -5,12 +5,53 @@
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.routes :as routes]
             [compojure.core :refer :all]
-            [potemkin :refer [import-vars]]
             [clojure.tools.macro :as macro]
             [compojure.api.routing :as r]
             [ring.swagger.swagger2 :as rss]))
 
-(import-vars [compojure.api.meta routes* undocumented* middlewares])
+(defn routes* [& handlers]
+  (let [handlers (keep identity handlers)]
+    (r/route "" :any {} (vec handlers) (fn [request] (some #(% request) handlers)))))
+
+(defmacro defroutes*
+  "Define a Ring handler function from a sequence of routes. The name may
+  optionally be followed by a doc-string and metadata map."
+  [name & routes]
+  (let [[name routes] (macro/name-with-attributes name routes)]
+    `(def ~name (routes* ~@routes))))
+
+(defmacro let-routes*
+  "Takes a vector of bindings and a body of routes. Equivalent to:
+  (let [...] (routes* ...))"
+  [bindings & body]
+  `(let ~bindings (routes* ~@body)))
+
+(defn undocumented* [& handlers]
+  (let [handlers (keep identity handlers)]
+    (r/route "" :any {} nil (fn [request] (some #(% request) handlers)))))
+
+(defmacro middlewares
+  "Wraps routes with given middlewares using thread-first macro."
+  [middlewares & body]
+  (let [middlewares (reverse middlewares)
+        routes? (> (count body) 1)]
+    `(let [body# ~(if routes? `(routes* ~@body) (first body))]
+       (r/route "" :any {} [body#] (-> body# ~@middlewares)))))
+
+(defmacro context* [& args] (meta/restructure #'context args {:routes 'routes*}))
+
+(defmacro GET* [& args] (meta/restructure #'GET args nil))
+(defmacro ANY* [& args] (meta/restructure #'ANY args nil))
+(defmacro HEAD* [& args] (meta/restructure #'HEAD args nil))
+(defmacro PATCH* [& args] (meta/restructure #'PATCH args nil))
+(defmacro DELETE* [& args] (meta/restructure #'DELETE args nil))
+(defmacro OPTIONS* [& args] (meta/restructure #'OPTIONS args nil))
+(defmacro POST* [& args] (meta/restructure #'POST args nil))
+(defmacro PUT* [& args] (meta/restructure #'PUT args nil))
+
+;;
+;; api
+;;
 
 (defn api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
@@ -40,26 +81,3 @@
 
 (defmacro defapi [name & body]
   `(def ~name (api ~@body)))
-
-(defmacro defroutes*
-  "Define a Ring handler function from a sequence of routes. The name may
-  optionally be followed by a doc-string and metadata map."
-  [name & routes]
-  (let [[name routes] (macro/name-with-attributes name routes)]
-    `(def ~name (routes* ~@routes))))
-
-(defmacro let-routes*
-  "Takes a vector of bindings and a body of routes. Equivalent to:
-  (let [...] (routes* ...))"
-  [bindings & body]
-  `(let ~bindings (routes* ~@body)))
-
-(defmacro GET* [& args] (meta/restructure #'GET args nil))
-(defmacro ANY* [& args] (meta/restructure #'ANY args nil))
-(defmacro HEAD* [& args] (meta/restructure #'HEAD args nil))
-(defmacro PATCH* [& args] (meta/restructure #'PATCH args nil))
-(defmacro DELETE* [& args] (meta/restructure #'DELETE args nil))
-(defmacro OPTIONS* [& args] (meta/restructure #'OPTIONS args nil))
-(defmacro POST* [& args] (meta/restructure #'POST args nil))
-(defmacro PUT* [& args] (meta/restructure #'PUT args nil))
-(defmacro context* [& args] (meta/restructure #'context args {:routes? true}))

@@ -334,22 +334,6 @@
 ;; Api
 ;;
 
-(defn routes* [& handlers]
-  (let [handlers (keep identity handlers)]
-    (compojure.api.routing/route "" :any {} (vec handlers) (fn [request] (some #(% request) handlers)))))
-
-(defn undocumented* [& handlers]
-  (let [handlers (keep identity handlers)]
-    (compojure.api.routing/route "" :any {} nil (fn [request] (some #(% request) handlers)))))
-
-(defmacro middlewares
-  "Wraps routes with given middlewares using thread-first macro."
-  [middlewares & body]
-  (let [middlewares (reverse middlewares)
-        routes? (> (count body) 1)]
-    `(let [body# ~(if routes? `(routes* ~@body) (first body))]
-       (compojure.api.routing/route "" :any {} [body#] (-> body# ~@middlewares)))))
-
 (defmacro route-middlewares
   "Wraps route body in mock-handler and middlewares."
   [middlewares body arg]
@@ -377,12 +361,12 @@
               (RuntimeException.
                 (str "unknown compojure destruction syntax: " arg))))))
 
-(defn restructure [method [path arg & args] {:keys [routes?]}]
+(defn restructure [method [path arg & args] {:keys [routes]}]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
-        method-kw (if routes? :any (-> method meta :name str str/lower-case keyword))
+        method-kw (if routes :any (-> method meta :name str str/lower-case keyword))
         [parameters body] (extract-parameters args)
 
-        wrap (if routes? 'compojure.api.meta/routes* 'do)
+        wrap (or routes 'do)
 
         [lets letks responses middlewares] [[] [] nil nil]
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
@@ -410,7 +394,7 @@
         form (if (seq pre-lets) `(let ~pre-lets ~form) form)
 
         ;; for routes, create a separate lookup-function to find the inner routes
-        child-form (if routes?
+        child-form (if routes
                      (let [form `(~wrap ~@body)
                            form (if (seq letks) `(letk* ~letks ~form) form)
                            form (if (seq lets) `(let ~lets ~form) form)
@@ -418,5 +402,5 @@
                            form (if (seq pre-lets) `(let ~pre-lets ~form) form)]
                        form))]
 
-    `(let [childs# ~(if routes? [`(~child-form {})] [])]
+    `(let [childs# ~(if routes [`(~child-form {})] [])]
        (routing/route ~path-string ~method-kw ~parameters childs# ~form))))
