@@ -353,23 +353,25 @@
     `((-> (fn [~arg] ~body) ~@middlewares) ~arg)))
 
 (defn- destructure-compojure-api-request
-  "Returns a vector of three elements:
+  "Returns a vector of four elements:
+   - pruned path string
    - new lets list
    - bindings form for compojure route
    - symbol to which request will be bound"
-  [lets arg]
-  (cond
-    ;; GET "/route" []
-    (vector? arg) [lets (into arg [:as +compojure-api-request+]) +compojure-api-request+]
-    ;; GET "/route" {:as req}
-    (map? arg) (if-let [as (:as arg)]
-                 [(conj lets +compojure-api-request+ as) arg as]
-                 [lets (merge arg [:as +compojure-api-request+]) +compojure-api-request+])
-    ;; GET "/route" req
-    (symbol? arg) [(conj lets +compojure-api-request+ arg) arg arg]
-    :else (throw
-            (RuntimeException.
-              (str "unknown compojure destruction syntax: " arg)))))
+  [path lets arg]
+  (let [path-string (if (vector? path) (first path) path)]
+    (cond
+      ;; GET "/route" []
+      (vector? arg) [path-string lets (into arg [:as +compojure-api-request+]) +compojure-api-request+]
+      ;; GET "/route" {:as req}
+      (map? arg) (if-let [as (:as arg)]
+                   [path-string (conj lets +compojure-api-request+ as) arg as]
+                   [path-string lets (merge arg [:as +compojure-api-request+]) +compojure-api-request+])
+      ;; GET "/route" req
+      (symbol? arg) [path-string (conj lets +compojure-api-request+ arg) arg arg]
+      :else (throw
+              (RuntimeException.
+                (str "unknown compojure destruction syntax: " arg))))))
 
 (defn restructure [method [path arg & args] {:keys [routes?]}]
   (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
@@ -379,7 +381,7 @@
         wrap (if routes? 'compojure.api.meta/routes* 'do)
 
         [lets letks responses middlewares] [[] [] nil nil]
-        [lets arg-with-request arg] (destructure-compojure-api-request lets arg)
+        [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
         {:keys [lets
                 letks
@@ -413,4 +415,4 @@
                        form))]
 
     `(let [childs# ~(if routes? [`(~child-form {})] [])]
-       (routing/route  ~path ~method-kw ~parameters childs# ~form))))
+       (routing/route ~path-string ~method-kw ~parameters childs# ~form))))

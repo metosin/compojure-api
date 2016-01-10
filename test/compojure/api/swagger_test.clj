@@ -78,13 +78,12 @@
         more-routes*)) => {"/api/true" {:get {}}
                            "/api/more/even" {:get {}}})
 
-  #_(fact "Parameter regular expressions are discarded"
-      (extract-routes
-        (context* "/api" []
-          (GET* ["/:param" :param #"[a-z]+"] [] identity)))
+  (fact "Parameter regular expressions are discarded"
+    (extract-routes
+      (context* "/api" []
+        (GET* ["/:param" :param #"[a-z]+"] [] identity)))
 
-      => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
-
+    => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
 #_(fact "->swagger2info"
     (fact "old format get's converted to new with warnings"
