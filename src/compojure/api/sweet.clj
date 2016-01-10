@@ -24,6 +24,7 @@
 
    defroutes*
    let-routes*
+   undocumented*
    context*
    routes*
 

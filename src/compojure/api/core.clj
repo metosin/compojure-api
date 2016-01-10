@@ -10,7 +10,7 @@
             [compojure.api.routing :as r]
             [ring.swagger.swagger2 :as rss]))
 
-(import-vars [compojure.api.meta routes* middlewares])
+(import-vars [compojure.api.meta routes* undocumented* middlewares])
 
 (defn api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.

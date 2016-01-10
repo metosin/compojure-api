@@ -338,6 +338,10 @@
   (let [handlers (keep identity handlers)]
     (compojure.api.routing/route "" :any {} (vec handlers) (fn [request] (some #(% request) handlers)))))
 
+(defn undocumented* [& handlers]
+  (let [handlers (keep identity handlers)]
+    (compojure.api.routing/route "" :any {} nil (fn [request] (some #(% request) handlers)))))
+
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
   [middlewares & body]
