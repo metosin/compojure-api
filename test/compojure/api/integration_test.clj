@@ -592,32 +592,6 @@
       "application/edn" "{:foo \"bar\"}"
       "application/transit+json" "[\"^ \",\"~:foo\",\"bar\"]")))
 
-#_(fact "accumulation in context*"
-  (let [metas (atom nil)
-        app (api
-              (context* "/:id" []
-                :path-params [id :- String]
-                :tags [:api]
-                :summary "jeah"
-                (GET* "/:di/ping" []
-                  :tags [:ipa]
-                  :path-params [di :- String]
-                  :query-params [foo :- s/Int]
-                  (reset! metas +compojure-api-meta+)
-                  (ok [id di foo]))))]
-
-    (fact "all but lists & sequences get accumulated"
-      (let [[status body] (get* app "/kikka/kukka/ping" {:foo 123})]
-        status => 200
-        body => ["kikka" "kukka" 123]
-        @metas => {:parameters {:path {:id String
-                                       :di String
-                                       s/Keyword s/Any}
-                                :query {:foo s/Int
-                                        s/Keyword s/Any}}
-                   :summary "jeah"
-                   :tags #{:ipa}}))))
-
 (fact "multiple routes in context*"
   (let [app (api
               (context* "/foo" []

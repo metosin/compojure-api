@@ -18,37 +18,13 @@
             [compojure.api.routing :as r]
             [clojure.string :as str]))
 
-;;
-;; Meta Evil
-;;
-
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
 
-(def +compojure-api-meta+
-  "lexically bound meta-data for handlers."
-  '+compojure-api-meta+)
-
 (def +compojure-api-coercer+
   "lexically bound (caching) coercer for handlers."
   '+compojure-api-coercer+)
-
-(defmacro meta-container [meta & form]
-  `(let [accumulated-meta# (get-local +compojure-api-meta+)
-         ~'+compojure-api-meta+ (deep-merge accumulated-meta# ~meta)]
-     ~@form))
-
-(defn unwrap-meta-container [container]
-  {:post [(map? %)]}
-  (or
-    (if (sequential? container)
-      (let [[sym meta-data] container]
-        (if (and (symbol? sym) (= #'meta-container (resolve sym)))
-          meta-data)))
-    {}))
-
-(def meta-container? #{#'meta-container})
 
 ;;
 ;; Schema

@@ -1,6 +1,5 @@
 (ns compojure.api.swagger
   (:require [clojure.set :refer [union]]
-            [clojure.string :as cs]
             [clojure.walk :as walk]
             [compojure.api.common :refer :all]
             [compojure.api.routes :as routes]
@@ -16,135 +15,6 @@
             [ring.swagger.swagger2 :as swagger2]
             [schema.core :as s]
             [compojure.api.routing :as r]))
-
-;;
-;; Source Linking
-;;
-
-(defn- purge-symbol-or-var-meta [x]
-  (if (symbol? x)
-    (let [value (rsc/value-of (eval-re-resolve x))
-          naked (if (var? value) (var-get value) value)]
-      (meta naked))))
-
-(defn- inline? [x] (:inline (purge-symbol-or-var-meta x)))
-(defn- extract-source [x] (:source (purge-symbol-or-var-meta x)))
-
-;;
-;; Route peeling
-;;
-
-; TODO: #'wrap-routes
-(def compojure-route? #{#'GET #'POST #'PUT #'DELETE #'HEAD #'OPTIONS #'PATCH #'ANY})
-(def compojure-context? #{#'context})
-(def compojure-letroutes? #{#'let-routes})
-(def compojure-macro? (union compojure-route? compojure-context? compojure-letroutes?))
-
-(defn macroexpand-to-compojure [form]
-  (walk/prewalk
-    (fn [x]
-      (cond
-        (inline? x) (extract-source x)
-        (seq? x) (let [sym (first x)]
-                   (if (and
-                         (symbol? sym)
-                         (or
-                           (compojure-macro? (eval-re-resolve sym))
-                           (m/meta-container? (eval-re-resolve sym))))
-                     (filter (comp not nil?) x)
-                     (let [result (macroexpand-1 x)]
-                       ;; stop if macro expands to itself
-                       (if (= result x) result (list result)))))
-        :else x))
-    form))
-
-(defrecord CompojureRoute [p m b])
-(defrecord CompojureRoutes [p m c])
-
-(defn is-a?
-  "like instanceof? but compares .toString of a classes"
-  [c x] (= (str c) (str (class x))))
-
-; TODO: shoudn't eval code at compile-time
-(defn parse-meta-data [container]
-  (when-let [meta (m/unwrap-meta-container container)]
-    (rsc/remove-empty-keys (eval meta))))
-
-(defn route-metadata [body]
-  (parse-meta-data (first (drop 2 body))))
-
-(defn context-metadata [body]
-  (parse-meta-data (first (drop 3 body))))
-
-(defn merge-meta [& meta]
-  (apply rsc/deep-merge (map #(or % {}) meta)))
-
-;; this is needed in order for the swaggered-macro to work, can be
-;; removed when it's removed.
-(defn consume-empty-paths [routes]
-  (reduce
-    (fn [routes route]
-      (if (and (is-a? CompojureRoutes route) (= (:p route) ""))
-        (let [route-meta (:m route)
-              childs (:c route)
-              childs-with-meta (map
-                                 #(update-in
-                                   % [:m]
-                                   (fn [m]
-                                     (merge-meta route-meta (or m {}))))
-                                 childs)]
-          (into routes childs-with-meta))
-        (conj routes route))) [] routes))
-
-(defn filter-routes [c]
-  (consume-empty-paths
-    (filterv #(or (is-a? CompojureRoute %)
-                  (is-a? CompojureRoutes %)) (flatten c))))
-
-(defn collect-compojure-routes [form]
-  (walk/postwalk
-    (fn [x]
-      (or
-        (and
-          (seq? x)
-          (let [[m p] x
-                rm (and (symbol? m) (eval-re-resolve m))]
-            (cond
-              (compojure-route? rm) (->CompojureRoute p {} x)
-              (compojure-context? rm) (->CompojureRoutes p (context-metadata x) (filter-routes x))
-              (compojure-letroutes? rm) (->CompojureRoutes "" (context-metadata x) (filter-routes x))
-              :else x)))
-        x))
-    form))
-
-(defn remove-param-regexes [p] (if (vector? p) (first p) p))
-
-(defn strip-trailing-spaces [s] (cs/replace-first s #"(.)\/+$" "$1"))
-
-(defn create-api-route [[ks v]]
-  [{:method (keyword (name (first (keep second ks))))
-    :uri (->> ks (map first) (map remove-param-regexes) cs/join strip-trailing-spaces)} v])
-
-(defn extract-method [body]
-  (-> body first str .toLowerCase keyword))
-
-(defn create-paths [m {:keys [p b c] :as r}]
-  (cond
-
-    (is-a? CompojureRoute r)
-    [[p (extract-method b)]
-     [:endpoint {:meta (merge-meta m (:m r))
-                 :body (rest b)}]]
-
-    (is-a? CompojureRoutes r)
-    [[p nil] (->> c
-                  (map (partial create-paths (merge-meta m (:m r))))
-                  (reduce (fn [acc [k v]]
-                            (assoc-map-ordered acc k (if (get acc k)
-                                                       ;; match first compojure route
-                                                       (rsc/deep-merge v (get acc k))
-                                                       v)))
-                          (array-map)))]))
 
 ;;
 ;; ensure path parameters
@@ -200,10 +70,7 @@
 ;; routes
 ;;
 
-(defn ->swagger2 [route]
-  {(:uri route) {(:method route) (dissoc (:metadata route) :method :uri)}})
-
-(defn attach-meta-data-to-route [[{:keys [uri] :as route} [_ {:keys [body meta]}]]]
+#_(defn attach-meta-data-to-route [[{:keys [uri] :as route} [_ {:keys [body meta]}]]]
   (let [meta (merge-meta meta (route-metadata body))
         route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
     (->> route-with-meta
@@ -211,14 +78,6 @@
          ensure-parameter-schema-names
          ensure-return-schema-names
          ->swagger2)))
-
-(defn peel [x]
-  (or (and (seq? x) (= 1 (count x)) (first x)) x))
-
-(defn ensure-routes-in-root [body]
-  (if (seq? body)
-    (->CompojureRoutes "" {} (filter-routes body))
-    body))
 
 ; TODO: remove
 (defn swagger-info [handler]
