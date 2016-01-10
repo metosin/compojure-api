@@ -1,9 +1,9 @@
 (ns compojure.api.swagger-test
   (:require [schema.core :as s]
-            [compojure.api.core :refer :all]
-            [compojure.api.swagger :refer :all]
+            [compojure.api.sweet :refer :all]
+            [compojure.core :refer [defroutes]]
+            [compojure.api.swagger :as swagger]
             [compojure.api.test-utils :refer :all]
-            [compojure.core :refer :all]
             [midje.sweet :refer :all]
             [compojure.api.routing :as r]
             [compojure.api.routes :as routes]))
@@ -21,12 +21,12 @@
                 (routes*
                   (context* "/b" []
                     (let-routes* []
-                      (GET* "/c" [] identity)
-                      (POST* "/d" [] identity)
-                      (PUT* "/e" [] identity)
-                      (DELETE* "/f" [] identity)
-                      (OPTIONS* "/g" [] identity)
-                      (PATCH* "/h" [] identity)))
+                                 (GET* "/c" [] identity)
+                                 (POST* "/d" [] identity)
+                                 (PUT* "/e" [] identity)
+                                 (DELETE* "/f" [] identity)
+                                 (OPTIONS* "/g" [] identity)
+                                 (PATCH* "/h" [] identity)))
                   (context* "/:i/:j" []
                     (GET* "/k/:l/m/:n" [] identity))))]
 
@@ -85,90 +85,89 @@
 
     => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
-#_(fact "->swagger2info"
-    (fact "old format get's converted to new with warnings"
-      (binding [*out* (StringWriter.)]
-        (select-swagger2-parameters
-          {:version ..version..
-           :title ..title..
-           :description ..description..
-           :termsOfServiceUrl ..url..
-           :license ..license..})
+(fact "->swagger2info"
+  (fact "old format get's converted to new with warnings"
+    (with-out-str
+      (swagger/select-swagger2-parameters
+        {:version ..version..
+         :title ..title..
+         :description ..description..
+         :termsOfServiceUrl ..url..
+         :license ..license..})
 
-        => {:info {:version ..version..
-                   :title ..title..
-                   :description ..description..
-                   :termsOfService ..url..
-                   :license {:name ..license..}}}))
+      => {:info {:version ..version..
+                 :title ..title..
+                 :description ..description..
+                 :termsOfService ..url..
+                 :license {:name ..license..}}}))
 
-    (fact "with all datas"
-      (let [info {:info {:version "1.0.0"
-                         :title "Sausages"
-                         :description "Sausage description"
-                         :termsOfService "http://helloreverb.com/terms/"
-                         :contact {:name "My API Team"
-                                   :email "foo@example.com"
-                                   :url "http://www.metosin.fi"}
-                         :license {:name "Eclipse Public License"
-                                   :url "http://www.eclipse.org/legal/epl-v10.html"}}
-                  :tags [{:name "kikka", :description "kukka"}]}]
-        (select-swagger2-parameters
-          info) => info)))
+  (fact "with all datas"
+    (let [info {:info {:version "1.0.0"
+                       :title "Sausages"
+                       :description "Sausage description"
+                       :termsOfService "http://helloreverb.com/terms/"
+                       :contact {:name "My API Team"
+                                 :email "foo@example.com"
+                                 :url "http://www.metosin.fi"}
+                       :license {:name "Eclipse Public License"
+                                 :url "http://www.eclipse.org/legal/epl-v10.html"}}
+                :tags [{:name "kikka", :description "kukka"}]}]
+      (swagger/select-swagger2-parameters
+        info) => info)))
 
-#_(fact "context* meta-data"
-    (first
-      (swagger-info
-        '((context* "/api/:id" []
-            :summary "top-summary"
-            :path-params [id :- String]
-            :tags [:kiss]
-            (GET* "/kikka" []
-              identity)
-            (context* "/ipa" []
-              :summary "mid-summary"
-              :tags [:wasp]
-              (GET* "/kukka/:kukka" []
-                :summary "bottom-summary"
-                :path-params [kukka :- String]
-                :tags [:venom])
-              (GET* "/kakka" []
-                identity))))))
+(fact "context* meta-data"
+  (extract-routes
+    (context* "/api/:id" []
+      :summary "top-summary"
+      :path-params [id :- String]
+      :tags [:kiss]
+      (GET* "/kikka" []
+        identity)
+      (context* "/ipa" []
+        :summary "mid-summary"
+        :tags [:wasp]
+        (GET* "/kukka/:kukka" []
+          :summary "bottom-summary"
+          :path-params [kukka :- String]
+          :tags [:venom])
+        (GET* "/kakka" []
+          identity))))
 
-    => {:paths {"/api/:id/kikka" {:get {:summary "top-summary"
-                                        :tags #{:kiss}
-                                        :parameters {:path {:id String}}}}
-                "/api/:id/ipa/kukka/:kukka" {:get {:summary "bottom-summary"
-                                                   :tags #{:venom}
-                                                   :parameters {:path {:id String
-                                                                       :kukka String}}}}
-                "/api/:id/ipa/kakka" {:get {:summary "mid-summary"
-                                            :tags #{:wasp}
-                                            :parameters {:path {:id String}}}}}})
+  => {"/api/:id/kikka" {:get {:summary "top-summary"
+                              :tags #{:kiss}
+                              :parameters {:path {:id String}}}}
+      "/api/:id/ipa/kukka/:kukka" {:get {:summary "bottom-summary"
+                                         :tags #{:venom}
+                                         :parameters {:path {:id String
+                                                             :kukka String}}}}
+      "/api/:id/ipa/kakka" {:get {:summary "mid-summary"
+                                  :tags #{:wasp}
+                                  :parameters {:path {:id String}}}}})
 
-#_(facts "duplicate context merge"
-    (let [app (routes*
-                (context* "/api" []
-                  :tags [:kiss]
-                  (GET* "/kakka" []
-                    identity))
-                (context* "/api" []
-                  :tags [:kiss]
-                  (GET* "/kukka" []
-                    identity)))]
-      (-> app r/get-routes routes/->ring-swagger)
-      => {:paths {"/api/kukka" {:get {:tags #{:kiss}}}
-                  "/api/kakka" {:get {:tags #{:kiss}}}}}))
-
-#_(facts "defroutes* path-params"
-    (defroutes* r1
-                (GET* "/:id" []
-                  :path-params [id :- s/Str]
+(facts "duplicate context merge"
+  (let [app (routes*
+              (context* "/api" []
+                :tags [:kiss]
+                (GET* "/kakka" []
                   identity))
-    (defroutes* r2
-                (GET* "/kukka/:id" []
-                  :path-params [id :- Long]
-                  identity))
+              (context* "/api" []
+                :tags [:kiss]
+                (GET* "/kukka" []
+                  identity)))]
+    (extract-routes app)
+    => {"/api/kukka" {:get {:tags #{:kiss}}}
+        "/api/kakka" {:get {:tags #{:kiss}}}}))
 
-    (-> (routes* r1 r2) r/get-routes routes/->ring-swagger)
-    => {:paths {"/:id" {:get {:parameters {:path {:id String}}}}
-                "/kukka/:id" {:get {:parameters {:path {:id Long}}}}}})
+(defroutes* r1
+  (GET* "/:id" []
+    :path-params [id :- s/Str]
+    identity))
+(defroutes* r2
+  (GET* "/kukka/:id" []
+    :path-params [id :- Long]
+    identity))
+
+(facts "defroutes* path-params"
+  (extract-routes (routes* r1 r2))
+  => {"/:id" {:get {:parameters {:path {:id String}}}}
+      "/kukka/:id" {:get {:parameters {:path {:id Long}}}}})
