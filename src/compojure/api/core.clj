@@ -9,9 +9,11 @@
             [compojure.api.routing :as r]
             [ring.swagger.swagger2 :as rss]))
 
-(defn routes* [& handlers]
+(defn routes*
+  "Create a Ring handler by combining several handlers into one."
+  [& handlers]
   (let [handlers (keep identity handlers)]
-    (r/route "" :any {} (vec handlers) (fn [request] (some #(% request) handlers)))))
+    (r/create "" :any {} (vec handlers) (fn [request] (some #(% request) handlers)))))
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may
@@ -28,7 +30,7 @@
 
 (defn undocumented* [& handlers]
   (let [handlers (keep identity handlers)]
-    (r/route "" :any {} nil (fn [request] (some #(% request) handlers)))))
+    (r/create "" :any {} nil (fn [request] (some #(% request) handlers)))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
@@ -36,7 +38,7 @@
   (let [middlewares (reverse middlewares)
         routes? (> (count body) 1)]
     `(let [body# ~(if routes? `(routes* ~@body) (first body))]
-       (r/route "" :any {} [body#] (-> body# ~@middlewares)))))
+       (r/create "" :any {} [body#] (-> body# ~@middlewares)))))
 
 (defmacro context* [& args] (meta/restructure #'context args {:routes 'routes*}))
 
@@ -77,7 +79,7 @@
                         (mw/api-middleware options)
                         (mw/wrap-options {:routes swagger
                                           :lookup lookup}))]
-    (r/route nil :any {} [handler] api-handler)))
+    (r/create nil :any {} [handler] api-handler)))
 
 (defmacro defapi [name & body]
   `(def ~name (api ~@body)))

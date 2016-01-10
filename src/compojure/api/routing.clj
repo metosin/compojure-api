@@ -37,7 +37,7 @@
   (applyTo [this args]
     (AFn/applyToHelper this args)))
 
-(defn route [path method info childs handler]
+(defn create [path method info childs handler]
   (when-let [invalid-childs (seq (remove (partial satisfies? Routing) childs))]
     (let [message "Not all child routes satisfy compojure.api.routing/Routing."
           data {:path path
