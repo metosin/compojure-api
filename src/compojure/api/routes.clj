@@ -4,27 +4,8 @@
             [cheshire.core :as json]
             [compojure.api.middleware :as mw]
             [clojure.string :as str]
-            [linked.core :as linked]))
-
-(defn- un-quote [s]
-  (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
-
-(defn ->path [s params]
-  (-> s
-      (str/replace #":([^/]+)" " :$1 ")
-      (str/split #" ")
-      (->> (map
-             (fn [[head :as token]]
-               (if (= head \:)
-                 (let [key (keyword (subs token 1))
-                       value (key params)]
-                   (if value
-                     (un-quote (json/generate-string value))
-                     (throw
-                       (IllegalArgumentException.
-                         (str "Missing path-parameter " key " for path " s)))))
-                 token)))
-           (apply str))))
+            [linked.core :as linked]
+            [schema.core :as s]))
 
 (defn- duplicates [seq]
   (for [[id freq] (frequencies seq)
@@ -47,10 +28,29 @@
                     (string/join "," duplicate-route-names)))))
     (into {} entries)))
 
+(defn- path-params [s]
+  (map (comp keyword second) (re-seq #":(.[^:|(/]*)[/]?" s)))
+
+(defn- string-path-parameters [uri]
+  (let [params (path-params uri)]
+    (if (seq params)
+      (zipmap params (repeat String)))))
+
+(defn- ensure-path-parameters [path info]
+  (if (seq (path-params path))
+    (update-in info [:parameters :path] #(dissoc (merge (string-path-parameters path) %) s/Keyword))
+    info))
+
 (defn ->ring-swagger [routes]
-  {:paths (->> routes
-               (map (fn [[path method info]] [path {method info}]))
-               (into (linked/map)))})
+  {:paths (reduce
+            (fn [acc [path method info]]
+              (update-in
+                acc [path method]
+                (fn [old-info]
+                  (let [info (or old-info info)]
+                    (ensure-path-parameters path info)))))
+            (linked/map)
+            routes)})
 
 ;;
 ;; Endpoint Trasformers
@@ -66,13 +66,28 @@
   (or endpoint {}))
 
 ;;
-;; Public API
+;; Bidirectional-routing
 ;;
 
-(defmulti collect-routes identity)
+(defn- un-quote [s]
+  (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
 
-(defn route-vector-to-route-map [v]
-  {:paths (into (linked/map) (concat v))})
+(defn ->path [s params]
+  (-> s
+      (str/replace #":([^/]+)" " :$1 ")
+      (str/split #" ")
+      (->> (map
+             (fn [[head :as token]]
+               (if (= head \:)
+                 (let [key (keyword (subs token 1))
+                       value (key params)]
+                   (if value
+                     (un-quote (json/generate-string value))
+                     (throw
+                       (IllegalArgumentException.
+                         (str "Missing path-parameter " key " for path " s)))))
+                 token)))
+           (apply str))))
 
 (defn path-for*
   "Extracts the lookup-table from request and finds a route by name."

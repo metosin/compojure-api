@@ -14,9 +14,9 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui]
-            [linked.core :as linked]
             [ring.swagger.swagger2 :as swagger2]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [compojure.api.routing :as r]))
 
 ;;
 ;; Source Linking
@@ -221,21 +221,9 @@
     (->CompojureRoutes "" {} (filter-routes body))
     body))
 
-(defn extract-routes [body]
-  (->> body
-       peel
-       macroexpand-to-compojure
-       collect-compojure-routes
-       ensure-routes-in-root
-       (create-paths {})
-       (apply array-map)
-       path-vals
-       (map create-api-route)
-       (map attach-meta-data-to-route)
-       (apply rsc/deep-merge (linked/map))))
-
-(defn swagger-info [body]
-  [{:paths (extract-routes body)} body])
+; TODO: remove
+(defn swagger-info [handler]
+  (routes/->ring-swagger (r/get-routes handler)))
 
 (defn- deprecated! [& args]
   (apply println (concat ["DEPRECATED:"] args)))
@@ -320,12 +308,14 @@
 (defn swagger-api? [api]
   (boolean (swagger-spec-path api)))
 
+;; FIXME!
 (defn validate
   "Validates a api. If the api is Swagger-enabled, the swagger-docs
   endpoint is requested. Returns either the (valid) api or throws an
   exception."
   [api]
-  (let [{:keys [routes options]} (meta api)
+  (throw (ex-info "Reimplement" {}))
+  #_(let [{:keys [routes options]} (meta api)
         routes (routes/route-vector-to-route-map routes)]
     (assert (not (nil? routes)) "Api did not contain route definitions.")
     (when (swagger-api? api)
