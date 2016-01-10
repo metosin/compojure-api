@@ -6,7 +6,8 @@
             [schema.core :as s]
             [clojure.java.io :as io]
             [scjsv.core :as scjsv]
-            [compojure.api.routes :as routes]))
+            [compojure.api.routes :as routes]
+            [compojure.api.routing :as r]))
 
 (def validate
   (scjsv/validator (slurp (io/resource "ring/swagger/v2.0_schema.json"))))
@@ -18,63 +19,67 @@
 
 (s/defschema NewBand (dissoc Band :id))
 
-(defroutes* ping-routes (GET* "/ping" [] identity))
+(def ping-route
+  (GET* "/ping" [] identity))
 
-(defapi app
-  (swagger-docs
-    {:info {:version "1.0.0"
-            :title "Sausages"
-            :description "Sausage description"
-            :termsOfService "http://helloreverb.com/terms/"
-            :contact {:name "My API Team"
-                      :email "foo@example.com"
-                      :url "http://www.metosin.fi"}
-            :license {:name "Eclipse Public License"
-                      :url "http://www.eclipse.org/legal/epl-v10.html"}}})
-  ping-routes
-  (context* "/api" []
-    ;; defroutes* over a Var
-    #'ping-routes
-    (GET* "/bands" []
-      :name :bands
-      :return [Band]
-      :summary "Gets all Bands"
-      :description "bands bands bands"
-      :operationId "getBands"
-      identity)
-    (GET* "/bands/:id" [id]
-      :return Band
-      :summary "Gets a Band"
-      :operationId "getBand"
-      identity)
-    (POST* "/bands" []
-      :return Band
-      :body [band [NewBand]]
-      :summary "Adds a Band"
-      :operationId "addBand"
-      identity)
-    (GET* "/query" []
-      :query-params [qp :- Boolean]
-      identity)
-    (GET* "/header" []
-      :header-params [hp :- Boolean]
-      identity)
-    (POST* "/form" []
-      :form-params [fp :- Boolean]
-      identity)
-    (GET* "/primitive" []
-      :return String
-      identity)
-    (GET* "/primitiveArray" []
-      :return [String]
-      identity)))
+(def app
+  (api
+    (swagger-docs
+      {:info {:version "1.0.0"
+              :title "Sausages"
+              :description "Sausage description"
+              :termsOfService "http://helloreverb.com/terms/"
+              :contact {:name "My API Team"
+                        :email "foo@example.com"
+                        :url "http://www.metosin.fi"}
+              :license {:name "Eclipse Public License"
+                        :url "http://www.eclipse.org/legal/epl-v10.html"}}})
+    ping-route
+    (context* "/api" []
+      ;; defroutes* over a Var
+      ping-route
+      (GET* "/bands" []
+        :name :bands
+        :return [Band]
+        :summary "Gets all Bands"
+        :description "bands bands bands"
+        :operationId "getBands"
+        identity)
+      (GET* "/bands/:id" [id]
+        :return Band
+        :summary "Gets a Band"
+        :operationId "getBand"
+        identity)
+      (POST* "/bands" []
+        :return Band
+        :body [band [NewBand]]
+        :summary "Adds a Band"
+        :operationId "addBand"
+        identity)
+      (GET* "/query" []
+        :query-params [qp :- Boolean]
+        identity)
+      (GET* "/header" []
+        :header-params [hp :- Boolean]
+        identity)
+      (POST* "/form" []
+        :form-params [fp :- Boolean]
+        identity)
+      (GET* "/primitive" []
+        :return String
+        identity)
+      (GET* "/primitiveArray" []
+        :return [String]
+        identity))))
 
 (facts "api documentation"
   (fact "details are generated"
 
-    (-> app meta :routes routes/route-vector-to-route-map)
+    (-> app r/get-routes routes/->ring-swagger)
 
-    => {:paths {"/ping" {:get {}}
+    => {:paths {"/swagger.json" {:get {:x-name :compojure.api.swagger/swagger,
+                                       :x-no-doc true}}
+                "/ping" {:get {}}
                 "/api/ping" {:get {}}
                 "/api/bands" {:get {:x-name :bands
                                     :operationId "getBands"
@@ -111,6 +116,7 @@
         status => 200)
 
       (fact "spec is as expected"
+
         body => {:swagger "2.0"
                  :info {:version "1.0.0"
                         :title "Sausages"
