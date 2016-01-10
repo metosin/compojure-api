@@ -632,30 +632,6 @@
         status => 200
         body => ["baz"]))))
 
-(fact "(deprecated) swaggered-macro still works"
-  (let [app (api
-              (swagger-docs)
-              (swaggered "a"
-                (GET* "/api/a" []
-                  (ok "a")))
-              (swaggered "b"
-                (GET* "/api/b" []
-                  (ok "b"))))]
-
-    (fact "swaggered routes work"
-      (let [[_ body] (raw-get* app "/api/a")]
-        body => "a"))
-
-    (fact "swaggered routes work"
-      (let [[_ body] (raw-get* app "/api/b")]
-        body => "b"))
-
-    (fact "swaggered pushes tag to endpoints"
-      (-> app get-spec :paths) => {"/api/a" {:get {:responses {:default {:description ""}}
-                                                   :tags ["a"]}}
-                                   "/api/b" {:get {:responses {:default {:description ""}}
-                                                   :tags ["b"]}}})))
-
 (require '[compojure.api.test-domain :refer [Pizza burger-routes]])
 
 (fact "external deep schemas"

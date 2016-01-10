@@ -44,8 +44,7 @@
   [compojure.api.swagger
 
    swagger-ui
-   swagger-docs
-   swaggered]
+   swagger-docs]
 
   [ring.swagger.json-schema
 

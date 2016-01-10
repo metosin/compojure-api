@@ -314,22 +314,6 @@
                  result# (swagger2/swagger-json swagger# options#)]
              result#))))))
 
-(defmacro swaggered
-  "DEPRECATED. Use context* with :tags instead:
-    (context* \"/api\"
-      :tags [\"api\"]
-      ...)"
-  [api-name & body]
-  (deprecated! "swaggered is deprecated and removed soon, see docs for details.")
-  (let [[_ body] (extract-parameters body)]
-    `(let-routes [] (constantly nil)
-       (compojure.api.meta/meta-container
-         {:tags [~(keyword api-name)]}
-         (routes ~@body)))))
-
-(defmethod routes/collect-routes :default [body]
-  (swagger-info body))
-
 (defn swagger-spec-path [api]
   (some-> api meta :lookup ::swagger first first))
 
