@@ -6,14 +6,13 @@
             [compojure.api.routes :as routes]
             [compojure.api.meta :as m]
             [compojure.core :refer :all]
-            [compojure.api.core :refer [GET*]]
+            [compojure.api.core :refer [GET* undocumented*]]
             [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
-            [potemkin :refer [import-vars]]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
-            [ring.swagger.ui]
+            [ring.swagger.ui :as rsui]
             [ring.swagger.swagger2 :as swagger2]
             [schema.core :as s]
             [compojure.api.routing :as r]))
@@ -236,7 +235,9 @@
 ;; Public api
 ;;
 
-(import-vars [ring.swagger.ui swagger-ui])
+(defn swagger-ui [& params]
+  (undocumented*
+    (apply rsui/swagger-ui params)))
 
 (defn select-swagger2-parameters
   "Validates the given Swagger 2.0 format against the Schema. Prints warnings to STDOUT
