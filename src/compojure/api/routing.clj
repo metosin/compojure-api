@@ -3,18 +3,10 @@
             [compojure.api.impl.logging :as logging])
   (:import [clojure.lang AFn IFn]))
 
-;;
-;; Routing
-;;
-
 (def ^:dynamic *fail-on-missing-route-info* false)
 
 (defprotocol Routing
   (get-routes [handler]))
-
-;;
-;; Routes
-;;
 
 (defn- ->path [path]
   (if-not (= path "/") path))
