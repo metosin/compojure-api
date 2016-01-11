@@ -7,7 +7,6 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [ring.swagger.core :as rsc]
-            [compojure.api.swagger :as caw]
             [ring.util.http-status :as status]
             [compojure.api.middleware :as mw]
             [ring.swagger.middleware :as rsm]))
