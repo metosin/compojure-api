@@ -121,7 +121,7 @@
                info)]
     info))
 
-(defmacro swagger-docs
+(defn swagger-docs
   "Route to serve the swagger api-docs. If the first
    parameter is a String, it is used as a url for the
    api-docs, otherwise \"/swagger.json\" will be used.
@@ -147,20 +147,19 @@
         extra-info (select-swagger2-parameters (if (map? first-value)
                                                  first-value
                                                  (apply hash-map key-values)))]
-    `(GET* ~path {:as request#}
-       :no-doc true
-       :name ::swagger
-       (let [runtime-info# (rsm/get-swagger-data request#)
-             base-path# {:basePath (base-path request#)}
-             options# (:ring-swagger (mw/get-options request#))
-             routes# (:routes (mw/get-options request#))]
-         (ok
-           (let [swagger# (rsc/deep-merge base-path#
-                                          routes#
-                                          ~extra-info
-                                          runtime-info#)
-                 result# (swagger2/swagger-json swagger# options#)]
-             result#))))))
+    (GET* path request
+      :no-doc true
+      :name ::swagger
+      (let [runtime-info (rsm/get-swagger-data request)
+            base-path {:basePath (base-path request)}
+            options (:ring-swagger (mw/get-options request))
+            routes (:routes (mw/get-options request))
+            swagger (rsc/deep-merge base-path
+                                    routes
+                                    extra-info
+                                    runtime-info)
+            spec (swagger2/swagger-json swagger options)]
+        (ok spec)))))
 
 (defn swagger-spec-path [api]
   (some-> api meta :lookup ::swagger first first))
