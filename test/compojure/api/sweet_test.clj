@@ -5,8 +5,7 @@
             [ring.mock.request :refer :all]
             [schema.core :as s]
             [clojure.java.io :as io]
-            [scjsv.core :as scjsv]
-            [compojure.api.routes :as routes]))
+            [scjsv.core :as scjsv]))
 
 (def validate
   (scjsv/validator (slurp (io/resource "ring/swagger/v2.0_schema.json"))))
@@ -74,38 +73,38 @@
 (facts "api documentation"
   (fact "details are generated"
 
-    (-> app routes/get-routes routes/->ring-swagger)
+    (extract-paths app)
 
-    => {:paths {"/swagger.json" {:get {:x-name :compojure.api.swagger/swagger,
-                                       :x-no-doc true}}
-                "/ping" {:get {}}
-                "/api/ping" {:get {}}
-                "/api/bands" {:get {:x-name :bands
-                                    :operationId "getBands"
-                                    :description "bands bands bands"
-                                    :responses {200 {:schema [Band]
-                                                     :description ""}}
-                                    :summary "Gets all Bands"}
-                              :post {:operationId "addBand"
-                                     :parameters {:body [NewBand]}
-                                     :responses {200 {:schema Band
-                                                      :description ""}}
-                                     :summary "Adds a Band"}}
-                "/api/bands/:id" {:get {:operationId "getBand"
-                                        :responses {200 {:schema Band
-                                                         :description ""}}
-                                        :summary "Gets a Band"
-                                        :parameters {:path {:id String}}}}
-                "/api/query" {:get {:parameters {:query {:qp Boolean
-                                                         s/Keyword s/Any}}}}
-                "/api/header" {:get {:parameters {:header {:hp Boolean
-                                                           s/Keyword s/Any}}}}
-                "/api/form" {:post {:parameters {:formData {:fp Boolean}}
-                                    :consumes ["application/x-www-form-urlencoded"]}}
-                "/api/primitive" {:get {:responses {200 {:schema String
-                                                         :description ""}}}}
-                "/api/primitiveArray" {:get {:responses {200 {:schema [String]
-                                                              :description ""}}}}}})
+    => {"/swagger.json" {:get {:x-name :compojure.api.swagger/swagger,
+                               :x-no-doc true}}
+        "/ping" {:get {}}
+        "/api/ping" {:get {}}
+        "/api/bands" {:get {:x-name :bands
+                            :operationId "getBands"
+                            :description "bands bands bands"
+                            :responses {200 {:schema [Band]
+                                             :description ""}}
+                            :summary "Gets all Bands"}
+                      :post {:operationId "addBand"
+                             :parameters {:body [NewBand]}
+                             :responses {200 {:schema Band
+                                              :description ""}}
+                             :summary "Adds a Band"}}
+        "/api/bands/:id" {:get {:operationId "getBand"
+                                :responses {200 {:schema Band
+                                                 :description ""}}
+                                :summary "Gets a Band"
+                                :parameters {:path {:id String}}}}
+        "/api/query" {:get {:parameters {:query {:qp Boolean
+                                                 s/Keyword s/Any}}}}
+        "/api/header" {:get {:parameters {:header {:hp Boolean
+                                                   s/Keyword s/Any}}}}
+        "/api/form" {:post {:parameters {:formData {:fp Boolean}}
+                            :consumes ["application/x-www-form-urlencoded"]}}
+        "/api/primitive" {:get {:responses {200 {:schema String
+                                                 :description ""}}}}
+        "/api/primitiveArray" {:get {:responses {200 {:schema [String]
+                                                      :description ""}}}}})
 
   (fact "api-listing works"
     (let [spec (get-spec app)]

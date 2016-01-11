@@ -10,6 +10,53 @@
             [schema.core :as s])
   (:import [clojure.lang AFn IFn]))
 
+;;
+;; Route records
+;;
+
+(def ^:dynamic *fail-on-missing-route-info* false)
+
+(defprotocol Routing
+  (get-routes [handler]))
+
+(defn- ->path [path]
+  (if-not (= path "/") path))
+
+(defn- ->paths [p1 p2]
+  (->path (str p1 (->path p2))))
+
+(defrecord Route [path method info childs handler]
+  Routing
+  (get-routes [_]
+    (if (seq childs)
+      (vec
+        (for [[p m i] (mapcat get-routes (filter (partial satisfies? Routing) childs))]
+          [(->paths path p) m (rsc/deep-merge info i)]))
+      [[path method info]]))
+
+  IFn
+  (invoke [_ request]
+    (handler request))
+  (applyTo [this args]
+    (AFn/applyToHelper this args)))
+
+(defn create [path method info childs handler]
+  (when-let [invalid-childs (seq (remove (partial satisfies? Routing) childs))]
+    (let [message "Not all child routes satisfy compojure.api.routing/Routing."
+          data {:path path
+                :method method
+                :info info
+                :childs childs
+                :invalid invalid-childs}]
+      (if *fail-on-missing-route-info*
+        (throw (ex-info message data))
+        (logging/log! :warn message data))))
+  (->Route path method info childs handler))
+
+;;
+;;
+;;
+
 (defn- duplicates [seq]
   (for [[id freq] (frequencies seq)
         :when (> freq 1)] id))
@@ -44,16 +91,17 @@
     (update-in info [:parameters :path] #(dissoc (merge (string-path-parameters path) %) s/Keyword))
     info))
 
-(defn ->ring-swagger [routes]
-  {:paths (reduce
-            (fn [acc [path method info]]
-              (update-in
-                acc [path method]
-                (fn [old-info]
-                  (let [info (or old-info info)]
-                    (ensure-path-parameters path info)))))
-            (linked/map)
-            routes)})
+(defn ring-swagger-paths [handler]
+  {:paths
+   (reduce
+     (fn [acc [path method info]]
+       (update-in
+         acc [path method]
+         (fn [old-info]
+           (let [info (or old-info info)]
+             (ensure-path-parameters path info)))))
+     (linked/map)
+     (get-routes handler))})
 
 ;;
 ;; Endpoint Trasformers
@@ -109,46 +157,3 @@
   "Extracts the lookup-table from request and finds a route by name."
   [route-name & [params]]
   `(path-for* ~route-name ~'+compojure-api-request+ ~params))
-
-;;
-;; Route records
-;;
-
-(def ^:dynamic *fail-on-missing-route-info* false)
-
-(defprotocol Routing
-  (get-routes [handler]))
-
-(defn- ->path [path]
-  (if-not (= path "/") path))
-
-(defn- ->paths [p1 p2]
-  (->path (str p1 (->path p2))))
-
-(defrecord Route [path method info childs handler]
-  Routing
-  (get-routes [_]
-    (if (seq childs)
-      (vec
-        (for [[p m i] (mapcat get-routes (filter (partial satisfies? Routing) childs))]
-          [(->paths path p) m (rsc/deep-merge info i)]))
-      [[path method info]]))
-
-  IFn
-  (invoke [_ request]
-    (handler request))
-  (applyTo [this args]
-    (AFn/applyToHelper this args)))
-
-(defn create [path method info childs handler]
-  (when-let [invalid-childs (seq (remove (partial satisfies? Routing) childs))]
-    (let [message "Not all child routes satisfy compojure.api.routing/Routing."
-          data {:path path
-                :method method
-                :info info
-                :childs childs
-                :invalid invalid-childs}]
-      (if *fail-on-missing-route-info*
-        (throw (ex-info message data))
-        (logging/log! :warn message data))))
-  (->Route path method info childs handler))

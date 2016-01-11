@@ -93,6 +93,9 @@
 ;; get-spec
 ;;
 
+(defn extract-paths [app]
+  (:paths (routes/ring-swagger-paths app)))
+
 (defn get-spec [app]
   (let [[status spec] (get* app "/swagger.json" {})]
     (assert (= status 200))

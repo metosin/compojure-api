@@ -75,13 +75,14 @@
   [& body]
   (let [[options handlers] (extract-parameters body)
         handler (apply routes* handlers)
-        swagger (-> handler routes/get-routes routes/->ring-swagger)
+        swagger (routes/ring-swagger-paths handler)
         lookup (routes/route-lookup-table swagger)
         swagger (->> swagger
                      (rss/transform-operations routes/non-nil-routes)
                      (rss/transform-operations routes/strip-no-doc-endpoints))
         api-handler (-> handler
                         (mw/api-middleware options)
+                        ;; TODO: wrap just the handler
                         (mw/wrap-options {:routes swagger
                                           :lookup lookup}))]
     (routes/create nil :any {} [handler] api-handler)))

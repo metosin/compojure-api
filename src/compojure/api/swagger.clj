@@ -2,7 +2,6 @@
   (:require [clojure.set :refer [union]]
             [clojure.walk :as walk]
             [compojure.api.common :refer :all]
-            [compojure.api.routes :as routes]
             [compojure.core :refer :all]
             [compojure.api.core :refer [GET* undocumented*]]
             [compojure.api.common :refer [extract-parameters]]
@@ -77,10 +76,6 @@
          ensure-parameter-schema-names
          ensure-return-schema-names
          ->swagger2)))
-
-; TODO: remove
-(defn swagger-info [handler]
-  (routes/->ring-swagger (routes/get-routes handler)))
 
 (defn- deprecated! [& args]
   (apply println (concat ["DEPRECATED:"] args)))

@@ -3,11 +3,7 @@
             [compojure.api.sweet :refer :all]
             [compojure.core :refer [defroutes]]
             [compojure.api.test-utils :refer :all]
-            [midje.sweet :refer :all]
-            [compojure.api.routes :as routes]))
-
-(defn extract-routes [app]
-  (-> app routes/get-routes routes/->ring-swagger :paths))
+            [midje.sweet :refer :all]))
 
 (defmacro optional-routes* [p & body] (when p `(routes* ~@body)))
 (defmacro GET+ [p & body] `(GET* ~(str "/xxx" p) ~@body))
@@ -28,7 +24,7 @@
                   (context* "/:i/:j" []
                     (GET* "/k/:l/m/:n" [] identity))))]
 
-      (extract-routes app)
+      (extract-paths app)
       => {"/a/b/c" {:get {}}
           "/a/b/d" {:post {}}
           "/a/b/e" {:put {}}
@@ -41,20 +37,20 @@
                                                           :n String}}}}}))
 
   (fact "runtime code in route is NOT ignored"
-    (extract-routes
+    (extract-paths
       (context* "/api" []
         (if false
           (GET* "/true" [] identity)
           (PUT* "/false" [] identity)))) => {"/api/false" {:put {}}})
 
   (fact "route-macros are expanded"
-    (extract-routes
+    (extract-paths
       (context* "/api" []
         (optional-routes* true (GET* "/true" [] identity))
         (optional-routes* false (PUT* "/false" [] identity)))) => {"/api/true" {:get {}}})
 
   (fact "endpoint-macros are expanded"
-    (extract-routes
+    (extract-paths
       (context* "/api" []
         (GET+ "/true" [] identity))) => {"/api/xxx/true" {:get {}}})
 
@@ -62,7 +58,7 @@
     (ignore-non-documented-route-warning
       (defroutes even-more-routes (GET* "/even" [] identity))
       (defroutes more-routes (context* "/more" [] even-more-routes))
-      (extract-routes
+      (extract-paths
         (context* "/api" []
           (GET* "/true" [] identity)
           more-routes)) => {"/api/true" {:get {}}}))
@@ -70,21 +66,21 @@
   (fact "Compojure Api defroutes are followed"
     (defroutes* even-more-routes* (GET* "/even" [] identity))
     (defroutes* more-routes* (context* "/more" [] even-more-routes*))
-    (extract-routes
+    (extract-paths
       (context* "/api" []
         (GET* "/true" [] identity)
         more-routes*)) => {"/api/true" {:get {}}
                            "/api/more/even" {:get {}}})
 
   (fact "Parameter regular expressions are discarded"
-    (extract-routes
+    (extract-paths
       (context* "/api" []
         (GET* ["/:param" :param #"[a-z]+"] [] identity)))
 
     => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
 (fact "context* meta-data"
-  (extract-routes
+  (extract-paths
     (context* "/api/:id" []
       :summary "top-summary"
       :path-params [id :- String]
@@ -122,7 +118,7 @@
                 :tags [:kiss]
                 (GET* "/kukka" []
                   identity)))]
-    (extract-routes app)
+    (extract-paths app)
     => {"/api/kukka" {:get {:tags #{:kiss}}}
         "/api/kakka" {:get {:tags #{:kiss}}}}))
 
@@ -136,6 +132,6 @@
     identity))
 
 (facts "defroutes* path-params"
-  (extract-routes (routes* r1 r2))
+  (extract-paths (routes* r1 r2))
   => {"/:id" {:get {:parameters {:path {:id String}}}}
       "/kukka/:id" {:get {:parameters {:path {:id Long}}}}})
