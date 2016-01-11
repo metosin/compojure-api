@@ -7,7 +7,7 @@
 ;; Routing
 ;;
 
-(def ^:dynamic *fail-on-missing-route-info* true)
+(def ^:dynamic *fail-on-missing-route-info* false)
 
 (defprotocol Routing
   (get-routes [handler]))
