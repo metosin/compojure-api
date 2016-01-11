@@ -289,8 +289,14 @@
 ;; Impl
 ;;
 
-(defmacro letk*
-  "pimped letk-macro used in resolving route-docs. not part of normal invokation chain."
+(defmacro dummy-let
+  "Dummy let-macro used in resolving route-docs. not part of normal invokation chain."
+  [bindings & body]
+  (let [bind-form (vec (apply concat (for [n (take-nth 2 bindings)] [n nil])))]
+    `(let ~bind-form ~@body)))
+
+(defmacro dummy-letk
+  "Dummy letk-macro used in resolving route-docs. not part of normal invokation chain."
   [bindings & body]
   (reduce
     (fn [cur-body-form [bind-form]]
@@ -372,8 +378,8 @@
         ;; for routes, create a separate lookup-function to find the inner routes
         child-form (if routes
                      (let [form `(~wrap ~@body)
-                           form (if (seq letks) `(letk* ~letks ~form) form)
-                           form (if (seq lets) `(let ~lets ~form) form)
+                           form (if (seq letks) `(dummy-letk ~letks ~form) form)
+                           form (if (seq lets) `(dummy-let ~lets ~form) form)
                            form `(fn [~'+compojure-api-request+] ~form)
                            form (if (seq pre-lets) `(let ~pre-lets ~form) form)]
                        form))]
