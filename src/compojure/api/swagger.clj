@@ -1,7 +1,5 @@
 (ns compojure.api.swagger
-  (:require [clojure.set :refer [union]]
-            [clojure.walk :as walk]
-            [compojure.api.common :refer :all]
+  (:require [compojure.api.common :refer :all]
             [compojure.core :refer :all]
             [compojure.api.core :refer [GET* undocumented*]]
             [compojure.api.common :refer [extract-parameters]]
@@ -11,71 +9,31 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as rsui]
-            [ring.swagger.swagger2 :as swagger2]
-            [schema.core :as s]))
-
-;;
-;; ensure path parameters
-;;
-
-(defn path-params [s]
-  (map (comp keyword second) (re-seq #":(.[^:|(/]*)[/]?" s)))
-
-(defn string-path-parameters [uri]
-  (let [params (path-params uri)]
-    (if (seq params)
-      (zipmap params (repeat String)))))
-
-(defn- remove-keyword-namespaces [schema]
-  (walk/prewalk
-    (fn [x]
-      (if (and (keyword? x) (namespace x))
-        (keyword (name x))
-        x))
-    schema))
-
-(defn ensure-path-parameters [uri route-with-meta]
-  (if (seq (path-params uri))
-    (update-in route-with-meta [:metadata :parameters :path]
-               #(dissoc (merge (string-path-parameters uri)
-                               (remove-keyword-namespaces %))
-                        s/Keyword))
-    route-with-meta))
+            [ring.swagger.swagger2 :as swagger2]))
 
 ;;
 ;; generate schema names
 ;;
 
-(defn ensure-parameter-schema-names [route-with-meta]
-  (if (get-in route-with-meta [:metadata :parameters :body])
-    (update-in route-with-meta [:metadata :parameters :body]
-               #(swagger/with-named-sub-schemas
-                 (remove-keyword-namespaces %) "Body"))
-    route-with-meta))
+#_(defn ensure-parameter-schema-names [endpoint]
+  (if (get-in endpoint [:parameters :body])
+    (update-in endpoint [:parameters :body] #(swagger/with-named-sub-schemas % "Body"))
+    endpoint))
 
-(defn ensure-return-schema-names [route-with-meta]
-  (if (get-in route-with-meta [:metadata :responses])
+#_(defn ensure-return-schema-names [endpoint]
+  (if (get-in endpoint [:responses])
     (update-in
-      route-with-meta [:metadata :responses]
+      endpoint [:responses]
       (fn [responses]
         (into {} (map
                    (fn [[k v]]
                      [k (update-in v [:schema] swagger/with-named-sub-schemas "Response")])
                    responses))))
-    route-with-meta))
+    endpoint))
 
 ;;
 ;; routes
 ;;
-
-#_(defn attach-meta-data-to-route [[{:keys [uri] :as route} [_ {:keys [body meta]}]]]
-  (let [meta (merge-meta meta (route-metadata body))
-        route-with-meta (if-not (empty? meta) (assoc route :metadata meta) route)]
-    (->> route-with-meta
-         (ensure-path-parameters uri)
-         ensure-parameter-schema-names
-         ensure-return-schema-names
-         ->swagger2)))
 
 (defn- deprecated! [& args]
   (apply println (concat ["DEPRECATED:"] args)))
@@ -126,10 +84,10 @@
             spec (swagger2/swagger-json swagger options)]
         (ok spec)))))
 
-(defn swagger-spec-path [api]
+#_(defn swagger-spec-path [api]
   (some-> api meta :lookup ::swagger first first))
 
-(defn swagger-api? [api]
+#_(defn swagger-api? [api]
   (boolean (swagger-spec-path api)))
 
 ;; FIXME!
