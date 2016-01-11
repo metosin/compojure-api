@@ -47,5 +47,5 @@
                 :invalid invalid-childs}]
       (if *fail-on-missing-route-info*
         (throw (ex-info message data))
-        (logging/log! :warning message data))))
+        (logging/log! :warn message data))))
   (->Route path method info childs handler))
