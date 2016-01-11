@@ -72,7 +72,7 @@
 (defn- un-quote [s]
   (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
 
-(defn ->path [s params]
+(defn- path-string [s params]
   (-> s
       (str/replace #":([^/]+)" " :$1 ")
       (str/split #" ")
@@ -99,7 +99,7 @@
                                first)
         path-params (:params details)]
     (if (seq path-params)
-      (->path path params)
+      (path-string path params)
       path)))
 
 (defmacro path-for
