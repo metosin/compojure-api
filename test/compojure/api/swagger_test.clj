@@ -85,36 +85,6 @@
 
     => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
-(fact "->swagger2info"
-  (fact "old format get's converted to new with warnings"
-    (with-out-str
-      (swagger/select-swagger2-parameters
-        {:version ..version..
-         :title ..title..
-         :description ..description..
-         :termsOfServiceUrl ..url..
-         :license ..license..})
-
-      => {:info {:version ..version..
-                 :title ..title..
-                 :description ..description..
-                 :termsOfService ..url..
-                 :license {:name ..license..}}}))
-
-  (fact "with all datas"
-    (let [info {:info {:version "1.0.0"
-                       :title "Sausages"
-                       :description "Sausage description"
-                       :termsOfService "http://helloreverb.com/terms/"
-                       :contact {:name "My API Team"
-                                 :email "foo@example.com"
-                                 :url "http://www.metosin.fi"}
-                       :license {:name "Eclipse Public License"
-                                 :url "http://www.eclipse.org/legal/epl-v10.html"}}
-                :tags [{:name "kikka", :description "kukka"}]}]
-      (swagger/select-swagger2-parameters
-        info) => info)))
-
 (fact "context* meta-data"
   (extract-routes
     (context* "/api/:id" []

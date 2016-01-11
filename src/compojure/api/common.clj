@@ -6,12 +6,12 @@
   [m]
   (letfn
     [(pvals [l p m]
-            (reduce
-              (fn [l [k v]]
-                (if (map? v)
-                  (pvals l (conj p k) v)
-                  (cons [(conj p k) v] l)))
-              l m))]
+       (reduce
+         (fn [l [k v]]
+           (if (map? v)
+             (pvals l (conj p k) v)
+             (cons [(conj p k) v] l)))
+         l m))]
     (pvals [] [] m)))
 
 (defn assoc-in-path-vals
@@ -69,15 +69,18 @@
 
    Returns a tuple with parameters and body without the parameters"
   [c]
-  {:pre [(sequential? c)]}
-  (if (and (plain-map? (first c)) (> (count c) 1))
-    [(first c) (rest c)]
-    (if (keyword? (first c))
-      (let [parameters (->> c
-                            (partition 2)
-                            (take-while (comp keyword? first))
-                            (mapcat identity)
-                            (apply array-map))
-            form       (drop (* 2 (count parameters)) c)]
-        [parameters form])
-      [{} c])))
+  (cond
+    (plain-map? (first c))
+    [(first c) (seq (rest c))]
+
+    (keyword? (first c))
+    (let [parameters (->> c
+                          (partition 2)
+                          (take-while (comp keyword? first))
+                          (mapcat identity)
+                          (apply array-map))
+          form (drop (* 2 (count parameters)) c)]
+      [parameters (seq form)])
+
+    :else
+    [{} (seq c)]))

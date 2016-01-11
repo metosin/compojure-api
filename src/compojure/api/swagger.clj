@@ -3,9 +3,9 @@
             [clojure.walk :as walk]
             [compojure.api.common :refer :all]
             [compojure.api.routes :as routes]
-            [compojure.api.meta :as m]
             [compojure.core :refer :all]
             [compojure.api.core :refer [GET* undocumented*]]
+            [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
             [ring.swagger.common :as rsc]
@@ -98,29 +98,6 @@
   (undocumented*
     (apply rsui/swagger-ui params)))
 
-(defn select-swagger2-parameters
-  "Validates the given Swagger 2.0 format against the Schema. Prints warnings to STDOUT
-  if old input was used. Fails with missing 2.0 keys."
-  [info]
-  (let [mapping {:version [:info :version]
-                 :title [:info :title]
-                 :description [:info :description]
-                 :termsOfServiceUrl [:info :termsOfService]
-                 :license [:info :license :name]}
-        old-keys (set (keys mapping))
-        info (reduce
-               (fn [info [k v]]
-                 (if (old-keys k)
-                   (do
-                     (deprecated! "swagger-docs -" k "is deprecated, see docs for details.")
-                     (-> info
-                         (dissoc k)
-                         (assoc-in (mapping k) v)))
-                   info))
-               info
-               info)]
-    info))
-
 (defn swagger-docs
   "Route to serve the swagger api-docs. If the first
    parameter is a String, it is used as a url for the
@@ -140,13 +117,10 @@
                          :url: \"http://www.eclipse.org/legal/epl-v10.html\"}}
         :tags [{:name \"sausages\", :description \"Sausage api-set}]}"
   [& body]
-  (let [[path key-values] (if (string? (first body))
-                            [(first body) (rest body)]
-                            ["/swagger.json" body])
-        first-value (first key-values)
-        extra-info (select-swagger2-parameters (if (map? first-value)
-                                                 first-value
-                                                 (apply hash-map key-values)))]
+  (let [[path body] (if (string? (first body))
+                      [(first body) (rest body)]
+                      ["/swagger.json" body])
+        [extra-info] (extract-parameters body)]
     (GET* path request
       :no-doc true
       :name ::swagger
@@ -154,10 +128,7 @@
             base-path {:basePath (base-path request)}
             options (:ring-swagger (mw/get-options request))
             routes (:routes (mw/get-options request))
-            swagger (rsc/deep-merge base-path
-                                    routes
-                                    extra-info
-                                    runtime-info)
+            swagger (rsc/deep-merge base-path routes extra-info runtime-info)
             spec (swagger2/swagger-json swagger options)]
         (ok spec)))))
 
