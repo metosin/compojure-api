@@ -17,10 +17,10 @@
 ;;
 
 (defn- ->path [path]
-  (if-not (#{"/" ""} path) path))
+  (if-not (= path "/") path))
 
 (defn- ->paths [p1 p2]
-  (or (->path (str (->path p1) (->path p2))) "/"))
+  (->path (str p1 (->path p2))))
 
 (defrecord Route [path method info childs handler]
   Routing

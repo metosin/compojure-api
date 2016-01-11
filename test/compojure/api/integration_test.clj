@@ -531,7 +531,7 @@
                               :type "string"}]
                 :responses {:default {:description ""}}}})))
 
-#_(fact "sub-context paths"
+(fact "sub-context paths"
     (let [response {:ping "pong"}
           ok (ok response)
           ok? (fn [[status body]]
@@ -553,11 +553,13 @@
         (get* app "/") => ok?
         (get* app "/a") => ok?
         (get* app "/b/b1") => ok?
-        (get* app "/b/b1/") => ok?
         (get* app "/b") => ok?
-        (get* app "/b/") => ok?
-        (get* app "/b//") => ok?
         (get* app "/b//b2") => ok?)
+
+      (fact "undocumented compojure easter eggs"
+        (get* app "/b/b1/") => ok?
+        (get* app "/b/") => ok?
+        (get* app "/b//") => ok?)
 
       (fact "invalid routes"
         (get* app "/b/b2") => not-ok?)
