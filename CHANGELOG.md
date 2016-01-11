@@ -6,6 +6,7 @@
 
 ```clojure
 [metosin/ring-swagger-ui "2.1.4-0"] is available
+[potemkin "0.4.3"] is available
 ```
 
 ## 0.24.3 (14.12.2015)
