@@ -6,7 +6,6 @@
             [compojure.api.routes :as routes]
             [compojure.core :as compojure]
             [clojure.tools.macro :as macro]
-            [compojure.api.routing :as r]
             [ring.swagger.swagger2 :as rss]))
 
 (defn- ring-handler [handlers]
@@ -19,7 +18,7 @@
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
   (let [handlers (keep identity handlers)]
-    (r/create "" :any {} (vec handlers) (ring-handler handlers))))
+    (routes/create "" :any {} (vec handlers) (ring-handler handlers))))
 
 (defmacro defroutes*
   "Define a Ring handler function from a sequence of routes. The name may
@@ -36,7 +35,7 @@
 
 (defn undocumented* [& handlers]
   (let [handlers (keep identity handlers)]
-    (r/create "" :any {} nil (ring-handler handlers))))
+    (routes/create "" :any {} nil (ring-handler handlers))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
@@ -44,7 +43,7 @@
   (let [middlewares (reverse middlewares)
         routes? (> (count body) 1)]
     `(let [body# ~(if routes? `(routes* ~@body) (first body))]
-       (r/create "" :any {} [body#] (-> body# ~@middlewares)))))
+       (routes/create "" :any {} [body#] (-> body# ~@middlewares)))))
 
 (defmacro context* [& args] (meta/restructure #'compojure/context args {:routes 'routes*}))
 
@@ -76,7 +75,7 @@
   [& body]
   (let [[options handlers] (extract-parameters body)
         handler (apply routes* handlers)
-        swagger (-> handler r/get-routes routes/->ring-swagger)
+        swagger (-> handler routes/get-routes routes/->ring-swagger)
         lookup (routes/route-lookup-table swagger)
         swagger (->> swagger
                      (rss/transform-operations routes/non-nil-routes)
@@ -85,7 +84,7 @@
                         (mw/api-middleware options)
                         (mw/wrap-options {:routes swagger
                                           :lookup lookup}))]
-    (r/create nil :any {} [handler] api-handler)))
+    (routes/create nil :any {} [handler] api-handler)))
 
 (defmacro defapi [name & body]
   `(def ~name (api ~@body)))

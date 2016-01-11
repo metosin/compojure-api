@@ -15,7 +15,7 @@
             [schema.utils :as su]
             [schema-tools.core :as st]
             [linked.core :as linked]
-            [compojure.api.routing :as r]
+            [compojure.api.routes :as routes]
             [clojure.string :as str]))
 
 (def +compojure-api-request+
@@ -363,4 +363,4 @@
                        form))]
 
     `(let [childs# ~(if routes [`(~child-form {})] [])]
-       (r/create ~path-string ~method-kw ~parameters childs# ~form))))
+       (routes/create ~path-string ~method-kw ~parameters childs# ~form))))

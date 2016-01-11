@@ -13,8 +13,7 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as rsui]
             [ring.swagger.swagger2 :as swagger2]
-            [schema.core :as s]
-            [compojure.api.routing :as r]))
+            [schema.core :as s]))
 
 ;;
 ;; ensure path parameters
@@ -81,7 +80,7 @@
 
 ; TODO: remove
 (defn swagger-info [handler]
-  (routes/->ring-swagger (r/get-routes handler)))
+  (routes/->ring-swagger (routes/get-routes handler)))
 
 (defn- deprecated! [& args]
   (apply println (concat ["DEPRECATED:"] args)))

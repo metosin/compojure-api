@@ -2,7 +2,7 @@
   (:require [cheshire.core :as cheshire]
             [clojure.string :as str]
             [peridot.core :as p]
-            [compojure.api.routing :as r])
+            [compojure.api.routes :as routes])
   (:import [java.io InputStream]))
 
 (defn read-body [body]
@@ -86,7 +86,7 @@
 
 (defmacro ignore-non-documented-route-warning [& body]
   `(with-out-str
-     (binding [r/*fail-on-missing-route-info* false]
+     (binding [routes/*fail-on-missing-route-info* false]
        ~@body)))
 
 ;;

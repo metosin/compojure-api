@@ -1,7 +1,6 @@
 (ns compojure.api.swagger-ordering-test
   (:require [compojure.api.sweet :refer :all]
             [midje.sweet :refer :all]
-            [compojure.api.routing :as r]
             [compojure.api.routes :as routes]))
 
 (def more-routes
@@ -26,7 +25,7 @@
 
     (fact "swagger-api order is maintained"
       (-> app
-          r/get-routes
+          routes/get-routes
           routes/->ring-swagger
           :paths
           keys) => ["/a/1"

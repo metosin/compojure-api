@@ -3,9 +3,12 @@
             [clojure.string :as string]
             [cheshire.core :as json]
             [compojure.api.middleware :as mw]
+            [compojure.api.impl.logging :as logging]
+            [ring.swagger.common :as rsc]
             [clojure.string :as str]
             [linked.core :as linked]
-            [schema.core :as s]))
+            [schema.core :as s])
+  (:import [clojure.lang AFn IFn]))
 
 (defn- duplicates [seq]
   (for [[id freq] (frequencies seq)
@@ -106,3 +109,46 @@
   "Extracts the lookup-table from request and finds a route by name."
   [route-name & [params]]
   `(path-for* ~route-name ~'+compojure-api-request+ ~params))
+
+;;
+;; Route records
+;;
+
+(def ^:dynamic *fail-on-missing-route-info* false)
+
+(defprotocol Routing
+  (get-routes [handler]))
+
+(defn- ->path [path]
+  (if-not (= path "/") path))
+
+(defn- ->paths [p1 p2]
+  (->path (str p1 (->path p2))))
+
+(defrecord Route [path method info childs handler]
+  Routing
+  (get-routes [_]
+    (if (seq childs)
+      (vec
+        (for [[p m i] (mapcat get-routes (filter (partial satisfies? Routing) childs))]
+          [(->paths path p) m (rsc/deep-merge info i)]))
+      [[path method info]]))
+
+  IFn
+  (invoke [_ request]
+    (handler request))
+  (applyTo [this args]
+    (AFn/applyToHelper this args)))
+
+(defn create [path method info childs handler]
+  (when-let [invalid-childs (seq (remove (partial satisfies? Routing) childs))]
+    (let [message "Not all child routes satisfy compojure.api.routing/Routing."
+          data {:path path
+                :method method
+                :info info
+                :childs childs
+                :invalid invalid-childs}]
+      (if *fail-on-missing-route-info*
+        (throw (ex-info message data))
+        (logging/log! :warn message data))))
+  (->Route path method info childs handler))

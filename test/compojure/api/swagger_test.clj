@@ -2,14 +2,12 @@
   (:require [schema.core :as s]
             [compojure.api.sweet :refer :all]
             [compojure.core :refer [defroutes]]
-            [compojure.api.swagger :as swagger]
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
-            [compojure.api.routing :as r]
             [compojure.api.routes :as routes]))
 
 (defn extract-routes [app]
-  (-> app r/get-routes routes/->ring-swagger :paths))
+  (-> app routes/get-routes routes/->ring-swagger :paths))
 
 (defmacro optional-routes* [p & body] (when p `(routes* ~@body)))
 (defmacro GET+ [p & body] `(GET* ~(str "/xxx" p) ~@body))

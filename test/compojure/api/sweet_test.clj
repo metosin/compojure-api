@@ -6,8 +6,7 @@
             [schema.core :as s]
             [clojure.java.io :as io]
             [scjsv.core :as scjsv]
-            [compojure.api.routes :as routes]
-            [compojure.api.routing :as r]))
+            [compojure.api.routes :as routes]))
 
 (def validate
   (scjsv/validator (slurp (io/resource "ring/swagger/v2.0_schema.json"))))
@@ -75,7 +74,7 @@
 (facts "api documentation"
   (fact "details are generated"
 
-    (-> app r/get-routes routes/->ring-swagger)
+    (-> app routes/get-routes routes/->ring-swagger)
 
     => {:paths {"/swagger.json" {:get {:x-name :compojure.api.swagger/swagger,
                                        :x-no-doc true}}

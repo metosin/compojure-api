@@ -1,10 +1,9 @@
-(ns compojure.api.routing-test
+(ns compojure.api.routes-test
   (:require [midje.sweet :refer :all]
             [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [ring.util.http-predicates :refer :all]
             [compojure.api.test-utils :refer :all]
-            [compojure.api.routing :as r]
             [schema.core :as s]))
 
 (facts "nested routes"
