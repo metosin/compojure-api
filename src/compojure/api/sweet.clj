@@ -19,10 +19,8 @@
   [compojure.api.core
 
    api
-   defapi
    middlewares
 
-   defroutes*
    let-routes*
    undocumented*
    context*

@@ -34,7 +34,6 @@
                         :url "http://www.eclipse.org/legal/epl-v10.html"}}})
     ping-route
     (context* "/api" []
-      ;; defroutes* over a Var
       ping-route
       (GET* "/bands" []
         :name :bands

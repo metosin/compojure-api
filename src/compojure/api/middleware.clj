@@ -203,7 +203,7 @@
                                     Defaults to `compojure.api.middleware/default-coercion-matchers`
 
    - **:components**                Components which should be accessible to handlers using
-                                    :components restructuring. (If you are using defapi,
+                                    :components restructuring. (If you are using api,
                                     you might want to take look at using wrap-components
                                     middleware manually.)"
   [handler & [options]]

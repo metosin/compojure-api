@@ -695,31 +695,6 @@
     (fact "generates correct swagger-spec"
       (-> app get-spec :paths vals first :get :summary) => "active-ping")))
 
-(comment
-  "https://github.com/Prismatic/schema/pull/212"
-
-  (s/defschema Kikka
-    (linked/map
-      :a s/Str, :b s/Str, :c s/Str, :d s/Str, :e s/Str, :f s/Str, :g s/Str, :h s/Str))
-
-  (def data (linked/map :a "a", :b "b", :c "c", :d "d", :e "e", :f "f", :g "g", :h "h"))
-
-  (defapi api
-    (swagger-docs)
-    (GET* "/ping" []
-      :return Kikka
-      (ok data)))
-
-  (fact "ordered schema test"
-
-    (fact "first route matches with Compojure"
-      (let [[status body] (get* api "/ping" {})]
-        status => 200
-        body => data))
-
-    (fact "generates correct swagger-spec"
-      (-> api get-spec :definitions :Kikka :properties keys) => (keys Kikka))))
-
 ; https://github.com/metosin/compojure-api/issues/98
 ; https://github.com/metosin/compojure-api/issues/134
 (fact "basePath"
@@ -755,19 +730,19 @@
       (fact "api spec doesn't fail (#102)"
         (get-spec app) => anything))))
 
-(defroutes* over-the-hills-and-far-away
+(def over-the-hills-and-far-away
   (POST* "/" []
     :body-params [a :- s/Str]
     identity))
 
-(fact "anonymous body models over defroutes*"
+(fact "anonymous body models over defined routes"
   (let [app (api
               (swagger-docs)
               over-the-hills-and-far-away)]
     (fact "generated model doesn't have namespaced keys"
       (-> app get-spec :definitions vals first :properties keys first) => :a)))
 
-(defroutes* foo
+(def foo
   (GET* "/foo" []
     (let [foo {:foo "bar"}]
       (ok foo))))
@@ -779,7 +754,7 @@
       status => 200
       body => {:foo "bar"})))
 
-(defroutes* response-descriptions-routes
+(def response-descriptions-routes
   (GET* "/x" []
     :responses {500 {:schema {:code String}
                      :description "Horror"}}
@@ -1129,19 +1104,3 @@
                                    "/runtime" irrelevant})})))
 
 (s/defschema Foo {:a [s/Keyword]})
-
-(defapi with-defapi
-  (swagger-docs)
-  (GET* "/foo" []
-    :return Foo
-    (ok {:a "foo"})))
-
-(defn with-api []
-  (api
-    (swagger-docs)
-    (GET* "/foo" []
-      :return Foo
-      (ok {:a "foo"}))))
-
-(fact "defapi & api define same results, #159"
-  (get-spec with-defapi) => (get-spec (with-api)))

@@ -20,13 +20,6 @@
   (let [handlers (keep identity handlers)]
     (routes/create "" :any {} (vec handlers) (ring-handler handlers))))
 
-(defmacro defroutes*
-  "Define a Ring handler function from a sequence of routes. The name may
-  optionally be followed by a doc-string and metadata map."
-  [name & routes]
-  (let [[name routes] (macro/name-with-attributes name routes)]
-    `(def ~name (routes* ~@routes))))
-
 (defmacro let-routes*
   "Takes a vector of bindings and a body of routes. Equivalent to:
   (let [...] (routes* ...))"
@@ -86,6 +79,3 @@
                         (mw/wrap-options {:routes swagger
                                           :lookup lookup}))]
     (routes/create nil :any {} [handler] api-handler)))
-
-(defmacro defapi [name & body]
-  `(def ~name (api ~@body)))

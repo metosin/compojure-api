@@ -64,8 +64,8 @@
           more-routes)) => {"/api/true" {:get {}}}))
 
   (fact "Compojure Api defroutes are followed"
-    (defroutes* even-more-routes* (GET* "/even" [] identity))
-    (defroutes* more-routes* (context* "/more" [] even-more-routes*))
+    (def even-more-routes* (GET* "/even" [] identity))
+    (def more-routes* (context* "/more" [] even-more-routes*))
     (extract-paths
       (context* "/api" []
         (GET* "/true" [] identity)
@@ -122,16 +122,16 @@
     => {"/api/kukka" {:get {:tags #{:kiss}}}
         "/api/kakka" {:get {:tags #{:kiss}}}}))
 
-(defroutes* r1
+(def r1
   (GET* "/:id" []
     :path-params [id :- s/Str]
     identity))
-(defroutes* r2
+(def r2
   (GET* "/kukka/:id" []
     :path-params [id :- Long]
     identity))
 
-(facts "defroutes* path-params"
+(facts "defined routes path-params"
   (extract-paths (routes* r1 r2))
   => {"/:id" {:get {:parameters {:path {:id String}}}}
       "/kukka/:id" {:get {:parameters {:path {:id Long}}}}})
