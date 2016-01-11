@@ -62,7 +62,7 @@
     (assert (= {:result 30} (second (call))))
     (cc/bench (call)))
 
-  ; 27µs => 27µs (-0%)
+  ; 27µs => 27µs (-0%) => 25µs
 
   (let [app (api
               (POST* "/plus" []
@@ -77,7 +77,7 @@
     (assert (= {:result 30} (parse (call))))
     (cc/bench (call)))
 
-  ;; 73µs => 53µs (-27%)
+  ;; 73µs => 53µs (-27%) => 51µs
 
   (let [app (api
               (context* "/a" []
@@ -95,7 +95,7 @@
     (assert (= {:result 30} (parse (call))))
     (cc/bench (call)))
 
-  ;; 85µs => 67µs (-21%)
+  ;; 85µs => 67µs (-21%) => 92µs (+40%!)
 
   (let [app (api
               (POST* "/echo" []
@@ -120,7 +120,7 @@
     (s/validate Order (parse (call)))
     (cc/bench (call)))
 
-  ;; 266µs => 156µs (-41%)
+  ;; 266µs => 156µs (-41%) => 165µs
 
   )
 
