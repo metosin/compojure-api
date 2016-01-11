@@ -1,3 +1,13 @@
+## Unreleased
+
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.3...master)**
+
+* Updated deps:
+
+```clojure
+[metosin/ring-swagger-ui "2.1.4-0"] is available
+```
+
 ## 0.24.3 (14.12.2015)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.2...0.24.3)**
@@ -15,13 +25,13 @@ FIFO size 100 cache. Avoids potential memory leaks when using anonymous coercion
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.1...0.24.2)**
 
-* Memoize coercers (for `schema` & `matcher` -input) for better performance. 
+* Memoize coercers (for `schema` & `matcher` -input) for better performance.
   * [Tests](https://github.com/metosin/compojure-api/blob/master/test/compojure/api/perf_test.clj) show 0-40% lower latency,
-depending on input & output schema complexity. 
+depending on input & output schema complexity.
   * Tested by sending json-strings to `api` and reading json-string out.
   * Measured a 80% lower latency with a real world large Schema.
 * Updated deps:
-  
+
 ```clj
 [potemkin "0.4.2"] is available but we use "0.4.1"
 ```
