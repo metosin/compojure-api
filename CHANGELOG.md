@@ -9,7 +9,6 @@
     - Previously only `s/Keyword` were supported.
   - Fix JSON Schema `nil` default value ([metosin/ring-swagger#79](https://github.com/metosin/ring-swagger/issues/79))
 
-
 * Updated deps:
 
 ```clojure
