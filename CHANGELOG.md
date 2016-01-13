@@ -1,3 +1,60 @@
+## 1.0.0-SNAPSHOT 
+
+* Move from compile-time to runtime route resolution.
+  * Most of the internal macro magic has been vaporized
+  * Uses internally (invokable) Records & Protocols, allowing easier integration to 3rd party libs like [Liberator](http://clojure-liberator.github.io/liberator/)
+  * Enables snappy development flow, changes in any sub-routes are reflected immediately to swagger-docs (no restart needed)
+     * even for large apps, route compilation takes now millis, instead of seconds
+  * sub-routes can be created with normal functions (or values), making it easier to pass in dependencies from things like the [Compoenent](https://github.com/stuartsierra/component).
+  
+```clj
+(defn more-routes [db]
+  (routes
+    (GET "/ping" []
+      (ok {:ping "pong"}))
+    (POST "/thingie" []
+      (ok (thingie/create db)))))
+
+(defn app [db]
+  (api
+    (context "/api"
+      (more-routes db)
+      (GET "/kikka" []
+        (ok "kukka"))))
+```
+  
+* **BREAKING** Vanilla Compojure routes will not produce any swagger-docs (as they do not satisfy the 
+`Routing` protocol. They can still be used for handling request, just without docs.
+  * There is a new api-level option to declare how to handle routes not satisfying the `Routing` protocol (fail, warn or ignore)
+
+* **BREAKING** Asterix (`*`) is removed from route macro & function names, as there is no reason to mix compojure-api & compojure route macros.
+  * `GET*` => `GET` 
+  * `GET*` => `GET` 
+  * `ANY*` => `ANY` 
+  * `HEAD*` => `HEAD` 
+  * `PATCH*` => `PATCH` 
+  * `DELETE*` => `DELETE` 
+  * `OPTIONS*` => `OPTIONS` 
+  * `POST*` => `PUT` 
+  * `context*` => `context` 
+
+* **BREAKING** `defapi*` and `defroutes*` are removed, use just normal `def` or `defn` together `compojure.api/api` and `compojure.api/routes`.
+
+* **NEW** additional route functions/macros in `compojure.api.core`:
+  * `routes` & `letroutes`, just like in the Compojure, but supporting `Routing`
+  * `undocumented` like `routes` but without any route definitions. Can be used to wrap legacy routes which setting the api option to fail on missing docs.
+
+* top-level `api` is now just function, not a macro. It takes an optional options maps and a top-level route function.
+
+* **BREAKING** `swagger-docs` and `swagger-ui` are now functions instead of macros and removed from the public api. Swagger-stuff is configured with `api` options instead.
+   * TODO: examples
+
+* Removed deps:
+
+```clojure
+[backtick "0.3.3"]
+```
+
 ## 0.24.4 (13.1.2016)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.3...0.24.4)**
