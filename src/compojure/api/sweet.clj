@@ -21,19 +21,19 @@
    api
    middlewares
 
-   let-routes*
-   undocumented*
-   context*
-   routes*
+   let-routes
+   undocumented
+   context
+   routes
 
-   GET*
-   ANY*
-   HEAD*
-   PATCH*
-   DELETE*
-   OPTIONS*
-   POST*
-   PUT*]
+   GET
+   ANY
+   HEAD
+   PATCH
+   DELETE
+   OPTIONS
+   POST
+   PUT]
 
   ;; routes
   [compojure.api.routes

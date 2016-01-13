@@ -51,39 +51,39 @@
 ;; Routes
 
 (def pizza-routes
-  (routes*
-    (context* "/api" []
+  (routes
+    (context "/api" []
       :tags ["pizzas"]
-      (context* "/pizzas" []
-        (GET* "/" []
+      (context "/pizzas" []
+        (GET "/" []
           :return [Pizza]
           :summary "Gets all Pizzas"
           (ok (get-pizzas)))
-        (GET* "/:id" []
+        (GET "/:id" []
           :path-params [id :- Long]
           :return (s/maybe Pizza)
           :summary "Gets a pizza"
           (ok (get-pizza id)))
-        (POST* "/" []
+        (POST "/" []
           :return Pizza
           :body [pizza (describe NewPizza "new pizza")]
           :summary "Adds a pizza"
           (ok (add! pizza)))
-        (PUT* "/" []
+        (PUT "/" []
           :return Pizza
           :body [pizza Pizza]
           :summary "Updates a pizza"
           (ok (update! pizza)))
-        (DELETE* "/:id" []
+        (DELETE "/:id" []
           :path-params [id :- Long]
           :summary "Deletes a Pizza"
           (ok (delete! id)))))
 
-    (context* "/foreign" []
+    (context "/foreign" []
       :tags ["foreign"]
-      (GET* "/bar/:foo" []
+      (GET "/bar/:foo" []
         :path-params [foo :- s/Str]
         (ok {:bar foo}))
-      (GET* "/info" []
+      (GET "/info" []
         :summary "from examples.pizza ns"
         (ok {:source "examples.pizza"})))))

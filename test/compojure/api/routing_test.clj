@@ -9,17 +9,17 @@
 (facts "nested routes"
   (let [middleware (fn [handler] (fn [request] (handler request)))
         more-routes (fn [version]
-                      (routes*
-                        (GET* "/more" []
+                      (routes
+                        (GET "/more" []
                           (ok {:message version}))))
-        routes (context* "/api/:version" []
+        routes (context "/api/:version" []
                  :path-params [version :- String]
-                 (GET* "/ping" []
+                 (GET "/ping" []
                    (ok {:message (str "pong - " version)}))
-                 (POST* "/ping" []
+                 (POST "/ping" []
                    (ok {:message (str "pong - " version)}))
                  (middlewares [middleware]
-                   (GET* "/hello" []
+                   (GET "/hello" []
                      :return {:message String}
                      :summary "cool ping"
                      :query-params [name :- String]

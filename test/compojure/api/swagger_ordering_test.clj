@@ -4,24 +4,24 @@
             [compojure.api.test-utils :refer :all]))
 
 (def more-routes
-  (routes*
-    (GET* "/6" [] identity)
-    (GET* "/7" [] identity)
-    (GET* "/8" [] identity)))
+  (routes
+    (GET "/6" [] identity)
+    (GET "/7" [] identity)
+    (GET "/8" [] identity)))
 
 (facts "with 10+ routes"
   (let [app (api
-              (context* "/a" []
-                (GET* "/1" [] identity)
-                (GET* "/2" [] identity)
-                (GET* "/3" [] identity)
-                (context* "/b" []
-                  (GET* "/4" [] identity)
-                  (GET* "/5" [] identity))
-                (context* "/c" []
+              (context "/a" []
+                (GET "/1" [] identity)
+                (GET "/2" [] identity)
+                (GET "/3" [] identity)
+                (context "/b" []
+                  (GET "/4" [] identity)
+                  (GET "/5" [] identity))
+                (context "/c" []
                   more-routes
-                  (GET* "/9" [] identity)
-                  (GET* "/10" [] identity))))]
+                  (GET "/9" [] identity)
+                  (GET "/10" [] identity))))]
 
     (fact "swagger-api order is maintained"
       (keys (extract-paths app)) => ["/a/1"

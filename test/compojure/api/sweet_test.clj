@@ -18,7 +18,7 @@
 (s/defschema NewBand (dissoc Band :id))
 
 (def ping-route
-  (GET* "/ping" [] identity))
+  (GET "/ping" [] identity))
 
 (def app
   (api
@@ -33,39 +33,39 @@
               :license {:name "Eclipse Public License"
                         :url "http://www.eclipse.org/legal/epl-v10.html"}}})
     ping-route
-    (context* "/api" []
+    (context "/api" []
       ping-route
-      (GET* "/bands" []
+      (GET "/bands" []
         :name :bands
         :return [Band]
         :summary "Gets all Bands"
         :description "bands bands bands"
         :operationId "getBands"
         identity)
-      (GET* "/bands/:id" [id]
+      (GET "/bands/:id" [id]
         :return Band
         :summary "Gets a Band"
         :operationId "getBand"
         identity)
-      (POST* "/bands" []
+      (POST "/bands" []
         :return Band
         :body [band [NewBand]]
         :summary "Adds a Band"
         :operationId "addBand"
         identity)
-      (GET* "/query" []
+      (GET "/query" []
         :query-params [qp :- Boolean]
         identity)
-      (GET* "/header" []
+      (GET "/header" []
         :header-params [hp :- Boolean]
         identity)
-      (POST* "/form" []
+      (POST "/form" []
         :form-params [fp :- Boolean]
         identity)
-      (GET* "/primitive" []
+      (GET "/primitive" []
         :return String
         identity)
-      (GET* "/primitiveArray" []
+      (GET "/primitiveArray" []
         :return [String]
         identity))))
 

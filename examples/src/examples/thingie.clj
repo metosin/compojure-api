@@ -40,15 +40,15 @@
               {:name "dates", :description "Dates API"}
               {:name "responses", :description "Responses demo"}
               {:name "primitives", :description "Returning primitive values"}
-              {:name "context*", :description "context* routes"}
+              {:name "context", :description "context routes"}
               {:name "echo", :description "Echoes data"}
               {:name "ordered", :description "Ordered routes"}
               {:name "file", :description "File upload"}]})
 
-    (context* "/math" []
+    (context "/math" []
       :tags ["math"]
 
-      (GET* "/plus" []
+      (GET "/plus" []
         :return Total
         ;; You can add any keys to meta-data, but Swagger-ui might not show them
         :query-params [x :- (describe Long "description")
@@ -56,47 +56,47 @@
         :summary "x+y with query-parameters. y defaults to 1."
         (ok {:total (+ x y)}))
 
-      (POST* "/minus" []
+      (POST "/minus" []
         :return Total
         :body-params [x :- (describe Long "first param")
                       y :- (describe Long "second param")]
         :summary "x-y with body-parameters."
         (ok {:total (- x y)}))
 
-      (GET* "/times/:x/:y" []
+      (GET "/times/:x/:y" []
         :return Total
         :path-params [x :- Long y :- Long]
         :summary "x*y with path-parameters"
         (ok {:total (* x y)}))
 
-      (POST* "/req" req (ok (dissoc req :body)))
+      (POST "/req" req (ok (dissoc req :body)))
 
-      (POST* "/divide" []
+      (POST "/divide" []
         :return {:total Double}
         :form-params [x :- Long y :- Long]
         :summary "x/y with form-parameters"
         (ok {:total (/ x y)}))
 
-      (GET* "/power" []
+      (GET "/power" []
         :return Total
         :header-params [x :- Long y :- Long]
         :summary "x^y with header-parameters"
         (ok {:total (long (Math/pow x y))})))
 
-    (context* "/failing" []
+    (context "/failing" []
       :tags ["failing"]
-      (GET* "/exceptions" []
+      (GET "/exceptions" []
         (throw (RuntimeException. "KOSH"))))
 
     pizza-routes
 
-    (context* "/dates" []
+    (context "/dates" []
       :tags ["dates"]
       date-routes)
 
-    (context* "/responses" []
+    (context "/responses" []
       :tags ["responses"]
-      (GET* "/" []
+      (GET "/" []
         :query-params [return :- (s/enum :200 :403 :404)]
         :responses {403 {:schema {:code s/Str}, :description "spiders?"}
                     404 {:schema {:reson s/Str}, :description "lost?"}}
@@ -107,21 +107,21 @@
           :403 (forbidden {:code "forest"})
           :404 (not-found {:reason "lost"}))))
 
-    (context* "/primitives" []
+    (context "/primitives" []
       :tags ["primitives"]
 
-      (GET* "/plus" []
+      (GET "/plus" []
         :return Long
         :query-params [x :- Long {y :- Long 1}]
         :summary "x+y with query-parameters. y defaults to 1."
         (ok (+ x y)))
 
-      (GET* "/datetime-now" []
+      (GET "/datetime-now" []
         :return DateTime
         :summary "current datetime"
         (ok (DateTime.)))
 
-      (GET* "/hello" []
+      (GET "/hello" []
         :return String
         :query-params [name :- (describe String "foobar")
                        ;; Broken on aot
@@ -131,15 +131,15 @@
         :summary "echos a string from query-params"
         (ok (str "hello, " name))))
 
-    (context* "/context" []
+    (context "/context" []
       :summary "summary inherited from context"
-      :tags ["context*"]
+      :tags ["context"]
 
-      (context* "/:kikka" []
+      (context "/:kikka" []
         :path-params [kikka :- s/Str]
         :query-params [kukka :- s/Str]
 
-        (GET* "/:kakka" []
+        (GET "/:kakka" []
           :return {:kikka s/Str
                    :kukka s/Str
                    :kakka s/Str}
@@ -148,52 +148,52 @@
                :kukka kukka
                :kakka kakka}))))
 
-    (context* "/echo" []
+    (context "/echo" []
       :tags ["echo"]
 
-      (POST* "/recursion" []
+      (POST "/recursion" []
         :return Recursive
         :body [body (describe Recursive "Recursive Schema")]
         :summary "echoes a the json-body"
         (ok body))
 
-      (PUT* "/anonymous" []
+      (PUT "/anonymous" []
         :return [{:hot Boolean}]
         :body [body [{:hot (s/either Boolean String)}]]
         :summary "echoes a vector of anonymous hotties"
         (ok body)))
 
-    (context* "/foreign" []
+    (context "/foreign" []
       :tags ["foreign"]
 
-      (POST* "/pizza" []
+      (POST "/pizza" []
         :summary "Foreign schema with unknown subschemas"
         :return (s/maybe Pizza)
         :body [body Pizza]
         (ok)))
 
-    (context* "/foreign" []
+    (context "/foreign" []
       :tags ["abc"]
 
-      (GET* "/abc" []
+      (GET "/abc" []
         :summary "Foreign schema with unknown subschemas"
         :return (s/maybe Pizza)
         (ok))
-      (GET* "/info" []
+      (GET "/info" []
         :summary "from examples.thingie ns"
         (ok {:source "examples.thingie"})))
 
-    (context* "/file" []
+    (context "/file" []
       :tags ["file"]
 
-      (POST* "/upload" []
+      (POST "/upload" []
         :multipart-params [file :- TempFileUpload]
         :middlewares [wrap-multipart-params]
         (ok (dissoc file :tempfile))))
 
-    (context* "/component" []
+    (context "/component" []
       :tags ["component"]
-      (GET* "/example" req
+      (GET "/example" req
         :components [example]
         (ok example)))
 

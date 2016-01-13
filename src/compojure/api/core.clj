@@ -14,19 +14,19 @@
     1 (first handlers)
     (fn [request] (some #(% request) handlers))))
 
-(defn routes*
+(defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
   (let [handlers (keep identity handlers)]
     (routes/create "" :any {} (vec handlers) (ring-handler handlers))))
 
-(defmacro let-routes*
+(defmacro let-routes
   "Takes a vector of bindings and a body of routes. Equivalent to:
-  (let [...] (routes* ...))"
+  (let [...] (routes ...))"
   [bindings & body]
-  `(let ~bindings (routes* ~@body)))
+  `(let ~bindings (routes ~@body)))
 
-(defn undocumented* [& handlers]
+(defn undocumented [& handlers]
   (let [handlers (keep identity handlers)]
     (routes/create "" :any {} nil (ring-handler handlers))))
 
@@ -35,19 +35,19 @@
   [middlewares & body]
   (let [middlewares (reverse middlewares)
         routes? (> (count body) 1)]
-    `(let [body# ~(if routes? `(routes* ~@body) (first body))]
+    `(let [body# ~(if routes? `(routes ~@body) (first body))]
        (routes/create "" :any {} [body#] (-> body# ~@middlewares)))))
 
-(defmacro context* [& args] (meta/restructure #'compojure/context args {:routes 'routes*}))
+(defmacro context [& args] (meta/restructure #'compojure/context args {:routes 'routes}))
 
-(defmacro GET* [& args] (meta/restructure #'compojure/GET args nil))
-(defmacro ANY* [& args] (meta/restructure #'compojure/ANY args nil))
-(defmacro HEAD* [& args] (meta/restructure #'compojure/HEAD args nil))
-(defmacro PATCH* [& args] (meta/restructure #'compojure/PATCH args nil))
-(defmacro DELETE* [& args] (meta/restructure #'compojure/DELETE args nil))
-(defmacro OPTIONS* [& args] (meta/restructure #'compojure/OPTIONS args nil))
-(defmacro POST* [& args] (meta/restructure #'compojure/POST args nil))
-(defmacro PUT* [& args] (meta/restructure #'compojure/PUT args nil))
+(defmacro GET [& args] (meta/restructure #'compojure/GET args nil))
+(defmacro ANY [& args] (meta/restructure #'compojure/ANY args nil))
+(defmacro HEAD [& args] (meta/restructure #'compojure/HEAD args nil))
+(defmacro PATCH [& args] (meta/restructure #'compojure/PATCH args nil))
+(defmacro DELETE [& args] (meta/restructure #'compojure/DELETE args nil))
+(defmacro OPTIONS [& args] (meta/restructure #'compojure/OPTIONS args nil))
+(defmacro POST [& args] (meta/restructure #'compojure/POST args nil))
+(defmacro PUT [& args] (meta/restructure #'compojure/PUT args nil))
 
 ;;
 ;; api
@@ -61,13 +61,13 @@
 
        (api
          {:formats [:json :edn]}
-         (context* \"/api\" []
+         (context \"/api\" []
            ...))
 
    ... see compojure.api.middleware/api-middleware for possible options."
   [& body]
   (let [[options handlers] (extract-parameters body)
-        handler (apply routes* handlers)
+        handler (apply routes handlers)
         swagger (routes/ring-swagger-paths handler)
         lookup (routes/route-lookup-table swagger)
         swagger (->> swagger

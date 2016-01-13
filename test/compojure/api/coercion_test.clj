@@ -13,7 +13,7 @@
 (fact "custom coercion"
 
   (fact "response coercion"
-    (let [ping-route (GET* "/ping" []
+    (let [ping-route (GET "/ping" []
                        :return {:pong s/Str}
                        (ok {:pong 123}))]
 
@@ -31,7 +31,7 @@
             body => {:pong 123})))))
 
   (fact "body coersion"
-    (let [beer-route (POST* "/beer" []
+    (let [beer-route (POST "/beer" []
                        :body [body {:beers #{(s/enum "ipa" "apa")}}]
                        (ok body))]
 
@@ -59,7 +59,7 @@
           (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]})) => (fails-with 400)))))
 
   (fact "query coersion"
-    (let [query-route (GET* "/query" []
+    (let [query-route (GET "/query" []
                         :query-params [i :- s/Int]
                         (ok {:i i}))]
 
@@ -88,14 +88,14 @@
 
   (fact "route-spesific coercion"
     (let [app (api
-                (GET* "/default" []
+                (GET "/default" []
                   :query-params [i :- s/Int]
                   (ok {:i i}))
-                (GET* "/disabled-coercion" []
+                (GET "/disabled-coercion" []
                   :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
                   :query-params [i :- s/Int]
                   (ok {:i i}))
-                (GET* "/no-coercion" []
+                (GET "/no-coercion" []
                   :coercion (constantly nil)
                   :query-params [i :- s/Int]
                   (ok {:i i})))]
@@ -118,7 +118,7 @@
     #_(fact "at api-level, matcher is reused and the coercion matcher cache is not filled"
         (let [app (api
                     {:coercion (constantly mw/default-coercion-matchers)}
-                    (GET* "/anonymous" []
+                    (GET "/anonymous" []
                       :query-params [i :- s/Str]
                       (ok {:i i})))]
 
@@ -131,7 +131,7 @@
 
     #_(fact "at route-level, matcher is NOT reused and the the coercion matcher cache is filled"
         (let [app (api
-                    (GET* "/anonymous" []
+                    (GET "/anonymous" []
                       :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
                       :query-params [i :- s/Str]
                       (ok {:i i})))]

@@ -14,12 +14,12 @@
                  :local-date (LocalDate.)})
 
 (def date-routes
-  (routes*
-    (GET* "/dates" []
+  (routes
+    (GET "/dates" []
       :return Dates
       :summary "returns dates"
       (ok (sample)))
-    (POST* "/dates" []
+    (POST "/dates" []
       :return Dates
       :body [sample (describe Dates "read response from GET /dates in here to see symmetric handling of dates")]
       :summary "echos date input."

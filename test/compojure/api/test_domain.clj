@@ -10,8 +10,8 @@
 (s/defschema Burger {:ingredients (s/maybe [Beef])})
 
 (def burger-routes
-  (routes*
-    (POST* "/burger" []
+  (routes
+    (POST "/burger" []
       :return Burger
       :body [burger Burger]
       (ok burger))))

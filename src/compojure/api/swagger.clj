@@ -1,7 +1,6 @@
 (ns compojure.api.swagger
   (:require [compojure.api.common :refer :all]
-            [compojure.core :refer :all]
-            [compojure.api.core :refer [GET* undocumented*]]
+            [compojure.api.core :refer [GET undocumented]]
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
@@ -47,7 +46,7 @@
 ;;
 
 (defn swagger-ui [& params]
-  (undocumented*
+  (undocumented
     (apply rsui/swagger-ui params)))
 
 (defn swagger-docs
@@ -73,7 +72,7 @@
                       [(first body) (rest body)]
                       ["/swagger.json" body])
         [extra-info] (extract-parameters body)]
-    (GET* path request
+    (GET path request
       :no-doc true
       :name ::swagger
       (let [runtime-info (rsm/get-swagger-data request)

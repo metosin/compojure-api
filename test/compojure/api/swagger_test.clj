@@ -5,24 +5,24 @@
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]))
 
-(defmacro optional-routes* [p & body] (when p `(routes* ~@body)))
-(defmacro GET+ [p & body] `(GET* ~(str "/xxx" p) ~@body))
+(defmacro optional-routes [p & body] (when p `(routes ~@body)))
+(defmacro GET+ [p & body] `(GET ~(str "/xxx" p) ~@body))
 
 (fact "extracting compojure paths"
 
   (fact "all compojure.api.core macros are interpreted"
-    (let [app (context* "/a" []
-                (routes*
-                  (context* "/b" []
-                    (let-routes* []
-                                 (GET* "/c" [] identity)
-                                 (POST* "/d" [] identity)
-                                 (PUT* "/e" [] identity)
-                                 (DELETE* "/f" [] identity)
-                                 (OPTIONS* "/g" [] identity)
-                                 (PATCH* "/h" [] identity)))
-                  (context* "/:i/:j" []
-                    (GET* "/k/:l/m/:n" [] identity))))]
+    (let [app (context "/a" []
+                (routes
+                  (context "/b" []
+                    (let-routes []
+                                 (GET "/c" [] identity)
+                                 (POST "/d" [] identity)
+                                 (PUT "/e" [] identity)
+                                 (DELETE "/f" [] identity)
+                                 (OPTIONS "/g" [] identity)
+                                 (PATCH "/h" [] identity)))
+                  (context "/:i/:j" []
+                    (GET "/k/:l/m/:n" [] identity))))]
 
       (extract-paths app)
       => {"/a/b/c" {:get {}}
@@ -38,63 +38,63 @@
 
   (fact "runtime code in route is NOT ignored"
     (extract-paths
-      (context* "/api" []
+      (context "/api" []
         (if false
-          (GET* "/true" [] identity)
-          (PUT* "/false" [] identity)))) => {"/api/false" {:put {}}})
+          (GET "/true" [] identity)
+          (PUT "/false" [] identity)))) => {"/api/false" {:put {}}})
 
   (fact "route-macros are expanded"
     (extract-paths
-      (context* "/api" []
-        (optional-routes* true (GET* "/true" [] identity))
-        (optional-routes* false (PUT* "/false" [] identity)))) => {"/api/true" {:get {}}})
+      (context "/api" []
+        (optional-routes true (GET "/true" [] identity))
+        (optional-routes false (PUT "/false" [] identity)))) => {"/api/true" {:get {}}})
 
   (fact "endpoint-macros are expanded"
     (extract-paths
-      (context* "/api" []
+      (context "/api" []
         (GET+ "/true" [] identity))) => {"/api/xxx/true" {:get {}}})
 
   (fact "Vanilla Compojure defroutes are NOT followed"
     (ignore-non-documented-route-warning
-      (defroutes even-more-routes (GET* "/even" [] identity))
-      (defroutes more-routes (context* "/more" [] even-more-routes))
+      (defroutes even-more-routes (GET "/even" [] identity))
+      (defroutes more-routes (context "/more" [] even-more-routes))
       (extract-paths
-        (context* "/api" []
-          (GET* "/true" [] identity)
+        (context "/api" []
+          (GET "/true" [] identity)
           more-routes)) => {"/api/true" {:get {}}}))
 
   (fact "Compojure Api defroutes are followed"
-    (def even-more-routes* (GET* "/even" [] identity))
-    (def more-routes* (context* "/more" [] even-more-routes*))
+    (def even-more-routes (GET "/even" [] identity))
+    (def more-routes (context "/more" [] even-more-routes))
     (extract-paths
-      (context* "/api" []
-        (GET* "/true" [] identity)
-        more-routes*)) => {"/api/true" {:get {}}
+      (context "/api" []
+        (GET "/true" [] identity)
+        more-routes)) => {"/api/true" {:get {}}
                            "/api/more/even" {:get {}}})
 
   (fact "Parameter regular expressions are discarded"
     (extract-paths
-      (context* "/api" []
-        (GET* ["/:param" :param #"[a-z]+"] [] identity)))
+      (context "/api" []
+        (GET ["/:param" :param #"[a-z]+"] [] identity)))
 
     => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
-(fact "context* meta-data"
+(fact "context meta-data"
   (extract-paths
-    (context* "/api/:id" []
+    (context "/api/:id" []
       :summary "top-summary"
       :path-params [id :- String]
       :tags [:kiss]
-      (GET* "/kikka" []
+      (GET "/kikka" []
         identity)
-      (context* "/ipa" []
+      (context "/ipa" []
         :summary "mid-summary"
         :tags [:wasp]
-        (GET* "/kukka/:kukka" []
+        (GET "/kukka/:kukka" []
           :summary "bottom-summary"
           :path-params [kukka :- String]
           :tags [:venom])
-        (GET* "/kakka" []
+        (GET "/kakka" []
           identity))))
 
   => {"/api/:id/kikka" {:get {:summary "top-summary"
@@ -109,29 +109,29 @@
                                   :parameters {:path {:id String}}}}})
 
 (facts "duplicate context merge"
-  (let [app (routes*
-              (context* "/api" []
+  (let [app (routes
+              (context "/api" []
                 :tags [:kiss]
-                (GET* "/kakka" []
+                (GET "/kakka" []
                   identity))
-              (context* "/api" []
+              (context "/api" []
                 :tags [:kiss]
-                (GET* "/kukka" []
+                (GET "/kukka" []
                   identity)))]
     (extract-paths app)
     => {"/api/kukka" {:get {:tags #{:kiss}}}
         "/api/kakka" {:get {:tags #{:kiss}}}}))
 
 (def r1
-  (GET* "/:id" []
+  (GET "/:id" []
     :path-params [id :- s/Str]
     identity))
 (def r2
-  (GET* "/kukka/:id" []
+  (GET "/kukka/:id" []
     :path-params [id :- Long]
     identity))
 
 (facts "defined routes path-params"
-  (extract-paths (routes* r1 r2))
+  (extract-paths (routes r1 r2))
   => {"/:id" {:get {:parameters {:path {:id String}}}}
       "/kukka/:id" {:get {:parameters {:path {:id Long}}}}})
