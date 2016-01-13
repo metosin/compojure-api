@@ -43,10 +43,10 @@
     (without-err
       (let [exception (RuntimeException. "kosh")
             exception-class (.getName (.getClass exception))
-            failure (fn [_] (throw exception))]
+            handler (-> (fn [_] (throw exception))
+                        (wrap-exceptions {}))]
 
         (fact "converts exceptions into safe internal server errors"
-          ((wrap-exceptions failure (:handlers (:exceptions api-middleware-defaults))) ..request..)
-          => (contains {:status status/internal-server-error
-                        :body (contains {:class exception-class
-                                         :type "unknown-exception"})}))))))
+          (handler {}) => (contains {:status status/internal-server-error
+                                     :body (contains {:class exception-class
+                                                      :type "unknown-exception"})}))))))
