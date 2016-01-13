@@ -1,6 +1,6 @@
-## Unreleased
+## 0.24.4 (13.1.2016)
 
-**[compare](https://github.com/metosin/compojure-api/compare/0.24.3...master)**
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.3...0.24.4)**
 
 - Updated ring-swagger:
   - Discard all extra map keys from properties ([metosin/ring-swagger#77](https://github.com/metosin/ring-swagger/issues/77))
