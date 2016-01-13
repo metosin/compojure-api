@@ -64,7 +64,7 @@
             (log-fn e)
             ; FIXME: Used for validate
             (if (rethrow-exceptions? request)
-              (throw)
+              (throw e)
               (if-let [handler (get handlers type)]
                 (call-error-handler handler e data request)
                 (call-error-handler default-handler e data request)))))))))
