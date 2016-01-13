@@ -46,7 +46,7 @@
                    :main examples.server}
              :perf {:jvm-opts ^:replace []}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC3"]]}}
+             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC5"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
