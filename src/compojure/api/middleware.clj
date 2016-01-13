@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [compojure.api.exception :as ex]
+            [compojure.api.impl.logging :as logging]
             [ring.middleware.format-params :refer [wrap-restful-params]]
             [ring.middleware.format-response :refer [wrap-restful-response]]
             ring.middleware.http-response
@@ -50,8 +51,9 @@
    - **:handlers** - a map from exception type to handler
      - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
                                               by default prints stack trace."
-  [handler {:keys [handlers]}]
-  (let [default-handler (get handlers ::ex/default ex/safe-handler)]
+  [handler {:keys [handlers log-fn]}]
+  (let [default-handler (get handlers ::ex/default ex/safe-handler)
+        log-fn (or log-fn ex/log-exception)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
     (fn [request]
       (try
@@ -59,6 +61,7 @@
         (catch Throwable e
           (let [{:keys [type] :as data} (ex-data e)
                 type (or (get ex/legacy-exception-types type) type)]
+            (log-fn e)
             ; FIXME: Used for validate
             (if (rethrow-exceptions? request)
               (throw)
@@ -174,6 +177,7 @@
    options for the used middlewares (see middlewares for full details on options):
 
    - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
+       - **:log-fn**                  Function to be called with a exception.
        - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
                                       An error handler is a function of exception, ExceptionInfo data and request to response.
                                       Default:

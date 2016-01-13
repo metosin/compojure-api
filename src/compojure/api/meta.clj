@@ -105,7 +105,7 @@
        (let [coerce# (~+compojure-api-coercer+ ~schema matcher#)
              result# (coerce# value#)]
          (if (su/error? result#)
-           (throw (ex-info "Request valiudation failed" (assoc result# :type ::ex/request-validation)))
+           (throw (ex-info "Request validation failed" (assoc result# :type ::ex/request-validation)))
            result#))
        value#)))
 

@@ -859,7 +859,8 @@
   (let [app (api
               {:exceptions {:handlers {::ex/request-validation custom-validation-error-handler
                                        ::ex/request-parsing custom-validation-error-handler
-                                       ::ex/response-validation custom-validation-error-handler}}}
+                                       ::ex/response-validation custom-validation-error-handler}
+                            :log-fn (constantly nil)}}
               (swagger-docs)
               (POST* "/get-long" []
                 :body [body {:x Long}]
@@ -891,7 +892,8 @@
 (fact "exceptions options with custom exception and error handler"
   (let [app (api
               {:exceptions {:handlers {::ex/default custom-exception-handler
-                                       ::custom-error custom-error-handler}}}
+                                       ::custom-error custom-error-handler}
+                            :log-fn (constantly nil)}}
               (swagger-docs)
               (GET* "/some-exception" []
                 (throw (new RuntimeException)))
@@ -929,7 +931,8 @@
     => (throws AssertionError))
   (facts "Old handler functions work, with a warning"
     (let [app (api
-                {:exceptions {:handlers {::ex/default old-ex-handler}}}
+                {:exceptions {:handlers {::ex/default old-ex-handler}
+                              :log-fn (constantly nil)}}
                 (GET* "/" []
                   (throw (RuntimeException.))))]
       (let [[status body] (get* app "/")]
@@ -943,7 +946,8 @@
 
 (fact "handling schema.core/error"
   (let [app (api
-              {:exceptions {:handlers {:schema.core/error ex/schema-error-handler}}}
+              {:exceptions {:handlers {:schema.core/error ex/schema-error-handler}
+                            :log-fn (constantly nil)}}
               (GET* "/:a" []
                 :path-params [a :- s/Str]
                 (ok (s/with-fn-validation (schema-error a)))))]

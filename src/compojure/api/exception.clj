@@ -11,13 +11,15 @@
 ;; Default exception handlers
 ;;
 
+(defn log-exception [^Exception e]
+  (logging/log! :error e (.getMessage e)))
+
 (defn safe-handler
   "Writes :error to log with the exception message & stacktrace.
 
    Error response only contains class of the Exception so that it won't accidentally
    expose secret details."
   [^Exception e _ _]
-  (logging/log! :error e (.getMessage e))
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
 
