@@ -2,9 +2,18 @@
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.3...master)**
 
+- Updated ring-swagger:
+  - Discard all extra map keys from properties ([metosin/ring-swagger#77](https://github.com/metosin/ring-swagger/issues/77))
+  - All Schema [extra keys](https://github.com/Prismatic/schema/blob/master/src/cljx/schema/core.cljx#L765)
+  are now exposed as Swagger additional properties.
+    - Previously only `s/Keyword` were supported.
+  - Fix JSON Schema `nil` default value ([metosin/ring-swagger#79](https://github.com/metosin/ring-swagger/issues/79))
+
+
 * Updated deps:
 
 ```clojure
+[metosin/ring-swagger "0.22.2"] is available
 [metosin/ring-swagger-ui "2.1.4-0"] is available
 [potemkin "0.4.3"] is available
 ```
