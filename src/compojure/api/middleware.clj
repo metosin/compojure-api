@@ -50,7 +50,8 @@
   "Catches all exceptions and delegates to right error handler accoring to :type of Exceptions
    - **:handlers** - a map from exception type to handler
      - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
-                                              by default prints stack trace."
+                                              by default prints stack trace.
+   - **:log-fn**   - a function to call with exception"
   [handler {:keys [handlers log-fn]}]
   (let [default-handler (get handlers ::ex/default ex/safe-handler)
         log-fn (or log-fn ex/log-exception)]
@@ -185,6 +186,9 @@
                                        :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
                                        :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
                                        :compojure.api.exception/default             compojure.api.exception/safe-handler}
+
+                                      Note: Because the handlers are merged into default handlers map, to disable default handler you
+                                      need to provide `nil` value as handler.
 
                                       Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
 
