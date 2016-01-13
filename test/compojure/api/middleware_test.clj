@@ -3,7 +3,8 @@
             [midje.sweet :refer :all]
             [ring.util.http-response :refer [ok]]
             [ring.util.http-status :as status]
-            ring.util.test)
+            ring.util.test
+            [slingshot.slingshot :refer [throw+]])
   (:import [java.io PrintStream ByteArrayOutputStream]))
 
 (defmacro without-err
@@ -49,4 +50,12 @@
         (fact "converts exceptions into safe internal server errors"
           (handler {}) => (contains {:status status/internal-server-error
                                      :body (contains {:class exception-class
-                                                      :type "unknown-exception"})}))))))
+                                                      :type "unknown-exception"})})))))
+
+  (with-out-str
+   (without-err
+     (fact "Slingshot exception map type can be matched"
+       (let [handler (-> (fn [_] (throw+ {:type ::test} (RuntimeException. "kosh")))
+                         (wrap-exceptions {:handlers {::test (fn [ex _ _] {:status 500 :body "hello"})}}))]
+         (handler {}) => (contains {:status status/internal-server-error
+                                    :body "hello"}))))))

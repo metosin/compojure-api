@@ -9,7 +9,6 @@
             [ring.swagger.common :refer :all]
             [ring.swagger.json-schema :as js]
             [ring.util.http-response :refer [internal-server-error]]
-            [slingshot.slingshot :refer [throw+]]
             [schema.core :as s]
             [schema.coerce :as sc]
             [schema.utils :as su]
@@ -88,7 +87,8 @@
           (let [coerce (coercer (value-of schema) matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
-              (throw+ (assoc body :type ::ex/response-validation))
+              (throw (ex-info "Response validation error"
+                              (assoc body :type ::ex/response-validation)))
               (assoc response
                 ::serializable? true
                 :body body)))
@@ -105,7 +105,7 @@
        (let [coerce# (~+compojure-api-coercer+ ~schema matcher#)
              result# (coerce# value#)]
          (if (su/error? result#)
-           (throw+ (assoc result# :type ::ex/request-validation))
+           (throw (ex-info "Request valiudation failed" (assoc result# :type ::ex/request-validation)))
            result#))
        value#)))
 
