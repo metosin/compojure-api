@@ -28,6 +28,7 @@
 * **BREAKING** Vanilla Compojure routes will not produce any swagger-docs (as they do not satisfy the 
 `Routing` protocol. They can still be used for handling request, just without docs.
   * There is a new api-level option to declare how to handle routes not satisfying the `Routing` protocol (fail, warn or ignore)
+  * TODO: implement as api-option
 
 * **BREAKING** Asterix (`*`) is removed from route macro & function names, as there is no reason to mix compojure-api & compojure route macros.
   * `GET*` => `GET` 
@@ -52,7 +53,7 @@
 
 * **NEW** additional route functions/macros in `compojure.api.core`:
   * `routes` & `letroutes`, just like in the Compojure, but supporting `Routing`
-  * `undocumented` like `routes` but without any route definitions. Can be used to wrap legacy routes which setting the api option to fail on missing docs.
+  * `undocumented` - works just like `routes` but without any route definitions. Can be used to wrap legacy routes which setting the api option to fail on missing docs.
 
 * top-level `api` is now just function, not a macro. It takes an optional options maps and a top-level route function.
 
