@@ -3,9 +3,9 @@
 * Move from compile-time to runtime route resolution.
   * Most of the internal macro magic has been vaporized
   * Uses internally (invokable) Records & Protocols, allowing easier integration to 3rd party libs like [Liberator](http://clojure-liberator.github.io/liberator/)
-  * Enables snappy development flow, changes in any sub-routes are reflected immediately to swagger-docs (no restart needed)
-     * even for large apps, route compilation takes now millis, instead of seconds
-  * sub-routes can be created with normal functions (or values), making it easier to pass in dependencies from things like the [Compoenent](https://github.com/stuartsierra/component).
+  * Enables snappy development flow, changes in any sub-routes are reflected immediately to swagger-docs, no restart needed
+     * even for large apps (100+ routes), route compilation takes now millis, instead of seconds
+  * sub-routes can be created with normal functions (or values), making it easier to pass in dependencies from things like the [Component](https://github.com/stuartsierra/component).
   
 ```clj
 (defn more-routes [db]
@@ -22,7 +22,9 @@
       (GET "/kikka" []
         (ok "kukka"))))
 ```
-  
+
+### Breaking changes
+
 * **BREAKING** Vanilla Compojure routes will not produce any swagger-docs (as they do not satisfy the 
 `Routing` protocol. They can still be used for handling request, just without docs.
   * There is a new api-level option to declare how to handle routes not satisfying the `Routing` protocol (fail, warn or ignore)
@@ -39,6 +41,14 @@
   * `context*` => `context` 
 
 * **BREAKING** `defapi*` and `defroutes*` are removed, use just normal `def` or `defn` together `compojure.api/api` and `compojure.api/routes`.
+  * TODO: is this a good thing? could be `defapi` & `defroutes`?
+
+* **BREAKING** `swagger-docs` and `swagger-ui` are now functions instead of macros and removed from the public api. Swagger-stuff is configured with `api` options instead.
+  * TODO: examples
+
+* **BREAKING** `public-resource-routes` & `public-resources` are removed from `compojure.api.middleware`.
+
+### Other stuff
 
 * **NEW** additional route functions/macros in `compojure.api.core`:
   * `routes` & `letroutes`, just like in the Compojure, but supporting `Routing`

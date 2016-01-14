@@ -3,7 +3,6 @@
             [compojure.api.test-utils :refer :all]
             [compojure.api.exception :as ex]
             [midje.sweet :refer :all]
-            [linked.core :as linked]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [ring.swagger.core :as rsc]
@@ -1102,5 +1101,3 @@
                                   {"/normal" irrelevant
                                    "/extra" irrelevant
                                    "/runtime" irrelevant})})))
-
-(s/defschema Foo {:a [s/Keyword]})

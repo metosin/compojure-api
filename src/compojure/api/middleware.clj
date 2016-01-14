@@ -1,6 +1,5 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
-            [compojure.route :as route]
             [compojure.api.exception :as ex]
             [ring.middleware.format-params :refer [wrap-restful-params]]
             [ring.middleware.format-response :refer [wrap-restful-response]]
@@ -15,23 +14,8 @@
             [slingshot.slingshot :refer [try+ throw+]]
             [schema.core :as s])
   (:import [com.fasterxml.jackson.core JsonParseException]
-           [org.yaml.snakeyaml.parser ParserException]))
-
-;;
-;; Public resources
-;;
-
-(defroutes public-resource-routes
-  (GET "/" [] (found "/index.html"))
-  (route/resources "/"))
-
-(defn public-resources
-  "serves public resources for missed requests"
-  [handler]
-  (fn [request]
-    (let [response (handler request)]
-      (or response
-          ((route/resources "/") request)))))
+           [org.yaml.snakeyaml.parser ParserException]
+           [clojure.lang ArityException]))
 
 ;;
 ;; Catch exceptions
@@ -42,7 +26,7 @@
 (defn- call-error-handler [error-handler error error-type request]
   (try
     (error-handler error error-type request)
-    (catch clojure.lang.ArityException e
+    (catch ArityException e
       (println "WARNING: Error-handler arity has been changed.")
       (error-handler error))))
 
