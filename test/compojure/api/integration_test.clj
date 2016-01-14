@@ -2,6 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [compojure.api.exception :as ex]
+            [compojure.api.swagger :as swagger]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
@@ -921,24 +922,14 @@
                     identity))]
       (eval app') => (throws RuntimeException))))
 
-#_(fact "swagger-api?"
-  (fact "false, when no swagger-docs is mounted"
-    (let [app (api
-                (GET "/ping" [] identity))]
-      (caw/swagger-api? app) => false))
-  (fact "true, when swagger-docs is mounted"
-    (let [app (api
-                (swagger-docs)
-                (GET "/ping" [] identity))]
-      (caw/swagger-api? app) => true)))
 
-#_(fact "swagger-spec-path"
-  (fact "defaults to swagger.json"
+(fact "swagger-spec-path"
+  (fact "defaults to /swagger.json"
     (let [app (api (swagger-docs))]
-      (caw/swagger-spec-path app) => "/swagger.json"))
+      (swagger/swagger-spec-path app) => "/swagger.json"))
   (fact "follows defined path"
     (let [app (api (swagger-docs "/api/api-docs/swagger.json"))]
-      (caw/swagger-spec-path app) => "/api/api-docs/swagger.json")))
+      (swagger/swagger-spec-path app) => "/api/api-docs/swagger.json")))
 
 (defrecord NonSwaggerRecord [data])
 

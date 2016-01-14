@@ -8,7 +8,8 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as rsui]
-            [ring.swagger.swagger2 :as swagger2]))
+            [ring.swagger.swagger2 :as swagger2]
+            [compojure.api.routes :as routes]))
 
 ;;
 ;; generate schema names
@@ -33,9 +34,6 @@
 ;;
 ;; routes
 ;;
-
-(defn- deprecated! [& args]
-  (apply println (concat ["DEPRECATED:"] args)))
 
 (defn base-path [request]
   (let [context (swagger/context request)]
@@ -83,11 +81,13 @@
             spec (swagger2/swagger-json swagger options)]
         (ok spec)))))
 
-#_(defn swagger-spec-path [api]
-  (some-> api meta :lookup ::swagger first first))
-
-#_(defn swagger-api? [api]
-  (boolean (swagger-spec-path api)))
+(defn swagger-spec-path [app]
+  (some-> app
+          routes/ring-swagger-paths
+          routes/route-lookup-table
+          ::swagger
+          keys
+          first))
 
 ;; FIXME!
 (defn validate
