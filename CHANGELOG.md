@@ -5,22 +5,25 @@
   * Uses internally (invokable) Records & Protocols, allowing easier integration to 3rd party libs like [Liberator](http://clojure-liberator.github.io/liberator/)
   * Enables snappy development flow, changes in any sub-routes are reflected immediately to swagger-docs, no restart needed
      * even for large apps (100+ routes), route compilation takes now millis, instead of seconds
-  * sub-routes can be created with normal functions (or values), making it easier to pass in dependencies from things like the [Component](https://github.com/stuartsierra/component).
+  * sub-routes can be created with normal functions (or values), making it easier to:
+     * pass in app-level dependencies from libs like [Component](https://github.com/stuartsierra/component)
+     * reuse shared request-handling time parameters like path-parameters and authorization info
   
 ```clj
-(defn more-routes [db]
+(defn more-routes [db version]
   (routes
-    (GET "/ping" []
-      (ok {:ping "pong"}))
+    (GET "/version" []
+      (ok {:version version}))
     (POST "/thingie" []
       (ok (thingie/create db)))))
 
 (defn app [db]
   (api
-    (context "/api"
-      (more-routes db)
+    (context "/api/:version" []
+      :path-params [version :- s/Str]
+      (more-routes db version)
       (GET "/kikka" []
-        (ok "kukka"))))
+        (ok "kukka")))))
 ```
 
 ### Breaking changes
