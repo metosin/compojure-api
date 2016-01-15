@@ -62,8 +62,8 @@
   optionally be followed by a doc-string and metadata map. Generates an
   extra private Var with `_` + name to the given namespace holding the
   actual routes, caller doesn't have to care about this. Accessing defroutes*
-  over Var add tiny run-time penalty, but allows massive better development
-  speed as the defroutes* can be compiled seperately."
+  over Var adds a tiny run-time penalty, but allows massively improved 
+  development speed as the defroutes* can be compiled seperately."
   [name & routes]
   (let [source (drop 2 &form)
         [name routes] (name-with-attributes name routes)

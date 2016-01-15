@@ -82,7 +82,7 @@
 
 
 (fact "->swagger2info"
-  (fact "old format get's converted to new with warnings"
+  (fact "old format gets converted to new with warnings"
     (binding [*out* (StringWriter.)]
       (select-swagger2-parameters
         {:version ..version..

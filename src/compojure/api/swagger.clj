@@ -339,7 +339,7 @@
   (boolean (swagger-spec-path api)))
 
 (defn validate
-  "Validates a api. If the api is Swagger-enabled, the swagger-docs
+  "Validates an api. If the api is Swagger-enabled, the swagger-docs
   endpoint is requested. Returns either the (valid) api or throws an
   exception."
   [api]

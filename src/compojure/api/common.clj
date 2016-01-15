@@ -2,7 +2,8 @@
   (:require [org.tobereplaced.lettercase :as lc]))
 
 (defn path-vals
-  "Returns vector of tuples containing path vector to the value and the value."
+  "Returns vector of tuples each containing the path vector to the 
+   value in the first position, and the value in the second position."
   [m]
   (letfn
     [(pvals [l p m]
@@ -15,7 +16,7 @@
     (pvals [] [] m)))
 
 (defn assoc-in-path-vals
-  "Re-created a map from it's path-vals extracted with (path-vals)."
+  "Re-creates a map from its path-vals extracted with (path-vals)."
   [c] (reduce (partial apply assoc-in) {} c))
 
 (defmacro re-resolve
@@ -34,7 +35,7 @@
 (defn eval-re-resolve [x] (eval `(re-resolve ~x)))
 
 (defn assoc-map-ordered
-  "assocs a value into a map forcing the implementation to be
+  "assocs a value into a map, forcing the implementation to be
    clojure.lang.PersistentArrayMap instead of clojure.lang.PersistentHashMap,
    thus retaining the insertion order. O(n)."
   [m k v] (apply array-map (into (vec (apply concat m)) [k v])))
