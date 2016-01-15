@@ -36,13 +36,13 @@
 
 (defn assoc-map-ordered
   "assocs a value into a map, forcing the implementation to be
-   clojure.lang.PersistentArrayMap instead of clojure.lang.PersistentHashMap,
-   thus retaining the insertion order. O(n)."
+  clojure.lang.PersistentArrayMap instead of clojure.lang.PersistentHashMap,
+  thus retaining the insertion order. O(n)."
   [m k v] (apply array-map (into (vec (apply concat m)) [k v])))
 
 (defmacro map-of
   "creates map with symbol names as keywords as keys and
-   symbol values as values."
+  symbol values as values."
   [& syms]
   `(zipmap ~(vec (map keyword syms)) ~(vec syms)))
 
