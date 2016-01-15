@@ -21,36 +21,44 @@
         (mw/wrap-options (select-keys meta [:routes :lookup]))
         (with-meta meta))))
 
-(defmacro api
+(defmacro
+  ^{:doc (str
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
-   Creates the route-table at compile-time and passes that into the request via
-   ring-swagger middlewares. The mounted api-middleware can be configured by
-   optional options map as the first parameter:
+  Creates the route-table at compile-time and passes that into the request via
+  ring-swagger middlewares. The mounted api-middleware can be configured by
+  optional options map as the first parameter:
 
-       (api
-         {:formats [:json :edn]}
-         (context* \"/api\" []
-           ...))
+      (api
+        {:formats [:json :edn]}
+        (context* \"/api\" []
+        ...))
 
-   ... see compojure.api.middleware/api-middleware for possible options."
+  Middleware options:
+
+  " (:doc (meta #'mw/api-middleware)))}
+  api
   [& body]
   (let [[opts body] (extract-parameters body)]
     `(api-middleware-with-routes
        (routes/api-root ~@body)
        ~opts)))
 
-(defmacro defapi
+(defmacro
+  ^{:doc (str
   "Returns a ring handler wrapped in a `api`. Behind the scenes,
-   creates the route-table at compile-time and passes that into the request via
-   ring-swagger middlewares. The mounted api-middleware can be configured by
-   optional options map as the first parameter:
+  creates the route-table at compile-time and passes that into the request via
+  ring-swagger middlewares. The mounted api-middleware can be configured by
+  optional options map as the first parameter:
 
-       (defapi app
-         {:formats [:json :edn]}
-         (context* \"/api\" []
-           ...))
+      (defapi app
+        {:formats [:json :edn]}
+        (context* \"/api\" []
+          ...))
 
-   ... see compojure.api.middleware/api-middleware for possible options."
+  Middleware options:
+
+  " (:doc (meta #'mw/api-middleware)))}
+  defapi
   [name & body]
   `(def ~name
      (api ~@body)))

@@ -275,22 +275,22 @@
 
 (defmacro swagger-docs
   "Route to serve the swagger api-docs. If the first
-   parameter is a String, it is used as a url for the
-   api-docs, otherwise \"/swagger.json\" will be used.
-   Next Keyword value pairs OR a map for meta-data.
-   Meta-data can be any valid swagger 2.0 data. Common
-   case is to introduce API Info and Tags here:
+  parameter is a String, it is used as a url for the
+  api-docs, otherwise \"/swagger.json\" will be used.
+  Next Keyword value pairs OR a map for meta-data.
+  Meta-data can be any valid swagger 2.0 data. Common
+  case is to introduce API Info and Tags here:
 
-       {:info {:version \"1.0.0\"
-               :title \"Sausages\"
-               :description \"Sausage description\"
-               :termsOfService \"http://helloreverb.com/terms/\"
-               :contact {:name \"My API Team\"
-                         :email \"foo@example.com\"
-                         :url \"http://www.metosin.fi\"}
-               :license {:name: \"Eclipse Public License\"
-                         :url: \"http://www.eclipse.org/legal/epl-v10.html\"}}
-        :tags [{:name \"sausages\", :description \"Sausage api-set}]}"
+      {:info {:version \"1.0.0\"
+              :title \"Sausages\"
+              :description \"Sausage description\"
+              :termsOfService \"http://helloreverb.com/terms/\"
+              :contact {:name \"My API Team\"
+                        :email \"foo@example.com\"
+                        :url \"http://www.metosin.fi\"}
+              :license {:name: \"Eclipse Public License\"
+                        :url: \"http://www.eclipse.org/legal/epl-v10.html\"}}
+       :tags [{:name \"sausages\", :description \"Sausage api-set}]}"
   [& body]
   (let [[path key-values] (if (string? (first body))
                             [(first body) (rest body)]
@@ -318,9 +318,9 @@
 
 (defmacro swaggered
   "DEPRECATED. Use context* with :tags instead:
-    (context* \"/api\"
-      :tags [\"api\"]
-      ...)"
+  (context* \"/api\"
+    :tags [\"api\"]
+    ...)"
   [api-name & body]
   (deprecated! "swaggered is deprecated and removed soon, see docs for details.")
   (let [[_ body] (extract-parameters body)]

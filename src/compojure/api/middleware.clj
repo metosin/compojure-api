@@ -48,9 +48,9 @@
 
 (defn wrap-exceptions
   "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
-   - **:handlers** - a map from exception type to handler
-     - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
-                                              by default prints stack trace."
+  - **:handlers** - a map from exception type to handler
+    - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
+                                             by default prints stack trace."
   [handler {:keys [handlers]}]
   (let [default-handler (get handlers ::ex/default ex/safe-handler)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
@@ -149,8 +149,8 @@
 
 (defn serializable?
   "Predicate which returns true if the response body is serializable.
-   That is, return type is set by :return compojure-api key or it's
-   a collection."
+  That is, return type is set by :return compojure-api key or it's
+  a collection."
   [_ {:keys [body] :as response}]
   (when response
     (or (:compojure.api.meta/serializable? response)
@@ -173,39 +173,39 @@
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
   "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
-   options for the used middlewares (see middlewares for full details on options):
+  options for the used middlewares (see middlewares for full details on options):
 
-   - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
-       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
-                                      An error handler is a function of exception, ExceptionInfo data and request to response.
-                                      Default:
-                                      {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
-                                       :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
-                                       :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
-                                       :compojure.api.exception/default             compojure.api.exception/safe-handler}
+  - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
+      - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
+                                     An error handler is a function of exception, ExceptionInfo data and request to response.
+                                     Default:
+                                     {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
+                                      :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
+                                      :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
+                                      :compojure.api.exception/default             compojure.api.exception/safe-handler}
 
-                                      Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
+                                     Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
 
-                                      Note: Adding an alias for exception namespace makes it easier to define these options.
+                                     Note: Adding an alias for exception namespace makes it easier to define these options.
 
-   - **:format**                    for ring-middleware-format middlewares
-       - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
-       - **:params-opts**             for *ring.middleware.format-params/wrap-restful-params*,
-                                      e.g. `{:transit-json {:handlers readers}}`
-       - **:response-opts**           for *ring.middleware.format-params/wrap-restful-response*,
-                                      e.g. `{:transit-json {:handlers writers}}`
+  - **:format**                    for ring-middleware-format middlewares
+      - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
+      - **:params-opts**             for *ring.middleware.format-params/wrap-restful-params*,
+                                     e.g. `{:transit-json {:handlers readers}}`
+      - **:response-opts**           for *ring.middleware.format-params/wrap-restful-response*,
+                                     e.g. `{:transit-json {:handlers writers}}`
 
-   - **:ring-swagger**              options for ring-swagger's swagger-json method.
-                                    e.g. `{:ignore-missing-mappings? true}`
+  - **:ring-swagger**              options for ring-swagger's swagger-json method.
+                                   e.g. `{:ignore-missing-mappings? true}`
 
-   - **:coercion**                  A function from request->type->coercion-matcher, used
-                                    in endpoint coercion for :json, :query and :response.
-                                    Defaults to `compojure.api.middleware/default-coercion-matchers`
+  - **:coercion**                  A function from request->type->coercion-matcher, used
+                                   in endpoint coercion for :json, :query and :response.
+                                   Defaults to `compojure.api.middleware/default-coercion-matchers`
 
-   - **:components**                Components which should be accessible to handlers using
-                                    :components restructuring. (If you are using defapi,
-                                    you might want to take look at using wrap-components
-                                    middleware manually.)"
+  - **:components**                Components which should be accessible to handlers using
+                                   :components restructuring. (If you are using defapi,
+                                   you might want to take look at using wrap-components
+                                   middleware manually.)"
   [handler & [options]]
   (let [options (deep-merge api-middleware-defaults options)
         {:keys [exceptions format components]} options
