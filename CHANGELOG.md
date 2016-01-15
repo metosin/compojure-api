@@ -42,10 +42,8 @@
   * `DELETE*` => `DELETE` 
   * `OPTIONS*` => `OPTIONS` 
   * `POST*` => `PUT` 
-  * `context*` => `context` 
-
-* **BREAKING** `defapi*` and `defroutes*` are removed, use just normal `def` or `defn` together `compojure.api/api` and `compojure.api/routes`.
-  * TODO: is this a good thing? could be `defapi` & `defroutes`?
+  * `context*` => `context`
+  * `defroutes*` => `defroutes`
 
 * **BREAKING** `swagger-docs` and `swagger-ui` are now functions instead of macros and removed from the public api. Swagger-stuff is configured with `api` options instead.
   * TODO: examples
