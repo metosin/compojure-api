@@ -58,13 +58,12 @@
         (handler request)
         (catch Throwable e
           (let [{:keys [type] :as data} (ex-data e)
-                type (or (get ex/legacy-exception-types type) type)]
+                type (or (get ex/legacy-exception-types type) type)
+                handler (or (get handlers type) default-handler)]
             ; FIXME: Used for validate
             (if (rethrow-exceptions? request)
               (throw e)
-              (if-let [handler (get handlers type)]
-                (call-error-handler handler e data request)
-                (call-error-handler default-handler e data request)))))))))
+              (call-error-handler handler e data request))))))))
 
 ;;
 ;; Component integration
