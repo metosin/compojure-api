@@ -47,7 +47,7 @@
       (error-handler error))))
 
 (defn wrap-exceptions
-  "Catches all exceptions and delegates to right error handler accoring to :type of Exceptions
+  "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
    - **:handlers** - a map from exception type to handler
      - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
                                               by default prints stack trace."
@@ -148,7 +148,7 @@
     (throw+ e)))
 
 (defn serializable?
-  "Predicate which return true if the response body is serializable.
+  "Predicate which returns true if the response body is serializable.
    That is, return type is set by :return compojure-api key or it's
    a collection."
   [_ {:keys [body] :as response}]
@@ -186,7 +186,7 @@
 
                                       Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
 
-                                      Note: Adding alias for exception namespace makes it easier to define these options.
+                                      Note: Adding an alias for exception namespace makes it easier to define these options.
 
    - **:format**                    for ring-middleware-format middlewares
        - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
@@ -199,7 +199,7 @@
                                     e.g. `{:ignore-missing-mappings? true}`
 
    - **:coercion**                  A function from request->type->coercion-matcher, used
-                                    in enpoint coersion for :json, :query and :response.
+                                    in endpoint coercion for :json, :query and :response.
                                     Defaults to `compojure.api.middleware/default-coercion-matchers`
 
    - **:components**                Components which should be accessible to handlers using

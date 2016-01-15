@@ -126,7 +126,7 @@
     (throw
       (IllegalArgumentException.
         (str
-          "You are using old format with :responses. Since Compojure-api 0.21.0, "
+          "You are using an old format with :responses. Since Compojure-api 0.21.0, "
           "plain ring-swagger 2.0 models are used. Example:\n\n"
           ":responses {400 nil}\n"
           ":responses {400 {:schema ErrorSchema}}\n"
@@ -193,7 +193,7 @@
 (defmethod restructure-param :tags [_ tags acc]
   (update-in acc [:parameters :tags] (comp set into) tags))
 
-; Defines a return type and coerced the return value of a body against it.
+; Defines a return type and coerces the return value of a body against it.
 ; Examples:
 ; :return MySchema
 ; :return {:value String}
