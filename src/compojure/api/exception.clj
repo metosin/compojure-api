@@ -58,6 +58,15 @@
                   :message (.getMessage cause)})))
 
 ;;
+;; Logging
+;;
+
+(defn with-logging [handler]
+  (fn [^Exception e data req]
+    (logging/log! :error e (.getMessage e))
+    (handler e data req)))
+
+;;
 ;; Mappings from other Exception types to our base types
 ;;
 
