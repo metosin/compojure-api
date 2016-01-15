@@ -38,9 +38,9 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn- call-error-handler [error-handler error error-type request]
+(defn- call-error-handler [error-handler error data request]
   (try
-    (error-handler error error-type request)
+    (error-handler error data request)
     (catch clojure.lang.ArityException e
       (println "WARNING: Error-handler arity has been changed.")
       (error-handler error))))
