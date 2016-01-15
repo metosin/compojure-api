@@ -181,6 +181,9 @@
                                        :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
                                        :compojure.api.exception/default             compojure.api.exception/safe-handler}
 
+                                      Note: Because the handlers are merged into default handlers map, to disable default handler you
+                                      need to provide `nil` value as handler.
+
                                       Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
 
                                       Note: Adding alias for exception namespace makes it easier to define these options.
