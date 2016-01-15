@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [compojure.api.exception :as ex]
+            [compojure.api.impl.logging :as logging]
             [ring.middleware.format-params :refer [wrap-restful-params]]
             [ring.middleware.format-response :refer [wrap-restful-response]]
             ring.middleware.http-response
@@ -12,7 +13,6 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as rsc]
             [ring.util.http-response :refer :all]
-            [slingshot.slingshot :refer [try+ throw+]]
             [schema.core :as s])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
@@ -50,23 +50,24 @@
   "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
    - **:handlers** - a map from exception type to handler
      - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
-                                              by default prints stack trace."
-  [handler {:keys [handlers]}]
-  (let [default-handler (get handlers ::ex/default ex/safe-handler)]
+                                              by default prints stack trace.
+   - **:log-fn**   - a function to call with exception"
+  [handler {:keys [handlers log-fn]}]
+  (let [default-handler (get handlers ::ex/default ex/safe-handler)
+        log-fn (or log-fn ex/log-exception)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
     (fn [request]
-      (try+
+      (try
         (handler request)
-        (catch (get % :type) {:keys [type] :as data}
-          (let [type (or (get ex/legacy-exception-types type) type)]
-            (if-let [handler (get handlers type)]
-              (call-error-handler handler (:throwable &throw-context) data request)
-              (call-error-handler default-handler (:throwable &throw-context) data request))))
-        (catch Object _
-          ; FIXME: Used for validate
-          (if (rethrow-exceptions? request)
-            (throw+)
-            (call-error-handler default-handler (:throwable &throw-context) nil request)))))))
+        (catch Throwable e
+          (let [{:keys [type] :as data} (ex-data e)
+                type (or (get ex/legacy-exception-types type) type)
+                handler (or (get handlers type) default-handler)]
+            (log-fn e)
+            ; FIXME: Used for validate
+            (if (rethrow-exceptions? request)
+              (throw e)
+              (call-error-handler handler e data request))))))))
 
 ;;
 ;; Component integration
@@ -144,8 +145,8 @@
   ;; i.e. (handler req) is inside try-catch. If r-m-f was changed to catch only
   ;; exceptions from parsing the request, we wouldn't need to check the exception class.
   (if (or (instance? JsonParseException e) (instance? ParserException e))
-    (throw+ {:type ::ex/request-parsing} e)
-    (throw+ e)))
+    (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} e))
+    (throw e)))
 
 (defn serializable?
   "Predicate which returns true if the response body is serializable.
@@ -176,6 +177,7 @@
    options for the used middlewares (see middlewares for full details on options):
 
    - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
+       - **:log-fn**                  Function to be called with a exception.
        - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
                                       An error handler is a function of exception, ExceptionInfo data and request to response.
                                       Default:
@@ -183,6 +185,9 @@
                                        :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
                                        :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
                                        :compojure.api.exception/default             compojure.api.exception/safe-handler}
+
+                                      Note: Because the handlers are merged into default handlers map, to disable default handler you
+                                      need to provide `nil` value as handler.
 
                                       Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
 

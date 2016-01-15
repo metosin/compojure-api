@@ -1,3 +1,13 @@
+## Unreleased
+
+- Log any exceptions and add option to define function used to
+log exceptions. ([#191](https://github.com/metosin/compojure-api/issues/191))
+  - Previously only default exception handler logged exceptions, but
+  `request-validation`, `request-parsing`, `response-validation` or
+  `schema-error` exceptions were not logged. Now they are logged.
+  - To disable logging completely, provide no-op `log-fn`:
+  `:exceptions {:log-fn (fn [e] nil)}`
+
 ## 0.24.4 (13.1.2016)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.3...0.24.4)**
