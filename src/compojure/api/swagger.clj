@@ -5,31 +5,33 @@
             [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
             [ring.swagger.common :as rsc]
+            [ring.swagger.validator :as v]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as rsui]
             [ring.swagger.swagger2 :as swagger2]
-            [compojure.api.routes :as routes]))
+            [compojure.api.routes :as routes]
+            [cheshire.core :as cheshire]))
 
 ;;
 ;; generate schema names
 ;;
 
 #_(defn ensure-parameter-schema-names [endpoint]
-  (if (get-in endpoint [:parameters :body])
-    (update-in endpoint [:parameters :body] #(swagger/with-named-sub-schemas % "Body"))
-    endpoint))
+    (if (get-in endpoint [:parameters :body])
+      (update-in endpoint [:parameters :body] #(swagger/with-named-sub-schemas % "Body"))
+      endpoint))
 
 #_(defn ensure-return-schema-names [endpoint]
-  (if (get-in endpoint [:responses])
-    (update-in
-      endpoint [:responses]
-      (fn [responses]
-        (into {} (map
-                   (fn [[k v]]
-                     [k (update-in v [:schema] swagger/with-named-sub-schemas "Response")])
-                   responses))))
-    endpoint))
+    (if (get-in endpoint [:responses])
+      (update-in
+        endpoint [:responses]
+        (fn [responses]
+          (into {} (map
+                     (fn [[k v]]
+                       [k (update-in v [:schema] swagger/with-named-sub-schemas "Response")])
+                     responses))))
+      endpoint))
 
 ;;
 ;; routes
@@ -89,26 +91,27 @@
           keys
           first))
 
-;; FIXME!
 (defn validate
-  "Validates a api. If the api is Swagger-enabled, the swagger-docs
-  endpoint is requested. Returns either the (valid) api or throws an
-  exception."
+  "Validates a api. If the api is Swagger-enabled, the swagger-spec
+  is requested and validated against the JSON Schema. Returns either
+  the (valid) api or throws an exception."
   [api]
-  (throw (ex-info "Reimplement" {}))
-  #_(let [{:keys [routes options]} (meta api)
-        routes (routes/route-vector-to-route-map routes)]
-    (assert (not (nil? routes)) "Api did not contain route definitions.")
-    (when (swagger-api? api)
+  (if-let [uri (swagger-spec-path api)]
 
-      ;; validate routes locally to get the unmasked root cause
-      (s/with-fn-validation
-        (swagger2/swagger-json routes options))
+    ;; request the swagger spec
+    (let [{status :status :as response} (api {:request-method :get
+                                              :uri uri
+                                              mw/rethrow-exceptions? true})
+          body (-> response :body slurp (cheshire/parse-string true))]
 
-      ;; validate the swagger spec
-      (let [{:keys [status body]} (api {:request-method :get
-                                        :uri (swagger-spec-path api)
-                                        mw/rethrow-exceptions? true})]
-        (if-not (= status 200)
-          (throw (IllegalArgumentException. ^String (slurp body))))))
-    api))
+      ;; all good
+      (when-not (= status 200)
+        (throw (ex-info (str "Coudn't read swagger spec from " uri)
+                        {:status status
+                         :body body})))
+
+      ;; validate the spec
+      (when-let [errors (seq (v/validate body))]
+        (throw (ex-info (str "Invalid swagger spec from " uri)
+                        {:errors errors
+                         :body body}))))))

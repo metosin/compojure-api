@@ -8,7 +8,7 @@
             [scjsv.core :as scjsv]))
 
 (def validate
-  (scjsv/validator (slurp (io/resource "ring/swagger/v2.0_schema.json"))))
+  (scjsv/validator (slurp (io/resource "ring/swagger/swagger-schema.json"))))
 
 (s/defschema Band {:id s/Int
                    :name s/Str

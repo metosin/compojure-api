@@ -1,11 +1,9 @@
 (ns compojure.api.core
-  (:require [clojure.tools.macro :refer [name-with-attributes]]
-            [compojure.api.meta :as meta]
+  (:require [compojure.api.meta :as meta]
             [compojure.api.middleware :as mw]
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.routes :as routes]
             [compojure.core :as compojure]
-            [clojure.tools.macro :as macro]
             [ring.swagger.swagger2 :as rss]))
 
 (defn- ring-handler [handlers]
