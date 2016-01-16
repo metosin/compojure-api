@@ -169,3 +169,14 @@
            '(r1 r2)))
   => {:paths {"/:id" {:get {:parameters {:path {:id String}}}}
               "/kukka/:id" {:get {:parameters {:path {:id Long}}}}}})
+
+(fact "string-path-parameters"
+  (string-path-parameters "/:foo.json") => {:foo String})
+
+(fact "path params followed by an extension"
+  (first
+   (swagger-info
+    '(GET* "/:foo.json" []
+       :path-params [foo :- String]
+       identity)))
+  => {:paths {"/:foo.json" {:get {:parameters {:path {:foo String}}}}}})

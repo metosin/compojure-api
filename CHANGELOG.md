@@ -1,5 +1,7 @@
 ## Unreleased
 
+* Fixed path parameter handling in cases where path parameter is followed by an extension
+([#196](https://github.com/metosin/compojure-api/issues/196), [metosin/ring-swagger#82](https://github.com/metosin/ring-swagger/issues/82))
 * [Updated ring-swagger](https://github.com/metosin/ring-swagger/blob/master/CHANGELOG.md#Unreleased)
 * Added `compojure.api.exception/with-logging` helper to add logging to exception handlers.
   * Check extended wiki guide on [exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling#logging)

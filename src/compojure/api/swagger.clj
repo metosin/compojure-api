@@ -151,8 +151,12 @@
 ;; ensure path parameters
 ;;
 
-(defn path-params [s]
-  (map (comp keyword second) (re-seq #":(.[^:|(/]*)[/]?" s)))
+(defn path-params
+  "Finds path-parameter keys in an uri.
+
+  Regex copied from Clout and Ring-swagger."
+  [s]
+  (map (comp keyword second) (re-seq #":([\p{L}_][\p{L}_0-9-]*)" s)))
 
 (defn string-path-parameters [uri]
   (let [params (path-params uri)]
