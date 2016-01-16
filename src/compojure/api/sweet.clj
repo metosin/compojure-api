@@ -19,12 +19,16 @@
   [compojure.api.core
 
    api
+   defapi
+
    middlewares
 
+   routes
+   defroutes
    let-routes
    undocumented
+
    context
-   routes
 
    GET
    ANY

@@ -3,6 +3,7 @@
             [compojure.api.middleware :as mw]
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.routes :as routes]
+            [clojure.tools.macro :as macro]
             [compojure.core :as compojure]
             [ring.swagger.swagger2 :as rss]))
 
@@ -17,6 +18,13 @@
   [& handlers]
   (let [handlers (keep identity handlers)]
     (routes/create "" :any {} (vec handlers) (ring-handler handlers))))
+
+(defmacro defroutes
+  "Define a Ring handler function from a sequence of routes.
+  The name may optionally be followed by a doc-string and metadata map."
+  [name & routes]
+  (let [[name routes] (macro/name-with-attributes name routes)]
+    `(def ~name (routes ~@routes))))
 
 (defmacro let-routes
   "Takes a vector of bindings and a body of routes. Equivalent to:
@@ -77,3 +85,10 @@
                         (mw/wrap-options {:routes swagger
                                           :lookup lookup}))]
     (routes/create nil :any {} [handler] api-handler)))
+
+(defmacro defapi
+  "Define an api. The name may optionally be followed by a doc-string
+  and metadata map."
+  [name api]
+  (let [[name api] (macro/name-with-attributes name api)]
+    `(def ~name (api ~api))))
