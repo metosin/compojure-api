@@ -12,7 +12,6 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as rsc]
             [ring.util.http-response :refer :all]
-            [slingshot.slingshot :refer [try+ throw+]]
             [schema.core :as s])
   (:import [com.fasterxml.jackson.core JsonParseException]
            [org.yaml.snakeyaml.parser ParserException]))
@@ -39,9 +38,9 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn- call-error-handler [error-handler error error-type request]
+(defn- call-error-handler [error-handler error data request]
   (try
-    (error-handler error error-type request)
+    (error-handler error data request)
     (catch clojure.lang.ArityException e
       (println "WARNING: Error-handler arity has been changed.")
       (error-handler error))))
@@ -55,18 +54,16 @@
   (let [default-handler (get handlers ::ex/default ex/safe-handler)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
     (fn [request]
-      (try+
+      (try
         (handler request)
-        (catch (get % :type) {:keys [type] :as data}
-          (let [type (or (get ex/legacy-exception-types type) type)]
-            (if-let [handler (get handlers type)]
-              (call-error-handler handler (:throwable &throw-context) data request)
-              (call-error-handler default-handler (:throwable &throw-context) data request))))
-        (catch Object _
-          ; FIXME: Used for validate
-          (if (rethrow-exceptions? request)
-            (throw+)
-            (call-error-handler default-handler (:throwable &throw-context) nil request)))))))
+        (catch Throwable e
+          (let [{:keys [type] :as data} (ex-data e)
+                type (or (get ex/legacy-exception-types type) type)
+                handler (or (get handlers type) default-handler)]
+            ; FIXME: Used for validate
+            (if (rethrow-exceptions? request)
+              (throw e)
+              (call-error-handler handler e data request))))))))
 
 ;;
 ;; Component integration
@@ -144,8 +141,8 @@
   ;; i.e. (handler req) is inside try-catch. If r-m-f was changed to catch only
   ;; exceptions from parsing the request, we wouldn't need to check the exception class.
   (if (or (instance? JsonParseException e) (instance? ParserException e))
-    (throw+ {:type ::ex/request-parsing} e)
-    (throw+ e)))
+    (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} e))
+    (throw e)))
 
 (defn serializable?
   "Predicate which returns true if the response body is serializable.
@@ -183,6 +180,9 @@
                                        :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
                                        :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
                                        :compojure.api.exception/default             compojure.api.exception/safe-handler}
+
+                                      Note: Because the handlers are merged into default handlers map, to disable default handler you
+                                      need to provide `nil` value as handler.
 
                                       Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
 

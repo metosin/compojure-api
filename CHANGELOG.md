@@ -1,3 +1,8 @@
+## Unreleased
+
+- Added `compojure.api.exception/with-logging` helper to add logging to exception handlers.
+  - Check extended wiki guide on [exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling#logging)
+
 ## 0.24.4 (13.1.2016)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.3...0.24.4)**
