@@ -22,7 +22,7 @@
                     ping-route)]
           (get* app "/ping") => (fails-with 500)))
 
-      (fact "response-coersion can ba disabled"
+      (fact "response-coercion can be disabled"
         (let [app (api
                     {:coercion mw/no-response-coercion}
                     ping-route)]
@@ -42,7 +42,7 @@
             status => 200
             body => {:beers ["ipa" "apa"]})))
 
-      (fact "body-coersion can ba disabled"
+      (fact "body-coercion can be disabled"
         (let [no-body-coercion (constantly (dissoc mw/default-coercion-matchers :body))
               app (api
                     {:coercion no-body-coercion}
@@ -51,7 +51,7 @@
             status => 200
             body => {:beers ["ipa" "apa" "ipa"]})))
 
-      (fact "body-coersion can ba changed"
+      (fact "body-coercion can be changed"
         (let [nop-body-coercion (constantly (assoc mw/default-coercion-matchers :body (constantly nil)))
               app (api
                     {:coercion nop-body-coercion}
@@ -70,7 +70,7 @@
             status => 200
             body => {:i 10})))
 
-      (fact "query-coersion can ba disabled"
+      (fact "query-coercion can be disabled"
         (let [no-query-coercion (constantly (dissoc mw/default-coercion-matchers :string))
               app (api
                     {:coercion no-query-coercion}
@@ -79,14 +79,14 @@
             status => 200
             body => {:i "10"})))
 
-      (fact "query-coersion can ba changed"
+      (fact "query-coercion can be changed"
         (let [nop-query-coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
               app (api
                     {:coercion nop-query-coercion}
                     query-route)]
           (get* app "/query" {:i 10}) => (fails-with 400)))))
 
-  (fact "route-spesific coercion"
+  (fact "route-specific coercion"
     (let [app (api
                 (GET "/default" []
                   :query-params [i :- s/Int]

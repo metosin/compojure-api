@@ -78,3 +78,6 @@
       => ["/api/{version}/ping"
           "/api/{version}/hello"
           "/api/{version}/more"])))
+
+(fact "string-path-parameters"
+  (#'routes/string-path-parameters "/:foo.json") => {:foo String})

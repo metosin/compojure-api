@@ -35,7 +35,6 @@
 
 * **BREAKING** Asterix (`*`) is removed from route macro & function names, as there is no reason to mix compojure-api & compojure route macros.
   * `GET*` => `GET` 
-  * `GET*` => `GET` 
   * `ANY*` => `ANY` 
   * `HEAD*` => `HEAD` 
   * `PATCH*` => `PATCH` 
@@ -58,13 +57,24 @@
 
 * top-level `api` is now just function, not a macro. It takes an optional options maps and a top-level route function.
 
-* **BREAKING** `swagger-docs` and `swagger-ui` are now functions instead of macros and removed from the public api. Swagger-stuff is configured with `api` options instead.
-   * TODO: examples
-
 * Removed deps:
 
 ```clojure
 [backtick "0.3.3"]
+```
+
+## Unreleased
+
+* Fixed path parameter handling in cases where path parameter is followed by an extension
+([#196](https://github.com/metosin/compojure-api/issues/196), [metosin/ring-swagger#82](https://github.com/metosin/ring-swagger/issues/82))
+* [Updated ring-swagger](https://github.com/metosin/ring-swagger/blob/master/CHANGELOG.md#Unreleased)
+* Added `compojure.api.exception/with-logging` helper to add logging to exception handlers.
+  * Check extended wiki guide on [exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling#logging)
+
+* Updated deps:
+
+```clojure
+[metosin/ring-swagger "0.22.3-SNAPSHOT"] is available
 ```
 
 ## 0.24.4 (13.1.2016)

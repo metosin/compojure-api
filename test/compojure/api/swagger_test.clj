@@ -15,12 +15,12 @@
                 (routes
                   (context "/b" []
                     (let-routes []
-                                 (GET "/c" [] identity)
-                                 (POST "/d" [] identity)
-                                 (PUT "/e" [] identity)
-                                 (DELETE "/f" [] identity)
-                                 (OPTIONS "/g" [] identity)
-                                 (PATCH "/h" [] identity)))
+                      (GET "/c" [] identity)
+                      (POST "/d" [] identity)
+                      (PUT "/e" [] identity)
+                      (DELETE "/f" [] identity)
+                      (OPTIONS "/g" [] identity)
+                      (PATCH "/h" [] identity)))
                   (context "/:i/:j" []
                     (GET "/k/:l/m/:n" [] identity))))]
 
@@ -70,7 +70,7 @@
       (context "/api" []
         (GET "/true" [] identity)
         more-routes)) => {"/api/true" {:get {}}
-                           "/api/more/even" {:get {}}})
+                          "/api/more/even" {:get {}}})
 
   (fact "Parameter regular expressions are discarded"
     (extract-paths
@@ -135,3 +135,39 @@
   (extract-paths (routes r1 r2))
   => {"/:id" {:get {:parameters {:path {:id String}}}}
       "/kukka/:id" {:get {:parameters {:path {:id Long}}}}})
+
+(fact "context meta-data"
+  (extract-paths
+    (context "/api/:id" []
+      :summary "top-summary"
+      :path-params [id :- String]
+      :tags [:kiss]
+      (GET "/kikka" []
+        identity)
+      (context "/ipa" []
+        :summary "mid-summary"
+        :tags [:wasp]
+        (GET "/kukka/:kukka" []
+          :summary "bottom-summary"
+          :path-params [kukka :- String]
+          :tags [:venom])
+        (GET "/kakka" []
+          identity))))
+
+  => {"/api/:id/kikka" {:get {:summary "top-summary"
+                              :tags #{:kiss}
+                              :parameters {:path {:id String}}}}
+      "/api/:id/ipa/kukka/:kukka" {:get {:summary "bottom-summary"
+                                         :tags #{:venom}
+                                         :parameters {:path {:id String
+                                                             :kukka String}}}}
+      "/api/:id/ipa/kakka" {:get {:summary "mid-summary"
+                                  :tags #{:wasp}
+                                  :parameters {:path {:id String}}}}})
+
+(fact "path params followed by an extension"
+  (extract-paths
+    (GET "/:foo.json" []
+      :path-params [foo :- String]
+      identity))
+  => {"/:foo.json" {:get {:parameters {:path {:foo String}}}}})

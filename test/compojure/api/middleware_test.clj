@@ -1,9 +1,11 @@
 (ns compojure.api.middleware-test
   (:require [compojure.api.middleware :refer :all]
+            [compojure.api.exception :as ex]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer [ok]]
             [ring.util.http-status :as status]
-            ring.util.test)
+            ring.util.test
+            [slingshot.slingshot :refer [throw+]])
   (:import [java.io PrintStream ByteArrayOutputStream]))
 
 (defmacro without-err
@@ -38,15 +40,43 @@
 
     (ring.util.test/string-input-stream "foobar") false false))
 
+(def default-options (:exceptions api-middleware-defaults))
+
 (facts "wrap-exceptions"
   (with-out-str
-    (without-err
-      (let [exception (RuntimeException. "kosh")
-            exception-class (.getName (.getClass exception))
-            failure (fn [_] (throw exception))]
+   (without-err
+     (let [exception (RuntimeException. "kosh")
+           exception-class (.getName (.getClass exception))
+           handler (-> (fn [_] (throw exception))
+                       (wrap-exceptions default-options))]
 
-        (fact "converts exceptions into safe internal server errors"
-          ((wrap-exceptions failure (:handlers (:exceptions api-middleware-defaults))) ..request..)
-          => (contains {:status status/internal-server-error
-                        :body (contains {:class exception-class
-                                         :type "unknown-exception"})}))))))
+       (fact "converts exceptions into safe internal server errors"
+         (handler {}) => (contains {:status status/internal-server-error
+                                    :body (contains {:class exception-class
+                                                     :type "unknown-exception"})})))))
+
+  (with-out-str
+   (without-err
+     (fact "Slingshot exception map type can be matched"
+       (let [handler (-> (fn [_] (throw+ {:type ::test} (RuntimeException. "kosh")))
+                         (wrap-exceptions (assoc-in default-options [:handlers ::test] (fn [ex _ _] {:status 500 :body "hello"}))))]
+         (handler {}) => (contains {:status status/internal-server-error
+                                    :body "hello"})))))
+
+  (without-err
+    (fact "Default handler logs exceptions to console"
+      (let [handler (-> (fn [_] (throw (RuntimeException. "kosh")))
+                        (wrap-exceptions default-options))]
+        (with-out-str (handler {})) => "ERROR kosh\n")))
+
+  (without-err
+    (fact "Default request-parsing handler does not log messages"
+      (let [handler (-> (fn [_] (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} (RuntimeException. "Kosh"))))
+                        (wrap-exceptions default-options))]
+        (with-out-str (handler {})) => "")))
+
+  (without-err
+    (fact "Logging can be added to a exception handler"
+      (let [handler (-> (fn [_] (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} (RuntimeException. "Kosh"))))
+                        (wrap-exceptions (assoc-in default-options [:handlers ::ex/request-parsing] (ex/with-logging ex/request-parsing-handler))))]
+        (with-out-str (handler {})) => "ERROR Error parsing request\n"))))

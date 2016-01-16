@@ -16,7 +16,7 @@
 
    Error response only contains class of the Exception so that it won't accidentally
    expose secret details."
-  [^Exception e _ _]
+  [^Exception e data req]
   (logging/log! :error e (.getMessage e))
   (internal-server-error {:type "unknown-exception"
                           :class (.getName (.getClass e))}))
@@ -34,28 +34,37 @@
 
 (defn response-validation-handler
   "Creates error response based on Schema error."
-  [_ data _]
+  [e data req]
   (internal-server-error {:errors (stringify-error (su/error-val data))}))
 
 (defn request-validation-handler
   "Creates error response based on Schema error."
-  [_ data _]
+  [e data req]
   (bad-request {:errors (stringify-error (su/error-val data))}))
 
 (defn schema-error-handler
   "Creates error response based on Schema error."
-  [_ data _]
+  [e data req]
   ; FIXME: Why error is not wrapped to ErrorContainer here?
   (bad-request {:errors (stringify-error (:error data))}))
 
 (defn request-parsing-handler
-  [^Exception ex _ _]
+  [^Exception ex data req]
   (let [cause (.getCause ex)]
     (bad-request {:type (cond
                           (instance? JsonParseException cause) "json-parse-exception"
                           (instance? ParserException cause) "yaml-parse-exception"
                           :else "parse-exception")
                   :message (.getMessage cause)})))
+
+;;
+;; Logging
+;;
+
+(defn with-logging [handler]
+  (fn [^Exception e data req]
+    (logging/log! :error e (.getMessage e))
+    (handler e data req)))
 
 ;;
 ;; Mappings from other Exception types to our base types
