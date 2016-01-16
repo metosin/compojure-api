@@ -6,15 +6,6 @@
 
 (import-vars
 
-  ;; compojure routing
-  [compojure.core
-
-   let-request
-   routing
-   routes
-   let-routes
-   wrap-routes]
-
   ;; with enchanced methods
   [compojure.api.core
 

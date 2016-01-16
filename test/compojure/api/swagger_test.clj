@@ -1,7 +1,7 @@
 (ns compojure.api.swagger-test
   (:require [schema.core :as s]
             [compojure.api.sweet :refer :all]
-            [compojure.core :refer [defroutes]]
+            compojure.core
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]))
 
@@ -56,16 +56,16 @@
 
   (fact "Vanilla Compojure defroutes are NOT followed"
     (ignore-non-documented-route-warning
-      (defroutes even-more-routes (GET "/even" [] identity))
-      (defroutes more-routes (context "/more" [] even-more-routes))
+      (compojure.core/defroutes even-more-routes (GET "/even" [] identity))
+      (compojure.core/defroutes more-routes (context "/more" [] even-more-routes))
       (extract-paths
         (context "/api" []
           (GET "/true" [] identity)
           more-routes)) => {"/api/true" {:get {}}}))
 
-  (fact "Compojure Api defroutes are followed"
+  (fact "Compojure Api defroutes and def routes are followed"
     (def even-more-routes (GET "/even" [] identity))
-    (def more-routes (context "/more" [] even-more-routes))
+    (defroutes more-routes (context "/more" [] even-more-routes))
     (extract-paths
       (context "/api" []
         (GET "/true" [] identity)

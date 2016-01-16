@@ -33,6 +33,9 @@
   * There is a new api-level option to declare how to handle routes not satisfying the `Routing` protocol (fail, warn or ignore)
   * TODO: implement as api-option
 
+* **BREAKING** compojure.core imports are removed from `compojure.api.sweet`:
+  * `let-request`, `routing`, `wrap-routes`
+
 * **BREAKING** Asterix (`*`) is removed from route macro & function names, as there is no reason to mix compojure-api & compojure route macros.
   * `GET*` => `GET` 
   * `ANY*` => `ANY` 
