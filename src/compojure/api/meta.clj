@@ -14,8 +14,7 @@
             [schema.utils :as su]
             [schema-tools.core :as st]
             [linked.core :as linked]
-            [compojure.api.routes :as routes]
-            [clojure.string :as str]))
+            [compojure.api.routes :as routes]))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
@@ -322,12 +321,7 @@
                 (str "unknown compojure destruction syntax: " arg))))))
 
 (defn restructure [method [path arg & args] {:keys [routes]}]
-  (let [method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
-        method-kw (if routes :any (-> method meta :name str str/lower-case keyword))
-        [parameters body] (extract-parameters args)
-
-        wrap (or routes 'do)
-
+  (let [[parameters body] (extract-parameters args)
         [lets letks responses middlewares] [[] [] nil nil]
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
@@ -336,20 +330,22 @@
                 responses
                 middlewares
                 parameters
-                body]}
-        (reduce
-          (fn [acc [k v]]
-            (restructure-param k v (update-in acc [:parameters] dissoc k)))
-          (map-of lets letks responses middlewares parameters body)
-          parameters)
+                body]} (reduce
+                         (fn [acc [k v]]
+                           (restructure-param k v (update-in acc [:parameters] dissoc k)))
+                         (map-of lets letks responses middlewares parameters body)
+                         parameters)
 
         pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
+        wrap (or routes 'do)
 
         form `(~wrap ~@body)
         form (if (seq letks) `(letk ~letks ~form) form)
         form (if (seq lets) `(let ~lets ~form) form)
         form (if (seq middlewares) `(route-middlewares ~middlewares ~form ~arg) form)
-        form `(~method-symbol ~path ~arg-with-request ~form)
+        form (if routes
+               `(compojure.core/context ~path ~arg-with-request ~form)
+               (compojure.core/compile-route method path arg-with-request (list form)))
         form (if responses `(body-coercer-middleware ~form ~+compojure-api-coercer+ ~responses) form)
         form (if (seq pre-lets) `(let ~pre-lets ~form) form)
 
@@ -362,5 +358,5 @@
                            form (if (seq pre-lets) `(let ~pre-lets ~form) form)]
                        form))]
 
-    `(let [childs# ~(if routes [`(~child-form {})] [])]
-       (routes/create ~path-string ~method-kw ~parameters childs# ~form))))
+    `(let [childs# ~(if routes [`(~child-form {})] nil)]
+       (routes/create ~path-string ~method ~parameters childs# ~form))))

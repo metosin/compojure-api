@@ -4,7 +4,6 @@
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.routes :as routes]
             [clojure.tools.macro :as macro]
-            [compojure.core :as compojure]
             [ring.swagger.swagger2 :as rss]))
 
 (defn- ring-handler [handlers]
@@ -17,7 +16,7 @@
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
   (let [handlers (keep identity handlers)]
-    (routes/create "" :any {} (vec handlers) (ring-handler handlers))))
+    (routes/create "" nil {} (vec handlers) (ring-handler handlers))))
 
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
@@ -34,7 +33,7 @@
 
 (defn undocumented [& handlers]
   (let [handlers (keep identity handlers)]
-    (routes/create "" :any {} nil (ring-handler handlers))))
+    (routes/create "" nil {} nil (ring-handler handlers))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
@@ -42,18 +41,18 @@
   (let [middlewares (reverse middlewares)
         routes? (> (count body) 1)]
     `(let [body# ~(if routes? `(routes ~@body) (first body))]
-       (routes/create "" :any {} [body#] (-> body# ~@middlewares)))))
+       (routes/create "" nil {} [body#] (-> body# ~@middlewares)))))
 
-(defmacro context [& args] (meta/restructure #'compojure/context args {:routes 'routes}))
+(defmacro context [& args] (meta/restructure nil      args {:routes 'routes}))
 
-(defmacro GET [& args] (meta/restructure #'compojure/GET args nil))
-(defmacro ANY [& args] (meta/restructure #'compojure/ANY args nil))
-(defmacro HEAD [& args] (meta/restructure #'compojure/HEAD args nil))
-(defmacro PATCH [& args] (meta/restructure #'compojure/PATCH args nil))
-(defmacro DELETE [& args] (meta/restructure #'compojure/DELETE args nil))
-(defmacro OPTIONS [& args] (meta/restructure #'compojure/OPTIONS args nil))
-(defmacro POST [& args] (meta/restructure #'compojure/POST args nil))
-(defmacro PUT [& args] (meta/restructure #'compojure/PUT args nil))
+(defmacro GET     [& args] (meta/restructure :get     args nil))
+(defmacro ANY     [& args] (meta/restructure nil      args nil))
+(defmacro HEAD    [& args] (meta/restructure :head    args nil))
+(defmacro PATCH   [& args] (meta/restructure :patch   args nil))
+(defmacro DELETE  [& args] (meta/restructure :delete  args nil))
+(defmacro OPTIONS [& args] (meta/restructure :options args nil))
+(defmacro POST    [& args] (meta/restructure :post    args nil))
+(defmacro PUT     [& args] (meta/restructure :put     args nil))
 
 ;;
 ;; api
@@ -84,7 +83,7 @@
                         ;; TODO: wrap just the handler
                         (mw/wrap-options {:routes swagger
                                           :lookup lookup}))]
-    (routes/create nil :any {} [handler] api-handler)))
+    (routes/create nil nil {} [handler] api-handler)))
 
 (defmacro defapi
   "Define an api. The name may optionally be followed by a doc-string
