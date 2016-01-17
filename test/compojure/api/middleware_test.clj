@@ -78,5 +78,5 @@
   (without-err
     (fact "Logging can be added to a exception handler"
       (let [handler (-> (fn [_] (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} (RuntimeException. "Kosh"))))
-                        (wrap-exceptions (assoc-in default-options [:handlers ::ex/request-parsing] (ex/with-logging ex/request-parsing-handler))))]
-        (with-out-str (handler {})) => "ERROR Error parsing request\n"))))
+                        (wrap-exceptions (assoc-in default-options [:handlers ::ex/request-parsing] (ex/with-logging ex/request-parsing-handler :info))))]
+        (with-out-str (handler {})) => "INFO Error parsing request\n"))))

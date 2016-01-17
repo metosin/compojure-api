@@ -61,10 +61,15 @@
 ;; Logging
 ;;
 
-(defn with-logging [handler]
-  (fn [^Exception e data req]
-    (logging/log! :error e (.getMessage e))
-    (handler e data req)))
+(defn with-logging
+  "Wrap compojure-api exception-handler a function which will log the
+  exception message and stack-trace with given log-level."
+  ([handler] (with-logging handler :error))
+  ([handler log-level]
+   {:pre [(#{:trace :debug :info :warn :error :fatal} log-level)]}
+   (fn [^Exception e data req]
+     (logging/log! log-level e (.getMessage e))
+     (handler e data req))))
 
 ;;
 ;; Mappings from other Exception types to our base types

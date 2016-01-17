@@ -5,10 +5,8 @@
             [ring.mock.request :refer :all]
             [schema.core :as s]
             [clojure.java.io :as io]
-            [scjsv.core :as scjsv]))
-
-(def validate
-  (scjsv/validator (slurp (io/resource "ring/swagger/swagger-schema.json"))))
+            [ring.swagger.validator :as v]
+            [compojure.api.routes :as routes]))
 
 (s/defschema Band {:id s/Int
                    :name s/Str
@@ -206,4 +204,4 @@
                                        :required ["name" "toppings"]}}}
 
       (fact "spec is valid"
-        (validate spec) => nil))))
+        (v/validate body) => nil))))
