@@ -54,30 +54,8 @@
   (->Route path method info childs handler))
 
 ;;
+;; Swagger paths
 ;;
-;;
-
-(defn- duplicates [seq]
-  (for [[id freq] (frequencies seq)
-        :when (> freq 1)] id))
-
-(defn route-lookup-table [swagger]
-  (let [entries (for [[path endpoints] (:paths swagger)
-                      [method {:keys [x-name parameters]}] endpoints
-                      :let [params (:path parameters)]
-                      :when x-name]
-                  [x-name {path (merge
-                                  {:method method}
-                                  (if params
-                                    {:params params}))}])
-        route-names (map first entries)
-        duplicate-route-names (duplicates route-names)]
-    (when (seq duplicate-route-names)
-      (throw (IllegalArgumentException.
-               (str "Found multiple routes with same name: "
-                    (string/join "," duplicate-route-names)))))
-    (into {} entries)))
-
 
 (defn- path-params
   "Finds path-parameter keys in an uri.
@@ -106,6 +84,31 @@
              (ensure-path-parameters path info)))))
      (linked/map)
      (get-routes handler))})
+
+;;
+;; Route lookup
+;;
+
+(defn- duplicates [seq]
+  (for [[id freq] (frequencies seq)
+        :when (> freq 1)] id))
+
+(defn route-lookup-table [handler]
+  (let [entries (for [[path endpoints] (:paths (ring-swagger-paths handler))
+                      [method {:keys [x-name parameters]}] endpoints
+                      :let [params (:path parameters)]
+                      :when x-name]
+                  [x-name {path (merge
+                                  {:method method}
+                                  (if params
+                                    {:params params}))}])
+        route-names (map first entries)
+        duplicate-route-names (duplicates route-names)]
+    (when (seq duplicate-route-names)
+      (throw (IllegalArgumentException.
+               (str "Found multiple routes with same name: "
+                    (string/join "," duplicate-route-names)))))
+    (into {} entries)))
 
 ;;
 ;; Endpoint Trasformers

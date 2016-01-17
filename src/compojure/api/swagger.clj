@@ -37,6 +37,12 @@
 ;; routes
 ;;
 
+(defn ring-swagger-paths [handler]
+  (->> handler
+       routes/ring-swagger-paths
+       (swagger2/transform-operations routes/non-nil-routes)
+       (swagger2/transform-operations routes/strip-no-doc-endpoints)))
+
 (defn base-path [request]
   (let [context (swagger/context request)]
     (if (= "" context) "/" context)))
@@ -78,14 +84,13 @@
       (let [runtime-info (rsm/get-swagger-data request)
             base-path {:basePath (base-path request)}
             options (:ring-swagger (mw/get-options request))
-            routes (:routes (mw/get-options request))
-            swagger (rsc/deep-merge base-path routes extra-info runtime-info)
+            paths (:paths (mw/get-options request))
+            swagger (rsc/deep-merge base-path paths extra-info runtime-info)
             spec (swagger2/swagger-json swagger options)]
         (ok spec)))))
 
 (defn swagger-spec-path [app]
   (some-> app
-          routes/ring-swagger-paths
           routes/route-lookup-table
           ::swagger
           keys

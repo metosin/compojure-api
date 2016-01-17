@@ -21,23 +21,14 @@
    ... see compojure.api.middleware/api-middleware for possible options."
   [& body]
   (let [[options handlers] (common/extract-parameters body)
-        [options handlers] [(dissoc options :swagger)
-                            (if-let [swagger-options (:swagger options)]
-                              (into handlers [])
-                              handlers
-                              )]
-
         handler (apply core/routes handlers)
-        swagger (routes/ring-swagger-paths handler)
-        lookup (routes/route-lookup-table swagger)
-        swagger (->> swagger
-                     (swagger2/transform-operations routes/non-nil-routes)
-                     (swagger2/transform-operations routes/strip-no-doc-endpoints))
+        paths (swagger/ring-swagger-paths handler)
+        lookup (routes/route-lookup-table handler)
         api-handler (-> handler
                         (middleware/api-middleware options)
                         ;; TODO: wrap just the handler
-                        (middleware/wrap-options {:routes swagger
-                                          :lookup lookup}))]
+                        (middleware/wrap-options {:paths paths
+                                                  :lookup lookup}))]
     (routes/create nil nil {} [handler] api-handler)))
 
 (defmacro defapi
