@@ -32,8 +32,8 @@
     (routes/create nil nil {} [handler] api-handler)))
 
 (defmacro defapi
-  "Define an api. The name may optionally be followed by a doc-string
+  "Defines an api. The name may optionally be followed by a doc-string
   and metadata map."
-  [name api]
-  (let [[name api] (macro/name-with-attributes name api)]
-    `(def ~name (api ~api))))
+  [name & body]
+  (let [[name body] (macro/name-with-attributes name body)]
+    `(def ~name (api ~@body))))
