@@ -1,6 +1,7 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.api.exception :as ex]
+            [compojure.api.impl.logging :as logging]
             [ring.middleware.format-params :refer [wrap-restful-params]]
             [ring.middleware.format-response :refer [wrap-restful-response]]
             ring.middleware.http-response
@@ -26,7 +27,7 @@
   (try
     (error-handler error data request)
     (catch ArityException _
-      (println "WARNING: Error-handler arity has been changed.")
+      (logging/log! :warn "Error-handler arity has been changed.")
       (error-handler error))))
 
 (defn wrap-exceptions

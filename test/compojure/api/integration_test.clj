@@ -846,7 +846,7 @@
           body => {:type "unknown-exception"
                    :class "java.lang.RuntimeException"}))
       (with-out-str
-        (get* app "/")) => "WARNING: Error-handler arity has been changed.\n")))
+        (get* app "/")) => "WARN Error-handler arity has been changed.\n")))
 
 (s/defn schema-error [a :- s/Int]
   {:bar a})
