@@ -1,23 +1,20 @@
 (ns compojure.api.sweet
   (:require compojure.api.core
+            compojure.api.api
+            compojure.api.routes
             compojure.api.swagger
-            compojure.core
+            ring.swagger.json-schema
             [potemkin :refer [import-vars]]))
 
 (import-vars
 
-  ;; with enchanced methods
   [compojure.api.core
-
-   api
-   defapi
-
-   middlewares
 
    routes
    defroutes
    let-routes
    undocumented
+   middlewares
 
    context
 
@@ -30,12 +27,15 @@
    POST
    PUT]
 
-  ;; routes
+  [compojure.api.api
+
+   api
+   defapi]
+
   [compojure.api.routes
 
    path-for]
 
-  ;; swaggered
   [compojure.api.swagger
 
    swagger-ui
