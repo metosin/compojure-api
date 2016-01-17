@@ -105,9 +105,10 @@
         route-names (map first entries)
         duplicate-route-names (duplicates route-names)]
     (when (seq duplicate-route-names)
-      (throw (IllegalArgumentException.
+      (throw (ex-info
                (str "Found multiple routes with same name: "
-                    (string/join "," duplicate-route-names)))))
+                    (string/join "," duplicate-route-names))
+               {:entries entries})))
     (into {} entries)))
 
 ;;
