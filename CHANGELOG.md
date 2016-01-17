@@ -1,4 +1,6 @@
-## Unreleased
+## 0.24.5 (17.1.2016)
+
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.4...0.24.5)**
 
 * Fixed path parameter handling in cases where path parameter is followed by an extension
 ([#196](https://github.com/metosin/compojure-api/issues/196), [metosin/ring-swagger#82](https://github.com/metosin/ring-swagger/issues/82))
