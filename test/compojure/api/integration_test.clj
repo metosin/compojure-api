@@ -1058,3 +1058,22 @@
                                   {"/normal" irrelevant
                                    "/extra" irrelevant
                                    "/runtime" irrelevant})})))
+
+
+(s/defschema Foo {:a [s/Keyword]})
+
+(defapi with-defapi
+  (swagger-docs)
+  (GET "/foo" []
+    :return Foo
+    (ok {:a "foo"})))
+
+(defn with-api []
+  (api
+    (swagger-docs)
+    (GET "/foo" []
+      :return Foo
+      (ok {:a "foo"}))))
+
+(fact "defapi & api define same results, #159"
+  (get-spec with-defapi) => (get-spec (with-api)))
