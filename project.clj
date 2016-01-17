@@ -34,7 +34,6 @@
                                   [peridot "0.4.2"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.3"]
-                                  [metosin/scjsv "0.2.0"]
                                   [com.stuartsierra/component "0.3.1"]
                                   [reloaded.repl "0.2.1"]
                                   [http-kit "2.1.19"]
