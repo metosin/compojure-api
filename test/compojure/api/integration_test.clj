@@ -948,7 +948,7 @@
           body => {:data "ping"}))
 
       (fact "the api is valid"
-        (swagger/validate app) => nil)))
+        (swagger/validate app) => app)))
 
   (fact "a swagger api with invalid swagger records"
     (let [app (api
@@ -982,7 +982,7 @@
           body => {:data "ping"}))
 
       (fact "the api is valid"
-        (swagger/validate app) => nil))))
+        (swagger/validate app) => app))))
 
 (fact "component integration"
   (let [system {:magic 42}]

@@ -96,22 +96,19 @@
   is requested and validated against the JSON Schema. Returns either
   the (valid) api or throws an exception."
   [api]
-  (if-let [uri (swagger-spec-path api)]
-
-    ;; request the swagger spec
+  (when-let [uri (swagger-spec-path api)]
     (let [{status :status :as response} (api {:request-method :get
                                               :uri uri
                                               mw/rethrow-exceptions? true})
           body (-> response :body slurp (cheshire/parse-string true))]
 
-      ;; all good
       (when-not (= status 200)
         (throw (ex-info (str "Coudn't read swagger spec from " uri)
                         {:status status
                          :body body})))
 
-      ;; validate the spec
       (when-let [errors (seq (v/validate body))]
         (throw (ex-info (str "Invalid swagger spec from " uri)
                         {:errors errors
-                         :body body}))))))
+                         :body body})))))
+  api)
