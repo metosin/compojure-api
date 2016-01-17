@@ -80,12 +80,12 @@
   (let [app (api
               (middlewares [middleware* (middleware* 2)]
                 (context "/middlewares" []
-                         (GET "/simple" req (reply-mw* req))
-                         (middlewares [(middleware* 3) (middleware* 4)]
-                           (GET "/nested" req (reply-mw* req))
-                           (GET "/nested-declared" req
-                             :middlewares [(middleware* 5) (middleware* 6)]
-                             (reply-mw* req))))))]
+                  (GET "/simple" req (reply-mw* req))
+                  (middlewares [(middleware* 3) (middleware* 4)]
+                    (GET "/nested" req (reply-mw* req))
+                    (GET "/nested-declared" req
+                      :middlewares [(middleware* 5) (middleware* 6)]
+                      (reply-mw* req))))))]
 
     (fact "are applied left-to-right"
       (let [[status _ headers] (get* app "/middlewares/simple" {})]
@@ -138,37 +138,37 @@
 (fact ":body, :query, :headers and :return"
   (let [app (api
               (context "/models" []
-                       (GET "/pertti" []
-                         :return User
-                         (ok pertti))
-                       (GET "/user" []
-                         :return User
-                         :query [user User]
-                         (ok user))
-                       (GET "/invalid-user" []
-                         :return User
-                         (ok invalid-user))
-                       (GET "/not-validated" []
-                         (ok invalid-user))
-                       (POST "/user" []
-                         :return User
-                         :body [user User]
-                         (ok user))
-                       (POST "/user_list" []
-                         :return [User]
-                         :body [users [User]]
-                         (ok users))
-                       (POST "/user_set" []
-                         :return #{User}
-                         :body [users #{User}]
-                         (ok users))
-                       (POST "/user_headers" []
-                         :return User
-                         :headers [user UserHeaders]
-                         (ok (select-keys user [:id :name])))
-                       (POST "/user_legacy" {user :body-params}
-                         :return User
-                         (ok user))))]
+                (GET "/pertti" []
+                  :return User
+                  (ok pertti))
+                (GET "/user" []
+                  :return User
+                  :query [user User]
+                  (ok user))
+                (GET "/invalid-user" []
+                  :return User
+                  (ok invalid-user))
+                (GET "/not-validated" []
+                  (ok invalid-user))
+                (POST "/user" []
+                  :return User
+                  :body [user User]
+                  (ok user))
+                (POST "/user_list" []
+                  :return [User]
+                  :body [users [User]]
+                  (ok users))
+                (POST "/user_set" []
+                  :return #{User}
+                  :body [users #{User}]
+                  (ok users))
+                (POST "/user_headers" []
+                  :return User
+                  :headers [user UserHeaders]
+                  (ok (select-keys user [:id :name])))
+                (POST "/user_legacy" {user :body-params}
+                  :return User
+                  (ok user))))]
 
     (fact "GET"
       (let [[status body] (get* app "/models/pertti")]
@@ -308,21 +308,21 @@
 (fact ":query-params, :path-params, :header-params , :body-params and :form-params"
   (let [app (api
               (context "/smart" []
-                       (GET "/plus" []
-                         :query-params [x :- Long y :- Long]
-                         (ok {:total (+ x y)}))
-                       (GET "/multiply/:x/:y" []
-                         :path-params [x :- Long y :- Long]
-                         (ok {:total (* x y)}))
-                       (GET "/power" []
-                         :header-params [x :- Long y :- Long]
-                         (ok {:total (long (Math/pow x y))}))
-                       (POST "/minus" []
-                         :body-params [x :- Long {y :- Long 1}]
-                         (ok {:total (- x y)}))
-                       (POST "/divide" []
-                         :form-params [x :- Long y :- Long]
-                         (ok {:total (/ x y)}))))]
+                (GET "/plus" []
+                  :query-params [x :- Long y :- Long]
+                  (ok {:total (+ x y)}))
+                (GET "/multiply/:x/:y" []
+                  :path-params [x :- Long y :- Long]
+                  (ok {:total (* x y)}))
+                (GET "/power" []
+                  :header-params [x :- Long y :- Long]
+                  (ok {:total (long (Math/pow x y))}))
+                (POST "/minus" []
+                  :body-params [x :- Long {y :- Long 1}]
+                  (ok {:total (- x y)}))
+                (POST "/divide" []
+                  :form-params [x :- Long y :- Long]
+                  (ok {:total (/ x y)}))))]
 
     (fact "query-parameters"
       (let [[status body] (get* app "/smart/plus" {:x 2 :y 3})]
@@ -357,14 +357,14 @@
 (fact "primitive support"
   (let [api (api
               (context "/primitives" []
-                       (GET "/return-long" []
-                         :return Long
-                         (ok 1))
-                       (GET "/long" []
-                         (ok 1))
-                       (GET "/return-string" []
-                         :return String
-                         (ok "kikka"))))]
+                (GET "/return-long" []
+                  :return Long
+                  (ok 1))
+                (GET "/long" []
+                  (ok 1))
+                (GET "/return-string" []
+                  :return String
+                  (ok "kikka"))))]
 
     (fact "when :return is set, longs can be returned"
       (let [[status body] (raw-get* api "/primitives/return-long")]
@@ -384,24 +384,24 @@
 (fact "compojure destructuring support"
   (let [app (api
               (context "/destructuring" []
-                       (GET "/regular" {{:keys [a]} :params}
-                         (ok {:a a
-                              :b (-> +compojure-api-request+ :params :b)}))
-                       (GET "/regular2" {:as req}
-                         (ok {:a (-> req :params :a)
-                              :b (-> +compojure-api-request+ :params :b)}))
-                       (GET "/vector" [a]
-                         (ok {:a a
-                              :b (-> +compojure-api-request+ :params :b)}))
-                       (GET "/vector2" [:as req]
-                         (ok {:a (-> req :params :a)
-                              :b (-> +compojure-api-request+ :params :b)}))
-                       (GET "/symbol" req
-                         (ok {:a (-> req :params :a)
-                              :b (-> +compojure-api-request+ :params :b)}))
-                       (GET "/integrated" [a] :query-params [b]
-                         (ok {:a a
-                              :b b}))))]
+                (GET "/regular" {{:keys [a]} :params}
+                  (ok {:a a
+                       :b (-> +compojure-api-request+ :params :b)}))
+                (GET "/regular2" {:as req}
+                  (ok {:a (-> req :params :a)
+                       :b (-> +compojure-api-request+ :params :b)}))
+                (GET "/vector" [a]
+                  (ok {:a a
+                       :b (-> +compojure-api-request+ :params :b)}))
+                (GET "/vector2" [:as req]
+                  (ok {:a (-> req :params :a)
+                       :b (-> +compojure-api-request+ :params :b)}))
+                (GET "/symbol" req
+                  (ok {:a (-> req :params :a)
+                       :b (-> +compojure-api-request+ :params :b)}))
+                (GET "/integrated" [a] :query-params [b]
+                  (ok {:a a
+                       :b b}))))]
 
     (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol" "integrated"]]
       (fact {:midje/description uri}
@@ -543,11 +543,11 @@
               (GET "/" [] ok)
               (GET "/a" [] ok)
               (context "/b" []
-                       (context "/b1" []
-                                (GET "/" [] ok))
-                       (context "/" []
-                                (GET "/" [] ok)
-                                (GET "/b2" [] ok))))]
+                (context "/b1" []
+                  (GET "/" [] ok))
+                (context "/" []
+                  (GET "/" [] ok)
+                  (GET "/b2" [] ok))))]
 
     (fact "valid routes"
       (get* app "/") => ok?
@@ -596,8 +596,8 @@
 (fact "multiple routes in context"
   (let [app (api
               (context "/foo" []
-                       (GET "/bar" [] (ok ["bar"]))
-                       (GET "/baz" [] (ok ["baz"]))))]
+                (GET "/bar" [] (ok ["bar"]))
+                (GET "/baz" [] (ok ["baz"]))))]
 
     (fact "first route works"
       (let [[status body] (get* app "/foo/bar")]
@@ -656,15 +656,15 @@
   (let [app (api
               (swagger-docs)
               (context "/api" []
-                       (context "/ipa" []
-                                (GET "/ping" []
-                                  :summary "active-ping"
-                                  (ok {:ping "active"}))))
+                (context "/ipa" []
+                  (GET "/ping" []
+                    :summary "active-ping"
+                    (ok {:ping "active"}))))
               (context "/api" []
-                       (context "/ipa" []
-                                (GET "/ping" []
-                                  :summary "passive-ping"
-                                  (ok {:ping "passive"})))))]
+                (context "/ipa" []
+                  (GET "/ping" []
+                    :summary "passive-ping"
+                    (ok {:ping "passive"})))))]
 
     (fact "first route matches with Compojure"
       (let [[status body] (get* app "/api/ipa/ping" {})]
@@ -678,14 +678,14 @@
   (let [app (api
               (swagger-docs)
               (context "/api/ipa" []
-                       (GET "/ping" []
-                         :summary "active-ping"
-                         (ok {:ping "active"})))
+                (GET "/ping" []
+                  :summary "active-ping"
+                  (ok {:ping "active"})))
               (context "/api" []
-                       (context "/ipa" []
-                                (GET "/ping" []
-                                  :summary "passive-ping"
-                                  (ok {:ping "passive"})))))]
+                (context "/ipa" []
+                  (GET "/ping" []
+                    :summary "passive-ping"
+                    (ok {:ping "passive"})))))]
 
     (fact "first route matches with Compojure"
       (let [[status body] (get* app "/api/ipa/ping" {})]
@@ -1037,14 +1037,15 @@
 
     (fact "swagger-docs are generated"
       (-> app get-spec :paths vals first :get)
-      => (contains {:x-name "boolean"
-                    :operationId "echoBoolean"
-                    :description "Ehcoes a boolean"
-                    :parameters [{:description ""
-                                  :in "query"
-                                  :name "q"
-                                  :required true
-                                  :type "boolean"}]}))))
+      => (contains
+           {:x-name "boolean"
+            :operationId "echoBoolean"
+            :description "Ehcoes a boolean"
+            :parameters [{:description ""
+                          :in "query"
+                          :name "q"
+                          :required true
+                          :type "boolean"}]}))))
 
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api

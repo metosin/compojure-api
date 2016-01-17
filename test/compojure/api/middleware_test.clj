@@ -44,24 +44,24 @@
 
 (facts "wrap-exceptions"
   (with-out-str
-   (without-err
-     (let [exception (RuntimeException. "kosh")
-           exception-class (.getName (.getClass exception))
-           handler (-> (fn [_] (throw exception))
-                       (wrap-exceptions default-options))]
+    (without-err
+      (let [exception (RuntimeException. "kosh")
+            exception-class (.getName (.getClass exception))
+            handler (-> (fn [_] (throw exception))
+                        (wrap-exceptions default-options))]
 
-       (fact "converts exceptions into safe internal server errors"
-         (handler {}) => (contains {:status status/internal-server-error
-                                    :body (contains {:class exception-class
-                                                     :type "unknown-exception"})})))))
+        (fact "converts exceptions into safe internal server errors"
+          (handler {}) => (contains {:status status/internal-server-error
+                                     :body (contains {:class exception-class
+                                                      :type "unknown-exception"})})))))
 
   (with-out-str
-   (without-err
-     (fact "Slingshot exception map type can be matched"
-       (let [handler (-> (fn [_] (throw+ {:type ::test} (RuntimeException. "kosh")))
-                         (wrap-exceptions (assoc-in default-options [:handlers ::test] (fn [ex _ _] {:status 500 :body "hello"}))))]
-         (handler {}) => (contains {:status status/internal-server-error
-                                    :body "hello"})))))
+    (without-err
+      (fact "Slingshot exception map type can be matched"
+        (let [handler (-> (fn [_] (throw+ {:type ::test} (RuntimeException. "kosh")))
+                          (wrap-exceptions (assoc-in default-options [:handlers ::test] (fn [ex _ _] {:status 500 :body "hello"}))))]
+          (handler {}) => (contains {:status status/internal-server-error
+                                     :body "hello"})))))
 
   (without-err
     (fact "Default handler logs exceptions to console"

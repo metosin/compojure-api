@@ -4,9 +4,7 @@
             [midje.sweet :refer :all]
             [ring.mock.request :refer :all]
             [schema.core :as s]
-            [clojure.java.io :as io]
-            [ring.swagger.validator :as v]
-            [compojure.api.routes :as routes]))
+            [ring.swagger.validator :as v]))
 
 (s/defschema Band {:id s/Int
                    :name s/Str
@@ -204,4 +202,4 @@
                                        :required ["name" "toppings"]}}}
 
       (fact "spec is valid"
-        (v/validate body) => nil))))
+        (v/validate spec) => nil))))
