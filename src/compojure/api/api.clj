@@ -41,6 +41,7 @@
   and metadata map.
 
   API middleware options:
+
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   defapi
   [name & body]

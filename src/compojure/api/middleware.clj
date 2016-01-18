@@ -154,24 +154,31 @@
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
-  "Opinionated chain of middlewares for web apis. Takes options-map, with namespaces
-  options for the used middlewares (see middlewares for full details on options):
+  "Opinionated chain of middlewares for web apis. Takes optional options-map.
+
+  ### Exception handlers
+
+  An error handler is a function of exception, ex-data and request to response.
+
+  When defining these options, it is suggested to use alias for the exceptions namespace,
+  e.g. `[compojure.api.exception :as ex]`.
+
+  Default:
+
+      {::ex/request-validation  ex/request-validation-handler
+       ::ex/request-parsing     ex/request-parsing-handler
+       ::ex/response-validation ex/response-validation-handler
+       ::ex/default             ex/safe-handler}
+
+  Note: Because the handlers are merged into default handlers map, to disable default handler you
+  need to provide `nil` value as handler.
+
+  Note: To catch Schema errors use `{:schema.core/error ex/schema-error-handler}`.
+
+  ### Options
 
   - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
-                                     An error handler is a function of exception, ExceptionInfo data and request to response.
-                                     Default:
-                                     {:compojure.api.exception/request-validation  compojure.api.exception/request-validation-handler
-                                      :compojure.api.exception/request-parsing     compojure.api.exception/request-parsing-handler
-                                      :compojure.api.exception/response-validation compojure.api.exception/response-validation-handler
-                                      :compojure.api.exception/default             compojure.api.exception/safe-handler}
-
-                                     Note: Because the handlers are merged into default handlers map, to disable default handler you
-                                     need to provide `nil` value as handler.
-
-                                     Note: To catch Schema errors use {:schema.core/error compojure.api.exception/schema-error-handler}
-
-                                     Note: Adding an alias for exception namespace makes it easier to define these options.
 
   - **:format**                    for ring-middleware-format middlewares
       - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
