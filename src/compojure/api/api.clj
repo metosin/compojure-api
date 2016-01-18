@@ -9,16 +9,16 @@
 
 (defn api
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
-   Creates the route-table at run-time and passes that into the request via
-   ring-swagger middlewares. The mounted api-middleware can be configured by
-   optional options map as the first parameter:
+  Creates the route-table at run-time and passes that into the request via
+  ring-swagger middlewares. The mounted api-middleware can be configured by
+  optional options map as the first parameter:
 
-       (api
-         {:formats [:json :edn]}
-         (context \"/api\" []
-           ...))
+      (api
+        {:formats [:json :edn]}
+        (context \"/api\" []
+          ...))
 
-   ... see compojure.api.middleware/api-middleware for possible options."
+  ... see compojure.api.middleware/api-middleware for possible options."
   [& body]
   (let [[options handlers] (common/extract-parameters body)
         handler (apply core/routes handlers)

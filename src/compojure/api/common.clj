@@ -2,7 +2,7 @@
 
 (defmacro map-of
   "creates map with symbol names as keywords as keys and
-   symbol values as values."
+  symbol values as values."
   [& syms]
   `(zipmap ~(vec (map keyword syms)) ~(vec syms)))
 
@@ -13,11 +13,11 @@
 (defn extract-parameters
   "Extract parameters from head of the list. Parameters can be:
 
-   1. a map (if followed by any form) `[{:a 1 :b 2} :body]` => `{:a 1 :b 2}`
-   2. list of keywords & values `[:a 1 :b 2 :body]` => `{:a 1 :b 2}`
-   3. else => `{}`
+  1. a map (if followed by any form) `[{:a 1 :b 2} :body]` => `{:a 1 :b 2}`
+  2. list of keywords & values `[:a 1 :b 2 :body]` => `{:a 1 :b 2}`
+  3. else => `{}`
 
-   Returns a tuple with parameters and body without the parameters"
+  Returns a tuple with parameters and body without the parameters"
   [c]
   (cond
     (plain-map? (first c))

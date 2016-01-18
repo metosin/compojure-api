@@ -83,7 +83,7 @@
 
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
-   extracted from a key in a ring request."
+  extracted from a key in a ring request."
   [schema, key, type :- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
   `(coerce! ~schema ~key ~type ~+compojure-api-coercer+ ~+compojure-api-request+))
@@ -301,10 +301,10 @@
 
 (defn- destructure-compojure-api-request
   "Returns a vector of four elements:
-   - pruned path string
-   - new lets list
-   - bindings form for compojure route
-   - symbol to which request will be bound"
+  - pruned path string
+  - new lets list
+  - bindings form for compojure route
+  - symbol to which request will be bound"
   [path lets arg]
   (let [path-string (if (vector? path) (first path) path)]
     (cond

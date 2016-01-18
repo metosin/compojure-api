@@ -14,8 +14,8 @@
 (defn safe-handler
   "Writes :error to log with the exception message & stacktrace.
 
-   Error response only contains class of the Exception so that it won't accidentally
-   expose secret details."
+  Error response only contains class of the Exception so that it won't accidentally
+  expose secret details."
   [^Exception e data req]
   (logging/log! :error e (.getMessage e))
   (internal-server-error {:type "unknown-exception"
