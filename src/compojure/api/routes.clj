@@ -80,14 +80,14 @@
 (defn ring-swagger-paths [handler]
   {:paths
    (reduce
-     (fn [acc [path method info]]
-       (update-in
-         acc [path method]
-         (fn [old-info]
-           (let [info (or old-info info)]
-             (ensure-path-parameters path info)))))
-     (linked/map)
-     (get-routes handler))})
+    (fn [acc [path method info]]
+      (update-in
+       acc [path method]
+       (fn [old-info]
+         (let [info (or old-info info)]
+           (ensure-path-parameters path info)))))
+    (linked/map)
+    (get-routes handler))})
 
 ;;
 ;; Route lookup

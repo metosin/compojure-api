@@ -52,8 +52,8 @@
 
 (defn fnk-schema [bind]
   (:input-schema
-    (fnk-impl/letk-input-schema-and-body-form
-      nil (with-meta bind {:schema s/Any}) [] nil)))
+   (fnk-impl/letk-input-schema-and-body-form
+     nil (with-meta bind {:schema s/Any}) [] nil)))
 
 (defn body-coercer-middleware [handler coercer responses]
   (fn [request]
@@ -66,8 +66,8 @@
               (throw (ex-info "Response validation error"
                               (assoc body :type ::ex/response-validation)))
               (assoc response
-                ::serializable? true
-                :body body)))
+                     ::serializable? true
+                     :body body)))
           response)
         response))))
 
@@ -276,18 +276,18 @@
   "Dummy letk-macro used in resolving route-docs. not part of normal invokation chain."
   [bindings & body]
   (reduce
-    (fn [cur-body-form [bind-form]]
-      (if (symbol? bind-form)
-        `(let [~bind-form nil] ~cur-body-form)
-        (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form
-                                            &env
-                                            (fnk-impl/ensure-schema-metadata &env bind-form)
-                                            []
-                                            cur-body-form)
-              body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
-          `(let [~map-sym nil] ~body-form))))
-    `(do ~@body)
-    (reverse (partition 2 bindings))))
+   (fn [cur-body-form [bind-form]]
+     (if (symbol? bind-form)
+       `(let [~bind-form nil] ~cur-body-form)
+       (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form
+                                           &env
+                                           (fnk-impl/ensure-schema-metadata &env bind-form)
+                                           []
+                                           cur-body-form)
+             body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
+         `(let [~map-sym nil] ~body-form))))
+   `(do ~@body)
+   (reverse (partition 2 bindings))))
 
 ;;
 ;; Api
@@ -331,10 +331,10 @@
                 middlewares
                 parameters
                 body]} (reduce
-                         (fn [acc [k v]]
-                           (restructure-param k v (update-in acc [:parameters] dissoc k)))
-                         (map-of lets letks responses middlewares parameters body)
-                         parameters)
+                        (fn [acc [k v]]
+                          (restructure-param k v (update-in acc [:parameters] dissoc k)))
+                        (map-of lets letks responses middlewares parameters body)
+                        parameters)
 
         pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
         wrap (or routes 'do)

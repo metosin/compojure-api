@@ -58,8 +58,7 @@
   "Assoc given components to the request."
   [handler components]
   (fn [req]
-    (handler
-      (assoc req ::components components))))
+    (handler (assoc req ::components components))))
 
 (defn get-components [req]
   (::components req))
@@ -222,15 +221,13 @@
         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                 :consumes (->mime-types formats)})
         (wrap-options (select-keys options [:ring-swagger :coercion]))
-        (wrap-restful-params
-          {:formats (remove response-only-mimes formats)
-           :handle-error handle-req-error
-           :format-options params-opts})
+        (wrap-restful-params {:formats (remove response-only-mimes formats)
+                              :handle-error handle-req-error
+                              :format-options params-opts})
         (wrap-exceptions exceptions)
-        (wrap-restful-response
-          {:formats formats
-           :predicate serializable?
-           :format-options response-opts})
+        (wrap-restful-response {:formats formats
+                                :predicate serializable?
+                                :format-options response-opts})
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))

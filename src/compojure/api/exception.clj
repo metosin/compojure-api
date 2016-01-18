@@ -25,12 +25,12 @@
   "Stringifies symbols and validation errors in Schema error, keeping the structure intact."
   [error]
   (postwalk
-    (fn [x]
-      (cond
-        (instance? ValidationError x) (str (su/validation-error-explain x))
-        (instance? NamedError x) (str (su/named-error-explain x))
-        :else x))
-    error))
+   (fn [x]
+     (cond
+       (instance? ValidationError x) (str (su/validation-error-explain x))
+       (instance? NamedError x) (str (su/named-error-explain x))
+       :else x))
+   error))
 
 (defn response-validation-handler
   "Creates error response based on Schema error."
