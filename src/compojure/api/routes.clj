@@ -16,14 +16,18 @@
 
 (def ^:dynamic *fail-on-missing-route-info* false)
 
-(defprotocol Routing
-  (get-routes [handler]))
-
 (defn- ->path [path]
   (if-not (= path "/") path))
 
 (defn- ->paths [p1 p2]
   (->path (str p1 (->path p2))))
+
+(defprotocol Routing
+  (get-routes [handler]))
+
+(extend-protocol Routing
+  nil
+  (get-routes [_] []))
 
 (defrecord Route [path method info childs handler]
   Routing
@@ -32,7 +36,7 @@
       (vec
         (for [[p m i] (mapcat get-routes (filter (partial satisfies? Routing) childs))]
           [(->paths path p) m (rsc/deep-merge info i)]))
-      [[path method info]]))
+      (into [] (if path [[path method info]]))))
 
   IFn
   (invoke [_ request]

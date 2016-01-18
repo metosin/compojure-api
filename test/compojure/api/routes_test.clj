@@ -26,6 +26,9 @@
                                              :e :kikka})
     => "/a/2015-05-22/12345/d/kikka/f"))
 
+(fact "string-path-parameters"
+  (#'routes/string-path-parameters "/:foo.json") => {:foo String})
+
 (facts "nested routes"
   (let [middleware (fn [handler] (fn [request] (handler request)))
         more-routes (fn [version]
@@ -79,5 +82,7 @@
           "/api/{version}/hello"
           "/api/{version}/more"])))
 
-(fact "string-path-parameters"
-  (#'routes/string-path-parameters "/:foo.json") => {:foo String})
+(fact "route merging"
+  (routes/get-routes (routes (routes))) => []
+  (routes/get-routes (routes (swagger-ui))) => []
+  (routes/get-routes (routes (routes (GET "/ping" [] "pong")))) => [["/ping" :get {}]])

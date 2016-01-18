@@ -12,8 +12,8 @@
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
-  (let [handlers (keep identity handlers)]
-    (routes/create "" nil {} (vec handlers) (ring-handler handlers))))
+  (if-let [handlers (seq (keep identity handlers))]
+    (routes/create nil nil {} (vec handlers) (ring-handler handlers))))
 
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
@@ -30,7 +30,7 @@
 
 (defn undocumented [& handlers]
   (let [handlers (keep identity handlers)]
-    (routes/create "" nil {} nil (ring-handler handlers))))
+    (routes/create nil nil {} nil (ring-handler handlers))))
 
 (defmacro middlewares
   "Wraps routes with given middlewares using thread-first macro."
