@@ -6,7 +6,7 @@
             [compojure.core :refer [routes]]
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
-            [ring.swagger.common :refer :all]
+            [ring.swagger.common :as rsc]
             [ring.swagger.json-schema :as js]
             [ring.util.http-response :refer [internal-server-error]]
             [schema.core :as s]
@@ -14,39 +14,15 @@
             [schema.utils :as su]
             [schema-tools.core :as st]
             [linked.core :as linked]
-            [compojure.api.impl.logging :as logging]))
-
-;;
-;; Meta Evil
-;;
+            [compojure.api.routes :as routes]))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
 
-(def +compojure-api-meta+
-  "lexically bound meta-data for handlers."
-  '+compojure-api-meta+)
-
 (def +compojure-api-coercer+
   "lexically bound (caching) coercer for handlers."
   '+compojure-api-coercer+)
-
-(defmacro meta-container [meta & form]
-  `(let [accumulated-meta# (get-local +compojure-api-meta+)
-         ~'+compojure-api-meta+ (deep-merge accumulated-meta# ~meta)]
-     ~@form))
-
-(defn unwrap-meta-container [container]
-  {:post [(map? %)]}
-  (or
-    (if (sequential? container)
-      (let [[sym meta-data] container]
-        (if (and (symbol? sym) (= #'meta-container (resolve sym)))
-          meta-data)))
-    {}))
-
-(def meta-container? #{#'meta-container})
 
 ;;
 ;; Schema
@@ -84,7 +60,7 @@
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
-          (let [coerce (coercer (value-of schema) matcher)
+          (let [coerce (coercer (rsc/value-of schema) matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
               (throw (ex-info "Response validation error"
@@ -95,43 +71,26 @@
           response)
         response))))
 
+(defn coerce! [schema key type coercer request]
+  (let [value (keywordize-keys (key request))]
+    (if-let [matcher (type (mw/get-coercion-matcher-provider request))]
+      (let [coerce (coercer schema matcher)
+            result (coerce value)]
+        (if (su/error? result)
+          (throw (ex-info "Request validation failed" (assoc result :type ::ex/request-validation)))
+          result))
+      value)))
+
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
    extracted from a key in a ring request."
   [schema, key, type :- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
-  `(let [value# (keywordize-keys (~key ~+compojure-api-request+))]
-     (if-let [matcher# (~type (mw/get-coercion-matcher-provider ~+compojure-api-request+))]
-       (let [coerce# (~+compojure-api-coercer+ ~schema matcher#)
-             result# (coerce# value#)]
-         (if (su/error? result#)
-           (throw (ex-info "Request validation failed" (assoc result# :type ::ex/request-validation)))
-           result#))
-       value#)))
+  `(coerce! ~schema ~key ~type ~+compojure-api-coercer+ ~+compojure-api-request+))
 
 (defn- convert-return [schema]
   {200 {:schema schema
         :description (or (js/json-schema-meta schema) "")}})
-
-(defn ensure-new-format! [responses]
-  (doseq [v (vals responses)
-          :let [deprecated? (cond
-                              (nil? v) false
-                              (not (map? v)) true
-                              (or (:schema v)
-                                  (:description v)
-                                  (:headers v)) false
-                              :else true)]
-          :when deprecated?]
-    (throw
-      (IllegalArgumentException.
-        (str
-          "You are using an old format with :responses. Since Compojure-api 0.21.0, "
-          "plain ring-swagger 2.0 models are used. Example:\n\n"
-          ":responses {400 nil}\n"
-          ":responses {400 {:schema ErrorSchema}}\n"
-          ":responses {400 {:schema ErrorSchema, :description \"Error\"}}\n\n"
-          "You had:\n\n:responses " responses "\n\n")))))
 
 ;;
 ;; Extension point
@@ -179,7 +138,7 @@
 ;           :paramerers {:query {:q s/Str}
 ;                        :body NewUser}}}
 (defmethod restructure-param :swagger [_ swagger acc]
-  (update-in acc [:parameters] deep-merge swagger))
+  (update-in acc [:parameters] rsc/deep-merge swagger))
 
 ; Route name, used with path-for
 ; Example:
@@ -210,9 +169,7 @@
 ; :responses {403 nil}
 ; :responses {403 {:schema ErrorEnvelope}}
 ; :responses {403 {:schema ErrorEnvelope, :description \"Underflow\"}}
-
 (defmethod restructure-param :responses [_ responses acc]
-  (ensure-new-format! responses)
   (-> acc
       (update-in [:parameters :responses] merge responses)
       (update-in [:responses] merge responses)))
@@ -306,15 +263,35 @@
   (update-in acc [:middlewares] conj `(mw/wrap-coercion ~coercion)))
 
 ;;
-;; Api
+;; Impl
 ;;
 
-(defmacro middlewares
-  "Wraps routes with given middlewares using thread-first macro."
-  [middlewares & body]
-  (let [middlewares (reverse middlewares)]
-    `(-> (routes ~@body)
-         ~@middlewares)))
+(defmacro dummy-let
+  "Dummy let-macro used in resolving route-docs. not part of normal invokation chain."
+  [bindings & body]
+  (let [bind-form (vec (apply concat (for [n (take-nth 2 bindings)] [n nil])))]
+    `(let ~bind-form ~@body)))
+
+(defmacro dummy-letk
+  "Dummy letk-macro used in resolving route-docs. not part of normal invokation chain."
+  [bindings & body]
+  (reduce
+    (fn [cur-body-form [bind-form]]
+      (if (symbol? bind-form)
+        `(let [~bind-form nil] ~cur-body-form)
+        (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form
+                                            &env
+                                            (fnk-impl/ensure-schema-metadata &env bind-form)
+                                            []
+                                            cur-body-form)
+              body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
+          `(let [~map-sym nil] ~body-form))))
+    `(do ~@body)
+    (reverse (partition 2 bindings))))
+
+;;
+;; Api
+;;
 
 (defmacro route-middlewares
   "Wraps route body in mock-handler and middlewares."
@@ -323,51 +300,63 @@
     `((-> (fn [~arg] ~body) ~@middlewares) ~arg)))
 
 (defn- destructure-compojure-api-request
-  "Returns a vector of three elements:
+  "Returns a vector of four elements:
+   - pruned path string
    - new lets list
    - bindings form for compojure route
    - symbol to which request will be bound"
-  [lets arg]
-  (cond
-    ;; GET "/route" []
-    (vector? arg) [lets (into arg [:as +compojure-api-request+]) +compojure-api-request+]
-    ;; GET "/route" {:as req}
-    (map? arg) (if-let [as (:as arg)]
-                 [(conj lets +compojure-api-request+ as) arg as]
-                 [lets (merge arg [:as +compojure-api-request+]) +compojure-api-request+])
-    ;; GET "/route" req
-    (symbol? arg) [(conj lets +compojure-api-request+ arg) arg arg]
-    :else (throw
-            (RuntimeException.
-              (str "unknown compojure destruction syntax: " arg)))))
+  [path lets arg]
+  (let [path-string (if (vector? path) (first path) path)]
+    (cond
+      ;; GET "/route" []
+      (vector? arg) [path-string lets (into arg [:as +compojure-api-request+]) +compojure-api-request+]
+      ;; GET "/route" {:as req}
+      (map? arg) (if-let [as (:as arg)]
+                   [path-string (conj lets +compojure-api-request+ as) arg as]
+                   [path-string lets (merge arg [:as +compojure-api-request+]) +compojure-api-request+])
+      ;; GET "/route" req
+      (symbol? arg) [path-string (conj lets +compojure-api-request+ arg) arg arg]
+      :else (throw
+              (RuntimeException.
+                (str "unknown compojure destruction syntax: " arg))))))
 
-(defn restructure [method [path arg & args] & [{:keys [body-wrap]}]]
-  (let [body-wrap (or body-wrap 'do)
-        method-symbol (symbol (str (-> method meta :ns) "/" (-> method meta :name)))
-        [parameters body] (extract-parameters args)
+(defn restructure [method [path arg & args] {:keys [routes]}]
+  (let [[parameters body] (extract-parameters args)
         [lets letks responses middlewares] [[] [] nil nil]
-        [lets arg-with-request arg] (destructure-compojure-api-request lets arg)
+        [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
         {:keys [lets
                 letks
                 responses
                 middlewares
                 parameters
-                body]}
-        (reduce
-          (fn [acc [k v]]
-            (restructure-param k v (update-in acc [:parameters] dissoc k)))
-          (map-of lets letks responses middlewares parameters body)
-          parameters)
+                body]} (reduce
+                         (fn [acc [k v]]
+                           (restructure-param k v (update-in acc [:parameters] dissoc k)))
+                         (map-of lets letks responses middlewares parameters body)
+                         parameters)
 
         pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
+        wrap (or routes 'do)
 
-        body `(~body-wrap ~@body)
-        body (if (seq letks) `(letk ~letks ~body) body)
-        body (if (seq lets) `(let ~lets ~body) body)
-        body (if (seq middlewares) `(route-middlewares ~middlewares ~body ~arg) body)
-        body (if (seq parameters) `(meta-container ~parameters ~body) body)
-        body `(~method-symbol ~path ~arg-with-request ~body)
-        body (if responses `(body-coercer-middleware ~body ~+compojure-api-coercer+ ~responses) body)
-        body (if (seq pre-lets) `(let ~pre-lets ~body) body)]
-    body))
+        form `(~wrap ~@body)
+        form (if (seq letks) `(letk ~letks ~form) form)
+        form (if (seq lets) `(let ~lets ~form) form)
+        form (if (seq middlewares) `(route-middlewares ~middlewares ~form ~arg) form)
+        form (if routes
+               `(compojure.core/context ~path ~arg-with-request ~form)
+               (compojure.core/compile-route method path arg-with-request (list form)))
+        form (if responses `(body-coercer-middleware ~form ~+compojure-api-coercer+ ~responses) form)
+        form (if (seq pre-lets) `(let ~pre-lets ~form) form)
+
+        ;; for routes, create a separate lookup-function to find the inner routes
+        child-form (if routes
+                     (let [form `(~wrap ~@body)
+                           form (if (seq letks) `(dummy-letk ~letks ~form) form)
+                           form (if (seq lets) `(dummy-let ~lets ~form) form)
+                           form `(fn [~'+compojure-api-request+] ~form)
+                           form (if (seq pre-lets) `(let ~pre-lets ~form) form)]
+                       form))]
+
+    `(let [childs# ~(if routes [`(~child-form {})] nil)]
+       (routes/create ~path-string ~method ~parameters childs# ~form))))

@@ -1,7 +1,8 @@
 (ns compojure.api.test-utils
   (:require [cheshire.core :as cheshire]
             [clojure.string :as str]
-            [peridot.core :as p])
+            [peridot.core :as p]
+            [compojure.api.routes :as routes])
   (:import [java.io InputStream]))
 
 (defn read-body [body]
@@ -78,3 +79,31 @@
 (defn headers-post* [app uri headers]
   (let [[status body] (raw-post* app uri "" nil headers)]
     [status (parse-body body)]))
+
+;;
+;; Route compilation
+;;
+
+(defmacro ignore-non-documented-route-warning [& body]
+  `(with-out-str
+     (binding [routes/*fail-on-missing-route-info* false]
+       ~@body)))
+
+;;
+;; get-spec
+;;
+
+(defn extract-paths [app]
+  (:paths (routes/ring-swagger-paths app)))
+
+(defn get-spec [app]
+  (let [[status spec] (get* app "/swagger.json" {})]
+    (assert (= status 200))
+    (if (:paths spec)
+      (update-in spec [:paths] (fn [paths]
+                                 (into
+                                   (empty paths)
+                                   (for [[k v] paths]
+                                     [(if (= k (keyword "/"))
+                                        "/" (str "/" (name k))) v]))))
+      spec)))

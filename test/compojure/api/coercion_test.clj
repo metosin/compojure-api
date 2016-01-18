@@ -13,7 +13,7 @@
 (fact "custom coercion"
 
   (fact "response coercion"
-    (let [ping-route (GET* "/ping" []
+    (let [ping-route (GET "/ping" []
                        :return {:pong s/Str}
                        (ok {:pong 123}))]
 
@@ -30,8 +30,8 @@
             status => 200
             body => {:pong 123})))))
 
-  (fact "body coercion"
-    (let [beer-route (POST* "/beer" []
+  (fact "body coersion"
+    (let [beer-route (POST "/beer" []
                        :body [body {:beers #{(s/enum "ipa" "apa")}}]
                        (ok body))]
 
@@ -58,8 +58,8 @@
                     beer-route)]
           (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]})) => (fails-with 400)))))
 
-  (fact "query coercion"
-    (let [query-route (GET* "/query" []
+  (fact "query coersion"
+    (let [query-route (GET "/query" []
                         :query-params [i :- s/Int]
                         (ok {:i i}))]
 
@@ -88,14 +88,14 @@
 
   (fact "route-specific coercion"
     (let [app (api
-                (GET* "/default" []
+                (GET "/default" []
                   :query-params [i :- s/Int]
                   (ok {:i i}))
-                (GET* "/disabled-coercion" []
+                (GET "/disabled-coercion" []
                   :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
                   :query-params [i :- s/Int]
                   (ok {:i i}))
-                (GET* "/no-coercion" []
+                (GET "/no-coercion" []
                   :coercion (constantly nil)
                   :query-params [i :- s/Int]
                   (ok {:i i})))]
@@ -116,29 +116,29 @@
   (fact "anonymous matchers, with 100+ calls to same endpoint"
 
     #_(fact "at api-level, matcher is reused and the coercion matcher cache is not filled"
-      (let [app (api
-                  {:coercion (constantly mw/default-coercion-matchers)}
-                  (GET* "/anonymous" []
-                    :query-params [i :- s/Str]
-                    (ok {:i i})))]
+        (let [app (api
+                    {:coercion (constantly mw/default-coercion-matchers)}
+                    (GET "/anonymous" []
+                      :query-params [i :- s/Str]
+                      (ok {:i i})))]
 
-        (dotimes [_ 200]
-          (let [[status body] (get* app "/anonymous" {:i "10"})]
-            status => 200
-            body => {:i "10"})) => nil
-        (provided
-          (compojure.api.impl.logging/log! & anything) => irrelevant :times 0)))
+          (dotimes [_ 200]
+            (let [[status body] (get* app "/anonymous" {:i "10"})]
+              status => 200
+              body => {:i "10"})) => nil
+          (provided
+            (compojure.api.impl.logging/log! & anything) => irrelevant :times 0)))
 
     #_(fact "at route-level, matcher is NOT reused and the the coercion matcher cache is filled"
-      (let [app (api
-                  (GET* "/anonymous" []
-                    :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
-                    :query-params [i :- s/Str]
-                    (ok {:i i})))]
+        (let [app (api
+                    (GET "/anonymous" []
+                      :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
+                      :query-params [i :- s/Str]
+                      (ok {:i i})))]
 
-        (dotimes [_ 200]
-          (let [[status body] (get* app "/anonymous" {:i "10"})]
-            status => 200
-            body => {:i "10"})) => nil
-        (provided
-          (compojure.api.impl.logging/log! & anything) => irrelevant :times 1)))))
+          (dotimes [_ 200]
+            (let [[status body] (get* app "/anonymous" {:i "10"})]
+              status => 200
+              body => {:i "10"})) => nil
+          (provided
+            (compojure.api.impl.logging/log! & anything) => irrelevant :times 1)))))

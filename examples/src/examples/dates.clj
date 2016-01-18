@@ -13,13 +13,14 @@
                  :date-time (DateTime.)
                  :local-date (LocalDate.)})
 
-(defroutes* date-routes
-  (GET* "/dates" []
-    :return   Dates
-    :summary  "returns dates"
-    (ok (sample)))
-  (POST* "/dates" []
-    :return   Dates
-    :body     [sample (describe Dates "read response from GET /dates in here to see symmetric handling of dates")]
-    :summary  "echos date input."
-    (ok sample)))
+(def date-routes
+  (routes
+    (GET "/dates" []
+      :return Dates
+      :summary "returns dates"
+      (ok (sample)))
+    (POST "/dates" []
+      :return Dates
+      :body [sample (describe Dates "read response from GET /dates in here to see symmetric handling of dates")]
+      :summary "echos date input."
+      (ok sample))))

@@ -4,9 +4,7 @@
             [midje.sweet :refer :all]
             [ring.mock.request :refer :all]
             [schema.core :as s]
-            [clojure.java.io :as io]
-            [ring.swagger.validator :as v]
-            [compojure.api.routes :as routes]))
+            [ring.swagger.validator :as v]))
 
 (s/defschema Band {:id s/Int
                    :name s/Str
@@ -15,179 +13,193 @@
 
 (s/defschema NewBand (dissoc Band :id))
 
-(defroutes* ping-routes (GET* "/ping" [] identity))
+(def ping-route
+  (GET "/ping" [] identity))
 
-(defapi app
-  (swagger-docs
-    {:info {:version "1.0.0"
-            :title "Sausages"
-            :description "Sausage description"
-            :termsOfService "http://helloreverb.com/terms/"
-            :contact {:name "My API Team"
-                      :email "foo@example.com"
-                      :url "http://www.metosin.fi"}
-            :license {:name "Eclipse Public License"
-                      :url "http://www.eclipse.org/legal/epl-v10.html"}}})
-  ping-routes
-  (context* "/api" []
-    ;; defroutes* over a Var
-    #'ping-routes
-    (GET* "/bands" []
-      :name :bands
-      :return [Band]
-      :summary "Gets all Bands"
-      :description "bands bands bands"
-      :operationId "getBands"
-      identity)
-    (GET* "/bands/:id" [id]
-      :return Band
-      :summary "Gets a Band"
-      :operationId "getBand"
-      identity)
-    (POST* "/bands" []
-      :return Band
-      :body [band [NewBand]]
-      :summary "Adds a Band"
-      :operationId "addBand"
-      identity)
-    (GET* "/query" []
-      :query-params [qp :- Boolean]
-      identity)
-    (GET* "/header" []
-      :header-params [hp :- Boolean]
-      identity)
-    (POST* "/form" []
-      :form-params [fp :- Boolean]
-      identity)
-    (GET* "/primitive" []
-      :return String
-      identity)
-    (GET* "/primitiveArray" []
-      :return [String]
-      identity)))
+(def app
+  (api
+    (swagger-docs
+      {:info {:version "1.0.0"
+              :title "Sausages"
+              :description "Sausage description"
+              :termsOfService "http://helloreverb.com/terms/"
+              :contact {:name "My API Team"
+                        :email "foo@example.com"
+                        :url "http://www.metosin.fi"}
+              :license {:name "Eclipse Public License"
+                        :url "http://www.eclipse.org/legal/epl-v10.html"}}})
+    ping-route
+    (context "/api" []
+      ping-route
+      (GET "/bands" []
+        :name :bands
+        :return [Band]
+        :summary "Gets all Bands"
+        :description "bands bands bands"
+        :operationId "getBands"
+        identity)
+      (GET "/bands/:id" [id]
+        :return Band
+        :summary "Gets a Band"
+        :operationId "getBand"
+        identity)
+      (POST "/bands" []
+        :return Band
+        :body [band [NewBand]]
+        :summary "Adds a Band"
+        :operationId "addBand"
+        identity)
+      (GET "/query" []
+        :query-params [qp :- Boolean]
+        identity)
+      (GET "/header" []
+        :header-params [hp :- Boolean]
+        identity)
+      (POST "/form" []
+        :form-params [fp :- Boolean]
+        identity)
+      (GET "/primitive" []
+        :return String
+        identity)
+      (GET "/primitiveArray" []
+        :return [String]
+        identity))))
 
 (facts "api documentation"
   (fact "details are generated"
 
-    (-> app meta :routes routes/route-vector-to-route-map)
+    (extract-paths app)
 
-    => {:paths {"/ping" {:get {}}
-                "/api/ping" {:get {}}
-                "/api/bands" {:get {:x-name :bands
-                                    :operationId "getBands"
-                                    :description "bands bands bands"
-                                    :responses {200 {:schema [Band]
-                                                     :description ""}}
-                                    :summary "Gets all Bands"}
-                              :post {:operationId "addBand"
-                                     :parameters {:body [NewBand]}
-                                     :responses {200 {:schema Band
-                                                      :description ""}}
-                                     :summary "Adds a Band"}}
-                "/api/bands/:id" {:get {:operationId "getBand"
-                                        :responses {200 {:schema Band
-                                                         :description ""}}
-                                        :summary "Gets a Band"
-                                        :parameters {:path {:id String}}}}
-                "/api/query" {:get {:parameters {:query {:qp Boolean
-                                                         s/Keyword s/Any}}}}
-                "/api/header" {:get {:parameters {:header {:hp Boolean
-                                                           s/Keyword s/Any}}}}
-                "/api/form" {:post {:parameters {:formData {:fp Boolean}}
-                                    :consumes ["application/x-www-form-urlencoded"]}}
-                "/api/primitive" {:get {:responses {200 {:schema String
-                                                         :description ""}}}}
-                "/api/primitiveArray" {:get {:responses {200 {:schema [String]
-                                                              :description ""}}}}}})
+    => {"/swagger.json" {:get {:x-name :compojure.api.swagger/swagger,
+                               :x-no-doc true}}
+        "/ping" {:get {}}
+        "/api/ping" {:get {}}
+        "/api/bands" {:get {:x-name :bands
+                            :operationId "getBands"
+                            :description "bands bands bands"
+                            :responses {200 {:schema [Band]
+                                             :description ""}}
+                            :summary "Gets all Bands"}
+                      :post {:operationId "addBand"
+                             :parameters {:body [NewBand]}
+                             :responses {200 {:schema Band
+                                              :description ""}}
+                             :summary "Adds a Band"}}
+        "/api/bands/:id" {:get {:operationId "getBand"
+                                :responses {200 {:schema Band
+                                                 :description ""}}
+                                :summary "Gets a Band"
+                                :parameters {:path {:id String}}}}
+        "/api/query" {:get {:parameters {:query {:qp Boolean
+                                                 s/Keyword s/Any}}}}
+        "/api/header" {:get {:parameters {:header {:hp Boolean
+                                                   s/Keyword s/Any}}}}
+        "/api/form" {:post {:parameters {:formData {:fp Boolean}}
+                            :consumes ["application/x-www-form-urlencoded"]}}
+        "/api/primitive" {:get {:responses {200 {:schema String
+                                                 :description ""}}}}
+        "/api/primitiveArray" {:get {:responses {200 {:schema [String]
+                                                      :description ""}}}}})
 
   (fact "api-listing works"
-    (let [{:keys [body status]} (app (request :get "/swagger.json"))
-          body (parse-body body)]
+    (let [spec (get-spec app)]
 
-      (fact "is ok"
-        status => 200)
-
-      (fact "spec is as expected"
-        body => {:swagger "2.0"
-                 :info {:version "1.0.0"
-                        :title "Sausages"
-                        :description "Sausage description"
-                        :termsOfService "http://helloreverb.com/terms/"
-                        :contact {:name "My API Team"
-                                  :email "foo@example.com"
-                                  :url "http://www.metosin.fi"}
-                        :license {:name "Eclipse Public License"
-                                  :url "http://www.eclipse.org/legal/epl-v10.html"}}
-                 :basePath "/"
-                 :consumes ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"],
-                 :produces ["application/json" "application/x-yaml" "application/edn" "application/transit+json" "application/transit+msgpack"]
-                 :paths {(keyword "/api/bands") {:get {:x-name "bands"
-                                                       :operationId "getBands"
-                                                       :description "bands bands bands"
-                                                       :responses {:200 {:description ""
-                                                                         :schema {:items {:$ref "#/definitions/Band"}
-                                                                                  :type "array"}}}
-                                                       :summary "Gets all Bands"}
-                                                 :post {:operationId "addBand"
-                                                        :parameters [{:description ""
-                                                                      :in "body"
-                                                                      :name "NewBand"
-                                                                      :required true
-                                                                      :schema {:items {:$ref "#/definitions/NewBand"}
-                                                                               :type "array"}}]
-                                                        :responses {:200 {:description ""
-                                                                          :schema {:$ref "#/definitions/Band"}}}
-                                                        :summary "Adds a Band"}}
-                         (keyword "/api/bands/{id}") {:get {:operationId "getBand"
-                                                            :parameters [{:description ""
-                                                                          :in "path"
-                                                                          :name "id"
-                                                                          :required true
-                                                                          :type "string"}]
-                                                            :responses {:200 {:description ""
-                                                                              :schema {:$ref "#/definitions/Band"}}}
-                                                            :summary "Gets a Band"}}
-                         (keyword "/api/query") {:get {:parameters [{:in "query"
-                                                                     :name "qp"
-                                                                     :description ""
-                                                                     :required true
-                                                                     :type "boolean"}]
-                                                       :responses {:default {:description ""}}}}
-                         (keyword "/api/header") {:get {:parameters [{:in "header"
-                                                                      :name "hp"
-                                                                      :description ""
-                                                                      :required true
-                                                                      :type "boolean"}]
-                                                        :responses {:default {:description ""}}}}
-                         (keyword "/api/form") {:post {:parameters [{:in "formData"
-                                                                     :name "fp"
-                                                                     :description ""
-                                                                     :required true
-                                                                     :type "boolean"}]
-                                                       :responses {:default {:description ""}}
-                                                       :consumes ["application/x-www-form-urlencoded"]}}
-                         (keyword "/api/ping") {:get {:responses {:default {:description ""}}}}
-                         (keyword "/api/primitive") {:get {:responses {:200 {:description ""
-                                                                             :schema {:type "string"}}}}}
-                         (keyword "/api/primitiveArray") {:get {:responses {:200 {:description ""
-                                                                                  :schema {:items {:type "string"}
-                                                                                           :type "array"}}}}}
-                         (keyword "/ping") {:get {:responses {:default {:description ""}}}}}
-                 :definitions {:Band {:type "object"
-                                      :properties {:description {:type "string"}
-                                                   :id {:format "int64", :type "integer"}
-                                                   :name {:type "string"}
-                                                   :toppings {:items {:enum ["olives" "pepperoni" "ham" "cheese" "habanero"]
-                                                                      :type "string"}
-                                                              :type "array"}}
-                                      :required ["id" "name" "toppings"]}
-                               :NewBand {:type "object"
-                                         :properties {:description {:type "string"}
-                                                      :name {:type "string"}
-                                                      :toppings {:items {:enum ["olives" "pepperoni" "ham" "cheese" "habanero"]
-                                                                         :type "string"}
-                                                                 :type "array"}}
-                                         :required ["name" "toppings"]}}})
+      spec => {:swagger "2.0"
+               :info {:version "1.0.0"
+                      :title "Sausages"
+                      :description "Sausage description"
+                      :termsOfService "http://helloreverb.com/terms/"
+                      :contact {:name "My API Team"
+                                :email "foo@example.com"
+                                :url "http://www.metosin.fi"}
+                      :license {:name "Eclipse Public License"
+                                :url "http://www.eclipse.org/legal/epl-v10.html"}}
+               :basePath "/"
+               :consumes ["application/json"
+                          "application/x-yaml"
+                          "application/edn"
+                          "application/transit+json"
+                          "application/transit+msgpack"],
+               :produces ["application/json"
+                          "application/x-yaml"
+                          "application/edn"
+                          "application/transit+json"
+                          "application/transit+msgpack"]
+               :paths {"/api/bands" {:get {:x-name "bands"
+                                           :operationId "getBands"
+                                           :description "bands bands bands"
+                                           :responses {:200 {:description ""
+                                                             :schema {:items {:$ref "#/definitions/Band"}
+                                                                      :type "array"}}}
+                                           :summary "Gets all Bands"}
+                                     :post {:operationId "addBand"
+                                            :parameters [{:description ""
+                                                          :in "body"
+                                                          :name "NewBand"
+                                                          :required true
+                                                          :schema {:items {:$ref "#/definitions/NewBand"}
+                                                                   :type "array"}}]
+                                            :responses {:200 {:description ""
+                                                              :schema {:$ref "#/definitions/Band"}}}
+                                            :summary "Adds a Band"}}
+                       "/api/bands/{id}" {:get {:operationId "getBand"
+                                                :parameters [{:description ""
+                                                              :in "path"
+                                                              :name "id"
+                                                              :required true
+                                                              :type "string"}]
+                                                :responses {:200 {:description ""
+                                                                  :schema {:$ref "#/definitions/Band"}}}
+                                                :summary "Gets a Band"}}
+                       "/api/query" {:get {:parameters [{:in "query"
+                                                         :name "qp"
+                                                         :description ""
+                                                         :required true
+                                                         :type "boolean"}]
+                                           :responses {:default {:description ""}}}}
+                       "/api/header" {:get {:parameters [{:in "header"
+                                                          :name "hp"
+                                                          :description ""
+                                                          :required true
+                                                          :type "boolean"}]
+                                            :responses {:default {:description ""}}}}
+                       "/api/form" {:post {:parameters [{:in "formData"
+                                                         :name "fp"
+                                                         :description ""
+                                                         :required true
+                                                         :type "boolean"}]
+                                           :responses {:default {:description ""}}
+                                           :consumes ["application/x-www-form-urlencoded"]}}
+                       "/api/ping" {:get {:responses {:default {:description ""}}}}
+                       "/api/primitive" {:get {:responses {:200 {:description ""
+                                                                 :schema {:type "string"}}}}}
+                       "/api/primitiveArray" {:get {:responses {:200 {:description ""
+                                                                      :schema {:items {:type "string"}
+                                                                               :type "array"}}}}}
+                       "/ping" {:get {:responses {:default {:description ""}}}}}
+               :definitions {:Band {:type "object"
+                                    :properties {:description {:type "string"}
+                                                 :id {:format "int64", :type "integer"}
+                                                 :name {:type "string"}
+                                                 :toppings {:items {:enum ["olives"
+                                                                           "pepperoni"
+                                                                           "ham"
+                                                                           "cheese"
+                                                                           "habanero"]
+                                                                    :type "string"}
+                                                            :type "array"}}
+                                    :required ["id" "name" "toppings"]}
+                             :NewBand {:type "object"
+                                       :properties {:description {:type "string"}
+                                                    :name {:type "string"}
+                                                    :toppings {:items {:enum ["olives"
+                                                                              "pepperoni"
+                                                                              "ham"
+                                                                              "cheese"
+                                                                              "habanero"]
+                                                                       :type "string"}
+                                                               :type "array"}}
+                                       :required ["name" "toppings"]}}}
 
       (fact "spec is valid"
-        (v/validate body) => nil))))
+        (v/validate spec) => nil))))

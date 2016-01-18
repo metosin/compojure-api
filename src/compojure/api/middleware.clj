@@ -1,36 +1,21 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
-            [compojure.route :as route]
             [compojure.api.exception :as ex]
+            [compojure.api.impl.logging :as logging]
             [ring.middleware.format-params :refer [wrap-restful-params]]
             [ring.middleware.format-response :refer [wrap-restful-response]]
             ring.middleware.http-response
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
-            [ring.swagger.common :refer [deep-merge]]
+            [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
-            [ring.swagger.coerce :as rsc]
+            [ring.swagger.coerce :as coerce]
             [ring.util.http-response :refer :all]
             [schema.core :as s])
   (:import [com.fasterxml.jackson.core JsonParseException]
-           [org.yaml.snakeyaml.parser ParserException]))
-
-;;
-;; Public resources
-;;
-
-(defroutes public-resource-routes
-  (GET "/" [] (found "/index.html"))
-  (route/resources "/"))
-
-(defn public-resources
-  "serves public resources for missed requests"
-  [handler]
-  (fn [request]
-    (let [response (handler request)]
-      (or response
-          ((route/resources "/") request)))))
+           [org.yaml.snakeyaml.parser ParserException]
+           [clojure.lang ArityException]))
 
 ;;
 ;; Catch exceptions
@@ -41,8 +26,8 @@
 (defn- call-error-handler [error-handler error data request]
   (try
     (error-handler error data request)
-    (catch clojure.lang.ArityException e
-      (println "WARNING: Error-handler arity has been changed.")
+    (catch ArityException _
+      (logging/log! :warn "Error-handler arity has been changed.")
       (error-handler error))))
 
 (defn wrap-exceptions
@@ -101,9 +86,9 @@
 (s/defschema CoercionType (s/enum :body :string :response))
 
 (def default-coercion-matchers
-  {:body rsc/json-schema-coercion-matcher
-   :string rsc/query-schema-coercion-matcher
-   :response rsc/json-schema-coercion-matcher})
+  {:body coerce/json-schema-coercion-matcher
+   :string coerce/query-schema-coercion-matcher
+   :response coerce/json-schema-coercion-matcher})
 
 (def no-response-coercion
   (dissoc default-coercion-matchers :response))
@@ -203,11 +188,11 @@
                                     Defaults to `compojure.api.middleware/default-coercion-matchers`
 
    - **:components**                Components which should be accessible to handlers using
-                                    :components restructuring. (If you are using defapi,
+                                    :components restructuring. (If you are using api,
                                     you might want to take look at using wrap-components
                                     middleware manually.)"
   [handler & [options]]
-  (let [options (deep-merge api-middleware-defaults options)
+  (let [options (rsc/deep-merge api-middleware-defaults options)
         {:keys [exceptions format components]} options
         {:keys [formats params-opts response-opts]} format]
     ; Break at compile time if there are deprecated options
