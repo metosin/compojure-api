@@ -14,6 +14,8 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 [![Clojars Project](http://clojars.org/metosin/compojure-api/latest-version.svg)](http://clojars.org/metosin/compojure-api)
 
+**NOTE** All codes in `master` are already against the upcoming `1.0.0`. README and wiki are for the latest stabile version.
+
 ## For information and help
 
 ### [Check wiki for documentation](https://github.com/metosin/compojure-api/wiki)
