@@ -217,8 +217,8 @@
       (update-in [:parameters :responses] merge responses)
       (update-in [:responses] merge responses)))
 
-; reads body-params into a enchanced let. First parameter is the let symbol,
-; second is the Schema to coerced! against.
+; reads body-params into a enhanced let. First parameter is the let symbol,
+; second is the Schema to be coerced! against.
 ; Examples:
 ; :body [user User]
 (defmethod restructure-param :body [_ [value schema] acc]
@@ -226,8 +226,8 @@
       (update-in [:lets] into [value (src-coerce! schema :body-params :body)])
       (assoc-in [:parameters :parameters :body] schema)))
 
-; reads query-params into a enchanced let. First parameter is the let symbol,
-; second is the Schema to coerced! against.
+; reads query-params into a enhanced let. First parameter is the let symbol,
+; second is the Schema to be coerced! against.
 ; Examples:
 ; :query [user User]
 (defmethod restructure-param :query [_ [value schema] acc]
@@ -235,8 +235,8 @@
       (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
       (assoc-in [:parameters :parameters :query] schema)))
 
-; reads header-params into a enchanced let. First parameter is the let symbol,
-; second is the Schema to coerced! against.
+; reads header-params into a enhanced let. First parameter is the let symbol,
+; second is the Schema to be coerced! against.
 ; Examples:
 ; :headers [headers Headers]
 (defmethod restructure-param :headers [_ [value schema] acc]
@@ -292,7 +292,7 @@
         (update-in [:letks] into [path-params (src-coerce! schema :route-params :string)])
         (assoc-in [:parameters :parameters :path] schema))))
 
-; Applies the given vector of middlewares for the route from left to right
+; Applies the given vector of middlewares to the route from left to right
 (defmethod restructure-param :middlewares [_ middlewares acc]
   (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
   (update-in acc [:middlewares] into (reverse middlewares)))
@@ -301,7 +301,7 @@
 (defmethod restructure-param :components [_ components acc]
   (update-in acc [:letks] into [components `(mw/get-components ~+compojure-api-request+)]))
 
-; route-spesific override for coercers
+; route-specific override for coercers
 (defmethod restructure-param :coercion [_ coercion acc]
   (update-in acc [:middlewares] conj `(mw/wrap-coercion ~coercion)))
 
