@@ -91,11 +91,10 @@
    :response coerce/json-schema-coercion-matcher})
 
 (def no-response-coercion
-  (dissoc default-coercion-matchers :response))
+  (constantly (dissoc default-coercion-matchers :response)))
 
 (defn get-coercion-matcher-provider [request]
-  (let [provider (or (:coercion (get-options request))
-                     (fn [_] default-coercion-matchers))]
+  (if-let [provider (:coercion (get-options request))]
     (provider request)))
 
 (defn wrap-coercion [handler coercion]
@@ -150,6 +149,7 @@
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
+   :coercion (constantly default-coercion-matchers)
    :ring-swagger nil})
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
@@ -192,7 +192,7 @@
 
   - **:coercion**                  A function from request->type->coercion-matcher, used
                                    in endpoint coercion for :json, :query and :response.
-                                   Defaults to `compojure.api.middleware/default-coercion-matchers`
+                                   Defaults to `(constantly compojure.api.middleware/default-coercion-matchers)`
 
   - **:components**                Components which should be accessible to handlers using
                                    :components restructuring. (If you are using api,
@@ -216,6 +216,10 @@
             (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
                  "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
                  "Also note that exception-handler arity has been changed."))
+    (assert (not (map? (:coercion options)))
+            (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
+                 "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
+                 "want to apply the matchers for all request types, wrap your option with 'constantly'"))
     (-> handler
         (cond-> components (wrap-components components))
         ring.middleware.http-response/wrap-http-response
