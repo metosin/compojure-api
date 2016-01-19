@@ -3,7 +3,6 @@
 * Move from compile-time to runtime route resolution.
   * Most of the internal macro magic has been vaporized
   * Uses internally (invokable) Records & Protocols, allowing easier integration to 3rd party libs like [Liberator](http://clojure-liberator.github.io/liberator/)
-  * **TODO**: Enables snappy development flow, changes in any sub-routes are reflected immediately to swagger-docs, no restart needed
      * even for large apps (100+ routes), route compilation takes now millis, instead of seconds
   * sub-routes can be created with normal functions (or values), making it easier to:
      * pass in app-level dependencies from libs like [Component](https://github.com/stuartsierra/component)
@@ -30,7 +29,7 @@
 
 * **BREAKING** Vanilla Compojure routes will not produce any swagger-docs (as they do not satisfy the 
 `Routing` protocol. They can still be used for handling request, just without docs.
-  * **TODO**: There is a new api-level option to declare how to handle routes not satisfying the `Routing` protocol (fail, warn or ignore)
+  * **TODO**: a new api-level option to declare how to handle routes not satisfying the `Routing` protocol (fail, warn or ignore)
 
 * **BREAKING** compojure.core imports are removed from `compojure.api.sweet`:
   * `let-request`, `routing`, `wrap-routes`
@@ -46,21 +45,23 @@
   * `context*` => `context`
   * `defroutes*` => `defroutes`
 
-* **TODO**: **BREAKING** `swagger-docs` and `swagger-ui` are now functions instead of macros and removed from the public api. Swagger-stuff is configured with `api` options instead.
-
 * **BREAKING** `public-resource-routes` & `public-resources` are removed from `compojure.api.middleware`.
 
 * **BREAKING**: api-level coercion option is now a function of `request => type => matcher` as it is documented.
 Previously required a `type => matcher` map. Options are checked against `type => matcher` coercion input, and a
 descriptive error is thrown when api is created with the old options format.
 
+* **TODO**: Migration guide
+
 ### Other stuff
 
-* **NEW** additional route functions/macros in `compojure.api.core`:
+* Additional route functions/macros in `compojure.api.core`:
   * `routes` & `letroutes`, just like in the Compojure, but supporting `Routing`
   * `undocumented` - works just like `routes` but without any route definitions. Can be used to wrap legacy routes which setting the api option to fail on missing docs.
 
 * top-level `api` is now just function, not a macro. It takes an optional options maps and a top-level route function.
+
+* `swagger-docs` and `swagger-ui` are now functions instead of macros.
 
 * Removed deps:
 
