@@ -26,11 +26,11 @@
   [& body]
   (let [[options handlers] (common/extract-parameters body)
         handler (apply core/routes handlers)
-        paths (swagger/ring-swagger-paths handler)
+        routes (routes/get-routes handler)
+        paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
         lookup (routes/route-lookup-table handler)
         api-handler (-> handler
                         (middleware/api-middleware options)
-                        ;; TODO: wrap just the handler
                         (middleware/wrap-options {:paths paths
                                                   :lookup lookup}))]
     (routes/create nil nil {} [handler] api-handler)))

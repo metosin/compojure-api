@@ -94,7 +94,7 @@
 ;;
 
 (defn extract-paths [app]
-  (:paths (routes/ring-swagger-paths app)))
+  (-> app routes/get-routes routes/ring-swagger-paths :paths))
 
 (defn get-spec [app]
   (let [[status spec] (get* app "/swagger.json" {})]

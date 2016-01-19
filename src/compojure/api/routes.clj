@@ -76,17 +76,17 @@
     (update-in info [:parameters :path] #(dissoc (merge (string-path-parameters path) %) s/Keyword))
     info))
 
-(defn ring-swagger-paths [handler]
+(defn ring-swagger-paths [routes]
   {:paths
    (reduce
     (fn [acc [path method info]]
       (update-in
-       acc [path method]
-       (fn [old-info]
-         (let [info (or old-info info)]
-           (ensure-path-parameters path info)))))
+        acc [path method]
+        (fn [old-info]
+          (let [info (or old-info info)]
+            (ensure-path-parameters path info)))))
     (linked/map)
-    (get-routes handler))})
+    routes)})
 
 ;;
 ;; Route lookup
@@ -97,7 +97,7 @@
         :when (> freq 1)] id))
 
 (defn route-lookup-table [handler]
-  (let [entries (for [[path endpoints] (:paths (ring-swagger-paths handler))
+  (let [entries (for [[path endpoints] (-> handler get-routes ring-swagger-paths :paths)
                       [method {:keys [x-name parameters]}] endpoints
                       :let [params (:path parameters)]
                       :when x-name]
