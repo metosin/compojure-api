@@ -90,6 +90,7 @@
 
 (defn swagger-spec-path [app]
   (some-> app
+          routes/get-routes
           routes/route-lookup-table
           ::swagger
           keys

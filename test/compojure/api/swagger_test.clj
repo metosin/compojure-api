@@ -55,13 +55,12 @@
         (GET+ "/true" [] identity))) => {"/api/xxx/true" {:get {}}})
 
   (fact "Vanilla Compojure defroutes are NOT followed"
-    (ignore-non-documented-route-warning
-      (compojure.core/defroutes even-more-routes (GET "/even" [] identity))
-      (compojure.core/defroutes more-routes (context "/more" [] even-more-routes))
-      (extract-paths
-        (context "/api" []
-          (GET "/true" [] identity)
-          more-routes)) => {"/api/true" {:get {}}}))
+    (compojure.core/defroutes even-more-routes (GET "/even" [] identity))
+    (compojure.core/defroutes more-routes (context "/more" [] even-more-routes))
+    (extract-paths
+      (context "/api" []
+        (GET "/true" [] identity)
+        more-routes)) => {"/api/true" {:get {}}})
 
   (fact "Compojure Api defroutes and def routes are followed"
     (def even-more-routes (GET "/even" [] identity))

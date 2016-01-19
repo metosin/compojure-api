@@ -29,7 +29,8 @@
 
 * **BREAKING** Vanilla Compojure routes will not produce any swagger-docs (as they do not satisfy the 
 `Routing` protocol. They can still be used for handling request, just without docs.
-  * **TODO**: a new api-level option to declare how to handle routes not satisfying the `Routing` protocol (fail, warn or ignore)
+  * a new api-level option `[:api :invalid-routes-fn]` to declare how to handle routes not satisfying
+  the `Routing` protocol. Default implementation logs invalid routes as WARNINGs.
 
 * **BREAKING** compojure.core imports are removed from `compojure.api.sweet`:
   * `let-request`, `routing`, `wrap-routes`

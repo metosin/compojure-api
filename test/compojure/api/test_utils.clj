@@ -81,15 +81,6 @@
     [status (parse-body body)]))
 
 ;;
-;; Route compilation
-;;
-
-(defmacro ignore-non-documented-route-warning [& body]
-  `(with-out-str
-     (binding [routes/*fail-on-missing-route-info* false]
-       ~@body)))
-
-;;
 ;; get-spec
 ;;
 

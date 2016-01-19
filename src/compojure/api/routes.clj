@@ -4,6 +4,7 @@
             [cheshire.core :as json]
             [compojure.api.middleware :as mw]
             [compojure.api.impl.logging :as logging]
+            [compojure.api.common :as common]
             [ring.swagger.common :as rsc]
             [clojure.string :as str]
             [linked.core :as linked]
@@ -14,8 +15,6 @@
 ;; Route records
 ;;
 
-(def ^:dynamic *fail-on-missing-route-info* false)
-
 (defn- ->path [path]
   (if-not (= path "/") path))
 
@@ -23,20 +22,33 @@
   (->path (str p1 (->path p2))))
 
 (defprotocol Routing
-  (get-routes [handler]))
+  (-get-routes [handler options]))
 
 (extend-protocol Routing
   nil
-  (get-routes [_] []))
+  (-get-routes [_ _] []))
+
+(defn filter-routes [{:keys [childs] :as handler} {:keys [invalid-routes-fn]}]
+  (let [[valid-childs invalid-childs] (common/group-with (partial satisfies? Routing) childs)]
+    (when (and invalid-routes-fn invalid-childs)
+      (invalid-routes-fn handler invalid-childs))
+    valid-childs))
+
+(defn get-routes
+  ([handler]
+   (get-routes handler nil))
+  ([handler options]
+   (-get-routes handler options)))
 
 (defrecord Route [path method info childs handler]
   Routing
-  (get-routes [_]
-    (if (seq childs)
-      (vec
-        (for [[p m i] (mapcat get-routes (filter (partial satisfies? Routing) childs))]
-          [(->paths path p) m (rsc/deep-merge info i)]))
-      (into [] (if path [[path method info]]))))
+  (-get-routes [this options]
+    (let [valid-childs (filter-routes this options)]
+      (if (seq childs)
+        (vec
+          (for [[p m i] (mapcat #(get-routes % options) valid-childs)]
+            [(->paths path p) m (rsc/deep-merge info i)]))
+        (into [] (if path [[path method info]])))))
 
   IFn
   (invoke [_ request]
@@ -45,16 +57,22 @@
     (AFn/applyToHelper this args)))
 
 (defn create [path method info childs handler]
-  (when-let [invalid-childs (seq (remove (partial satisfies? Routing) childs))]
-    (let [message "Not all child routes satisfy compojure.api.routing/Routing."
-          data {:path path
-                :method method
-                :info info
-                :invalid invalid-childs}]
-      (if *fail-on-missing-route-info*
-        (throw (ex-info message data))
-        (logging/log! :warn (str message ": " data)))))
   (->Route path method info childs handler))
+
+;;
+;; Invalid route handlers
+;;
+
+(defn fail-on-invalid-child-routes
+  [handler invalid-childs]
+  (throw (ex-info "Not all child routes satisfy compojure.api.routing/Routing."
+                  (merge (select-keys handler [:path :method]) {:invalid (vec invalid-childs)}))))
+
+(defn log-invalid-child-routes [handler invalid-childs]
+  (logging/log! :warn (str "Not all child routes satisfy compojure.api.routing/Routing. "
+                           (select-keys handler [:path :method]) ", invalid child routes: "
+                           (vec invalid-childs))))
+
 
 ;;
 ;; Swagger paths
@@ -79,14 +97,14 @@
 (defn ring-swagger-paths [routes]
   {:paths
    (reduce
-    (fn [acc [path method info]]
-      (update-in
-        acc [path method]
-        (fn [old-info]
-          (let [info (or old-info info)]
-            (ensure-path-parameters path info)))))
-    (linked/map)
-    routes)})
+     (fn [acc [path method info]]
+       (update-in
+         acc [path method]
+         (fn [old-info]
+           (let [info (or old-info info)]
+             (ensure-path-parameters path info)))))
+     (linked/map)
+     routes)})
 
 ;;
 ;; Route lookup
@@ -96,8 +114,8 @@
   (for [[id freq] (frequencies seq)
         :when (> freq 1)] id))
 
-(defn route-lookup-table [handler]
-  (let [entries (for [[path endpoints] (-> handler get-routes ring-swagger-paths :paths)
+(defn route-lookup-table [routes]
+  (let [entries (for [[path endpoints] (-> routes ring-swagger-paths :paths)
                       [method {:keys [x-name parameters]}] endpoints
                       :let [params (:path parameters)]
                       :when x-name]

@@ -34,3 +34,9 @@
 
     :else
     [{} (seq c)]))
+
+(defn group-with
+  "Groups a sequence with predicate returning a tuple of sequences."
+  [pred coll]
+  [(seq (filter pred coll))
+   (seq (remove pred coll))])
