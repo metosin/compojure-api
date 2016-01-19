@@ -50,7 +50,6 @@
           data {:path path
                 :method method
                 :info info
-                :childs childs
                 :invalid invalid-childs}]
       (if *fail-on-missing-route-info*
         (throw (ex-info message data))
