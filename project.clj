@@ -30,7 +30,7 @@
                              [funcool/codeina "0.3.0"]]
                    :dependencies [[org.clojure/clojure "1.7.0"]
                                   [slingshot "0.12.2"]
-                                  [peridot "0.4.2"]
+                                  [peridot "0.4.3"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.3"]
                                   [com.stuartsierra/component "0.3.1"]
@@ -45,7 +45,7 @@
                    :main examples.server}
              :perf {:jvm-opts ^:replace []}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0-RC5"]]}}
+             :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
