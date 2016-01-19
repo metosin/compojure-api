@@ -1078,3 +1078,31 @@
 
 (fact "defapi & api define same results, #159"
   (get-spec with-defapi) => (get-spec (with-api)))
+
+(fact "coercion api change in 1.0.0 migration test"
+
+  (fact "with defaults"
+    (let [app (api
+                (GET "/ping" []
+                  :return s/Bool
+                  (ok 1)))]
+      (let [[status] (get* app "/ping")]
+        status => 500)))
+
+  (fact "with pre 1.0.0 syntax, api can't be created (with a nice error message)"
+    (let [app' `(api
+                  {:coercion (dissoc mw/default-coercion-matchers :response)}
+                  (GET "/ping" []
+                    :return s/Bool
+                    (ok 1)))]
+      (eval app') => (throws AssertionError)))
+
+  (fact "with post 1.0.0 syntax, works ok"
+    (let [app (api
+                {:coercion (constantly (dissoc mw/default-coercion-matchers :response))}
+                (GET "/ping" []
+                  :return s/Bool
+                  (ok 1)))]
+      (let [[status body] (get* app "/ping")]
+        status => 200
+        body => 1))))

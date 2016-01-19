@@ -50,6 +50,10 @@
 
 * **BREAKING** `public-resource-routes` & `public-resources` are removed from `compojure.api.middleware`.
 
+* **BREAKING**: api-level coercion option is now a function of `request => type => matcher` as it is documented.
+Previously required a `type => matcher` map. Options are checked against `type => matcher` coercion input, and a
+descriptive error is thrown when api is created with the old options format.
+
 ### Other stuff
 
 * **NEW** additional route functions/macros in `compojure.api.core`:
