@@ -36,16 +36,18 @@
 
 (defn middleware*
   "This middleware appends given value or 1 to a header in request and response."
-  [handler & [value]]
-  (fn [request]
-    (let [append #(str % (or value 1))
-          request (update-in request [:headers mw*] append)
-          response (handler request)]
-      (update-in response [:headers mw*] append))))
+  ([handler] (middleware* handler 1))
+  ([handler value]
+   (fn [request]
+     (let [append #(str % value)
+           request (update-in request [:headers mw*] append)
+           response (handler request)]
+       (update-in response [:headers mw*] append)))))
 
 (defn constant-middleware
   "This middleware rewrites all responses with a constant response."
-  [_ & [res]] (constantly res))
+  [_ res]
+  (constantly res))
 
 (defn reply-mw*
   "Handler which replies with response where a header contains copy
