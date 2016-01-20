@@ -1125,3 +1125,13 @@
 
     (fact "throwing exceptions"
       (api {:api {:invalid-routes-fn routes/fail-on-invalid-child-routes}} invalid-routes)) => throws))
+
+(fact "old middleware format"
+  (macroexpand '(middleware [(middleware* 5)]
+                            (GET "/normal" [] (ok))))
+  => (throws AssertionError)
+
+  (macroexpand '(GET "/normal" []
+                  :middleware [(middleware* 5)]
+                  (ok)))
+  => (throws AssertionError))

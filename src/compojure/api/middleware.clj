@@ -235,3 +235,20 @@
         wrap-keyword-params
         wrap-nested-params
         wrap-params)))
+
+(defn assert-middleware [middleware]
+  (assert (and (vector? middleware) (every? #(or (and (vector? %1) (ifn? (first %1))) (ifn? %1)) middleware))
+          (str "Middleware vector must only contain\n"
+               "a) fully configured middleware (function) or\n"
+               "b) vectors containing middleware function and additional parameters for it.")))
+
+(defn middleware-fn [middleware]
+  (if (vector? middleware)
+    (let [[f & arguments] middleware]
+      #(apply f % arguments))
+    middleware))
+
+(defn compose-middleware [middleware]
+  (->> middleware
+       (map middleware-fn)
+       (apply comp identity)))

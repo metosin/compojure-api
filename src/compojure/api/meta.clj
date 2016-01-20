@@ -251,7 +251,7 @@
 
 ; Applies the given vector of middlewares to the route
 (defmethod restructure-param :middleware [_ middleware acc]
-  (assert (and (vector? middleware) (every? #(or (and (vector? %1) (ifn? (first %1))) (ifn? %1)) middleware)))
+  (mw/assert-middleware middleware)
   (update-in acc [:middleware] into middleware))
 
 ; Bind to stuff in request components using letk syntax
@@ -292,17 +292,6 @@
 ;;
 ;; Api
 ;;
-
-(defn middleware-fn [middleware]
-  (if (vector? middleware)
-    (let [[f & arguments] middleware]
-      #(apply f % arguments))
-    middleware))
-
-(defn compose-middleware [middleware]
-  (->> middleware
-       (map middleware-fn)
-       (apply comp identity)))
 
 (defn- destructure-compojure-api-request
   "Returns a vector of four elements:
@@ -348,7 +337,7 @@
         form (if (seq letks) `(letk ~letks ~form) form)
         form (if (seq lets) `(let ~lets ~form) form)
         form (if (seq middleware)
-               `(let [wrap-mw# (compose-middleware ~middleware)]
+               `(let [wrap-mw# (mw/compose-middleware ~middleware)]
                   ((wrap-mw# (fn [~arg] ~form)) ~arg))
                form)
         form (if routes

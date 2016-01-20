@@ -1,6 +1,7 @@
 (ns compojure.api.core
   (:require [compojure.api.meta :as meta]
             [compojure.api.routes :as routes]
+            [compojure.api.middleware :as mw]
             [clojure.tools.macro :as macro]))
 
 (defn- ring-handler [handlers]
@@ -33,23 +34,13 @@
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (ring-handler handlers))))
 
-(defn middleware-fn [middleware]
-  (if (vector? middleware)
-    (let [[f & arguments] middleware]
-      #(apply f % arguments))
-    middleware))
-
-(defn compose-middleware [middleware]
-  (->> middleware
-       (map middleware-fn)
-       (apply comp identity)))
-
 (defmacro middleware
   "Wraps routes with given middlewares using thread-first macro."
   [middleware & body]
+  (mw/assert-middleware middleware)
   (let [routes? (> (count body) 1)]
     `(let [body# ~(if routes? `(routes ~@body) (first body))
-           wrap-mw# (compose-middleware ~middleware)]
+           wrap-mw# (mw/compose-middleware ~middleware)]
        (routes/create "" nil {} [body#] (wrap-mw# body#)))))
 
 (defmacro context [& args] (meta/restructure nil      args {:routes 'routes}))
