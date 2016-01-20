@@ -77,15 +77,15 @@
 ;; Facts
 ;;
 
-(facts "middlewares"
+(facts "middleware"
   (let [app (api
-              (middlewares [middleware* (middleware* 2)]
+              (middleware [middleware* (middleware* 2)]
                 (context "/middlewares" []
                   (GET "/simple" req (reply-mw* req))
-                  (middlewares [(middleware* 3) (middleware* 4)]
+                  (middleware [(middleware* 3) (middleware* 4)]
                     (GET "/nested" req (reply-mw* req))
                     (GET "/nested-declared" req
-                      :middlewares [(middleware* 5) (middleware* 6)]
+                      :middleware [(middleware* 5) (middleware* 6)]
                       (reply-mw* req))))))]
 
     (fact "are applied left-to-right"
@@ -103,12 +103,12 @@
         status => 200
         (get headers mw*) => "1234567654321"))))
 
-(facts "middlewares - multiple routes"
+(facts "middleware - multiple routes"
   (let [app (api
               (GET "/first" []
                 (ok {:value "first"}))
               (GET "/second" []
-                :middlewares [(constant-middleware (ok {:value "foo"}))]
+                :middleware [(constant-middleware (ok {:value "foo"}))]
                 (ok {:value "second"}))
               (GET "/third" []
                 (ok {:value "third"})))]
@@ -125,11 +125,11 @@
         status => 200
         body => {:value "third"}))))
 
-(facts "middlewares - editing request"
+(facts "middleware - editing request"
   (let [app (api
               (GET "/first" []
                 :query-params [x :- Long]
-                :middlewares [middleware-x]
+                :middleware [middleware-x]
                 (ok {:value x})))]
     (fact "middleware edits the parameter before route body"
       (let [[status body] (get* app "/first?x=5" {})]
@@ -515,12 +515,12 @@
           => #{:Urho :UrhoKaleva :UrhoKalevaKekkonen
                :Olipa :OlipaKerran :OlipaKerranAvaruus})))))
 
-(fact "swagger-docs works with the :middlewares"
+(fact "swagger-docs works with the :middleware"
   (let [app (api
               (swagger-docs)
               (GET "/middleware" []
                 :query-params [x :- String]
-                :middlewares [(constant-middleware (ok 1))]
+                :middleware [(constant-middleware (ok 1))]
                 (ok 2)))]
 
     (fact "api-docs"
@@ -1050,7 +1050,7 @@
 
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
-              (middlewares [(rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}})]
+              (middleware [(rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}})]
                 (swagger-docs
                   {:info {:version "2.0.0"}
                    :paths {"/extra" {:get {}}}})

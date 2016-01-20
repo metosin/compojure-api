@@ -54,6 +54,8 @@ descriptive error is thrown when api is created with the old options format.
 
 * **TODO**: Middlewares
 
+* **BREAKING** Renamed `middlewares` to `middleware` and `:middlewares` metahandler to `:middleware`
+
 ### Migration guide
 
 https://github.com/metosin/compojure-api/wiki/Migration-Guide-to-1.0.0

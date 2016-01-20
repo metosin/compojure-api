@@ -30,7 +30,7 @@
   (#'routes/string-path-parameters "/:foo.json") => {:foo String})
 
 (facts "nested routes"
-  (let [middleware (fn [handler] (fn [request] (handler request)))
+  (let [mw (fn [handler] (fn [request] (handler request)))
         more-routes (fn [version]
                       (routes
                         (GET "/more" []
@@ -41,7 +41,7 @@
                    (ok {:message (str "pong - " version)}))
                  (POST "/ping" []
                    (ok {:message (str "pong - " version)}))
-                 (middlewares [middleware]
+                 (middleware [mw]
                    (GET "/hello" []
                      :return {:message String}
                      :summary "cool ping"
