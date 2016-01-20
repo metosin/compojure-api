@@ -252,7 +252,7 @@
 ; Applies the given vector of middlewares to the route
 (defmethod restructure-param :middleware [_ middleware acc]
   (assert (and (vector? middleware) (every? #(or (and (vector? %1) (ifn? (first %1))) (ifn? %1)) middleware)))
-  (update-in acc [:middleware] into (reverse middleware)))
+  (update-in acc [:middleware] into middleware))
 
 ; Bind to stuff in request components using letk syntax
 (defmethod restructure-param :components [_ components acc]
@@ -300,7 +300,7 @@
     middleware))
 
 (defn compose-middleware [middleware]
-  (->> (reverse middleware)
+  (->> middleware
        (map middleware-fn)
        (apply comp identity)))
 
