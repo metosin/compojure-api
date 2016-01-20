@@ -52,7 +52,11 @@
 Previously required a `type => matcher` map. Options are checked against `type => matcher` coercion input, and a
 descriptive error is thrown when api is created with the old options format.
 
-* **TODO**: Migration guide
+* **TODO**: Middlewares
+
+### Migration guide
+
+https://github.com/metosin/compojure-api/wiki/Migration-Guide-to-1.0.0
 
 ### Other stuff
 
