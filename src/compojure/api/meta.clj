@@ -251,7 +251,7 @@
 
 ; Applies the given vector of middlewares to the route
 (defmethod restructure-param :middleware [_ middleware acc]
-  (assert (and (vector? middleware) (every? (comp ifn? eval) middleware)))
+  (assert (and (vector? middleware) (every? #(or (and (vector? %1) (ifn? (first %1))) (ifn? %1)) middleware)))
   (update-in acc [:middleware] into (reverse middleware)))
 
 ; Bind to stuff in request components using letk syntax
@@ -260,7 +260,7 @@
 
 ; route-specific override for coercers
 (defmethod restructure-param :coercion [_ coercion acc]
-  (update-in acc [:middleware] conj `(mw/wrap-coercion ~coercion)))
+  (update-in acc [:middleware] conj [mw/wrap-coercion coercion]))
 
 ;;
 ;; Impl
@@ -293,11 +293,16 @@
 ;; Api
 ;;
 
-(defmacro route-middleware
-  "Wraps route body in mock-handler and middlewares."
-  [middleware body arg]
-  (let [middleware (reverse middleware)]
-    `((-> (fn [~arg] ~body) ~@middleware) ~arg)))
+(defn middleware-fn [middleware]
+  (if (vector? middleware)
+    (let [[f & arguments] middleware]
+      #(apply f % arguments))
+    middleware))
+
+(defn compose-middleware [middleware]
+  (->> (reverse middleware)
+       (map middleware-fn)
+       (apply comp identity)))
 
 (defn- destructure-compojure-api-request
   "Returns a vector of four elements:
@@ -322,7 +327,7 @@
 
 (defn restructure [method [path arg & args] {:keys [routes]}]
   (let [[parameters body] (extract-parameters args)
-        [lets letks responses middleware] [[] [] nil nil]
+        [lets letks responses middleware] [[] [] nil []]
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
         {:keys [lets
@@ -342,7 +347,10 @@
         form `(~wrap ~@body)
         form (if (seq letks) `(letk ~letks ~form) form)
         form (if (seq lets) `(let ~lets ~form) form)
-        form (if (seq middleware) `(route-middleware ~middleware ~form ~arg) form)
+        form (if (seq middleware)
+               `(let [wrap-mw# (compose-middleware ~middleware)]
+                  ((wrap-mw# (fn [~arg] ~form)) ~arg))
+               form)
         form (if routes
                `(compojure.core/context ~path ~arg-with-request ~form)
                (compojure.core/compile-route method path arg-with-request (list form)))

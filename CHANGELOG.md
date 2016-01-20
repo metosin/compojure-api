@@ -52,9 +52,14 @@
 Previously required a `type => matcher` map. Options are checked against `type => matcher` coercion input, and a
 descriptive error is thrown when api is created with the old options format.
 
-* **TODO**: Middlewares
+* **BREAKING**: Renamed `middlewares` to `middleware` and `:middlewares` metahandler to `:middleware`
 
-* **BREAKING** Renamed `middlewares` to `middleware` and `:middlewares` metahandler to `:middleware`
+* **BREAKING**: Middleware must be defined as data: both our forms take a vector
+of middleware containing either a) fully configured mws (function)
+or b) a middleware templates in form [function args]. Nothing new, just best practices.
+  * You can also use anonymous functions to create middleware with correct parameters:
+  `(middleware [#(wrap-foo % {:opts :bar})])`
+  * Similar to [duct](https://github.com/weavejester/duct/wiki/Components#handlers)
 
 ### Migration guide
 

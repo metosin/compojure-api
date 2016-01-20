@@ -33,13 +33,24 @@
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (ring-handler handlers))))
 
+(defn middleware-fn [middleware]
+  (if (vector? middleware)
+    (let [[f & arguments] middleware]
+      #(apply f % arguments))
+    middleware))
+
+(defn compose-middleware [middleware]
+  (->> middleware
+       (map middleware-fn)
+       (apply comp identity)))
+
 (defmacro middleware
   "Wraps routes with given middlewares using thread-first macro."
   [middleware & body]
-  (let [middleware (reverse middleware)
-        routes? (> (count body) 1)]
-    `(let [body# ~(if routes? `(routes ~@body) (first body))]
-       (routes/create "" nil {} [body#] (-> body# ~@middleware)))))
+  (let [routes? (> (count body) 1)]
+    `(let [body# ~(if routes? `(routes ~@body) (first body))
+           wrap-mw# (compose-middleware ~middleware)]
+       (routes/create "" nil {} [body#] (wrap-mw# body#)))))
 
 (defmacro context [& args] (meta/restructure nil      args {:routes 'routes}))
 

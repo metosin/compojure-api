@@ -79,13 +79,13 @@
 
 (facts "middleware"
   (let [app (api
-              (middleware [middleware* (middleware* 2)]
+              (middleware [middleware* [middleware* 2]]
                 (context "/middlewares" []
                   (GET "/simple" req (reply-mw* req))
-                  (middleware [(middleware* 3) (middleware* 4)]
+                  (middleware [[middleware* 3] [middleware* 4]]
                     (GET "/nested" req (reply-mw* req))
                     (GET "/nested-declared" req
-                      :middleware [(middleware* 5) (middleware* 6)]
+                      :middleware [[middleware* 5] [middleware* 6]]
                       (reply-mw* req))))))]
 
     (fact "are applied left-to-right"
@@ -108,7 +108,7 @@
               (GET "/first" []
                 (ok {:value "first"}))
               (GET "/second" []
-                :middleware [(constant-middleware (ok {:value "foo"}))]
+                :middleware [[constant-middleware (ok {:value "foo"})]]
                 (ok {:value "second"}))
               (GET "/third" []
                 (ok {:value "third"})))]
@@ -520,7 +520,7 @@
               (swagger-docs)
               (GET "/middleware" []
                 :query-params [x :- String]
-                :middleware [(constant-middleware (ok 1))]
+                :middleware [[constant-middleware (ok 1)]]
                 (ok 2)))]
 
     (fact "api-docs"
@@ -1050,7 +1050,7 @@
 
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
-              (middleware [(rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}})]
+              (middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
                 (swagger-docs
                   {:info {:version "2.0.0"}
                    :paths {"/extra" {:get {}}}})
