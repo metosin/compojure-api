@@ -9,7 +9,8 @@
             [ring.swagger.core :as rsc]
             [ring.util.http-status :as status]
             [compojure.api.middleware :as mw]
-            [ring.swagger.middleware :as rsm]))
+            [ring.swagger.middleware :as rsm]
+            [compojure.api.routes :as routes]))
 
 ;;
 ;; Data
@@ -1106,3 +1107,19 @@
       (let [[status body] (get* app "/ping")]
         status => 200
         body => 1))))
+
+(fact "handling invalid routes with api"
+  (let [invalid-routes (routes (constantly nil))]
+
+    (fact "by default, logs the exception"
+      (api invalid-routes) => truthy
+      (provided
+        (compojure.api.impl.logging/log! :warn irrelevant) => irrelevant :times 1))
+
+    (fact "ignoring invalid routes doesn't log"
+      (api {:api {:invalid-routes-fn nil}} invalid-routes) => truthy
+      (provided
+        (compojure.api.impl.logging/log! :warn irrelevant) => irrelevant :times 0))
+
+    (fact "throwing exceptions"
+      (api {:api {:invalid-routes-fn routes/fail-on-invalid-child-routes}} invalid-routes)) => throws))

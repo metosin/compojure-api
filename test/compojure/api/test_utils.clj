@@ -81,20 +81,11 @@
     [status (parse-body body)]))
 
 ;;
-;; Route compilation
-;;
-
-(defmacro ignore-non-documented-route-warning [& body]
-  `(with-out-str
-     (binding [routes/*fail-on-missing-route-info* false]
-       ~@body)))
-
-;;
 ;; get-spec
 ;;
 
 (defn extract-paths [app]
-  (:paths (routes/ring-swagger-paths app)))
+  (-> app routes/get-routes routes/ring-swagger-paths :paths))
 
 (defn get-spec [app]
   (let [[status spec] (get* app "/swagger.json" {})]

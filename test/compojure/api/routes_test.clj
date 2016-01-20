@@ -86,3 +86,19 @@
   (routes/get-routes (routes (routes))) => []
   (routes/get-routes (routes (swagger-ui))) => []
   (routes/get-routes (routes (routes (GET "/ping" [] "pong")))) => [["/ping" :get {}]])
+
+(fact "invalid route options"
+  (let [r (routes (constantly nil))]
+
+    (fact "ignore 'em all"
+      (routes/get-routes r) => []
+      (routes/get-routes r nil) => []
+      (routes/get-routes r {:invalid-routes-fn nil}) => [])
+
+    (fact "log warnings"
+      (routes/get-routes r {:invalid-routes-fn routes/log-invalid-child-routes}) => []
+      (provided
+        (compojure.api.impl.logging/log! :warn irrelevant) => irrelevant :times 1))
+
+    (fact "throw exception"
+      (routes/get-routes r {:invalid-routes-fn routes/fail-on-invalid-child-routes})) => throws))

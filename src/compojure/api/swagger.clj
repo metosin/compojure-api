@@ -37,9 +37,8 @@
 ;; routes
 ;;
 
-(defn ring-swagger-paths [handler]
-  (->> handler
-       routes/ring-swagger-paths
+(defn transform-operations [swagger]
+  (->> swagger
        (swagger2/transform-operations routes/non-nil-routes)
        (swagger2/transform-operations routes/strip-no-doc-endpoints)))
 
@@ -91,6 +90,7 @@
 
 (defn swagger-spec-path [app]
   (some-> app
+          routes/get-routes
           routes/route-lookup-table
           ::swagger
           keys
