@@ -188,7 +188,7 @@
 
       (POST "/upload" []
         :multipart-params [file :- TempFileUpload]
-        :middlewares [wrap-multipart-params]
+        :middleware [wrap-multipart-params]
         (ok (dissoc file :tempfile))))
 
     (context "/component" []

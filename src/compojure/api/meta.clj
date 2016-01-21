@@ -249,10 +249,10 @@
         (update-in [:letks] into [path-params (src-coerce! schema :route-params :string)])
         (assoc-in [:parameters :parameters :path] schema))))
 
-; Applies the given vector of middlewares to the route from left to right
-(defmethod restructure-param :middlewares [_ middlewares acc]
-  (assert (and (vector? middlewares) (every? (comp ifn? eval) middlewares)))
-  (update-in acc [:middlewares] into (reverse middlewares)))
+; Applies the given vector of middlewares to the route
+(defmethod restructure-param :middleware [_ middleware acc]
+  (mw/assert-middleware middleware)
+  (update-in acc [:middleware] into middleware))
 
 ; Bind to stuff in request components using letk syntax
 (defmethod restructure-param :components [_ components acc]
@@ -260,7 +260,7 @@
 
 ; route-specific override for coercers
 (defmethod restructure-param :coercion [_ coercion acc]
-  (update-in acc [:middlewares] conj `(mw/wrap-coercion ~coercion)))
+  (update-in acc [:middleware] conj [mw/wrap-coercion coercion]))
 
 ;;
 ;; Impl
@@ -293,12 +293,6 @@
 ;; Api
 ;;
 
-(defmacro route-middlewares
-  "Wraps route body in mock-handler and middlewares."
-  [middlewares body arg]
-  (let [middlewares (reverse middlewares)]
-    `((-> (fn [~arg] ~body) ~@middlewares) ~arg)))
-
 (defn- destructure-compojure-api-request
   "Returns a vector of four elements:
   - pruned path string
@@ -322,18 +316,18 @@
 
 (defn restructure [method [path arg & args] {:keys [routes]}]
   (let [[parameters body] (extract-parameters args)
-        [lets letks responses middlewares] [[] [] nil nil]
+        [lets letks responses middleware] [[] [] nil []]
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
         {:keys [lets
                 letks
                 responses
-                middlewares
+                middleware
                 parameters
                 body]} (reduce
                         (fn [acc [k v]]
                           (restructure-param k v (update-in acc [:parameters] dissoc k)))
-                        (map-of lets letks responses middlewares parameters body)
+                        (map-of lets letks responses middleware parameters body)
                         parameters)
 
         pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
@@ -342,7 +336,10 @@
         form `(~wrap ~@body)
         form (if (seq letks) `(letk ~letks ~form) form)
         form (if (seq lets) `(let ~lets ~form) form)
-        form (if (seq middlewares) `(route-middlewares ~middlewares ~form ~arg) form)
+        form (if (seq middleware)
+               `(let [wrap-mw# (mw/compose-middleware ~middleware)]
+                  ((wrap-mw# (fn [~arg] ~form)) ~arg))
+               form)
         form (if routes
                `(compojure.core/context ~path ~arg-with-request ~form)
                (compojure.core/compile-route method path arg-with-request (list form)))

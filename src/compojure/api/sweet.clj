@@ -14,7 +14,7 @@
    defroutes
    let-routes
    undocumented
-   middlewares
+   middleware
 
    context
 
