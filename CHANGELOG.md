@@ -1,4 +1,4 @@
-## 1.0.0-SNAPSHOT 
+## 1.0.0-SNAPSHOT
 
 * Move from compile-time to runtime route resolution.
   * Most of the internal macro magic has been vaporized
@@ -7,7 +7,7 @@
   * sub-routes can be created with normal functions (or values), making it easier to:
      * pass in app-level dependencies from libs like [Component](https://github.com/stuartsierra/component)
      * reuse shared request-handling time parameters like path-parameters and authorization info
-  
+
 ```clj
 (defn more-routes [db version]
   (routes
@@ -27,7 +27,7 @@
 
 ### Breaking changes
 
-* **BREAKING** Vanilla Compojure routes will not produce any swagger-docs (as they do not satisfy the 
+* **BREAKING** Vanilla Compojure routes will not produce any swagger-docs (as they do not satisfy the
 `Routing` protocol. They can still be used for handling request, just without docs.
   * a new api-level option `[:api :invalid-routes-fn]` to declare how to handle routes not satisfying
   the `Routing` protocol. Default implementation logs invalid routes as WARNINGs.
@@ -36,13 +36,13 @@
   * `let-request`, `routing`, `wrap-routes`
 
 * **BREAKING** Asterix (`*`) is removed from route macro & function names, as there is no reason to mix compojure-api & compojure route macros.
-  * `GET*` => `GET` 
-  * `ANY*` => `ANY` 
-  * `HEAD*` => `HEAD` 
-  * `PATCH*` => `PATCH` 
-  * `DELETE*` => `DELETE` 
-  * `OPTIONS*` => `OPTIONS` 
-  * `POST*` => `PUT` 
+  * `GET*` => `GET`
+  * `ANY*` => `ANY`
+  * `HEAD*` => `HEAD`
+  * `PATCH*` => `PATCH`
+  * `DELETE*` => `DELETE`
+  * `OPTIONS*` => `OPTIONS`
+  * `POST*` => `PUT`
   * `context*` => `context`
   * `defroutes*` => `defroutes`
 
