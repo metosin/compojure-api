@@ -35,7 +35,11 @@
     (routes/create nil nil {} nil (ring-handler handlers))))
 
 (defmacro middleware
-  "Wraps routes with given middlewares using thread-first macro."
+  "Wraps routes with given middlewares using thread-first macro.
+
+  Note that middlewares will be executed even if routes in body
+  do not match the request uri. Be careful with middlewares that
+  have side-effects."
   [middleware & body]
   (mw/assert-middleware middleware)
   (let [routes? (> (count body) 1)]
