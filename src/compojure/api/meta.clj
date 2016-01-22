@@ -323,12 +323,14 @@
                 letks
                 responses
                 middleware
+                middlewares
                 parameters
                 body]} (reduce
                         (fn [acc [k v]]
                           (restructure-param k v (update-in acc [:parameters] dissoc k)))
                         (map-of lets letks responses middleware parameters body)
                         parameters)
+        _ (assert (not middlewares) ":middlewares is deprecated, use :middleware instead.")
 
         pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
         wrap (or routes 'do)

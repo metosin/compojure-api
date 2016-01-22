@@ -1135,3 +1135,12 @@
                   :middleware [(middleware* 5)]
                   (ok)))
   => (throws AssertionError))
+
+(defmethod compojure.api.meta/restructure-param ::deprecated-middlewares-test [_ _ acc]
+  (assoc acc :middlewares [(constantly nil)]))
+
+(fact "old middlewares restructuring"
+  (macroexpand '(GET "/foo" []
+                  ::deprecated-middlewares-test true
+                  (ok)))
+  => (throws AssertionError))
