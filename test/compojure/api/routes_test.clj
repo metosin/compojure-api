@@ -61,6 +61,10 @@
         status = 200
         body => {:message "pong - v1"})
 
+      (let [[status body] (get* app "/api/v2/ping")]
+        status = 200
+        body => {:message "pong - v2"})
+
       (let [[status body] (get* app "/api/v3/more")]
         status => 200
         body => {:message "v3"}))
