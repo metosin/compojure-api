@@ -289,6 +289,21 @@
    `(do ~@body)
    (reverse (partition 2 bindings))))
 
+#_(defmacro context
+  "Like compojure.core/context, pre-compiles routes on first request(s) for better performance.
+  Due to pre-compilation, request-time values should not be used in creating context-routes"
+  [path args & routes]
+  `(let [compiled-routes# (atom nil)]
+     (#'compojure.core/if-context
+       ~(#'compojure.core/context-route path)
+       (fn [request#]
+         (compojure.core/let-request
+           [~args request#]
+           (let [routes# (or @compiled-routes# (reset! compiled-routes# ~(vec routes)))]
+             #_(./aprint {:routes ~(vec routes)
+                        :compiled @compiled-routes#})
+             (apply compojure.core/routing request# routes#)))))))
+
 ;;
 ;; Api
 ;;
