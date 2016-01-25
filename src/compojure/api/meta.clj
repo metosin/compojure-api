@@ -3,7 +3,7 @@
             [compojure.api.common :refer :all]
             [compojure.api.middleware :as mw]
             [compojure.api.exception :as ex]
-            [compojure.core :refer [routes]]
+            compojure.core
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :as rsc]
