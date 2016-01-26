@@ -331,7 +331,7 @@
 
 (defn restructure [method [path arg & args] {:keys [routes]}]
   (let [[parameters body] (extract-parameters args)
-        [lets letks responses middleware] [[+compojure-api-coercer+ `(memoized-coercer)] [] nil []]
+        [lets letks responses middleware] [[] [] nil []]
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
         {:keys [lets
@@ -345,25 +345,33 @@
                           (restructure-param k v (update-in acc [:parameters] dissoc k)))
                         (map-of lets letks responses middleware parameters body)
                         parameters)
-        _ (assert (not middlewares) ":middlewares is deprecated, use :middleware instead.")
 
-        wrap (or routes 'do)
+        ;; migration helper
+        _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
 
-        form `(~wrap ~@body)
+        ;; response coercion middleware, why not just code?
+        middleware (if responses
+                     (conj middleware `[body-coercer-middleware ~'+compojure-api-coercer+ ~responses])
+                     middleware)
+
+        pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
+        body-wrap (or routes 'do)
+
+        form `(~body-wrap ~@body)
         form (if (seq letks) `(letk ~letks ~form) form)
         form (if (seq lets) `(let ~lets ~form) form)
         form (if (seq middleware)
                `(let [wrap-mw# (mw/compose-middleware ~middleware)]
                   ((wrap-mw# (fn [~arg] ~form)) ~arg))
                form)
+        form (if (seq pre-lets) `(let ~pre-lets ~form) form)
         form (if routes
                `(compojure.core/context ~path ~arg-with-request ~form)
                (compojure.core/compile-route method path arg-with-request (list form)))
-        form (if responses `(body-coercer-middleware ~form ~+compojure-api-coercer+ ~responses) form)
 
         ;; for routes, create a separate lookup-function to find the inner routes
         child-form (if routes
-                     (let [form `(~wrap ~@body)
+                     (let [form `(~body-wrap ~@body)
                            form (if (seq letks) `(dummy-letk ~letks ~form) form)
                            form (if (seq lets) `(dummy-let ~lets ~form) form)
                            form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
