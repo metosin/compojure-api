@@ -29,32 +29,20 @@
 
 (defn compojure-bench []
 
-  (title "...compojure...")
-
   (let [app (c/routes
               (c/GET "/a/b/c/1" [] "ok")
               (c/GET "/a/b/c/2" [] "ok")
               (c/GET "/a/b/c/3" [] "ok")
               (c/GET "/a/b/c/4" [] "ok")
-              (c/GET "/a/b/c/5" [] "ok")
-              (c/GET "/a/b/1" [] "ok")
-              (c/GET "/a/b/2" [] "ok")
-              (c/GET "/a/b/3" [] "ok")
-              (c/GET "/a/b/4" [] "ok")
-              (c/GET "/a/b/5" [] "ok")
-              (c/GET "/a/1" [] "ok")
-              (c/GET "/a/2" [] "ok")
-              (c/GET "/a/3" [] "ok")
-              (c/GET "/a/4" [] "ok")
-              (c/GET "/a/5" [] "ok"))
+              (c/GET "/a/b/c/5" [] "ok"))
 
-        call #(app {:request-method :get :uri "/a/b/c/1"})]
+        call #(app {:request-method :get :uri "/a/b/c/5"})]
 
-    (title "GET with context")
+    (title "Compojure - GET flattened")
     (./aprint (call))
     (cc/quick-bench (call)))
 
-  ;; 1.9µs
+  ;; 2.7µs
 
   (let [app (c/context "/a" []
               (c/context "/b" []
@@ -75,44 +63,32 @@
               (c/GET "/4" [] "ok")
               (c/GET "/5" [] "ok"))
 
-        call #(app {:request-method :get :uri "/a/b/c/1"})]
+        call #(app {:request-method :get :uri "/a/b/c/5"})]
 
-    (title "GET with context")
+    (title "Compojure - GET with context")
     (./aprint (call))
     (cc/quick-bench (call)))
 
-  ;; 10.7µs
+  ;; 11.8µs
 
   )
 
 (defn compojure-api-bench []
-
-  (title "...compojure-api...")
 
   (let [app (s/routes
               (s/GET "/a/b/c/1" [] "ok")
               (s/GET "/a/b/c/2" [] "ok")
               (s/GET "/a/b/c/3" [] "ok")
               (s/GET "/a/b/c/4" [] "ok")
-              (s/GET "/a/b/c/5" [] "ok")
-              (s/GET "/a/b/1" [] "ok")
-              (s/GET "/a/b/2" [] "ok")
-              (s/GET "/a/b/3" [] "ok")
-              (s/GET "/a/b/4" [] "ok")
-              (s/GET "/a/b/5" [] "ok")
-              (s/GET "/a/1" [] "ok")
-              (s/GET "/a/2" [] "ok")
-              (s/GET "/a/3" [] "ok")
-              (s/GET "/a/4" [] "ok")
-              (s/GET "/a/5" [] "ok"))
+              (s/GET "/a/b/c/5" [] "ok"))
 
-        call #(app {:request-method :get :uri "/a/b/c/1"})]
+        call #(app {:request-method :get :uri "/a/b/c/5"})]
 
-    (title "GET with context")
+    (title "Compojure API - GET flattened")
     (./aprint (call))
     (cc/quick-bench (call)))
 
-  ;; ???µs
+  ;; 2.7µs
 
   (let [app (s/context "/a" []
               (s/context "/b" []
@@ -133,14 +109,13 @@
               (s/GET "/4" [] "ok")
               (s/GET "/5" [] "ok"))
 
-        call #(app {:request-method :get :uri "/a/b/c/1"})]
+        call #(app {:request-method :get :uri "/a/b/c/5"})]
 
-    (title "GET with context")
+    (title "Compojure API - GET with context")
     (./aprint (call))
     (cc/quick-bench (call)))
 
-  ;; 19.7µs
-
+  ;; 18.8µs
   )
 
 (defn bench []
