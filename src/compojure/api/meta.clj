@@ -5,7 +5,7 @@
             [compojure.api.exception :as ex]
 
             compojure.core
-            clout.core
+            #_clout.core
 
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
