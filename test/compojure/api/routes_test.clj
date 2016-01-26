@@ -106,3 +106,8 @@
 
     (fact "throw exception"
       (routes/get-routes r {:invalid-routes-fn routes/fail-on-invalid-child-routes})) => throws))
+
+(fact "context routes with compojure destructuring"
+  (let [app (context "/api" req
+              (GET "/ping" [] (ok (:magic req))))]
+    (app {:request-method :get :uri "/api/ping" :magic {:just "works"}}) => (contains {:body {:just "works"}})))

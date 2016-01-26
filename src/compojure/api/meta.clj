@@ -331,7 +331,7 @@
 
 (defn restructure [method [path arg & args] {:keys [routes]}]
   (let [[parameters body] (extract-parameters args)
-        [lets letks responses middleware] [[] [] nil []]
+        [lets letks responses middleware] [[+compojure-api-coercer+ `(memoized-coercer)] [] nil []]
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
         {:keys [lets
@@ -347,7 +347,6 @@
                         parameters)
         _ (assert (not middlewares) ":middlewares is deprecated, use :middleware instead.")
 
-        pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
         wrap (or routes 'do)
 
         form `(~wrap ~@body)
@@ -361,16 +360,16 @@
                `(compojure.core/context ~path ~arg-with-request ~form)
                (compojure.core/compile-route method path arg-with-request (list form)))
         form (if responses `(body-coercer-middleware ~form ~+compojure-api-coercer+ ~responses) form)
-        form (if (seq pre-lets) `(let ~pre-lets ~form) form)
 
         ;; for routes, create a separate lookup-function to find the inner routes
         child-form (if routes
                      (let [form `(~wrap ~@body)
                            form (if (seq letks) `(dummy-letk ~letks ~form) form)
                            form (if (seq lets) `(dummy-let ~lets ~form) form)
-                           form `(fn [~'+compojure-api-request+] ~form)
-                           form (if (seq pre-lets) `(let ~pre-lets ~form) form)]
+                           form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
+                           form `(fn [~'+compojure-api-request+] ~form)]
                        form))]
-
+    (if routes
     `(let [childs# ~(if routes [`(~child-form {})] nil)]
-       (routes/create ~path-string ~method ~parameters childs# ~form))))
+         (routes/create ~path-string ~method ~parameters childs# ~form))
+      `(routes/create ~path-string ~method ~parameters nil ~form))))
