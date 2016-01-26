@@ -3,7 +3,10 @@
             [compojure.api.common :refer :all]
             [compojure.api.middleware :as mw]
             [compojure.api.exception :as ex]
+
             compojure.core
+            clout.core
+
             [plumbing.core :refer :all]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :as rsc]
@@ -52,8 +55,8 @@
 
 (defn fnk-schema [bind]
   (:input-schema
-   (fnk-impl/letk-input-schema-and-body-form
-     nil (with-meta bind {:schema s/Any}) [] nil)))
+    (fnk-impl/letk-input-schema-and-body-form
+      nil (with-meta bind {:schema s/Any}) [] nil)))
 
 (defn body-coercer-middleware [handler coercer responses]
   (fn [request]
@@ -66,8 +69,8 @@
               (throw (ex-info "Response validation error"
                               (assoc body :type ::ex/response-validation)))
               (assoc response
-                     ::serializable? true
-                     :body body)))
+                ::serializable? true
+                :body body)))
           response)
         response))))
 
@@ -276,33 +279,44 @@
   "Dummy letk-macro used in resolving route-docs. not part of normal invokation chain."
   [bindings & body]
   (reduce
-   (fn [cur-body-form [bind-form]]
-     (if (symbol? bind-form)
-       `(let [~bind-form nil] ~cur-body-form)
-       (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form
-                                           &env
-                                           (fnk-impl/ensure-schema-metadata &env bind-form)
-                                           []
-                                           cur-body-form)
-             body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
-         `(let [~map-sym nil] ~body-form))))
-   `(do ~@body)
-   (reverse (partition 2 bindings))))
+    (fn [cur-body-form [bind-form]]
+      (if (symbol? bind-form)
+        `(let [~bind-form nil] ~cur-body-form)
+        (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form
+                                            &env
+                                            (fnk-impl/ensure-schema-metadata &env bind-form)
+                                            []
+                                            cur-body-form)
+              body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
+          `(let [~map-sym nil] ~body-form))))
+    `(do ~@body)
+    (reverse (partition 2 bindings))))
 
-#_(defmacro context
-  "Like compojure.core/context, pre-compiles routes on first request(s) for better performance.
-  Due to pre-compilation, request-time values should not be used in creating context-routes"
-  [path args & routes]
-  `(let [compiled-routes# (atom nil)]
-     (#'compojure.core/if-context
-       ~(#'compojure.core/context-route path)
-       (fn [request#]
-         (compojure.core/let-request
-           [~args request#]
-           (let [routes# (or @compiled-routes# (reset! compiled-routes# ~(vec routes)))]
-             #_(./aprint {:routes ~(vec routes)
-                        :compiled @compiled-routes#})
-             (apply compojure.core/routing request# routes#)))))))
+;;
+;; Compojure overrides
+;;
+
+(defn- if-context [path route handler]
+  (fn [request]
+    (if-let [params (clout.core/route-matches route request)]
+      (let [uri (:uri request)
+            subpath (:__path-info params)
+            ctx (conj (if-let [ctx (:compojure/context request)] ctx []) path)
+            params (dissoc params :__path-info)]
+        (handler
+          (-> request
+              (#'compojure.core/assoc-route-params (#'compojure.core/decode-route-params params))
+              (assoc :path-info (if (= subpath "") "/" subpath)
+                     :compojure/context ctx
+                     :context (#'compojure.core/remove-suffix uri subpath))))))))
+
+(defmacro context [path args & routes]
+  `(#'if-context
+     ~path
+     ~(#'compojure.core/context-route path)
+     (fn [request#]
+       (compojure.core/let-request [~args request#]
+                                   (compojure.core/routing request# ~@routes)))))
 
 ;;
 ;; Api
@@ -341,10 +355,10 @@
                 middlewares
                 parameters
                 body]} (reduce
-                        (fn [acc [k v]]
-                          (restructure-param k v (update-in acc [:parameters] dissoc k)))
-                        (map-of lets letks responses middleware parameters body)
-                        parameters)
+                         (fn [acc [k v]]
+                           (restructure-param k v (update-in acc [:parameters] dissoc k)))
+                         (map-of lets letks responses middleware parameters body)
+                         parameters)
 
         ;; migration helper
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
@@ -366,7 +380,7 @@
                form)
         form (if (seq pre-lets) `(let ~pre-lets ~form) form)
         form (if routes
-               `(compojure.core/context ~path ~arg-with-request ~form)
+               `(context ~path ~arg-with-request ~form)
                (compojure.core/compile-route method path arg-with-request (list form)))
 
         ;; for routes, create a separate lookup-function to find the inner routes
@@ -378,6 +392,6 @@
                            form `(fn [~'+compojure-api-request+] ~form)]
                        form))]
     (if routes
-    `(let [childs# ~(if routes [`(~child-form {})] nil)]
+      `(let [childs# ~(if routes [`(~child-form {})] nil)]
          (routes/create ~path-string ~method ~parameters childs# ~form))
       `(routes/create ~path-string ~method ~parameters nil ~form))))
