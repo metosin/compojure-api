@@ -52,7 +52,7 @@
 
     (title "GET with context")
     (./aprint (call))
-    (cc/bench (call)))
+    (cc/quick-bench (call)))
 
   ;; 1.9µs
 
@@ -79,7 +79,7 @@
 
     (title "GET with context")
     (./aprint (call))
-    (cc/bench (call)))
+    (cc/quick-bench (call)))
 
   ;; 10.7µs
 
@@ -110,7 +110,7 @@
 
     (title "GET with context")
     (./aprint (call))
-    (cc/bench (call)))
+    (cc/quick-bench (call)))
 
   ;; ???µs
 
@@ -137,9 +137,9 @@
 
     (title "GET with context")
     (./aprint (call))
-    (cc/bench (call)))
+    (cc/quick-bench (call)))
 
-  ;; ???µs
+  ;; 19.7µs
 
   )
 
