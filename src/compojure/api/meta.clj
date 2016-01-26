@@ -296,7 +296,7 @@
 ;; Compojure overrides
 ;;
 
-(defn- if-context [path route handler]
+#_(defn- if-context [path route handler]
   (fn [request]
     (if-let [params (clout.core/route-matches route request)]
       (let [uri (:uri request)
@@ -310,7 +310,7 @@
                      :compojure/context ctx
                      :context (#'compojure.core/remove-suffix uri subpath))))))))
 
-(defmacro context [path args & routes]
+#_(defmacro context [path args & routes]
   `(#'if-context
      ~path
      ~(#'compojure.core/context-route path)
@@ -380,7 +380,7 @@
                form)
         form (if (seq pre-lets) `(let ~pre-lets ~form) form)
         form (if routes
-               `(context ~path ~arg-with-request ~form)
+               `(compojure.core/context ~path ~arg-with-request ~form)
                (compojure.core/compile-route method path arg-with-request (list form)))
 
         ;; for routes, create a separate lookup-function to find the inner routes
