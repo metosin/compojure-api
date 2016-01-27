@@ -111,34 +111,4 @@
       (fact "no coercion"
         (let [[status body] (get* app "/no-coercion" {:i 10})]
           status => 200
-          body => {:i "10"}))))
-
-  (fact "anonymous matchers, with 100+ calls to same endpoint"
-
-    #_(fact "at api-level, matcher is reused and the coercion matcher cache is not filled"
-        (let [app (api
-                    {:coercion (constantly mw/default-coercion-matchers)}
-                    (GET "/anonymous" []
-                      :query-params [i :- s/Str]
-                      (ok {:i i})))]
-
-          (dotimes [_ 200]
-            (let [[status body] (get* app "/anonymous" {:i "10"})]
-              status => 200
-              body => {:i "10"})) => nil
-          (provided
-            (compojure.api.impl.logging/log! & anything) => irrelevant :times 0)))
-
-    #_(fact "at route-level, matcher is NOT reused and the the coercion matcher cache is filled"
-        (let [app (api
-                    (GET "/anonymous" []
-                      :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
-                      :query-params [i :- s/Str]
-                      (ok {:i i})))]
-
-          (dotimes [_ 200]
-            (let [[status body] (get* app "/anonymous" {:i "10"})]
-              status => 200
-              body => {:i "10"})) => nil
-          (provided
-            (compojure.api.impl.logging/log! & anything) => irrelevant :times 1)))))
+          body => {:i "10"})))))
