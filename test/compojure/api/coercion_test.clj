@@ -112,3 +112,30 @@
         (let [[status body] (get* app "/no-coercion" {:i 10})]
           status => 200
           body => {:i "10"})))))
+
+(facts "apiless coercion"
+
+  (fact "use default-coercion-matchers by default"
+    (let [app (context "/api" []
+                :query-params [{y :- Long 0}]
+                (GET "/ping" []
+                  :query-params [x :- Long]
+                  (ok [x y])))]
+      (app {:request-method :get :uri "/api/ping" :query-params {}}) => throws
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => throws
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1"}}) => (contains {:body [1 0]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}) => (contains {:body [1 2]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => throws))
+
+  (fact "coercion can be overridden"
+    (let [app (context "/api" []
+                :query-params [{y :- Long 0}]
+                (GET "/ping" []
+                  :coercion (constantly nil)
+                  :query-params [x :- Long]
+                  (ok [x y])))]
+      (app {:request-method :get :uri "/api/ping" :query-params {}}) => throws
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => (contains {:body ["abba" 0]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1"}}) => (contains {:body ["1" 0]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}) => (contains {:body ["1" 2]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => throws)))

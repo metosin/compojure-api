@@ -62,7 +62,7 @@
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
-        (if-let [matcher (:response (mw/get-coercion-matcher-provider request))]
+        (if-let [matcher (:response (mw/coercion-matchers request))]
           (let [coerce (coercer (rsc/value-of schema) matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
@@ -76,7 +76,7 @@
 
 (defn coerce! [schema key type coercer request]
   (let [value (keywordize-keys (key request))]
-    (if-let [matcher (type (mw/get-coercion-matcher-provider request))]
+    (if-let [matcher (type (mw/coercion-matchers request))]
       (let [coerce (coercer schema matcher)
             result (coerce value)]
         (if (su/error? result)
