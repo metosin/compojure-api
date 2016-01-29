@@ -51,13 +51,11 @@
 
 (defmacro
   ^{:doc (str
-  "Defines an api. The name may optionally be followed by a doc-string
-  and metadata map.
+  "Defines an api.
 
   API middleware options:
 
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   defapi
   [name & body]
-  (let [[name body] (macro/name-with-attributes name body)]
-    `(def ~name (api ~@body))))
+  `(def ~name (api ~@body)))
