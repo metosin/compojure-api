@@ -111,34 +111,31 @@
       (fact "no coercion"
         (let [[status body] (get* app "/no-coercion" {:i 10})]
           status => 200
-          body => {:i "10"}))))
+          body => {:i "10"})))))
 
-  (fact "anonymous matchers, with 100+ calls to same endpoint"
+(facts "apiless coercion"
 
-    #_(fact "at api-level, matcher is reused and the coercion matcher cache is not filled"
-        (let [app (api
-                    {:coercion (constantly mw/default-coercion-matchers)}
-                    (GET "/anonymous" []
-                      :query-params [i :- s/Str]
-                      (ok {:i i})))]
+  (fact "use default-coercion-matchers by default"
+    (let [app (context "/api" []
+                :query-params [{y :- Long 0}]
+                (GET "/ping" []
+                  :query-params [x :- Long]
+                  (ok [x y])))]
+      (app {:request-method :get :uri "/api/ping" :query-params {}}) => throws
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => throws
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1"}}) => (contains {:body [1 0]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}) => (contains {:body [1 2]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => throws))
 
-          (dotimes [_ 200]
-            (let [[status body] (get* app "/anonymous" {:i "10"})]
-              status => 200
-              body => {:i "10"})) => nil
-          (provided
-            (compojure.api.impl.logging/log! & anything) => irrelevant :times 0)))
-
-    #_(fact "at route-level, matcher is NOT reused and the the coercion matcher cache is filled"
-        (let [app (api
-                    (GET "/anonymous" []
-                      :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
-                      :query-params [i :- s/Str]
-                      (ok {:i i})))]
-
-          (dotimes [_ 200]
-            (let [[status body] (get* app "/anonymous" {:i "10"})]
-              status => 200
-              body => {:i "10"})) => nil
-          (provided
-            (compojure.api.impl.logging/log! & anything) => irrelevant :times 1)))))
+  (fact "coercion can be overridden"
+    (let [app (context "/api" []
+                :query-params [{y :- Long 0}]
+                (GET "/ping" []
+                  :coercion (constantly nil)
+                  :query-params [x :- Long]
+                  (ok [x y])))]
+      (app {:request-method :get :uri "/api/ping" :query-params {}}) => throws
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => (contains {:body ["abba" 0]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1"}}) => (contains {:body ["1" 0]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}) => (contains {:body ["1" 2]})
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => throws)))

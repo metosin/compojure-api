@@ -92,9 +92,12 @@
 (def no-response-coercion
   (constantly (dissoc default-coercion-matchers :response)))
 
-(defn get-coercion-matcher-provider [request]
-  (if-let [provider (:coercion (get-options request))]
-    (provider request)))
+(defn coercion-matchers [request]
+  (let [options (get-options request)]
+    (if (contains? options :coercion)
+      (if-let [provider (:coercion options)]
+        (provider request))
+      default-coercion-matchers)))
 
 (defn wrap-coercion [handler coercion]
   (fn [request]

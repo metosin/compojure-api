@@ -61,6 +61,10 @@
         status = 200
         body => {:message "pong - v1"})
 
+      (let [[status body] (get* app "/api/v2/ping")]
+        status = 200
+        body => {:message "pong - v2"})
+
       (let [[status body] (get* app "/api/v3/more")]
         status => 200
         body => {:message "v3"}))
@@ -102,3 +106,8 @@
 
     (fact "throw exception"
       (routes/get-routes r {:invalid-routes-fn routes/fail-on-invalid-child-routes})) => throws))
+
+(fact "context routes with compojure destructuring"
+  (let [app (context "/api" req
+              (GET "/ping" [] (ok (:magic req))))]
+    (app {:request-method :get :uri "/api/ping" :magic {:just "works"}}) => (contains {:body {:just "works"}})))

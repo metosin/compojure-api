@@ -75,6 +75,16 @@ https://github.com/metosin/compojure-api/wiki/Migration-Guide-to-1.0.0
 
 * `swagger-docs` and `swagger-ui` are now functions instead of macros.
 
+* Coercion is on by default for standalone (apiless) endpoints.
+
+```clj
+(fact "coercion is on for apiless routes"
+  (let [route (GET "/x" []
+                :query-params [x :- Long]
+                (ok))]
+    (route {:request-method :get :uri "/x" :query-params {}}) => throws))
+```
+
 * Removed deps:
 
 ```clojure
