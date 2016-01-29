@@ -65,8 +65,8 @@ take a vector of middleware containing either
       * `[(fn [handler] (wrap-foo handler {:opts :bar}))]`
   * Similar to [duct](https://github.com/weavejester/duct/wiki/Components#handlers)
 
-
-
+* **BREAKING**: (Custom restructuring handlers only) `:parameters` key used by `restructure-param`
+has been renamed to `:swagger`.
 
 ### Migration guide
 

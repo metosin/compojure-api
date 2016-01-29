@@ -1,11 +1,5 @@
 (ns compojure.api.common)
 
-(defmacro map-of
-  "creates map with symbol names as keywords as keys and
-  symbol values as values."
-  [& syms]
-  `(zipmap ~(vec (map keyword syms)) ~(vec syms)))
-
 (defn plain-map?
   "checks whether input is a map, but not a record"
   [x] (and (map? x) (not (record? x))))
