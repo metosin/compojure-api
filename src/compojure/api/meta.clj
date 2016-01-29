@@ -254,7 +254,6 @@
 
 ; Applies the given vector of middlewares to the route
 (defmethod restructure-param :middleware [_ middleware acc]
-  (mw/assert-middleware middleware)
   (update-in acc [:middleware] into middleware))
 
 ; Bind to stuff in request components using letk syntax

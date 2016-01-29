@@ -41,7 +41,6 @@
   do not match the request uri. Be careful with middlewares that
   have side-effects."
   [middleware & body]
-  (mw/assert-middleware middleware)
   (let [routes? (> (count body) 1)]
     `(let [body# ~(if routes? `(routes ~@body) (first body))
            wrap-mw# (mw/compose-middleware ~middleware)]

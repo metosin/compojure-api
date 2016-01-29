@@ -84,10 +84,10 @@
               (middleware [middleware* [middleware* 2]]
                 (context "/middlewares" []
                   (GET "/simple" req (reply-mw* req))
-                  (middleware [[middleware* 3] [middleware* 4]]
+                  (middleware [#(middleware* % 3) [middleware* 4]]
                     (GET "/nested" req (reply-mw* req))
                     (GET "/nested-declared" req
-                      :middleware [[middleware* 5] [middleware* 6]]
+                      :middleware [(fn [handler] (middleware* handler 5)) [middleware* 6]]
                       (reply-mw* req))))))]
 
     (fact "are applied left-to-right"
@@ -1125,16 +1125,6 @@
 
     (fact "throwing exceptions"
       (api {:api {:invalid-routes-fn routes/fail-on-invalid-child-routes}} invalid-routes)) => throws))
-
-(fact "old middleware format"
-  (macroexpand '(middleware [(middleware* 5)]
-                            (GET "/normal" [] (ok))))
-  => (throws AssertionError)
-
-  (macroexpand '(GET "/normal" []
-                  :middleware [(middleware* 5)]
-                  (ok)))
-  => (throws AssertionError))
 
 (defmethod compojure.api.meta/restructure-param ::deprecated-middlewares-test [_ _ acc]
   (assoc acc :middlewares [(constantly nil)]))
