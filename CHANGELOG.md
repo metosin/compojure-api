@@ -54,12 +54,19 @@ descriptive error is thrown when api is created with the old options format.
 
 * **BREAKING**: Renamed `middlewares` to `middleware` and `:middlewares` key (restructuring) to `:middleware`
 
-* **BREAKING**: Middleware must be defined as data: both our forms take a vector
-of middleware containing either a) fully configured mws (function)
-or b) a middleware templates in form [function args]. Nothing new, just best practices.
-  * You can also use anonymous functions to create middleware with correct parameters:
-  `(middleware [#(wrap-foo % {:opts :bar})])`
+* **BREAKING**: Middleware must be defined as data: both middleware macro and :middleware restructuring
+take a vector of middleware containing either
+  * a) fully configured middleware (function), or
+  * b) a middleware templates in form of `[function args]`
+  * You can also use anonymous or lambda functions to create middleware with correct parameters,
+  these are all identical:
+      * `[[wrap-foo {:opts :bar}]]`
+      * `[#(wrap-foo % {:opts :bar})]`
+      * `[(fn [handler] (wrap-foo handler {:opts :bar}))]`
   * Similar to [duct](https://github.com/weavejester/duct/wiki/Components#handlers)
+
+
+
 
 ### Migration guide
 
