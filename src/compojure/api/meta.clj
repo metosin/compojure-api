@@ -1,13 +1,13 @@
 (ns compojure.api.meta
   (:require [clojure.walk :refer [keywordize-keys]]
-            [compojure.api.common :refer :all]
+            [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.exception :as ex]
 
             compojure.core
             #_clout.core
 
-            [plumbing.core :refer :all]
+            [plumbing.core :refer [letk]]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :as rsc]
             [ring.swagger.json-schema :as js]
@@ -109,19 +109,19 @@
 ;;
 
 (defmethod restructure-param :summary [k v acc]
-  (update-in acc [:parameters] assoc k v))
+  (update-in acc [:swagger] assoc k v))
 
 (defmethod restructure-param :description [k v acc]
-  (update-in acc [:parameters] assoc k v))
+  (update-in acc [:swagger] assoc k v))
 
 (defmethod restructure-param :operationId [k v acc]
-  (update-in acc [:parameters] assoc k v))
+  (update-in acc [:swagger] assoc k v))
 
 (defmethod restructure-param :consumes [k v acc]
-  (update-in acc [:parameters] assoc k v))
+  (update-in acc [:swagger] assoc k v))
 
 (defmethod restructure-param :produces [k v acc]
-  (update-in acc [:parameters] assoc k v))
+  (update-in acc [:swagger] assoc k v))
 
 ;;
 ;; Smart restructurings
@@ -131,7 +131,7 @@
 ; Example:
 ; :no-doc true
 (defmethod restructure-param :no-doc [_ v acc]
-  (update-in acc [:parameters] assoc :x-no-doc v))
+  (update-in acc [:swagger] assoc :x-no-doc v))
 
 ; publishes the data as swagger-parameters without any side-effects / coercion.
 ; Examples:
@@ -141,19 +141,19 @@
 ;           :paramerers {:query {:q s/Str}
 ;                        :body NewUser}}}
 (defmethod restructure-param :swagger [_ swagger acc]
-  (update-in acc [:parameters] rsc/deep-merge swagger))
+  (update-in acc [:swagger] rsc/deep-merge swagger))
 
 ; Route name, used with path-for
 ; Example:
 ; :name :user-route
 (defmethod restructure-param :name [_ v acc]
-  (update-in acc [:parameters] assoc :x-name v))
+  (update-in acc [:swagger] assoc :x-name v))
 
 ; Tags for api categorization. Ignores duplicates.
 ; Examples:
 ; :tags [:admin]
 (defmethod restructure-param :tags [_ tags acc]
-  (update-in acc [:parameters :tags] (comp set into) tags))
+  (update-in acc [:swagger :tags] (comp set into) tags))
 
 ; Defines a return type and coerces the return value of a body against it.
 ; Examples:
@@ -163,7 +163,7 @@
 (defmethod restructure-param :return [_ schema acc]
   (let [response (convert-return schema)]
     (-> acc
-        (update-in [:parameters :responses] (fnil conj []) response)
+        (update-in [:swagger :responses] (fnil conj []) response)
         (update-in [:responses] (fnil conj []) response))))
 
 ; value is a map of http-response-code -> Schema. Translates to both swagger
@@ -174,7 +174,7 @@
 ; :responses {403 {:schema ErrorEnvelope, :description \"Underflow\"}}
 (defmethod restructure-param :responses [_ responses acc]
   (-> acc
-      (update-in [:parameters :responses] (fnil conj []) responses)
+      (update-in [:swagger :responses] (fnil conj []) responses)
       (update-in [:responses] (fnil conj []) responses)))
 
 ; reads body-params into a enhanced let. First parameter is the let symbol,
@@ -184,7 +184,7 @@
 (defmethod restructure-param :body [_ [value schema] acc]
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :body-params :body)])
-      (assoc-in [:parameters :parameters :body] schema)))
+      (assoc-in [:swagger :parameters :body] schema)))
 
 ; reads query-params into a enhanced let. First parameter is the let symbol,
 ; second is the Schema to be coerced! against.
@@ -193,7 +193,7 @@
 (defmethod restructure-param :query [_ [value schema] acc]
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
-      (assoc-in [:parameters :parameters :query] schema)))
+      (assoc-in [:swagger :parameters :query] schema)))
 
 ; reads header-params into a enhanced let. First parameter is the let symbol,
 ; second is the Schema to be coerced! against.
@@ -202,7 +202,7 @@
 (defmethod restructure-param :headers [_ [value schema] acc]
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :headers :string)])
-      (assoc-in [:parameters :parameters :header] schema)))
+      (assoc-in [:swagger :parameters :header] schema)))
 
 ; restructures body-params with plumbing letk notation. Example:
 ; :body-params [id :- Long name :- String]
@@ -210,7 +210,7 @@
   (let [schema (strict (fnk-schema body-params))]
     (-> acc
         (update-in [:letks] into [body-params (src-coerce! schema :body-params :body)])
-        (assoc-in [:parameters :parameters :body] schema))))
+        (assoc-in [:swagger :parameters :body] schema))))
 
 ; restructures form-params with plumbing letk notation. Example:
 ; :form-params [id :- Long name :- String]
@@ -218,15 +218,15 @@
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
         (update-in [:letks] into [form-params (src-coerce! schema :form-params :string)])
-        (update-in [:parameters :parameters :formData] st/merge schema)
-        (assoc-in [:parameters :consumes] ["application/x-www-form-urlencoded"]))))
+        (update-in [:swagger :parameters :formData] st/merge schema)
+        (assoc-in [:swagger :consumes] ["application/x-www-form-urlencoded"]))))
 
 (defmethod restructure-param :multipart-params [_ params acc]
   (let [schema (strict (fnk-schema params))]
     (-> acc
         (update-in [:letks] into [params (src-coerce! schema :multipart-params :string)])
-        (update-in [:parameters :parameters :formData] st/merge schema)
-        (assoc-in [:parameters :consumes] ["multipart/form-data"]))))
+        (update-in [:swagger :parameters :formData] st/merge schema)
+        (assoc-in [:swagger :consumes] ["multipart/form-data"]))))
 
 ; restructures header-params with plumbing letk notation. Example:
 ; :header-params [id :- Long name :- String]
@@ -234,7 +234,7 @@
   (let [schema (fnk-schema header-params)]
     (-> acc
         (update-in [:letks] into [header-params (src-coerce! schema :headers :string)])
-        (assoc-in [:parameters :parameters :header] schema))))
+        (assoc-in [:swagger :parameters :header] schema))))
 
 ; restructures query-params with plumbing letk notation. Example:
 ; :query-params [id :- Long name :- String]
@@ -242,7 +242,7 @@
   (let [schema (fnk-schema query-params)]
     (-> acc
         (update-in [:letks] into [query-params (src-coerce! schema :query-params :string)])
-        (assoc-in [:parameters :parameters :query] schema))))
+        (assoc-in [:swagger :parameters :query] schema))))
 
 ; restructures path-params by plumbing letk notation. Example:
 ; :path-params [id :- Long name :- String]
@@ -250,7 +250,7 @@
   (let [schema (fnk-schema path-params)]
     (-> acc
         (update-in [:letks] into [path-params (src-coerce! schema :route-params :string)])
-        (assoc-in [:parameters :parameters :path] schema))))
+        (assoc-in [:swagger :parameters :path] schema))))
 
 ; Applies the given vector of middlewares to the route
 (defmethod restructure-param :middleware [_ middleware acc]
@@ -347,8 +347,8 @@
     (seq responses) (assoc :responses (apply merge responses))))
 
 (defn restructure [method [path arg & args] {:keys [routes]}]
-  (let [[parameters body] (extract-parameters args)
-        [lets letks responses middleware] [[] [] nil []]
+  (let [[options body] (extract-parameters args)
+        lets []
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
 
         {:keys [lets
@@ -356,12 +356,17 @@
                 responses
                 middleware
                 middlewares
-                parameters
+                swagger
                 body]} (reduce
                          (fn [acc [k v]]
                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
-                         (map-of lets letks responses middleware parameters body)
-                         parameters)
+                         {:lets lets
+                          :letks []
+                          :responses nil
+                          :middleware []
+                          :swagger {}
+                          :body body}
+                         options)
 
         ;; migration helper
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
@@ -396,5 +401,5 @@
                        form))]
     (if routes
       `(let [childs# ~(if routes [`(~child-form {})] nil)]
-         (routes/create ~path-string ~method (merge-parameters ~parameters) childs# ~form))
-      `(routes/create ~path-string ~method (merge-parameters ~parameters) nil ~form))))
+         (routes/create ~path-string ~method (merge-parameters ~swagger) childs# ~form))
+      `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form))))
