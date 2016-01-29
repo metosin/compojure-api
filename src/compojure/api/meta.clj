@@ -163,8 +163,8 @@
 (defmethod restructure-param :return [_ schema acc]
   (let [response (convert-return schema)]
     (-> acc
-        (update-in [:parameters :responses] merge response)
-        (update-in [:responses] merge response))))
+        (update-in [:parameters :responses] (fnil conj []) response)
+        (update-in [:responses] (fnil conj []) response))))
 
 ; value is a map of http-response-code -> Schema. Translates to both swagger
 ; parameters and return schema coercion. Schemas can be decorated with meta-data.
@@ -174,8 +174,8 @@
 ; :responses {403 {:schema ErrorEnvelope, :description \"Underflow\"}}
 (defmethod restructure-param :responses [_ responses acc]
   (-> acc
-      (update-in [:parameters :responses] merge responses)
-      (update-in [:responses] merge responses)))
+      (update-in [:parameters :responses] (fnil conj []) responses)
+      (update-in [:responses] (fnil conj []) responses)))
 
 ; reads body-params into a enhanced let. First parameter is the let symbol,
 ; second is the Schema to be coerced! against.
@@ -343,6 +343,10 @@
               (RuntimeException.
                 (str "unknown compojure destruction syntax: " arg))))))
 
+(defn merge-parameters [{:keys [responses] :as parameters}]
+  (cond-> parameters
+    (seq responses) (assoc :responses (apply merge responses))))
+
 (defn restructure [method [path arg & args] {:keys [routes]}]
   (let [[parameters body] (extract-parameters args)
         [lets letks responses middleware] [[] [] nil []]
@@ -364,8 +368,8 @@
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
 
         ;; response coercion middleware, why not just code?
-        middleware (if responses
-                     (conj middleware `[body-coercer-middleware ~'+compojure-api-coercer+ ~responses])
+        middleware (if (seq responses)
+                     (conj middleware `[body-coercer-middleware ~'+compojure-api-coercer+ (merge ~@responses)])
                      middleware)
 
         pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
@@ -393,5 +397,5 @@
                        form))]
     (if routes
       `(let [childs# ~(if routes [`(~child-form {})] nil)]
-         (routes/create ~path-string ~method ~parameters childs# ~form))
-      `(routes/create ~path-string ~method ~parameters nil ~form))))
+         (routes/create ~path-string ~method (merge-parameters ~parameters) childs# ~form))
+      `(routes/create ~path-string ~method (merge-parameters ~parameters) nil ~form))))
