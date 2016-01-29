@@ -197,44 +197,45 @@
                                    :components restructuring. (If you are using api,
                                    you might want to take look at using wrap-components
                                    middleware manually.)"
-  [handler & [options]]
-  (let [options (rsc/deep-merge api-middleware-defaults options)
-        {:keys [exceptions format components]} options
-        {:keys [formats params-opts response-opts]} format]
-    ; Break at compile time if there are deprecated options
-    ; These three have been deprecated with 0.23
-    (assert (not (:error-handler (:validation-errors options)))
-            (str "ERROR: Option: [:validation-errors :error-handler] is no longer supported, "
-                 "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."
-                 "Also note that exception-handler arity has been changed."))
-    (assert (not (:catch-core-errors? (:validation-errors options)))
-            (str "ERROR: Option [:validation-errors :catch-core-errors?] is no longer supported, "
-                 "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."
-                 "Also note that exception-handler arity has been changed."))
-    (assert (not (:exception-handler (:exceptions options)))
-            (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
-                 "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
-                 "Also note that exception-handler arity has been changed."))
-    (assert (not (map? (:coercion options)))
-            (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
-                 "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
-                 "want to apply the matchers for all request types, wrap your option with 'constantly'"))
-    (-> handler
-        (cond-> components (wrap-components components))
-        ring.middleware.http-response/wrap-http-response
-        (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
-                                :consumes (->mime-types formats)})
-        (wrap-options (select-keys options [:ring-swagger :coercion]))
-        (wrap-restful-params {:formats (remove response-only-mimes formats)
-                              :handle-error handle-req-error
-                              :format-options params-opts})
-        (wrap-exceptions exceptions)
-        (wrap-restful-response {:formats formats
-                                :predicate serializable?
-                                :format-options response-opts})
-        wrap-keyword-params
-        wrap-nested-params
-        wrap-params)))
+  ([handler] (api-middleware handler nil))
+  ([handler options]
+   (let [options (rsc/deep-merge api-middleware-defaults options)
+         {:keys [exceptions format components]} options
+         {:keys [formats params-opts response-opts]} format]
+     ; Break at compile time if there are deprecated options
+     ; These three have been deprecated with 0.23
+     (assert (not (:error-handler (:validation-errors options)))
+             (str "ERROR: Option: [:validation-errors :error-handler] is no longer supported, "
+                  "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."
+                  "Also note that exception-handler arity has been changed."))
+     (assert (not (:catch-core-errors? (:validation-errors options)))
+             (str "ERROR: Option [:validation-errors :catch-core-errors?] is no longer supported, "
+                  "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."
+                  "Also note that exception-handler arity has been changed."))
+     (assert (not (:exception-handler (:exceptions options)))
+             (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
+                  "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
+                  "Also note that exception-handler arity has been changed."))
+     (assert (not (map? (:coercion options)))
+             (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
+                  "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
+                  "want to apply the matchers for all request types, wrap your option with 'constantly'"))
+     (-> handler
+         (cond-> components (wrap-components components))
+         ring.middleware.http-response/wrap-http-response
+         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
+                                 :consumes (->mime-types formats)})
+         (wrap-options (select-keys options [:ring-swagger :coercion]))
+         (wrap-restful-params {:formats (remove response-only-mimes formats)
+                               :handle-error handle-req-error
+                               :format-options params-opts})
+         (wrap-exceptions exceptions)
+         (wrap-restful-response {:formats formats
+                                 :predicate serializable?
+                                 :format-options response-opts})
+         wrap-keyword-params
+         wrap-nested-params
+         wrap-params))))
 
 (defn assert-middleware [middleware]
   (assert (and (vector? middleware) (every? #(or (and (vector? %1) (ifn? (first %1))) (ifn? %1)) middleware))
