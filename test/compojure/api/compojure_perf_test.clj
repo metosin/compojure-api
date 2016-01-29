@@ -39,7 +39,6 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure - GET flattened")
-    (./aprint (call))
     (cc/quick-bench (call)))
 
   ;; 2.7µs
@@ -66,7 +65,6 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure - GET with context")
-    (./aprint (call))
     (cc/quick-bench (call)))
 
   ;; 11.8µs
@@ -85,7 +83,6 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure API - GET flattened")
-    (./aprint (call))
     (cc/quick-bench (call)))
 
   ;; 2.7µs
@@ -112,7 +109,6 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure API - GET with context")
-    (./aprint (call))
     (cc/quick-bench (call)))
 
   ;; 18.8µs
