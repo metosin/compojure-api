@@ -1144,3 +1144,27 @@
                   ::deprecated-middlewares-test true
                   (ok)))
   => (throws AssertionError))
+
+(fact "using local symbols for restructuring params"
+  (let [responses {400 {:schema {:fail s/Str}}}
+        app (api
+              (swagger-docs
+                {:info {:version "2.0.0"}})
+              (GET "/a" []
+                :responses responses
+                :return {:ok s/Str}
+                (ok))
+              (GET "/b" []
+                :responses (assoc responses 500 {:schema {:m s/Str}})
+                :return {:ok s/Str}
+                (ok)))
+        paths (:paths (get-spec app))]
+
+    (get-in paths ["/a" :get :responses])
+    => (just {:400 (just {:schema anything :description ""})
+              :200 (just {:schema anything :description ""})})
+
+    (get-in paths ["/b" :get :responses])
+    => (just {:400 (just {:schema anything :description ""})
+              :200 (just {:schema anything :description ""})
+              :500 (just {:schema anything :description ""})})))
