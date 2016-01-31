@@ -329,6 +329,7 @@
                 middleware
                 middlewares
                 swagger
+                parameters
                 body]} (reduce
                          (fn [acc [k v]]
                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
@@ -342,6 +343,7 @@
 
         ;; migration helper
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
+        _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
 
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses)
