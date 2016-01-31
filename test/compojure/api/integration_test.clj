@@ -1164,7 +1164,7 @@
   (let [wrap-mw-params (fn [handler value]
                          (fn [request]
                            (handler
-                             (update request ::mw (partial str value)))))]
+                             (update request ::mw #(str % value)))))]
     (fact "from endpoint"
       (let [app (GET "/ping" []
                   :middleware [[wrap-mw-params "1"]]
