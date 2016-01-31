@@ -382,14 +382,13 @@
         form `(~body-wrap ~@body)
         form (if (seq letks) `(letk ~letks ~form) form)
         form (if (seq lets) `(let ~lets ~form) form)
-        form (if (seq middleware)
-               `(let [wrap-mw# (mw/compose-middleware ~middleware)]
-                  ((wrap-mw# (fn [~arg] ~form)) ~arg))
-               form)
-        form (if (seq pre-lets) `(let ~pre-lets ~form) form)
         form (if routes
                `(compojure.core/context ~path ~arg-with-request ~form)
                (compojure.core/compile-route method path arg-with-request (list form)))
+        form (if (seq middleware)
+               `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware))
+               form)
+        form (if (seq pre-lets) `(let ~pre-lets ~form) form)
 
         ;; for routes, create a separate lookup-function to find the inner routes
         child-form (if routes

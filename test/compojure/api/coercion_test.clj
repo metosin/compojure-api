@@ -140,7 +140,7 @@
       (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}) => (contains {:body ["1" 2]})
       (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => throws))
 
-  (fact ""
+  (fact "context coercion is used for subroutes"
     (let [app (context "/api" []
                 :coercion (constantly nil)
                 (GET "/ping" []
