@@ -26,6 +26,9 @@
 ;; Schema
 ;;
 
+#_(defn route-id [request]
+  (into (if-let [ctx (:compojure/context request)] ctx []) (vec (reverse (:compojure/route request)))))
+
 (defn memoized-coercer
   "Returns a memoized version of a referentially transparent coercer fn. The
   memoized version of the function keeps a cache of the mapping from arguments
@@ -34,7 +37,7 @@
   Cache will be filled if anonymous coercers are used (does not match the cache)"
   []
   (let [cache (atom (linked/map))
-        cache-size 100]
+        cache-size 10000]
     (fn [& args]
       (or (@cache args)
           (let [coercer (apply sc/coercer args)]
@@ -44,6 +47,9 @@
                                (dissoc mem (-> mem first first))
                                mem))))
             coercer)))))
+
+(defn cached-coercer [request]
+  (or (-> request mw/get-options :coercer) sc/coercer))
 
 (defn strict [schema]
   (dissoc schema 'schema.core/Keyword))
@@ -58,7 +64,7 @@
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/coercion-matchers request))]
-          (let [coercer (memoized-coercer)
+          (let [coercer (cached-coercer request)
                 coerce (coercer (rsc/value-of schema) matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
@@ -73,7 +79,7 @@
 (defn coerce! [schema key type request]
   (let [value (keywordize-keys (key request))]
     (if-let [matcher (type (mw/coercion-matchers request))]
-      (let [coercer (memoized-coercer)
+      (let [coercer (cached-coercer request)
             coerce (coercer schema matcher)
             result (coerce value)]
         (if (su/error? result)
@@ -293,26 +299,26 @@
 ;;
 
 #_(defn- if-context [path route handler]
-    (fn [request]
-      (if-let [params (clout.core/route-matches route request)]
-        (let [uri (:uri request)
-              subpath (:__path-info params)
-              ctx (conj (if-let [ctx (:compojure/context request)] ctx []) path)
-              params (dissoc params :__path-info)]
-          (handler
-            (-> request
-                (#'compojure.core/assoc-route-params (#'compojure.core/decode-route-params params))
-                (assoc :path-info (if (= subpath "") "/" subpath)
-                       :compojure/context ctx
-                       :context (#'compojure.core/remove-suffix uri subpath))))))))
+  (fn [request]
+    (if-let [params (clout.core/route-matches route request)]
+      (let [uri (:uri request)
+            subpath (:__path-info params)
+            ctx (conj (if-let [ctx (:compojure/context request)] ctx []) path)
+            params (dissoc params :__path-info)]
+        (handler
+          (-> request
+              (#'compojure.core/assoc-route-params (#'compojure.core/decode-route-params params))
+              (assoc :path-info (if (= subpath "") "/" subpath)
+                     :compojure/context ctx
+                     :context (#'compojure.core/remove-suffix uri subpath))))))))
 
 #_(defmacro context [path args & routes]
-    `(#'if-context
-       ~path
-       ~(#'compojure.core/context-route path)
-       (fn [request#]
-         (compojure.core/let-request [~args request#]
-                                     (compojure.core/routing request# ~@routes)))))
+  `(#'if-context
+     ~path
+     ~(#'compojure.core/context-route path)
+     (fn [request#]
+       (compojure.core/let-request [~args request#]
+                                   (compojure.core/routing request# ~@routes)))))
 
 ;;
 ;; Api
@@ -379,13 +385,13 @@
             form (if (seq letks) `(letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
-            form `(context ~path ~arg-with-request ~form)
+            form `(compojure.core/context ~path ~arg-with-request ~form)
 
             ;; create and apply a separate lookup-function to find the inner routes
             childs (let [form (vec body)
-                               form (if (seq letks) `(dummy-letk ~letks ~form) form)
-                               form (if (seq lets) `(dummy-let ~lets ~form) form)
-                               form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
+                         form (if (seq letks) `(dummy-letk ~letks ~form) form)
+                         form (if (seq lets) `(dummy-let ~lets ~form) form)
+                         form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
                          form `(fn [~'+compojure-api-request+] ~form)
                          form `(~form {})]
                      form)]
