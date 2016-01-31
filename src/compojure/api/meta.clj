@@ -22,10 +22,6 @@
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
 
-(def +compojure-api-coercer+
-  "lexically bound (caching) coercer for handlers."
-  '+compojure-api-coercer+)
-
 ;;
 ;; Schema
 ;;
