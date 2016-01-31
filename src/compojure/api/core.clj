@@ -30,7 +30,10 @@
   [bindings & body]
   `(let ~bindings (routes ~@body)))
 
-(defn undocumented [& handlers]
+(defn undocumented
+  "Routes without route-documentation. Can be used to wrap routes,
+  not satisfying compojure.api.routes/Routing -protocol."
+  [& handlers]
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (ring-handler handlers))))
 
@@ -45,7 +48,7 @@
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
 
-(defmacro context [& args] (meta/restructure nil      args {:routes? true}))
+(defmacro context [& args] (meta/restructure nil      args {:context? true}))
 
 (defmacro GET     [& args] (meta/restructure :get     args nil))
 (defmacro ANY     [& args] (meta/restructure nil      args nil))

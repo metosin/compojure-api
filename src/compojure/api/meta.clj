@@ -319,7 +319,7 @@
   (cond-> parameters
           (seq responses) (assoc :responses (apply merge responses))))
 
-(defn restructure [method [path arg & args] {:keys [routes?]}]
+(defn restructure [method [path arg & args] {:keys [context?]}]
   (let [[options body] (extract-parameters args)
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path arg)
 
@@ -348,7 +348,7 @@
                      (conj middleware `[body-coercer-middleware (merge ~@responses)])
                      middleware)]
 
-    (if routes?
+    (if context?
 
       ;; context
       (let [form `(compojure.core/routes ~@body)
