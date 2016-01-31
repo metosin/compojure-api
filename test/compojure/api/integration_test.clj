@@ -1158,3 +1158,27 @@
     => (just {:400 (just {:schema anything :description ""})
               :200 (just {:schema anything :description ""})
               :500 (just {:schema anything :description ""})})))
+
+(fact "when functions are returned"
+  (let [wrap-mw-params (fn [handler value] #(handler (update % ::mw (partial str value))))]
+    (fact "from endpoint"
+      (let [app (GET "/ping" []
+                  :middleware [[wrap-mw-params "1"]]
+                  :query-params [{a :- s/Str "a"}]
+                  (fn [req] (str (::mw req) a)))]
+        
+        (app {:request-method :get, :uri "/ping", :query-params {}}) => (contains {:body "1a"})
+        (app {:request-method :get, :uri "/ping", :query-params {:a "A"}}) => (contains {:body "1A"})))
+
+    (fact "from endpoint under context"
+      (let [app (context "/api" []
+                  :middleware [[wrap-mw-params "1"]]
+                  :query-params [{a :- s/Str "a"}]
+                  (GET "/ping" []
+                    :middleware [[wrap-mw-params "2"]]
+                    :query-params [{b :- s/Str "b"}]
+                    (fn [req] (str (::mw req) a b))))]
+
+        (app {:request-method :get, :uri "/api/ping", :query-params {}}) => (contains {:body "12ab"})
+        (app {:request-method :get, :uri "/api/ping", :query-params {:a "A"}}) => (contains {:body "12Ab"})
+        (app {:request-method :get, :uri "/api/ping", :query-params {:a "A", :b "B"}}) => (contains {:body "12AB"})))))
