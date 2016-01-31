@@ -46,7 +46,7 @@
            wrap-mw# (mw/compose-middleware ~middleware)]
        (routes/create "" nil {} [body#] (wrap-mw# body#)))))
 
-(defmacro context [& args] (meta/restructure nil      args {:routes #'routes}))
+(defmacro context [& args] (meta/restructure nil      args {:routes? true}))
 
 (defmacro GET     [& args] (meta/restructure :get     args nil))
 (defmacro ANY     [& args] (meta/restructure nil      args nil))

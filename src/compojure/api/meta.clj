@@ -328,17 +328,17 @@
   - new lets list
   - bindings form for compojure route
   - symbol to which request will be bound"
-  [path lets arg]
+  [path arg]
   (let [path-string (if (vector? path) (first path) path)]
     (cond
       ;; GET "/route" []
-      (vector? arg) [path-string lets (into arg [:as +compojure-api-request+]) +compojure-api-request+]
+      (vector? arg) [path-string [] (into arg [:as +compojure-api-request+]) +compojure-api-request+]
       ;; GET "/route" {:as req}
       (map? arg) (if-let [as (:as arg)]
-                   [path-string (conj lets +compojure-api-request+ as) arg as]
-                   [path-string lets (merge arg [:as +compojure-api-request+]) +compojure-api-request+])
+                   [path-string [+compojure-api-request+ as] arg as]
+                   [path-string [] (merge arg [:as +compojure-api-request+]) +compojure-api-request+])
       ;; GET "/route" req
-      (symbol? arg) [path-string (conj lets +compojure-api-request+ arg) arg arg]
+      (symbol? arg) [path-string [+compojure-api-request+ arg] arg arg]
       :else (throw
               (RuntimeException.
                 (str "unknown compojure destruction syntax: " arg))))))
@@ -347,10 +347,9 @@
   (cond-> parameters
           (seq responses) (assoc :responses (apply merge responses))))
 
-(defn restructure [method [path arg & args] {:keys [routes]}]
+(defn restructure [method [path arg & args] {:keys [routes?]}]
   (let [[options body] (extract-parameters args)
-        lets []
-        [path-string lets arg-with-request arg] (destructure-compojure-api-request path lets arg)
+        [path-string lets arg-with-request arg] (destructure-compojure-api-request path arg)
 
         {:keys [lets
                 letks
@@ -377,34 +376,30 @@
                      (conj middleware `[body-coercer-middleware (merge ~@responses)])
                      middleware)]
 
-    (if routes
+    (if routes?
 
       ;; context
-      (let [form `(~routes ~@body)
+      (let [form `(compojure.core/routes ~@body)
             form (if (seq letks) `(letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
-            form (if (seq middleware)
-                   `((mw/compose-middleware ~middleware) ~form)
-                   form)
-            form `(compojure.core/context ~path ~arg-with-request ~form)
+            form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
+            form `(context ~path ~arg-with-request ~form)
 
-            ;; for routes, create a separate lookup-function to find the inner routes
-            child-form (if routes
-                         (let [form (vec body)
+            ;; create and apply a separate lookup-function to find the inner routes
+            childs (let [form (vec body)
                                form (if (seq letks) `(dummy-letk ~letks ~form) form)
                                form (if (seq lets) `(dummy-let ~lets ~form) form)
                                form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
-                               form `(fn [~'+compojure-api-request+] ~form)]
-                           form))]
-        `(let [childs# ~(if routes `(~child-form {}) nil)]
-           (routes/create ~path-string ~method (merge-parameters ~swagger) childs# ~form)))
+                         form `(fn [~'+compojure-api-request+] ~form)
+                         form `(~form {})]
+                     form)]
+
+        `(routes/create ~path-string ~method (merge-parameters ~swagger) ~childs ~form))
 
       ;; endpoints
       (let [form `(do ~@body)
             form (if (seq letks) `(letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (compojure.core/compile-route method path arg-with-request (list form))
-            form (if (seq middleware)
-                   `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware))
-                   form)]
+            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
         `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
