@@ -6,11 +6,10 @@
 
             compojure.core
 
-            [plumbing.core :refer [letk]]
+            [plumbing.core :as p]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :as rsc]
             [ring.swagger.json-schema :as js]
-            [ring.util.http-response :refer [internal-server-error]]
             [schema.core :as s]
             [schema.coerce :as sc]
             [schema.utils :as su]
@@ -25,9 +24,6 @@
 ;;
 ;; Schema
 ;;
-
-#_(defn route-id [request]
-  (into (if-let [ctx (:compojure/context request)] ctx []) (vec (reverse (:compojure/route request)))))
 
 (defn memoized-coercer
   "Returns a memoized version of a referentially transparent coercer fn. The
@@ -65,7 +61,7 @@
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/coercion-matchers request))]
           (let [coercer (cached-coercer request)
-                coerce (coercer (rsc/value-of schema) matcher)
+                coerce (coercer schema matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
               (throw (ex-info "Response validation error"
@@ -295,32 +291,6 @@
     (reverse (partition 2 bindings))))
 
 ;;
-;; Compojure overrides
-;;
-
-#_(defn- if-context [path route handler]
-  (fn [request]
-    (if-let [params (clout.core/route-matches route request)]
-      (let [uri (:uri request)
-            subpath (:__path-info params)
-            ctx (conj (if-let [ctx (:compojure/context request)] ctx []) path)
-            params (dissoc params :__path-info)]
-        (handler
-          (-> request
-              (#'compojure.core/assoc-route-params (#'compojure.core/decode-route-params params))
-              (assoc :path-info (if (= subpath "") "/" subpath)
-                     :compojure/context ctx
-                     :context (#'compojure.core/remove-suffix uri subpath))))))))
-
-#_(defmacro context [path args & routes]
-  `(#'if-context
-     ~path
-     ~(#'compojure.core/context-route path)
-     (fn [request#]
-       (compojure.core/let-request [~args request#]
-                                   (compojure.core/routing request# ~@routes)))))
-
-;;
 ;; Api
 ;;
 
@@ -382,7 +352,7 @@
 
       ;; context
       (let [form `(compojure.core/routes ~@body)
-            form (if (seq letks) `(letk ~letks ~form) form)
+            form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
             form `(compojure.core/context ~path ~arg-with-request ~form)
@@ -400,7 +370,7 @@
 
       ;; endpoints
       (let [form `(do ~@body)
-            form (if (seq letks) `(letk ~letks ~form) form)
+            form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (compojure.core/compile-route method path arg-with-request (list form))
             form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
