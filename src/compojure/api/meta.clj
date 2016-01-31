@@ -392,13 +392,13 @@
 
         ;; for routes, create a separate lookup-function to find the inner routes
         child-form (if routes
-                     (let [form `(~body-wrap ~@body)
+                     (let [form (vec body)
                            form (if (seq letks) `(dummy-letk ~letks ~form) form)
                            form (if (seq lets) `(dummy-let ~lets ~form) form)
                            form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
                            form `(fn [~'+compojure-api-request+] ~form)]
                        form))]
     (if routes
-      `(let [childs# ~(if routes [`(~child-form {})] nil)]
+      `(let [childs# ~(if routes `(~child-form {}) nil)]
          (routes/create ~path-string ~method (merge-parameters ~swagger) childs# ~form))
       `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form))))
