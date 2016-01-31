@@ -68,6 +68,8 @@ take a vector of middleware containing either
 * **BREAKING**: (Custom restructuring handlers only) `:parameters` key used by `restructure-param`
 has been renamed to `:swagger`.
 
+* **BREAKING**: `compojure.api.legacy` namespace has been removed.
+
 ### Migration guide
 
 https://github.com/metosin/compojure-api/wiki/Migration-Guide-to-1.0.0
