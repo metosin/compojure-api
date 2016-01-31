@@ -5,7 +5,6 @@
             [compojure.api.exception :as ex]
 
             compojure.core
-            #_clout.core
 
             [plumbing.core :refer [letk]]
             [plumbing.fnk.impl :as fnk-impl]
@@ -58,12 +57,13 @@
     (fnk-impl/letk-input-schema-and-body-form
       nil (with-meta bind {:schema s/Any}) [] nil)))
 
-(defn body-coercer-middleware [handler coercer responses]
+(defn body-coercer-middleware [handler responses]
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
         (if-let [matcher (:response (mw/coercion-matchers request))]
-          (let [coerce (coercer (rsc/value-of schema) matcher)
+          (let [coercer (memoized-coercer)
+                coerce (coercer (rsc/value-of schema) matcher)
                 body (coerce (:body response))]
             (if (su/error? body)
               (throw (ex-info "Response validation error"
@@ -74,10 +74,11 @@
           response)
         response))))
 
-(defn coerce! [schema key type coercer request]
+(defn coerce! [schema key type request]
   (let [value (keywordize-keys (key request))]
     (if-let [matcher (type (mw/coercion-matchers request))]
-      (let [coerce (coercer schema matcher)
+      (let [coercer (memoized-coercer)
+            coerce (coercer schema matcher)
             result (coerce value)]
         (if (su/error? result)
           (throw (ex-info "Request validation failed" (assoc result :type ::ex/request-validation)))
@@ -89,7 +90,7 @@
   extracted from a key in a ring request."
   [schema, key, type :- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
-  `(coerce! ~schema ~key ~type ~+compojure-api-coercer+ ~+compojure-api-request+))
+  `(coerce! ~schema ~key ~type ~+compojure-api-request+))
 
 (defn- convert-return [schema]
   {200 {:schema schema
@@ -296,26 +297,26 @@
 ;;
 
 #_(defn- if-context [path route handler]
-  (fn [request]
-    (if-let [params (clout.core/route-matches route request)]
-      (let [uri (:uri request)
-            subpath (:__path-info params)
-            ctx (conj (if-let [ctx (:compojure/context request)] ctx []) path)
-            params (dissoc params :__path-info)]
-        (handler
-          (-> request
-              (#'compojure.core/assoc-route-params (#'compojure.core/decode-route-params params))
-              (assoc :path-info (if (= subpath "") "/" subpath)
-                     :compojure/context ctx
-                     :context (#'compojure.core/remove-suffix uri subpath))))))))
+    (fn [request]
+      (if-let [params (clout.core/route-matches route request)]
+        (let [uri (:uri request)
+              subpath (:__path-info params)
+              ctx (conj (if-let [ctx (:compojure/context request)] ctx []) path)
+              params (dissoc params :__path-info)]
+          (handler
+            (-> request
+                (#'compojure.core/assoc-route-params (#'compojure.core/decode-route-params params))
+                (assoc :path-info (if (= subpath "") "/" subpath)
+                       :compojure/context ctx
+                       :context (#'compojure.core/remove-suffix uri subpath))))))))
 
 #_(defmacro context [path args & routes]
-  `(#'if-context
-     ~path
-     ~(#'compojure.core/context-route path)
-     (fn [request#]
-       (compojure.core/let-request [~args request#]
-                                   (compojure.core/routing request# ~@routes)))))
+    `(#'if-context
+       ~path
+       ~(#'compojure.core/context-route path)
+       (fn [request#]
+         (compojure.core/let-request [~args request#]
+                                     (compojure.core/routing request# ~@routes)))))
 
 ;;
 ;; Api
@@ -344,7 +345,7 @@
 
 (defn merge-parameters [{:keys [responses] :as parameters}]
   (cond-> parameters
-    (seq responses) (assoc :responses (apply merge responses))))
+          (seq responses) (assoc :responses (apply merge responses))))
 
 (defn restructure [method [path arg & args] {:keys [routes]}]
   (let [[options body] (extract-parameters args)
@@ -373,32 +374,37 @@
 
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses)
-                     (conj middleware `[body-coercer-middleware ~'+compojure-api-coercer+ (merge ~@responses)])
-                     middleware)
+                     (conj middleware `[body-coercer-middleware (merge ~@responses)])
+                     middleware)]
 
-        pre-lets [+compojure-api-coercer+ `(memoized-coercer)]
-        body-wrap (or routes 'do)
-
-        form `(~body-wrap ~@body)
-        form (if (seq letks) `(letk ~letks ~form) form)
-        form (if (seq lets) `(let ~lets ~form) form)
-        form (if routes
-               `(compojure.core/context ~path ~arg-with-request ~form)
-               (compojure.core/compile-route method path arg-with-request (list form)))
-        form (if (seq middleware)
-               `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware))
-               form)
-        form (if (seq pre-lets) `(let ~pre-lets ~form) form)
-
-        ;; for routes, create a separate lookup-function to find the inner routes
-        child-form (if routes
-                     (let [form (vec body)
-                           form (if (seq letks) `(dummy-letk ~letks ~form) form)
-                           form (if (seq lets) `(dummy-let ~lets ~form) form)
-                           form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
-                           form `(fn [~'+compojure-api-request+] ~form)]
-                       form))]
     (if routes
-      `(let [childs# ~(if routes `(~child-form {}) nil)]
-         (routes/create ~path-string ~method (merge-parameters ~swagger) childs# ~form))
-      `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form))))
+
+      ;; context
+      (let [form `(~routes ~@body)
+            form (if (seq letks) `(letk ~letks ~form) form)
+            form (if (seq lets) `(let ~lets ~form) form)
+            form (if (seq middleware)
+                   `((mw/compose-middleware ~middleware) ~form)
+                   form)
+            form `(compojure.core/context ~path ~arg-with-request ~form)
+
+            ;; for routes, create a separate lookup-function to find the inner routes
+            child-form (if routes
+                         (let [form (vec body)
+                               form (if (seq letks) `(dummy-letk ~letks ~form) form)
+                               form (if (seq lets) `(dummy-let ~lets ~form) form)
+                               form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
+                               form `(fn [~'+compojure-api-request+] ~form)]
+                           form))]
+        `(let [childs# ~(if routes `(~child-form {}) nil)]
+           (routes/create ~path-string ~method (merge-parameters ~swagger) childs# ~form)))
+
+      ;; endpoints
+      (let [form `(do ~@body)
+            form (if (seq letks) `(letk ~letks ~form) form)
+            form (if (seq lets) `(let ~lets ~form) form)
+            form (compojure.core/compile-route method path arg-with-request (list form))
+            form (if (seq middleware)
+                   `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware))
+                   form)]
+        `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))

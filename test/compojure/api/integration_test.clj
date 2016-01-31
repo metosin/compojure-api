@@ -54,7 +54,7 @@
    of the headers value from request and 7"
   [request]
   (-> (ok "true")
-      (header mw* (str (get-in request [:headers mw*]) 7))))
+      (header mw* (str (get-in request [:headers mw*]) "/"))))
 
 (defn middleware-x
   "If request has query-param x, presume it's a integer and multiply it by two
@@ -79,31 +79,32 @@
 ;; Facts
 ;;
 
-(facts "middleware"
+(facts "middleware ordering"
   (let [app (api
               (middleware [middleware* [middleware* 2]]
                 (context "/middlewares" []
+                  :middleware [(fn [handler] (middleware* handler 3)) [middleware* 4]]
                   (GET "/simple" req (reply-mw* req))
-                  (middleware [#(middleware* % 3) [middleware* 4]]
+                  (middleware [#(middleware* % 5) [middleware* 6]]
                     (GET "/nested" req (reply-mw* req))
                     (GET "/nested-declared" req
-                      :middleware [(fn [handler] (middleware* handler 5)) [middleware* 6]]
+                      :middleware [(fn [handler] (middleware* handler 7)) [middleware* 8]]
                       (reply-mw* req))))))]
 
     (fact "are applied left-to-right"
       (let [[status _ headers] (get* app "/middlewares/simple" {})]
         status => 200
-        (get headers mw*) => "12721"))
+        (get headers mw*) => "1234/4321"))
 
     (fact "are applied left-to-right closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested" {})]
         status => 200
-        (get headers mw*) => "123474321"))
+        (get headers mw*) => "123456/654321"))
 
-    (fact "are applied left-to-right for both nested & declared cloest one first"
+    (fact "are applied left-to-right for both nested & declared closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested-declared" {})]
         status => 200
-        (get headers mw*) => "1234567654321"))))
+        (get headers mw*) => "12345678/87654321"))))
 
 (facts "middleware - multiple routes"
   (let [app (api
@@ -1160,13 +1161,16 @@
               :500 (just {:schema anything :description ""})})))
 
 (fact "when functions are returned"
-  (let [wrap-mw-params (fn [handler value] #(handler (update % ::mw (partial str value))))]
+  (let [wrap-mw-params (fn [handler value]
+                         (fn [request]
+                           (handler
+                             (update request ::mw (partial str value)))))]
     (fact "from endpoint"
       (let [app (GET "/ping" []
                   :middleware [[wrap-mw-params "1"]]
                   :query-params [{a :- s/Str "a"}]
                   (fn [req] (str (::mw req) a)))]
-        
+
         (app {:request-method :get, :uri "/ping", :query-params {}}) => (contains {:body "1a"})
         (app {:request-method :get, :uri "/ping", :query-params {:a "A"}}) => (contains {:body "1A"})))
 
