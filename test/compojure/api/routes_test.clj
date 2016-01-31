@@ -86,6 +86,36 @@
           "/api/{version}/hello"
           "/api/{version}/more"])))
 
+;; TODO: should this do something different?
+(facts "dynamic routes"
+  (let [more-routes (fn [version]
+                      (GET (str "/" version) []
+                        (ok {:message version})))
+        routes (context "/api/:version" []
+                 :path-params [version :- String]
+                 (more-routes version))
+        app (api
+              (swagger-docs)
+              routes)]
+
+    (fact "all routes can be invoked"
+      (let [[status body] (get* app "/api/v3/v3")]
+        status => 200
+        body => {:message "v3"})
+
+      (let [[status body] (get* app "/api/v6/v6")]
+        status => 200
+        body => {:message "v6"}))
+
+    (fact "routes can be extracted at runtime"
+      (routes/get-routes app)
+      => [["/swagger.json" :get {:x-no-doc true, :x-name :compojure.api.swagger/swagger}]
+          ["/api/:version/[]" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]])
+
+    (fact "swagger-docs can be generated"
+      (-> app get-spec :paths keys)
+      => ["/api/{version}/[]"])))
+
 (fact "route merging"
   (routes/get-routes (routes (routes))) => []
   (routes/get-routes (routes (swagger-ui))) => []
