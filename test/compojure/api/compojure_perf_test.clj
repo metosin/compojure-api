@@ -39,9 +39,10 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure - GET flattened")
+    (assert (-> (call) :body (= "ok")))
     (cc/quick-bench (call)))
 
-  ;; 2.7µs
+  ;; 3.8µs
 
   (let [app (c/context "/a" []
               (c/context "/b" []
@@ -65,9 +66,10 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure - GET with context")
+    (assert (-> (call) :body (= "ok")))
     (cc/quick-bench (call)))
 
-  ;; 11.8µs
+  ;; 15.9µs
 
   )
 
@@ -83,9 +85,10 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure API - GET flattened")
+    (assert (-> (call) :body (= "ok")))
     (cc/quick-bench (call)))
 
-  ;; 2.7µs
+  ;; 3.8µs
 
   (let [app (s/context "/a" []
               (s/context "/b" []
@@ -109,9 +112,10 @@
         call #(app {:request-method :get :uri "/a/b/c/5"})]
 
     (title "Compojure API - GET with context")
+    (assert (-> (call) :body (= "ok")))
     (cc/quick-bench (call)))
 
-  ;; 18.8µs
+  ;; 20.0µs
   )
 
 (defn bench []
