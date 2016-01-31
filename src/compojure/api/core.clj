@@ -41,10 +41,9 @@
   do not match the request uri. Be careful with middlewares that
   have side-effects."
   [middleware & body]
-  (let [routes? (> (count body) 1)]
-    `(let [body# ~(if routes? `(routes ~@body) (first body))
-           wrap-mw# (mw/compose-middleware ~middleware)]
-       (routes/create "" nil {} [body#] (wrap-mw# body#)))))
+  `(let [body# (routes ~@body)
+         wrap-mw# (mw/compose-middleware ~middleware)]
+     (routes/create nil nil {} [body#] (wrap-mw# body#))))
 
 (defmacro context [& args] (meta/restructure nil      args {:routes? true}))
 
