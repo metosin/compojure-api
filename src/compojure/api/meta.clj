@@ -3,9 +3,7 @@
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.exception :as ex]
-
-            compojure.core
-
+            [compojure.api.routes :as routes]
             [plumbing.core :as p]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :as rsc]
@@ -15,7 +13,7 @@
             [schema.utils :as su]
             [schema-tools.core :as st]
             [linked.core :as linked]
-            [compojure.api.routes :as routes]))
+            compojure.core))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
@@ -341,14 +339,12 @@
                           :body body}
                          options)
 
-        ;; migration helper
+        ;; migration helpers
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
         _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
 
         ;; response coercion middleware, why not just code?
-        middleware (if (seq responses)
-                     (conj middleware `[body-coercer-middleware (merge ~@responses)])
-                     middleware)]
+        middleware (if (seq responses) (conj middleware `[body-coercer-middleware (merge ~@responses)]) middleware)]
 
     (if context?
 
@@ -376,4 +372,5 @@
             form (if (seq lets) `(let ~lets ~form) form)
             form (compojure.core/compile-route method path arg-with-request (list form))
             form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
+
         `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
