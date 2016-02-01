@@ -32,7 +32,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
             [ring.util.http-response :refer :all]))
 
 (defapi app
-  (GET* "/hello" []
+  (GET "/hello" []
     :query-params [name :- String]
     (ok {:message (str "Hello, " name)})))
 ```
@@ -57,12 +57,12 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
     {:info {:title "My Swagger API"
             :description "Compojure Api example"}
      :tags [{:name "api", :description "sample api"}]})
-  (context* "/api" []
+  (context "/api" []
     :tags ["api"]
-    (GET* "/hello" []
+    (GET "/hello" []
       :query-params [name :- String]
       (ok {:message (str "Hello, " name)}))
-    (POST* "/pizza" []
+    (POST "/pizza" []
       :return Pizza
       :body [pizza Pizza]
       :summary "echoes a pizza"
