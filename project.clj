@@ -22,6 +22,7 @@
                        :source-paths ["examples/src"]
                        :dependencies [[org.clojure/clojure "1.7.0"]
                                       [http-kit "2.1.19"]
+                                      [reloaded.repl "0.2.1"]
                                       [com.stuartsierra/component "0.3.1"]]}
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
