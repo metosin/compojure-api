@@ -30,7 +30,10 @@
   [bindings & body]
   `(let ~bindings (routes ~@body)))
 
-(defn undocumented [& handlers]
+(defn undocumented
+  "Routes without route-documentation. Can be used to wrap routes,
+  not satisfying compojure.api.routes/Routing -protocol."
+  [& handlers]
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (ring-handler handlers))))
 
@@ -41,12 +44,11 @@
   do not match the request uri. Be careful with middlewares that
   have side-effects."
   [middleware & body]
-  (let [routes? (> (count body) 1)]
-    `(let [body# ~(if routes? `(routes ~@body) (first body))
-           wrap-mw# (mw/compose-middleware ~middleware)]
-       (routes/create "" nil {} [body#] (wrap-mw# body#)))))
+  `(let [body# (routes ~@body)
+         wrap-mw# (mw/compose-middleware ~middleware)]
+     (routes/create nil nil {} [body#] (wrap-mw# body#))))
 
-(defmacro context [& args] (meta/restructure nil      args {:routes #'routes}))
+(defmacro context [& args] (meta/restructure nil      args {:context? true}))
 
 (defmacro GET     [& args] (meta/restructure :get     args nil))
 (defmacro ANY     [& args] (meta/restructure nil      args nil))

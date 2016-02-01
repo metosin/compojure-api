@@ -52,7 +52,7 @@
 
 (defn swagger-ui [& params]
   (undocumented
-   (apply rsui/swagger-ui params)))
+    (apply rsui/swagger-ui params)))
 
 (defn swagger-docs
   "Route to serve the swagger api-docs. If the first

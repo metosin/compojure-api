@@ -1,4 +1,4 @@
-## 1.0.0-SNAPSHOT
+## 1.0.0-RC1 (1.2.2016)
 
 * Move from compile-time to runtime route resolution.
   * Most of the internal macro magic has been vaporized
@@ -53,6 +53,7 @@ Previously required a `type => matcher` map. Options are checked against `type =
 descriptive error is thrown when api is created with the old options format.
 
 * **BREAKING**: Renamed `middlewares` to `middleware` and `:middlewares` key (restructuring) to `:middleware`
+  * will break at macro-expansion time with helpful exception
 
 * **BREAKING**: Middleware must be defined as data: both middleware macro and :middleware restructuring
 take a vector of middleware containing either
@@ -67,6 +68,9 @@ take a vector of middleware containing either
 
 * **BREAKING**: (Custom restructuring handlers only) `:parameters` key used by `restructure-param`
 has been renamed to `:swagger`.
+  * will break at macro-expansion time with helpful exception
+
+* **BREAKING**: `compojure.api.legacy` namespace has been removed.
 
 ### Migration guide
 
@@ -81,6 +85,10 @@ https://github.com/metosin/compojure-api/wiki/Migration-Guide-to-1.0.0
 * top-level `api` is now just function, not a macro. It takes an optional options maps and a top-level route function.
 
 * `swagger-docs` and `swagger-ui` are now functions instead of macros.
+
+* Coercer cache is now at api-level with 10000 entries.
+
+* Code generated from restructured route macros is much cleaner now
 
 * Coercion is on by default for standalone (apiless) endpoints.
 

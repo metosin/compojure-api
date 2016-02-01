@@ -4,8 +4,8 @@
             [compojure.api.middleware :as middleware]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
-            [clojure.tools.macro :as macro]
-            [ring.swagger.common :as rsc]))
+            [ring.swagger.common :as rsc]
+            [compojure.api.meta :as meta]))
 
 (def api-defaults
   (merge
@@ -46,6 +46,7 @@
         api-handler (-> handler
                         (middleware/api-middleware (dissoc options :api))
                         (middleware/wrap-options {:paths paths
+                                                  :coercer (meta/memoized-coercer)
                                                   :lookup lookup}))]
     (routes/create nil nil {} [handler] api-handler)))
 
