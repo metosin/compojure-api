@@ -1,4 +1,4 @@
-## 1.0.0-RC1 (1.2.2016)
+## 1.0.0-SNAPSHOT (1.2.2016)
 
 * Move from compile-time to runtime route resolution.
   * Most of the internal macro magic has been vaporized
