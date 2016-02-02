@@ -48,13 +48,13 @@
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
 
-(defmacro context [& args] (meta/restructure nil      args {:context? true}))
+(defmacro context [& args] {:style/indent 2} (meta/restructure nil      args {:context? true}))
 
-(defmacro GET     [& args] (meta/restructure :get     args nil))
-(defmacro ANY     [& args] (meta/restructure nil      args nil))
-(defmacro HEAD    [& args] (meta/restructure :head    args nil))
-(defmacro PATCH   [& args] (meta/restructure :patch   args nil))
-(defmacro DELETE  [& args] (meta/restructure :delete  args nil))
-(defmacro OPTIONS [& args] (meta/restructure :options args nil))
-(defmacro POST    [& args] (meta/restructure :post    args nil))
-(defmacro PUT     [& args] (meta/restructure :put     args nil))
+(defmacro GET     [& args] {:style/indent 2} (meta/restructure :get     args nil))
+(defmacro ANY     [& args] {:style/indent 2} (meta/restructure nil      args nil))
+(defmacro HEAD    [& args] {:style/indent 2} (meta/restructure :head    args nil))
+(defmacro PATCH   [& args] {:style/indent 2} (meta/restructure :patch   args nil))
+(defmacro DELETE  [& args] {:style/indent 2} (meta/restructure :delete  args nil))
+(defmacro OPTIONS [& args] {:style/indent 2} (meta/restructure :options args nil))
+(defmacro POST    [& args] {:style/indent 2} (meta/restructure :post    args nil))
+(defmacro PUT     [& args] {:style/indent 2} (meta/restructure :put     args nil))
