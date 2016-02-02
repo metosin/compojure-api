@@ -76,8 +76,8 @@
   (let [[path body] (if (string? (first body))
                       [(first body) (rest body)]
                       ["/swagger.json" body])
-        [extra-info] (extract-parameters body)]
     (GET path request
+        [extra-info] (common/extract-parameters body false)]
       :no-doc true
       :name ::swagger
       (let [runtime-info (rsm/get-swagger-data request)

@@ -37,7 +37,7 @@
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   api
   [& body]
-  (let [[options handlers] (common/extract-parameters body)
+  (let [[options handlers] (common/extract-parameters body false)
         options (rsc/deep-merge api-defaults options)
         handler (apply core/routes handlers)
         routes (routes/get-routes handler (:api options))

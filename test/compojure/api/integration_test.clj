@@ -79,6 +79,25 @@
 ;; Facts
 ;;
 
+(facts "core routes"
+
+  (fact "keyword options"
+    (let [route (GET "/ping" []
+                  :return String
+                  (ok "kikka"))]
+      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"})))
+
+  (fact "map options"
+    (let [route (GET "/ping" []
+                  {:return String}
+                  (ok "kikka"))]
+      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"})))
+
+  (fact "map return"
+    (let [route (GET "/ping" []
+                  {:body "kikka"})]
+      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"}))))
+
 (facts "middleware ordering"
   (let [app (api
               (middleware [middleware* [middleware* 2]]

@@ -318,7 +318,7 @@
           (seq responses) (assoc :responses (apply merge responses))))
 
 (defn restructure [method [path arg & args] {:keys [context?]}]
-  (let [[options body] (extract-parameters args)
+  (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path arg)
 
         {:keys [lets

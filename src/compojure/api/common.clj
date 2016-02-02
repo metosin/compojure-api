@@ -12,9 +12,9 @@
   3. else => `{}`
 
   Returns a tuple with parameters and body without the parameters"
-  [c]
+  [c expect-body]
   (cond
-    (plain-map? (first c))
+    (and (plain-map? (first c)) (or (not expect-body) (seq (rest c))))
     [(first c) (seq (rest c))]
 
     (keyword? (first c))
