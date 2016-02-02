@@ -949,10 +949,10 @@
 (fact "swagger-spec-path"
   (fact "defaults to /swagger.json"
     (let [app (api (swagger-docs))]
-      (swagger/swagger-spec-path app) => "/swagger.json"))
+      (#'swagger/swagger-spec-path app) => "/swagger.json"))
   (fact "follows defined path"
     (let [app (api (swagger-docs "/api/api-docs/swagger.json"))]
-      (swagger/swagger-spec-path app) => "/api/api-docs/swagger.json")))
+      (#'swagger/swagger-spec-path app) => "/api/api-docs/swagger.json")))
 
 (defrecord NonSwaggerRecord [data])
 
