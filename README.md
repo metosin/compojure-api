@@ -52,11 +52,11 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
             :city s/Str}})
 
 (defapi app
-  (swagger-ui)
-  (swagger-docs
-    {:info {:title "My Swagger API"
-            :description "Compojure Api example"}
-     :tags [{:name "api", :description "sample api"}]})
+  {:swagger {:spec "/swagger.json"
+             :ui "/api-docs"
+             :data {:data {:info {:title "My Swagger API"
+                   :description "Compojure Api example"}
+                   :tags [{:name "api", :description "sample api"}]}})
   (context "/api" []
     :tags ["api"]
     (GET "/hello" []

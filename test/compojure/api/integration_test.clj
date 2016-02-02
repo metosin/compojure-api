@@ -79,6 +79,25 @@
 ;; Facts
 ;;
 
+(facts "core routes"
+
+  (fact "keyword options"
+    (let [route (GET "/ping" []
+                  :return String
+                  (ok "kikka"))]
+      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"})))
+
+  (fact "map options"
+    (let [route (GET "/ping" []
+                  {:return String}
+                  (ok "kikka"))]
+      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"})))
+
+  (fact "map return"
+    (let [route (GET "/ping" []
+                  {:body "kikka"})]
+      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"}))))
+
 (facts "middleware ordering"
   (let [app (api
               (middleware [middleware* [middleware* 2]]
@@ -226,7 +245,7 @@
 (fact ":responses"
   (fact "normal cases"
     (let [app (api
-                (swagger-docs)
+                (swagger-routes)
                 (GET "/lotto/:x" []
                   :path-params [x :- Long]
                   :responses {403 {:schema [String]}
@@ -432,7 +451,7 @@
 (fact "swagger-docs"
   (let [app (api
               {:format {:formats [:json-kw :edn]}}
-              (swagger-docs)
+              (swagger-routes)
               (GET "/user" []
                 (continue)))]
 
@@ -448,7 +467,7 @@
 
 (facts "swagger-docs with anonymous Return and Body models"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (POST "/echo" []
                 :return (s/either {:a String})
                 :body [_ (s/maybe {:a String})]
@@ -477,7 +496,7 @@
 
 (facts "https://github.com/metosin/compojure-api/issues/53"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (POST "/" []
                 :return ReturnValue
                 :body [_ Boundary]
@@ -503,7 +522,7 @@
 ; https://github.com/metosin/compojure-api/issues/94
 (facts "preserves deeply nested schema names"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (POST "/" []
                 :return Urho
                 :body [_ Olipa]
@@ -520,7 +539,7 @@
 
 (fact "swagger-docs works with the :middleware"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (GET "/middleware" []
                 :query-params [x :- String]
                 :middleware [[constant-middleware (ok 1)]]
@@ -543,7 +562,7 @@
                    (= body response)))
         not-ok? (comp not ok?)
         app (api
-              (swagger-docs)
+              (swagger-routes {:ui nil})
               (GET "/" [] ok)
               (GET "/a" [] ok)
               (context "/b" []
@@ -616,7 +635,7 @@
 
 (fact "external deep schemas"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               burger-routes
               (POST "/pizza" []
                 :return Pizza
@@ -640,7 +659,7 @@
 
 (fact "multiple routes with same path & method in same file"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (GET "/ping" []
                 :summary "active-ping"
                 (ok {:ping "active"}))
@@ -658,7 +677,7 @@
 
 (fact "multiple routes with same path & method over context"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (context "/api" []
                 (context "/ipa" []
                   (GET "/ping" []
@@ -680,7 +699,7 @@
 
 (fact "multiple routes with same overall path (with different path sniplets & method over context"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (context "/api/ipa" []
                 (GET "/ping" []
                   :summary "active-ping"
@@ -702,7 +721,7 @@
 ; https://github.com/metosin/compojure-api/issues/98
 ; https://github.com/metosin/compojure-api/issues/134
 (fact "basePath"
-  (let [app (api (swagger-docs))]
+  (let [app (api (swagger-routes))]
 
     (fact "no context"
       (-> app get-spec :basePath) => "/")
@@ -711,11 +730,11 @@
       (against-background (rsc/context anything) => "/v2")
       (-> app get-spec :basePath) => "/v2"))
 
-  (let [app (api (swagger-docs {:basePath "/serve/from/here"}))]
+  (let [app (api (swagger-routes {:data {:basePath "/serve/from/here"}}))]
     (fact "override it"
       (-> app get-spec :basePath) => "/serve/from/here"))
 
-  (let [app (api (swagger-docs {:basePath "/"}))]
+  (let [app (api (swagger-routes {:data {:basePath "/"}}))]
     (fact "can set it to the default"
       (-> app get-spec :basePath) => "/")))
 
@@ -726,7 +745,7 @@
 
   (fact "api-spec with 2 schemas with non-equal contents"
     (let [app (api
-                (swagger-docs)
+                (swagger-routes)
                 (GET "/" []
                   :responses {200 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}
                               201 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}}
@@ -741,7 +760,7 @@
 
 (fact "anonymous body models over defined routes"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               over-the-hills-and-far-away)]
     (fact "generated model doesn't have namespaced keys"
       (-> app get-spec :definitions vals first :properties keys first) => :a)))
@@ -766,7 +785,7 @@
 
 (fact "response descriptions"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               response-descriptions-routes)]
     (-> app get-spec :paths vals first :get :responses :500 :description) => "Horror"))
 
@@ -775,7 +794,7 @@
               {:exceptions {:handlers {::ex/request-validation custom-validation-error-handler
                                        ::ex/request-parsing custom-validation-error-handler
                                        ::ex/response-validation custom-validation-error-handler}}}
-              (swagger-docs)
+              (swagger-routes)
               (POST "/get-long" []
                 :body [body {:x Long}]
                 :return Long
@@ -807,7 +826,7 @@
   (let [app (api
               {:exceptions {:handlers {::ex/default custom-exception-handler
                                        ::custom-error custom-error-handler}}}
-              (swagger-docs)
+              (swagger-routes)
               (GET "/some-exception" []
                 (throw (new RuntimeException)))
               (GET "/some-error" []
@@ -868,7 +887,7 @@
 (fact "ring-swagger options"
   (let [app (api
               {:ring-swagger {:default-response-description-fn status/get-description}}
-              (swagger-docs)
+              (swagger-routes)
               (GET "/ping" []
                 :responses {500 nil}
                 identity))]
@@ -929,10 +948,10 @@
 
 (fact "swagger-spec-path"
   (fact "defaults to /swagger.json"
-    (let [app (api (swagger-docs))]
+    (let [app (api (swagger-routes))]
       (swagger/swagger-spec-path app) => "/swagger.json"))
   (fact "follows defined path"
-    (let [app (api (swagger-docs "/api/api-docs/swagger.json"))]
+    (let [app (api (swagger-routes {:spec "/api/api-docs/swagger.json"}))]
       (swagger/swagger-spec-path app) => "/api/api-docs/swagger.json")))
 
 (defrecord NonSwaggerRecord [data])
@@ -941,7 +960,7 @@
 
   (fact "a swagger api with valid swagger records"
     (let [app (api
-                (swagger-docs)
+                (swagger-routes)
                 (GET "/ping" []
                   :return {:data s/Str}
                   (ok {:data "ping"})))]
@@ -956,7 +975,7 @@
 
   (fact "a swagger api with invalid swagger records"
     (let [app (api
-                (swagger-docs)
+                (swagger-routes)
                 (GET "/ping" []
                   :return NonSwaggerRecord
                   (ok (->NonSwaggerRecord "ping"))))]
@@ -1026,7 +1045,7 @@
 
 (fact ":swagger params just for ducumentation"
   (let [app (api
-              (swagger-docs)
+              (swagger-routes)
               (GET "/route" [q]
                 :swagger {:x-name :boolean
                           :operationId "echoBoolean"
@@ -1054,9 +1073,10 @@
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
               (middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
-                (swagger-docs
-                  {:info {:version "2.0.0"}
-                   :paths {"/extra" {:get {}}}})
+                (swagger-routes
+                  {:data
+                   {:info {:version "2.0.0"}
+                    :paths {"/extra" {:get {}}}}})
                 (GET "/normal" [] (ok))))]
     (get-spec app) => (contains
                         {:paths (just
@@ -1068,14 +1088,14 @@
 (s/defschema Foo {:a [s/Keyword]})
 
 (defapi with-defapi
-  (swagger-docs)
+  (swagger-routes)
   (GET "/foo" []
     :return Foo
     (ok {:a "foo"})))
 
 (defn with-api []
   (api
-    (swagger-docs)
+    (swagger-routes)
     (GET "/foo" []
       :return Foo
       (ok {:a "foo"}))))
@@ -1150,8 +1170,7 @@
 (fact "using local symbols for restructuring params"
   (let [responses {400 {:schema {:fail s/Str}}}
         app (api
-              (swagger-docs
-                {:info {:version "2.0.0"}})
+              {:swagger {:data {:info {:version "2.0.0"}}}}
               (GET "/a" []
                 :responses responses
                 :return {:ok s/Str}

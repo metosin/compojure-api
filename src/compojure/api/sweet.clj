@@ -38,8 +38,7 @@
 
   [compojure.api.swagger
 
-   swagger-ui
-   swagger-docs]
+   swagger-routes]
 
   [ring.swagger.json-schema
 

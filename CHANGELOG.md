@@ -46,7 +46,26 @@
   * `context*` => `context`
   * `defroutes*` => `defroutes`
 
-* **BREAKING** `public-resource-routes` & `public-resources` are removed from `compojure.api.middleware`.
+* **BREAKING** `swagger-docs` and `swagger-ui` are now longer in `compojure.api.sweet`
+  * Syntax was hairy and when configuring the spec-url it needed to be set to both in order to work
+  * In future, there are multiple ways of setting the swagger stuff:
+    * via api-options `:swagger` (has no defaults)
+    * via `swagger-routes` function, mounting both the `swagger-ui` and `swagger-docs` and wiring them together
+      * by default, mounts the swagger-ui to `/` and the swagger-spec to `/swagger.json`
+    * via the old `swagger-ui` & `swagger-docs` (need to be separately imported from `compojure.api.swagger`).
+    * see https://github.com/metosin/compojure-api/wiki/Swagger-integration for details
+
+```clj
+(defapi app
+  (swagger-routes)
+  (GET "/ping" []
+    (ok {:message "pong"})))
+
+(defapi app
+  {:swagger {:ui "/", :spec "/swagger.json"}}
+  (GET "/ping" []
+    (ok {:message "pong"})))
+```
 
 * **BREAKING**: api-level coercion option is now a function of `request => type => matcher` as it is documented.
 Previously required a `type => matcher` map. Options are checked against `type => matcher` coercion input, and a
@@ -70,6 +89,8 @@ take a vector of middleware containing either
 has been renamed to `:swagger`.
   * will break at macro-expansion time with helpful exception
 
+* **BREAKING** `public-resource-routes` & `public-resources` are removed from `compojure.api.middleware`.
+
 * **BREAKING**: `compojure.api.legacy` namespace has been removed.
 
 ### Migration guide
@@ -83,8 +104,6 @@ https://github.com/metosin/compojure-api/wiki/Migration-Guide-to-1.0.0
   * `undocumented` - works just like `routes` but without any route definitions. Can be used to wrap legacy routes which setting the api option to fail on missing docs.
 
 * top-level `api` is now just function, not a macro. It takes an optional options maps and a top-level route function.
-
-* `swagger-docs` and `swagger-ui` are now functions instead of macros.
 
 * Coercer cache is now at api-level with 10000 entries.
 
