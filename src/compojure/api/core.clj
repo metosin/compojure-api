@@ -29,7 +29,7 @@
 
   Equivalent to: `(let [...] (routes ...))`"
   [bindings & body]
-  {:style/indent 2}
+  {:style/indent 1}
   `(let ~bindings (routes ~@body)))
 
 (defn undocumented
