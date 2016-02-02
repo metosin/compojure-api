@@ -20,6 +20,7 @@
   "Define a Ring handler function from a sequence of routes.
   The name may optionally be followed by a doc-string and metadata map."
   [name & routes]
+  {:style/indent 1}
   (let [[name routes] (macro/name-with-attributes name routes)]
     `(def ~name (routes ~@routes))))
 
@@ -28,6 +29,7 @@
 
   Equivalent to: `(let [...] (routes ...))`"
   [bindings & body]
+  {:style/indent 2}
   `(let ~bindings (routes ~@body)))
 
 (defn undocumented

@@ -65,4 +65,5 @@
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   defapi
   [name & body]
+  {:style/indent 1}
   `(def ~name (api ~@body)))
