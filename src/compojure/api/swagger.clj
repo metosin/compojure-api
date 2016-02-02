@@ -28,11 +28,11 @@
                      responses))))
       endpoint))
 
-(defn- base-path [request]
+(defn base-path [request]
   (let [context (swagger/context request)]
     (if (= "" context) "/" context)))
 
-(defn- swagger-spec-path
+(defn swagger-spec-path
   [app]
   (some-> app
           routes/get-routes

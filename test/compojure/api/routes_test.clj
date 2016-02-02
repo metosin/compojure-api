@@ -49,7 +49,7 @@
                      (ok {:message (str "Hello, " name)}))
                    (more-routes version)))
         app (api
-              (swagger-docs)
+              (swagger-routes)
               routes)]
 
     (fact "all routes can be invoked"
@@ -95,7 +95,7 @@
                  :path-params [version :- String]
                  (more-routes version))
         app (api
-              (swagger-docs)
+              (swagger-routes)
               routes)]
 
     (fact "all routes can be invoked"
@@ -118,7 +118,7 @@
 
 (fact "route merging"
   (routes/get-routes (routes (routes))) => []
-  (routes/get-routes (routes (swagger-ui))) => []
+  (routes/get-routes (routes (swagger-routes {:spec nil}))) => []
   (routes/get-routes (routes (routes (GET "/ping" [] "pong")))) => [["/ping" :get {}]])
 
 (fact "invalid route options"
