@@ -14,7 +14,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 [![Clojars Project](http://clojars.org/metosin/compojure-api/latest-version.svg)](http://clojars.org/metosin/compojure-api)
 
-**NOTE** All codes in `master` are already against the upcoming `1.0.0`. Wiki is for the latest stabile version.
+**NOTE** All codes in `master` are already against the upcoming `1.0.0`. Wiki is partially still for `0.24.5`.
 
 ## For information and help
 
@@ -47,25 +47,32 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 (s/defschema Pizza
   {:name s/Str
+   (s/optional-key :description) s/Str
    :size (s/enum :L :M :S)
    :origin {:country (s/enum :FI :PO)
             :city s/Str}})
 
 (defapi app
-  {:swagger {:spec "/swagger.json"
-             :ui "/api-docs"
-             :data {:data {:info {:title "My Swagger API"
-                   :description "Compojure Api example"}
-                   :tags [{:name "api", :description "sample api"}]}})
+  {:swagger
+   {:ui "/api-docs"
+    :spec "/swagger.json"
+    :data {:info {:title "Sample API"
+                  :description "Compojure Api example"}
+           :tags [{:name "api", :description "some apis"}]}}}
+
   (context "/api" []
     :tags ["api"]
-    (GET "/hello" []
-      :query-params [name :- String]
-      (ok {:message (str "Hello, " name)}))
-    (POST "/pizza" []
+
+    (GET "/plus" []
+      :return {:result Long}
+      :query-params [x :- Long, y :- Long]
+      :summary "adds two numbers together"
+      (ok {:result (+ x y)}))
+
+    (POST "/echo" []
       :return Pizza
       :body [pizza Pizza]
-      :summary "echoes a pizza"
+      :summary "echoes a Pizza"
       (ok pizza))))
 ```
 
