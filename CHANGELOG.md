@@ -1,5 +1,7 @@
 ## 1.0.0-RC1 (2.2.2016)
 
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.5...1.0.0-RC1)**
+
 * Move from compile-time to runtime route resolution.
   * Most of the internal macro magic has been vaporized
   * Uses internally (invokable) Records & Protocols, allowing easier integration to 3rd party libs like [Liberator](http://clojure-liberator.github.io/liberator/)
