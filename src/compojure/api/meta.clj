@@ -57,28 +57,32 @@
   (fn [request]
     (if-let [{:keys [status] :as response} (handler request)]
       (if-let [schema (:schema (responses status))]
-        (if-let [matcher (:response (mw/coercion-matchers request))]
-          (let [coercer (cached-coercer request)
-                coerce (coercer schema matcher)
-                body (coerce (:body response))]
-            (if (su/error? body)
-              (throw (ex-info "Response validation error"
-                              (assoc body :type ::ex/response-validation)))
-              (assoc response
-                ::serializable? true
-                :body body)))
-          response)
+        (let [matchers (mw/coercion-matchers request)]
+          (if-let [matcher (matchers :response)]
+            (let [coercer (cached-coercer request)
+                  coerce (coercer schema matcher)
+                  body (coerce (:body response))]
+              (if (su/error? body)
+                (throw (ex-info "Response validation error"
+                                (assoc body :type ::ex/response-validation)))
+                (assoc response
+                  ::serializable? true
+                  :body body)))
+            response))
         response))))
 
 (defn coerce! [schema key type request]
-  (let [value (keywordize-keys (key request))]
-    (if-let [matcher (type (mw/coercion-matchers request))]
-      (let [coercer (cached-coercer request)
-            coerce (coercer schema matcher)
-            result (coerce value)]
-        (if (su/error? result)
-          (throw (ex-info "Request validation failed" (assoc result :type ::ex/request-validation)))
-          result))
+  (let [value (keywordize-keys (key request))
+        matchers (mw/coercion-matchers request)]
+    (if matchers
+      (if-let [matcher (matchers type)]
+        (let [coercer (cached-coercer request)
+              coerce (coercer schema matcher)
+              result (coerce value)]
+          (if (su/error? result)
+            (throw (ex-info "Request validation failed" (assoc result :type ::ex/request-validation)))
+            result))
+        value)
       value)))
 
 (s/defn src-coerce!
