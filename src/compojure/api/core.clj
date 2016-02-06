@@ -46,6 +46,7 @@
   do not match the request uri. Be careful with middlewares that
   have side-effects."
   [middleware & body]
+  {:style/indent 1}
   `(let [body# (routes ~@body)
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
