@@ -63,8 +63,7 @@
                   coerce (coercer schema matcher)
                   body (coerce (:body response))]
               (if (su/error? body)
-                (throw (ex-info "Response validation error"
-                                (assoc body :type ::ex/response-validation)))
+                (throw (ex-info "Response validation error" (assoc body :type ::ex/response-validation)))
                 (assoc response
                   ::serializable? true
                   :body body)))
@@ -72,9 +71,8 @@
         response))))
 
 (defn coerce! [schema key type request]
-  (let [value (keywordize-keys (key request))
-        matchers (mw/coercion-matchers request)]
-    (if matchers
+  (let [value (keywordize-keys (key request))]
+    (if-let [matchers (mw/coercion-matchers request)]
       (if-let [matcher (matchers type)]
         (let [coercer (cached-coercer request)
               coerce (coercer schema matcher)
