@@ -1,3 +1,7 @@
+## unreleased
+
+* Swagger-routes mounted via api-options are mounted before other routes, fixes [#218](https://github.com/metosin/compojure-api/issues/218)
+
 ## 1.0.0-RC1 (2.2.2016)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.5...1.0.0-RC1)**

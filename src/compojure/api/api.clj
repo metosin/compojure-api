@@ -43,7 +43,7 @@
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
         options (rsc/deep-merge api-defaults options)
-        handler (apply c/routes (concat handlers [(swagger/swagger-routes (:swagger options))]))
+        handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
         routes (routes/get-routes handler (:api options))
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
         lookup (routes/route-lookup-table routes)

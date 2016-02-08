@@ -1070,6 +1070,27 @@
                           :required true
                           :type "boolean"}]}))))
 
+(fact "swagger-docs via api options, #218"
+  (let [routes (routes
+                 (context "/api" []
+                   (GET "/ping" []
+                     :summary "ping"
+                     (ok {:message "pong"}))
+                   (POST "/pong" []
+                     :summary "pong"
+                     (ok {:message "ping"})))
+                 (ANY "*" []
+                   (ok {:message "404"})))
+        api1 (api {:swagger {:spec "/swagger.json", :ui "/"}} routes)
+        api2 (api (swagger-routes) routes)]
+
+    (fact "both generate same swagger-spec"
+      (get-spec api1) => (get-spec api2))
+
+    (fact "not-found handler works"
+      (second (get* api1 "/missed")) => {:message "404"}
+      (second (get* api2 "/missed")) => {:message "404"})))
+
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
               (middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
