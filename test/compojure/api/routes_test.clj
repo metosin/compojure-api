@@ -86,6 +86,15 @@
           "/api/{version}/hello"
           "/api/{version}/more"])))
 
+(def more-routes
+  (routes
+    (GET "/more" []
+      (ok {:gary "moore"}))))
+
+(facts "following var-routes, #219"
+  (let [routes (context "/api" [] #'more-routes)]
+    (routes/get-routes routes) => [["/api/more" :get {}]]))
+
 ;; TODO: should this do something different?
 (facts "dynamic routes"
   (let [more-routes (fn [version]

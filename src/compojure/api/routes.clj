@@ -9,7 +9,7 @@
             [clojure.string :as str]
             [linked.core :as linked]
             [schema.core :as s])
-  (:import [clojure.lang AFn IFn]))
+  (:import [clojure.lang AFn IFn Var]))
 
 ;;
 ;; Route records
@@ -26,7 +26,10 @@
 
 (extend-protocol Routing
   nil
-  (-get-routes [_ _] []))
+  (-get-routes [_ _] [])
+  Var
+  (-get-routes [this options]
+    (-get-routes @this options)))
 
 (defn filter-routes [{:keys [childs] :as handler} {:keys [invalid-routes-fn]}]
   (let [[valid-childs invalid-childs] (common/group-with (partial satisfies? Routing) childs)]
