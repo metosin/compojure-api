@@ -17,19 +17,26 @@
 (defn
   ^{:doc (str
   "Returns a ring handler wrapped in compojure.api.middleware/api-middlware.
-  Creates the route-table at run-time and injects that into the request via
-  middlewares. Api and the mounted api-middleware can be configured by
-  optional options map as the first parameter:
+  Creates the route-table at api creation time and injects that into the request via
+  middlewares. Api and the mounted api-middleware can be configured by optional
+  options map as the first parameter:
 
       (api
-        {:formats [:json :edn]}
+        {:formats [:json-kw :edn :transit-msgpack :transit-json]
+         :exceptions {:compojure.api.exception/default my-logging-handler}
+         :invalid-routes-fn (constantly nil)
+         :swagger {:spec \"/swagger.json\"
+                   :ui \"/api-docs\"
+                   :data {:info {:version \"1.0.0\"
+                                 :title \"My API\"
+                                 :description \"the description\"}}}}
         (context \"/api\" []
           ...))
 
   ### direct api options:
 
   - **:api**                       All api options are under `:api`.
-    - **:invalid-routes-fn**         A 2-arity function taking handler and a sequence of
+     - **:invalid-routes-fn**        A 2-arity function taking handler and a sequence of
                                      invalid routes (not satisfying compojure.api.route.Routing)
                                      setting value to nil ignores invalid routes completely.
                                      defaults to `compojure.api.routes/log-invalid-child-routes`
