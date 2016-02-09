@@ -19,7 +19,7 @@
                  [metosin/ring-swagger-ui "2.1.4-0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
-                       :source-paths ["examples/src"]
+                       :source-paths ["examples/thingie/src"]
                        :dependencies [[org.clojure/clojure "1.7.0"]
                                       [http-kit "2.1.19"]
                                       [reloaded.repl "0.2.1"]
@@ -41,8 +41,8 @@
                                   ; Required when using with Java 1.6
                                   [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]]
                    :ring {:handler examples.thingie/app
-                          :reload-paths ["src" "examples/src"]}
-                   :source-paths ["examples/src" "examples/dev-src"]
+                          :reload-paths ["src" "examples/thingie/src"]}
+                   :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
                    :main examples.server}
              :perf {:jvm-opts ^:replace []}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
