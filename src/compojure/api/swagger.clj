@@ -94,7 +94,8 @@
      :spec \"/swagger.json\"
      :options {:ui {:jsonEditor true}
                :spec {}}
-     :data {:info {:version \"1.0.0\"
+     :data {:basePath \"/app\"
+            :info {:version \"1.0.0\"
                    :title \"Sausages\"
                    :description \"Sausage description\"
                    :termsOfService \"http://helloreverb.com/terms/\"
@@ -109,7 +110,7 @@
    (if options
      (let [{:keys [ui spec data] {ui-options :ui spec-options :spec} :options} (merge swagger-defaults options)]
        (c/routes
-         (if ui (apply swagger-ui ui (mapcat identity (merge ui-options (if spec {:swagger-docs spec})))))
+         (if ui (apply swagger-ui ui (mapcat identity (merge (if spec {:swagger-docs (apply str (remove clojure.string/blank? [(:basePath data) spec]))}) ui-options))))
          (if spec (apply swagger-docs spec (mapcat identity data))))))))
 
 (defn validate
