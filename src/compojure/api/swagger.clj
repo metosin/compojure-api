@@ -94,7 +94,8 @@
      :spec \"/swagger.json\"
      :options {:ui {:jsonEditor true}
                :spec {}}
-     :data {:info {:version \"1.0.0\"
+     :data {:basePath \"/app\"
+            :info {:version \"1.0.0\"
                    :title \"Sausages\"
                    :description \"Sausage description\"
                    :termsOfService \"http://helloreverb.com/terms/\"
