@@ -2,19 +2,18 @@
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
-- [API Docs](http://metosin.github.io/compojure-api/doc/)
+- [API Docs](http://metosin.github.io/compojure-api/doc/) & [Wiki](https://github.com/metosin/compojure-api/wiki)
 - [Schema](https://github.com/Prismatic/schema) for input & output data coercion
-- [Swagger 2.0](https://github.com/wordnik/swagger-core/wiki) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
+- [Swagger](http://swagger.io/) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
+- Client negotiable formats: [JSON](http://www.json.org/), [EDN](https://github.com/edn-format/edn), [YAML](http://yaml.org/) & [Transit](https://github.com/cognitect/transit-format) (JSON & MessagePack)
 - Bi-directional routing
-- Bundled middleware for common api behavior (exception mapping, data formats & serialization)
+- Bundled middleware for common api behavior (exception mapping, parameters & formats)
 - Route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
 
 ## Latest version
 
 [![Clojars Project](http://clojars.org/metosin/compojure-api/latest-version.svg)](http://clojars.org/metosin/compojure-api)
-
-**NOTE** All codes in `master` are already against the upcoming `1.0.0`. Wiki is partially still for `0.24.5`.
 
 ## For information and help
 
@@ -27,23 +26,19 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 ### Hello World
 
 ```clj
-(ns example
-  (:require [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]))
+(require '[compojure.api.sweet :refer :all])
+(require '[ring.util.http-response :refer :all])
 
 (defapi app
   (GET "/hello" []
     :query-params [name :- String]
     (ok {:message (str "Hello, " name)})))
 ```
- 
+
 ### Api with Schema & Swagger-docs
- 
+
  ```clj
- (ns example
-  (:require [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]
-            [schema.core :as s]))
+(require '[schema.core :as s])
 
 (s/defschema Pizza
   {:name s/Str
@@ -52,35 +47,36 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
    :origin {:country (s/enum :FI :PO)
             :city s/Str}})
 
-(defapi app
-  {:swagger
-   {:ui "/api-docs"
-    :spec "/swagger.json"
-    :data {:info {:title "Sample API"
-                  :description "Compojure Api example"}
-           :tags [{:name "api", :description "some apis"}]}}}
+(def app
+  (api
+    {:swagger
+     {:ui "/api-docs"
+      :spec "/swagger.json"
+      :data {:info {:title "Sample API"
+                    :description "Compojure Api example"}
+             :tags [{:name "api", :description "some apis"}]}}}
 
-  (context "/api" []
-    :tags ["api"]
+    (context "/api" []
+      :tags ["api"]
 
-    (GET "/plus" []
-      :return {:result Long}
-      :query-params [x :- Long, y :- Long]
-      :summary "adds two numbers together"
-      (ok {:result (+ x y)}))
+      (GET "/plus" []
+        :return {:result Long}
+        :query-params [x :- Long, y :- Long]
+        :summary "adds two numbers together"
+        (ok {:result (+ x y)}))
 
-    (POST "/echo" []
-      :return Pizza
-      :body [pizza Pizza]
-      :summary "echoes a Pizza"
-      (ok pizza))))
+      (POST "/echo" []
+        :return Pizza
+        :body [pizza Pizza]
+        :summary "echoes a Pizza"
+        (ok pizza)))))
 ```
 
 ![swagger-api](https://raw.githubusercontent.com/wiki/metosin/compojure-api/swagger-api.png)
 
 ## More samples
 
-This repo contains [a sample application](./examples/src/examples/thingie.clj).
+https://github.com/metosin/compojure-api/tree/master/examples
 
 To try it yourself, clone this repository and do either:
 
@@ -101,6 +97,6 @@ lein new compojure-api my-api +clojure-test
 
 ## License
 
-Copyright © 2014-2015 [Metosin Oy](http://www.metosin.fi)
+Copyright © 2014-2016 [Metosin Oy](http://www.metosin.fi)
 
 Distributed under the Eclipse Public License, the same as Clojure.
