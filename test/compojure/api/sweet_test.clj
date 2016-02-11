@@ -188,7 +188,8 @@
                                                                            "habanero"]
                                                                     :type "string"}
                                                             :type "array"}}
-                                    :required ["id" "name" "toppings"]}
+                                    :required ["id" "name" "toppings"]
+                                    :additionalProperties false}
                              :NewBand {:type "object"
                                        :properties {:description {:type "string"}
                                                     :name {:type "string"}
@@ -199,7 +200,8 @@
                                                                               "habanero"]
                                                                        :type "string"}
                                                                :type "array"}}
-                                       :required ["name" "toppings"]}}}
+                                       :required ["name" "toppings"]
+                                       :additionalProperties false}}}
 
       (fact "spec is valid"
         (v/validate spec) => nil))))

@@ -2,6 +2,12 @@
 
 * Swagger-routes mounted via api-options are mounted before other routes, fixes [#218](https://github.com/metosin/compojure-api/issues/218)
 * Routes are now resolved also from from Vars, fixes [#219](https://github.com/metosin/compojure-api/issues/219)
+* Better handling of `:basePath` with `swagger-routes`, thanks to [Hoxu](https://github.com/hoxu).
+* Updated dependencies:
+
+```clj
+[metosin/ring-swagger "0.22.4"] is available but we use "0.22.3"
+```
 
 ## 1.0.0-RC1 (2.2.2016)
 
