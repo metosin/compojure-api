@@ -20,7 +20,7 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.7.0"]
+                       :dependencies [[org.clojure/clojure "1.8.0"]
                                       [http-kit "2.1.19"]
                                       [reloaded.repl "0.2.1"]
                                       [com.stuartsierra/component "0.3.1"]]}
@@ -46,14 +46,14 @@
                    :main examples.server}
              :perf {:jvm-opts ^:replace []}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
             :target "gh-pages/doc"
             :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-linenum-anchor-prefix "L"}
-  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.8"]
+  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
