@@ -1,5 +1,7 @@
 ## 1.0.0-RC2 (11.2.2016)
 
+**[compare](https://github.com/metosin/compojure-api/compare/1.0.0-RC1...1.0.0-RC2)**
+
 * Swagger-routes mounted via api-options are mounted before other routes, fixes [#218](https://github.com/metosin/compojure-api/issues/218)
 * Routes are now resolved also from from Vars, fixes [#219](https://github.com/metosin/compojure-api/issues/219)
 * Better handling of `:basePath` with `swagger-routes`, thanks to [Hoxu](https://github.com/hoxu).
