@@ -170,3 +170,18 @@
       :path-params [foo :- String]
       identity))
   => {"/:foo.json" {:get {:parameters {:path {:foo String}}}}})
+
+(facts
+  (tabular
+    (fact "swagger-routes basePath can be changed"
+      (let [app (api (swagger-routes ?given-options))]
+        (->
+          (get* app "/swagger.json")
+          (nth 1)
+          :basePath)
+        => ?expected-base-path
+        (nth (raw-get* app "/conf.js") 1) => (str "window.API_CONF = {\"url\":\"" ?expected-swagger-docs-path "\"};")))
+    ?given-options ?expected-swagger-docs-path ?expected-base-path
+    {} "/swagger.json" "/"
+    {:data {:basePath "/app"}} "/app/swagger.json" "/app"
+    {:data {:basePath "/app"} :options {:ui {:swagger-docs "/imaginary.json"}}} "/imaginary.json" "/app"))
