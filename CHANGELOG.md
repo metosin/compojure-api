@@ -1,3 +1,11 @@
+## unreleased
+
+* updated dependencies:
+
+```clj
+[prismatic/schema "1.0.5"] is available but we use "1.0.4"
+```
+
 ## 1.0.0-RC2 (11.2.2016)
 
 **[compare](https://github.com/metosin/compojure-api/compare/1.0.0-RC1...1.0.0-RC2)**
