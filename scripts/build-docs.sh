@@ -19,13 +19,16 @@ elif [[ ! -d gh-pages ]]; then
 else
     (
     cd gh-pages
-    git pull
+    git fetch
+    git reset --hard origin/gh-pages
     )
 fi
 
 mkdir -p gh-pages/doc
 lein doc
+(
 cd gh-pages
 git add --all
 git commit -m "Build docs from ${rev}."
 git push origin gh-pages
+)
