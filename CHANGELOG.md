@@ -1,6 +1,8 @@
 ## 1.0.0 (17.2.2016)
 
-**[compare](https://github.com/metosin/compojure-api/compare/1.0.0-RC2...1.0.0)**
+**[compare](https://github.com/metosin/compojure-api/compare/0.24.5...1.0.0)**
+
+**[compare to RC2](https://github.com/metosin/compojure-api/compare/1.0.0-RC2...1.0.0)**
 
 * updated dependencies:
 
@@ -8,9 +10,9 @@
 [prismatic/schema "1.0.5"] is available but we use "1.0.4"
 ```
 
-## 1.0.0-RC2 (11.2.2016)
+### 1.0.0-RC2 (11.2.2016)
 
-**[compare](https://github.com/metosin/compojure-api/compare/1.0.0-RC1...1.0.0-RC2)**
+**[compare to RC1](https://github.com/metosin/compojure-api/compare/1.0.0-RC1...1.0.0-RC2)**
 
 * Swagger-routes mounted via api-options are mounted before other routes, fixes [#218](https://github.com/metosin/compojure-api/issues/218)
 * Routes are now resolved also from from Vars, fixes [#219](https://github.com/metosin/compojure-api/issues/219)
@@ -21,7 +23,7 @@
 [metosin/ring-swagger "0.22.4"] is available but we use "0.22.3"
 ```
 
-## 1.0.0-RC1 (2.2.2016)
+### 1.0.0-RC1 (2.2.2016)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.5...1.0.0-RC1)**
 
