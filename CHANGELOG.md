@@ -1,5 +1,7 @@
 ## 1.0.0 (17.2.2016)
 
+**[compare](https://github.com/metosin/compojure-api/compare/1.0.0-RC2...1.0.0)**
+
 * updated dependencies:
 
 ```clj
