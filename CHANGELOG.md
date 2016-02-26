@@ -1,3 +1,7 @@
+## Unreleased
+
+* For response coercion, the original response is available in `ex-data` under `:response`. Thanks to [Tim Gilbert](https://github.com/timgilbert).
+
 ## 1.0.0 (17.2.2016)
 
 **[compare](https://github.com/metosin/compojure-api/compare/0.24.5...1.0.0)**
