@@ -63,7 +63,8 @@
                   coerce (coercer schema matcher)
                   body (coerce (:body response))]
               (if (su/error? body)
-                (throw (ex-info "Response validation error" (assoc body :type ::ex/response-validation)))
+                (throw (ex-info "Response validation error" (assoc body :type ::ex/response-validation
+                                                                        :response response)))
                 (assoc response
                   ::serializable? true
                   :body body)))

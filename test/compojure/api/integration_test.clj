@@ -1237,3 +1237,25 @@
         (app {:request-method :get, :uri "/api/ping", :query-params {}}) => (contains {:body "12ab"})
         (app {:request-method :get, :uri "/api/ping", :query-params {:a "A"}}) => (contains {:body "12Ab"})
         (app {:request-method :get, :uri "/api/ping", :query-params {:a "A", :b "B"}}) => (contains {:body "12AB"})))))
+
+(defn check-for-response-handler
+  "This response-validation handler checks for the existence of :response in its input. If it's there, it
+  returns status 200, including the value that was origingally returned. Otherwise it returns 404."
+  [^Exception e data request]
+  (if (:response data)
+    (ok {:message "Found :response in data!" :attempted-body (get-in data [:response :body])})
+    (not-found "No :response key present in data!")))
+
+(fact "response-validation handler has access to response value that failed coercion"
+  (let [incorrect-return-value {:incorrect "response"}
+        app (api
+              {:exceptions {:handlers {::ex/response-validation check-for-response-handler}}}
+              (swagger-routes)
+              (GET "/test-response" []
+                    :return {:correct s/Str}
+                    (ok incorrect-return-value)))] ; This should fail and trigger our error handler
+
+    (fact "return case, valid request & valid model"
+      (let [[status body] (get* app "/test-response")]
+        status => 200
+        (:attempted-body body) => incorrect-return-value))))
