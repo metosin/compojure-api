@@ -1,4 +1,4 @@
-## Unreleased
+## 1.0.1 (28.2.2016)
 
 * For response coercion, the original response is available in `ex-data` under `:response`. 
 This can be used in logging, "what did the route try to return". Thanks to [Tim Gilbert](https://github.com/timgilbert).
