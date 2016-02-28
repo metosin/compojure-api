@@ -1,6 +1,15 @@
 ## Unreleased
 
-* For response coercion, the original response is available in `ex-data` under `:response`. Thanks to [Tim Gilbert](https://github.com/timgilbert).
+* For response coercion, the original response is available in `ex-data` under `:response`. 
+This can be used in logging, "what did the route try to return". Thanks to [Tim Gilbert](https://github.com/timgilbert).
+* Response coercion uses the `:default` code if available and response code doesn't match
+
+```clj
+(GET "/" []
+  :responses {200 {:schema {:ping s/Str}}
+              :default {:schema {:error s/int}}}
+  ...)
+```
 
 ## 1.0.0 (17.2.2016)
 

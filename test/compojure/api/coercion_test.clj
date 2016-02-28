@@ -6,9 +6,39 @@
             [schema.core :as s]
             [compojure.api.middleware :as mw]))
 
+(defn has-body [expected]
+  (fn [value]
+    (= (second value) expected)))
+
 (defn fails-with [expected-status]
   (fn [[status body]]
     (and (= status expected-status) (contains? body :errors))))
+
+(fact "response schemas"
+  (let [r-200 (GET "/" []
+                :query-params [{value :- s/Int nil}]
+                :responses {200 {:schema {:value s/Str}}}
+                (ok {:value (or value "123")}))
+        r-default (GET "/" []
+                    :query-params [{value :- s/Int nil}]
+                    :responses {:default {:schema {:value s/Str}}}
+                    (ok {:value (or value "123")}))
+        r-200-default (GET "/" []
+                        :query-params [{value :- s/Int nil}]
+                        :responses {200 {:schema {:value s/Str}}
+                                    :default {:schema {:value s/Int}}}
+                        (ok {:value (or value "123")}))]
+    (fact "200"
+      (get* (api r-200) "/") => (has-body {:value "123"})
+      (get* (api r-200) "/" {:value 123}) => (fails-with 500))
+
+    (fact ":default"
+      (get* (api r-default) "/") => (has-body {:value "123"})
+      (get* (api r-default) "/" {:value 123}) => (fails-with 500))
+
+    (fact ":default"
+      (get* (api r-200-default) "/") => (has-body {:value "123"})
+      (get* (api r-200-default) "/" {:value 123}) => (fails-with 500))))
 
 (fact "custom coercion"
 
@@ -146,4 +176,4 @@
                 (GET "/ping" []
                   :query-params [x :- Long]
                   (ok x)))]
-      (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => (contains {:body "abba"}))) )
+      (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => (contains {:body "abba"}))))

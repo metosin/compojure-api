@@ -53,23 +53,28 @@
     (fnk-impl/letk-input-schema-and-body-form
       nil (with-meta bind {:schema s/Any}) [] nil)))
 
+(defn coerce-response! [request {:keys [status] :as response} responses]
+  (if-let [schema (or (:schema (get responses status))
+                      (:schema (get responses :default)))]
+    (let [matchers (mw/coercion-matchers request)]
+      (if-let [matcher (matchers :response)]
+        (let [coercer (cached-coercer request)
+              coerce (coercer schema matcher)
+              body (coerce (:body response))]
+          (if (su/error? body)
+            (throw (ex-info
+                     (str "Response validation error: " (su/error-val body))
+                     (assoc body :type ::ex/response-validation
+                                 :response response)))
+            (assoc response
+              ::serializable? true
+              :body body)))
+        response))
+    response))
+
 (defn body-coercer-middleware [handler responses]
   (fn [request]
-    (if-let [{:keys [status] :as response} (handler request)]
-      (if-let [schema (:schema (responses status))]
-        (let [matchers (mw/coercion-matchers request)]
-          (if-let [matcher (matchers :response)]
-            (let [coercer (cached-coercer request)
-                  coerce (coercer schema matcher)
-                  body (coerce (:body response))]
-              (if (su/error? body)
-                (throw (ex-info "Response validation error" (assoc body :type ::ex/response-validation
-                                                                        :response response)))
-                (assoc response
-                  ::serializable? true
-                  :body body)))
-            response))
-        response))))
+    (coerce-response! request (handler request) responses)))
 
 (defn coerce! [schema key type request]
   (let [value (keywordize-keys (key request))]
@@ -79,7 +84,9 @@
               coerce (coercer schema matcher)
               result (coerce value)]
           (if (su/error? result)
-            (throw (ex-info "Request validation failed" (assoc result :type ::ex/request-validation)))
+            (throw (ex-info
+                     (str "Request validation failed: " (su/error-val result))
+                     (assoc result :type ::ex/request-validation)))
             result))
         value)
       value)))
