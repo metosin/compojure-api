@@ -37,7 +37,7 @@
                                   [com.stuartsierra/component "0.3.1"]
                                   [reloaded.repl "0.2.1"]
                                   [http-kit "2.1.19"]
-                                  [criterium "0.4.3"]
+                                  [criterium "0.4.4"]
                                   ; Required when using with Java 1.6
                                   [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]]
                    :ring {:handler examples.thingie/app
