@@ -1,3 +1,10 @@
+## Unreleased
+
+* **NEW** [`compojure.api.resource/resource`](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/resource.clj)
+for providing better support for [Liberator](http://clojure-liberator.github.io/liberator/).
+Can also be used as-is for providing macro-free syntax for building RESTful services.
+Fixes [#185](https://github.com/metosin/compojure-api/issues/185).
+
 ## 1.0.1 (28.2.2016)
 
 * For response coercion, the original response is available in `ex-data` under `:response`. 
