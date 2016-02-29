@@ -2,6 +2,7 @@
   (:require compojure.api.core
             compojure.api.api
             compojure.api.routes
+            compojure.api.resource
             compojure.api.swagger
             ring.swagger.json-schema
             [potemkin :refer [import-vars]]))
@@ -31,6 +32,10 @@
 
    api
    defapi]
+
+  [compojure.api.resource
+
+   resource]
 
   [compojure.api.routes
 
