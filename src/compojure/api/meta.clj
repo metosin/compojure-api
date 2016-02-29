@@ -63,7 +63,7 @@
               body (coerce (:body response))]
           (if (su/error? body)
             (throw (ex-info
-                     (str "Response validation error: " (su/error-val body))
+                     (str "Response validation failed: " (su/error-val body))
                      (assoc body :type ::ex/response-validation
                                  :response response)))
             (assoc response
