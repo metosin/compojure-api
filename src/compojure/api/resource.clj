@@ -14,13 +14,13 @@
 ; TODO: should swagger :body be mapped into :body or :body-params?
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
 (defn resource
-  "Created a nested compojure-api Route from an enchanced ring-swagger operations map.
-  Will do both request- and response-coercion based on those definitions.
+  "Creates a nested compojure-api Route from an enchanced ring-swagger operations map.
+  Applies both request- and response-coercion based on those definitions.
 
   Enchancements:
 
   1) :parameters use ring request keys (query-params, path-params, ...) instead of
-  swagger-params (query, path, ...). To keep things simple as ring keys are used in
+  swagger-params (query, path, ...). This keeps things simple as ring keys are used in
   the handler when destructuring the request.
 
   2) special key `:handler` either under operations or at top-level. Value should be a
