@@ -1,6 +1,6 @@
 (ns compojure.api.resource
   (:require [compojure.api.routes :as routes]
-            [compojure.api.meta :as meta]
+            [compojure.api.coerce :as coerce]
             [schema.core :as s]))
 
 (def ^:private +mappings+
@@ -68,12 +68,12 @@
                            (fn [request ring-key [_ type open?]]
                              (if-let [schema (get-in info (concat ks [:parameters ring-key]))]
                                (let [schema (if open? (assoc schema s/Keyword s/Any) schema)]
-                                 (update request ring-key merge (meta/coerce! schema ring-key type request)))
+                                 (update request ring-key merge (coerce/coerce! schema ring-key type request)))
                                request))
                            request
                            (:parameters +mappings+)))
         coerce-response (fn [response request ks]
-                          (meta/coerce-response! request response (get-in info (concat ks [:responses]))))
+                          (coerce/coerce-response! request response (get-in info (concat ks [:responses]))))
         resolve-handler (fn [request-method]
                           (or
                             (get-in info [request-method :handler])

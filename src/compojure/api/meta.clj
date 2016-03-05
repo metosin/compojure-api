@@ -1,18 +1,14 @@
 (ns compojure.api.meta
-  (:require [clojure.walk :refer [keywordize-keys]]
-            [compojure.api.common :refer [extract-parameters]]
+  (:require [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
-            [compojure.api.exception :as ex]
             [compojure.api.routes :as routes]
             [plumbing.core :as p]
             [plumbing.fnk.impl :as fnk-impl]
             [ring.swagger.common :as rsc]
             [ring.swagger.json-schema :as js]
             [schema.core :as s]
-            [schema.coerce :as sc]
-            [schema.utils :as su]
             [schema-tools.core :as st]
-            [linked.core :as linked]
+            [compojure.api.coerce :as coerce]
             compojure.core))
 
 (def +compojure-api-request+
@@ -23,28 +19,6 @@
 ;; Schema
 ;;
 
-(defn memoized-coercer
-  "Returns a memoized version of a referentially transparent coercer fn. The
-  memoized version of the function keeps a cache of the mapping from arguments
-  to results and, when calls with the same arguments are repeated often, has
-  higher performance at the expense of higher memory use. FIFO with 100 entries.
-  Cache will be filled if anonymous coercers are used (does not match the cache)"
-  []
-  (let [cache (atom (linked/map))
-        cache-size 10000]
-    (fn [& args]
-      (or (@cache args)
-          (let [coercer (apply sc/coercer args)]
-            (swap! cache (fn [mem]
-                           (let [mem (assoc mem args coercer)]
-                             (if (>= (count mem) cache-size)
-                               (dissoc mem (-> mem first first))
-                               mem))))
-            coercer)))))
-
-(defn cached-coercer [request]
-  (or (-> request mw/get-options :coercer) sc/coercer))
-
 (defn strict [schema]
   (dissoc schema 'schema.core/Keyword))
 
@@ -53,50 +27,12 @@
     (fnk-impl/letk-input-schema-and-body-form
       nil (with-meta bind {:schema s/Any}) [] nil)))
 
-(defn coerce-response! [request {:keys [status] :as response} responses]
-  (if-let [schema (or (:schema (get responses status))
-                      (:schema (get responses :default)))]
-    (let [matchers (mw/coercion-matchers request)]
-      (if-let [matcher (matchers :response)]
-        (let [coercer (cached-coercer request)
-              coerce (coercer schema matcher)
-              body (coerce (:body response))]
-          (if (su/error? body)
-            (throw (ex-info
-                     (str "Response validation failed: " (su/error-val body))
-                     (assoc body :type ::ex/response-validation
-                                 :response response)))
-            (assoc response
-              ::serializable? true
-              :body body)))
-        response))
-    response))
-
-(defn body-coercer-middleware [handler responses]
-  (fn [request]
-    (coerce-response! request (handler request) responses)))
-
-(defn coerce! [schema key type request]
-  (let [value (keywordize-keys (key request))]
-    (if-let [matchers (mw/coercion-matchers request)]
-      (if-let [matcher (matchers type)]
-        (let [coercer (cached-coercer request)
-              coerce (coercer schema matcher)
-              result (coerce value)]
-          (if (su/error? result)
-            (throw (ex-info
-                     (str "Request validation failed: " (su/error-val result))
-                     (assoc result :type ::ex/request-validation)))
-            result))
-        value)
-      value)))
-
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
   extracted from a key in a ring request."
   [schema, key, type :- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
-  `(coerce! ~schema ~key ~type ~+compojure-api-request+))
+  `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+))
 
 (defn- convert-return [schema]
   {200 {:schema schema
@@ -354,7 +290,7 @@
         _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
 
         ;; response coercion middleware, why not just code?
-        middleware (if (seq responses) (conj middleware `[body-coercer-middleware (merge ~@responses)]) middleware)]
+        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (merge ~@responses)]) middleware)]
 
     (if context?
 

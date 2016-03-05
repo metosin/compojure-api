@@ -4,6 +4,7 @@
 for providing better support for [Liberator](http://clojure-liberator.github.io/liberator/).
 Can also be used as-is for providing macro-free syntax for building RESTful services.
 Fixes [#185](https://github.com/metosin/compojure-api/issues/185).
+* Moved internal coercion helpers from `compojure.api.meta` to `compojure.api.coerce`.
 
 ## 1.0.1 (28.2.2016)
 
