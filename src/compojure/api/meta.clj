@@ -164,6 +164,8 @@
         (update-in [:swagger :parameters :formData] st/merge schema)
         (assoc-in [:swagger :consumes] ["application/x-www-form-urlencoded"]))))
 
+; restructures multipart-params with plumbing letk notation and consumes "multipart/form-data"
+; :multipart-params [file :- compojure.api.upload/TempFileUpload]
 (defmethod restructure-param :multipart-params [_ params acc]
   (let [schema (strict (fnk-schema params))]
     (-> acc
