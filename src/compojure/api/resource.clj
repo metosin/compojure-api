@@ -11,8 +11,58 @@
                 :header-params [:header :string true]
                 :path-params [:path :string true]}})
 
-; TODO: should swagger :body be mapped into :body or :body-params?
+(defn- swaggerize [info]
+  (as-> info info
+        (reduce-kv
+          (fn [acc ring-key [swagger-key]]
+            (if-let [schema (get-in acc [:parameters ring-key])]
+              (update acc :parameters #(-> % (dissoc ring-key) (assoc swagger-key schema)))
+              acc))
+          info
+          (:parameters +mappings+))
+        (dissoc info :handler)))
+
+(defn- coerce-request [request info ks]
+  (reduce-kv
+    (fn [request ring-key [_ type open?]]
+      (if-let [schema (get-in info (concat ks [:parameters ring-key]))]
+        (let [schema (if open? (assoc schema s/Keyword s/Any) schema)]
+          (update request ring-key merge (coerce/coerce! schema ring-key type request)))
+        request))
+    request
+    (:parameters +mappings+)))
+
+(defn- coerce-response [response info request ks]
+  (coerce/coerce-response! request response (get-in info (concat ks [:responses]))))
+
+(defn- resolve-handler [info request-method]
+  (or
+    (get-in info [request-method :handler])
+    (get-in info [:handler])
+    (throw (ex-info (str "No handler defined for " request-method) info))))
+
+(defn- create-childs [info]
+  (map
+    (fn [[method info]]
+      (routes/create "/" method (swaggerize info) nil nil))
+    (select-keys info (:methods +mappings+))))
+
+(defn- create-handler [info]
+  (fn [{:keys [request-method] :as request}]
+    (-> ((resolve-handler info request-method)
+          (-> request
+              (coerce-request info [])
+              (coerce-request info [request-method])))
+        (coerce-response info request [request-method])
+        (coerce-response info request []))))
+
+;;
+;; Public api
+;;
+
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
+; TODO: parameters should be deep-merged and coerced once? body = merge?
+; TODO: responses should be merged and coerced once?
 (defn resource
   "Creates a nested compojure-api Route from an enchanced ring-swagger operations map.
   Applies both request- and response-coercion based on those definitions.
@@ -47,43 +97,7 @@
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
   [info]
-  (let [swaggerize (fn [info]
-                     (as-> info info
-                           (reduce-kv
-                             (fn [acc ring-key [swagger-key]]
-                               (if-let [schema (get-in acc [:parameters ring-key])]
-                                 (update acc :parameters #(-> % (dissoc ring-key) (assoc swagger-key schema)))
-                                 acc))
-                             info
-                             (:parameters +mappings+))
-                           (dissoc info :handler)))
-        root-info (reduce dissoc info (:methods +mappings+))
-        child-info (select-keys info (:methods +mappings+))
-        childs (map
-                 (fn [[method info]]
-                   (routes/create "/" method (swaggerize info) nil nil))
-                 child-info)
-        coerce-request (fn [request ks]
-                         (reduce-kv
-                           (fn [request ring-key [_ type open?]]
-                             (if-let [schema (get-in info (concat ks [:parameters ring-key]))]
-                               (let [schema (if open? (assoc schema s/Keyword s/Any) schema)]
-                                 (update request ring-key merge (coerce/coerce! schema ring-key type request)))
-                               request))
-                           request
-                           (:parameters +mappings+)))
-        coerce-response (fn [response request ks]
-                          (coerce/coerce-response! request response (get-in info (concat ks [:responses]))))
-        resolve-handler (fn [request-method]
-                          (or
-                            (get-in info [request-method :handler])
-                            (get-in info [:handler])
-                            (throw (ex-info (str "No handler defined for " request-method) info))))
-        handler (fn [{:keys [request-method] :as request}]
-                  (-> ((resolve-handler request-method)
-                        (-> request
-                            (coerce-request [])
-                            (coerce-request [request-method])))
-                      (coerce-response request [request-method])
-                      (coerce-response request [])))]
+  (let [root-info (reduce dissoc info (:methods +mappings+))
+        childs (create-childs info)
+        handler (create-handler info)]
     (routes/create nil nil (swaggerize root-info) childs handler)))
