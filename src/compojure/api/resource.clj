@@ -1,7 +1,9 @@
 (ns compojure.api.resource
   (:require [compojure.api.routes :as routes]
             [compojure.api.coerce :as coerce]
-            [schema.core :as s]))
+            [ring.swagger.common :as rsc]
+            [schema.core :as s]
+            [plumbing.core :as p]))
 
 (def ^:private +mappings+
   {:methods #{:get :head :patch :delete :options :post :put}
@@ -49,20 +51,30 @@
 
 (defn- create-handler [info]
   (fn [{:keys [request-method] :as request}]
-    (-> ((resolve-handler info request-method)
-          (-> request
-              (coerce-request info [])
-              (coerce-request info [request-method])))
-        (coerce-response info request [request-method])
-        (coerce-response info request []))))
+    (let [ks (if (contains? info request-method) [request-method] [])]
+      (-> ((resolve-handler info request-method)
+            (coerce-request request info ks))
+          (coerce-response info request ks)))))
+
+(defn- merge-parameters-and-responses [info]
+  (let [methods (select-keys info (:methods +mappings+))]
+    (-> info
+        (merge
+          (p/for-map [[method method-info] methods]
+            method (-> method-info
+                       (->> (rsc/deep-merge (select-keys info [:parameters])))
+                       (update :responses (fn [responses] (merge (:responses info) responses)))))))))
+
+(defn- root-info [info]
+  (-> (reduce dissoc info (:methods +mappings+))
+      (dissoc :parameters :responses))
+  )
 
 ;;
 ;; Public api
 ;;
 
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
-; TODO: parameters should be deep-merged and coerced once? body = merge?
-; TODO: responses should be merged and coerced once?
 (defn resource
   "Creates a nested compojure-api Route from an enchanced ring-swagger operations map.
   Applies both request- and response-coercion based on those definitions.
@@ -73,15 +85,22 @@
   swagger-params (query, path, ...). This keeps things simple as ring keys are used in
   the handler when destructuring the request.
 
-  2) special key `:handler` either under operations or at top-level. Value should be a
-  ring-handler function, responsible for the actual request processing. Handler lookup
-  order is the followin: operations-level, top-level, exception.
+  2) at resource root, one can add any ring-swagger operation definitions, which will be
+  available for all operations, using the following rules:
 
-  3) at top-level, one can add any ring-swagger operation definitions, which will be
-  shared for all operations. Top-level request-coercion will be applied before operation
-  level coercion and top-level response-coercion will be applied after operation level
-  coercion. All other definitions will be accumulated into operation info using normal
-  compojure-api rules.
+    2.1) :parameters are deep-merged into operation :parameters
+    2.2) :responses are merged into operation :responses (operation can fully override them)
+    2.3) all others (:produces, :consumes, :summary,...) are deep-merged by compojure-api
+
+  3) special key `:handler` either under operations or at top-level. Value should be a
+  ring-handler function, responsible for the actual request processing. Handler lookup
+  order is the following: operations-level, top-level, exception.
+
+  4) request-coercion is applied at most once, using deep-merged parameters for a given
+  operation or resource-level if only resource-level handler is defined.
+
+  5) response-coercion is applied at most once, using merged responses for a given
+  operation or resource-level if only resource-level handler is defined.
 
   Example:
 
@@ -97,7 +116,8 @@
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
   [info]
-  (let [root-info (reduce dissoc info (:methods +mappings+))
+  (let [info (merge-parameters-and-responses info)
+        root-info (swaggerize (root-info info))
         childs (create-childs info)
         handler (create-handler info)]
-    (routes/create nil nil (swaggerize root-info) childs handler)))
+    (routes/create nil nil root-info childs handler)))
