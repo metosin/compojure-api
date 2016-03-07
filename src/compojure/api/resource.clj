@@ -96,10 +96,10 @@
   ring-handler function, responsible for the actual request processing. Handler lookup
   order is the following: operations-level, top-level, exception.
 
-  4) request-coercion is applied at most once, using deep-merged parameters for a given
+  4) request-coercion is applied once, using deep-merged parameters for a given
   operation or resource-level if only resource-level handler is defined.
 
-  5) response-coercion is applied at most once, using merged responses for a given
+  5) response-coercion is applied once, using merged responses for a given
   operation or resource-level if only resource-level handler is defined.
 
   Example:
