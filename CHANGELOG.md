@@ -86,7 +86,7 @@ This can be used in logging, "what did the route try to return". Thanks to [Tim 
   * `context*` => `context`
   * `defroutes*` => `defroutes`
 
-* **BREAKING** `swagger-docs` and `swagger-ui` are now longer in `compojure.api.sweet`
+* **BREAKING** `swagger-docs` and `swagger-ui` are no longer in `compojure.api.sweet`
   * Syntax was hairy and when configuring the spec-url it needed to be set to both in order to work
   * In future, there are multiple ways of setting the swagger stuff:
     * via api-options `:swagger` (has no defaults)
