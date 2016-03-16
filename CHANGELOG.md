@@ -1,10 +1,10 @@
 ## Unreleased
 
+* Moved internal coercion helpers from `compojure.api.meta` to `compojure.api.coerce`.
 * **NEW** [`compojure.api.resource/resource`](https://github.com/metosin/compojure-api/blob/master/src/compojure/api/resource.clj)
 for providing better support for [Liberator](http://clojure-liberator.github.io/liberator/).
 Can also be used as-is for providing macro-free syntax for building RESTful services.
 Fixes [#185](https://github.com/metosin/compojure-api/issues/185).
-* Moved internal coercion helpers from `compojure.api.meta` to `compojure.api.coerce`.
 
 ## 1.0.1 (28.2.2016)
 
@@ -17,6 +17,12 @@ This can be used in logging, "what did the route try to return". Thanks to [Tim 
   :responses {200 {:schema {:ping s/Str}}
               :default {:schema {:error s/int}}}
   ...)
+```
+
+* updated dependencies:
+
+```clj
+[compojure "1.5.0"] is available but we use "1.4.0"
 ```
 
 ## 1.0.0 (17.2.2016)

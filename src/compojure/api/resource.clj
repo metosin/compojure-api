@@ -67,8 +67,7 @@
 
 (defn- root-info [info]
   (-> (reduce dissoc info (:methods +mappings+))
-      (dissoc :parameters :responses))
-  )
+      (dissoc :parameters :responses)))
 
 ;;
 ;; Public api
