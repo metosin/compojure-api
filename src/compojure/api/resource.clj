@@ -74,6 +74,7 @@
 ;;
 
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
+; TODO: extract parameter schemas from handler fnks?
 (defn resource
   "Creates a nested compojure-api Route from an enchanced ring-swagger operations map.
   Applies both request- and response-coercion based on those definitions.
@@ -100,6 +101,9 @@
 
   5) response-coercion is applied once, using merged responses for a given
   operation or resource-level if only resource-level handler is defined.
+
+  Note: Swagger operations are generated only from declared operations (:get, :post, ..),
+  despite the top-level handler could process more operations.
 
   Example:
 
