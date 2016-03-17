@@ -1,3 +1,68 @@
+## Unreleased
+
+* Moved internal coercion helpers from `compojure.api.meta` to `compojure.api.coerce`.
+* New `compojure.api.resource/resource` (also in `compojure.api.sweet`) for building resource-oriented services
+  * Yields (presumably) better support for [Liberator](http://clojure-liberator.github.io/liberator/)
+  * Fixes [#185](https://github.com/metosin/compojure-api/issues/185)
+
+```clj
+(defn resource
+  "Creates a nested compojure-api Route from an enchanced ring-swagger operations map.
+  Applies both request- and response-coercion based on those definitions.
+
+  Enchancements:
+
+  1) :parameters use ring request keys (query-params, path-params, ...) instead of
+  swagger-params (query, path, ...). This keeps things simple as ring keys are used in
+  the handler when destructuring the request.
+
+  2) at resource root, one can add any ring-swagger operation definitions, which will be
+  available for all operations, using the following rules:
+
+    2.1) :parameters are deep-merged into operation :parameters
+    2.2) :responses are merged into operation :responses (operation can fully override them)
+    2.3) all others (:produces, :consumes, :summary,...) are deep-merged by compojure-api
+
+  3) special key `:handler` either under operations or at top-level. Value should be a
+  ring-handler function, responsible for the actual request processing. Handler lookup
+  order is the following: operations-level, top-level, exception.
+
+  4) request-coercion is applied once, using deep-merged parameters for a given
+  operation or resource-level if only resource-level handler is defined.
+
+  5) response-coercion is applied once, using merged responses for a given
+  operation or resource-level if only resource-level handler is defined.
+
+  Note: Swagger operations are generated only from declared operations (:get, :post, ..),
+  despite the top-level handler could process more operations.
+
+  Example:
+
+  (resource
+    {:parameters {:query-params {:x Long}}
+     :responses {500 {:schema {:reason s/Str}}}
+     :get {:parameters {:query-params {:y Long}}
+           :responses {200 {:schema {:total Long}}}
+           :handler (fn [request]
+                      (ok {:total (+ (-> request :query-params :x)
+                                     (-> request :query-params :y))}))}
+     :post {}
+     :handler (constantly
+                (internal-server-error {:reason \"not implemented\"}))})"
+  [info]
+  (let [info (merge-parameters-and-responses info)
+        root-info (swaggerize (root-info info))
+        childs (create-childs info)
+        handler (create-handler info)]
+    (routes/create nil nil root-info childs handler)))
+```                
+
+* updated dependencies:
+
+```clj
+[compojure "1.5.0"] is available but we use "1.4.0"
+```
+
 ## 1.0.1 (28.2.2016)
 
 * For response coercion, the original response is available in `ex-data` under `:response`. 

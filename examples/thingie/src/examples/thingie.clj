@@ -187,13 +187,14 @@
       :tags ["file"]
 
       (POST "/upload" []
+        :summary "ring-based file upload"
         :multipart-params [file :- TempFileUpload]
         :middleware [wrap-multipart-params]
         (ok (dissoc file :tempfile))))
 
     (context "/component" []
       :tags ["component"]
-      (GET "/example" req
+      (GET "/example" []
         :components [example]
         (ok example)))
 

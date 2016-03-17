@@ -4,8 +4,8 @@
             [compojure.api.middleware :as middleware]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
+            [compojure.api.coerce :as coerce]
             [ring.swagger.common :as rsc]
-            [compojure.api.meta :as meta]
             [ring.swagger.middleware :as rsm]))
 
 (def api-defaults
@@ -59,8 +59,8 @@
                         (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
                         (middleware/api-middleware (dissoc options :api :swagger))
                         (middleware/wrap-options {:paths paths
-                                                           :coercer (meta/memoized-coercer)
-                                                           :lookup lookup}))]
+                                                  :coercer (coerce/memoized-coercer)
+                                                  :lookup lookup}))]
     (routes/create nil nil {} [handler] api-handler)))
 
 (defmacro
