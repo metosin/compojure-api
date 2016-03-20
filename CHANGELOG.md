@@ -61,7 +61,7 @@
 
 ```clj
 [compojure "1.5.0"] is available but we use "1.4.0"
-[metosin/ring-swagger "0.22.5"] is available but we use "0.22.4"
+[metosin/ring-swagger "0.22.6"] is available but we use "0.22.4"
 ```
 
 ## 1.0.1 (28.2.2016)
