@@ -23,9 +23,12 @@
   (dissoc schema 'schema.core/Keyword))
 
 (defn fnk-schema [bind]
-  (:input-schema
-    (fnk-impl/letk-input-schema-and-body-form
-      nil (with-meta bind {:schema s/Any}) [] nil)))
+  (->>
+    (:input-schema
+      (fnk-impl/letk-input-schema-and-body-form
+        nil (with-meta bind {:schema s/Any}) [] nil))
+    reverse
+    (into {})))
 
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,

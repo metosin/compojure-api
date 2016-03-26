@@ -1259,3 +1259,17 @@
       (let [[status body] (get* app "/test-response")]
         status => 200
         (:attempted-body body) => incorrect-return-value))))
+
+(fact "correct swagger parameter order with small number or parameters, #224"
+  (let [app (api
+              (swagger-routes)
+              (GET "/ping" []
+                :query-params [a b c d e]
+                (ok {:a a, :b b, :c c, :d d, :e e})))]
+    (fact "api works"
+      (let [[status body] (get* app "/ping" {:a "A" :b "B" :c "C" :d "D" :e "E"})]
+        status => 200
+        body => {:a "A" :b "B" :c "C" :d "D" :e "E"}))
+    (fact "swagger parameters are in correct order"
+      (-> app get-spec :paths (get "/ping") :get :parameters (->> (map (comp keyword :name)))) => [:a :b :c :d :e])))
+
