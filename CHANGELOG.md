@@ -1,4 +1,4 @@
-## 1.0.2-SNAPSHOT
+## 1.0.2 (27.3.2016)
 
 * Parameter order is unreversed for fnk-style destructurings for small number of paramerers, fixes [#224](https://github.com/metosin/compojure-api/issues/224)
 * Moved internal coercion helpers from `compojure.api.meta` to `compojure.api.coerce`.
