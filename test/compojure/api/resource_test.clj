@@ -78,6 +78,20 @@
       (handler {:request-method :get}) => (has-body {:from "get"})
       (handler {:request-method :post}) => (has-body {:from "top"})))
 
+  (fact "resource without coercion"
+    (let [handler (resource
+                    {:coercion (constantly nil)}
+                    {:get {:parameters {:query-params {(s/optional-key :y) Long
+                                                       (s/optional-key :x) Long}}
+                           :handler (fn [{{:keys [x y]} :query-params}]
+                                      (ok {:x x
+                                           :y y}))}})]
+
+      (handler {:request-method :get}) => (has-body {:x nil, :y nil})
+      (handler {:request-method :get, :query-params {:x "1"}}) => (has-body {:x "1", :y nil})
+      (handler {:request-method :get, :query-params {:x "1", :y "a"}}) => (has-body {:x "1", :y "a"})
+      (handler {:request-method :get, :query-params {:x 1, :y 2}}) => (has-body {:x 1, :y 2})))
+
   (fact "response coercion"
     (let [handler (resource
                     {:responses {200 {:schema {:total (s/constrained Long pos? 'pos)}}}

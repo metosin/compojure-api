@@ -1,16 +1,23 @@
-## Unreleased
+## 1.0.2-SNAPSHOT
 
+* Parameter order is unreversed for fnk-style destructurings for small number of paramerers, fixes [#224](https://github.com/metosin/compojure-api/issues/224)
 * Moved internal coercion helpers from `compojure.api.meta` to `compojure.api.coerce`.
 * New `compojure.api.resource/resource` (also in `compojure.api.sweet`) for building resource-oriented services
-  * Yields (presumably) better support for [Liberator](http://clojure-liberator.github.io/liberator/)
-  * Fixes [#185](https://github.com/metosin/compojure-api/issues/185)
+  * Yields (presumably) better support for [Liberator](http://clojure-liberator.github.io/liberator/), fixes [#185](https://github.com/metosin/compojure-api/issues/185)
 
 ```clj
 (defn resource
-  "Creates a nested compojure-api Route from an enchanced ring-swagger operations map.
-  Applies both request- and response-coercion based on those definitions.
+  "Creates a nested compojure-api Route from options and enchanced ring-swagger operations map.
+  By default, applies both request- and response-coercion based on those definitions.
 
-  Enchancements:
+  Options:
+
+  - **:coercion**       A function from request->type->coercion-matcher, used
+                        in resource coercion for :body, :string and :response.
+                        Setting value to `(constantly nil)` disables both request- &
+                        response coercion. See tests and wiki for details.
+
+  Enchancements to ring-swagger operations map:
 
   1) :parameters use ring request keys (query-params, path-params, ...) instead of
   swagger-params (query, path, ...). This keeps things simple as ring keys are used in
@@ -49,12 +56,14 @@
      :post {}
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
-  [info]
-  (let [info (merge-parameters-and-responses info)
-        root-info (swaggerize (root-info info))
-        childs (create-childs info)
-        handler (create-handler info)]
-    (routes/create nil nil root-info childs handler)))
+  ([info]
+   (resource {} info))
+  ([options info]
+   (let [info (merge-parameters-and-responses info)
+         root-info (swaggerize (root-info info))
+         childs (create-childs info)
+         handler (create-handler options info)]
+     (routes/create nil nil root-info childs handler))))
 ```                
 
 * updated dependencies:

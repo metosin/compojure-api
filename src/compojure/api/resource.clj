@@ -3,7 +3,8 @@
             [compojure.api.coerce :as coerce]
             [ring.swagger.common :as rsc]
             [schema.core :as s]
-            [plumbing.core :as p]))
+            [plumbing.core :as p]
+            [compojure.api.middleware :as mw]))
 
 (def ^:private +mappings+
   {:methods #{:get :head :patch :delete :options :post :put}
@@ -49,9 +50,10 @@
       (routes/create "/" method (swaggerize info) nil nil))
     (select-keys info (:methods +mappings+))))
 
-(defn- create-handler [info]
+(defn- create-handler [{:keys [coercion]} info]
   (fn [{:keys [request-method] :as request}]
-    (let [ks (if (contains? info request-method) [request-method] [])]
+    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+          ks (if (contains? info request-method) [request-method] [])]
       (-> ((resolve-handler info request-method)
             (coerce-request request info ks))
           (coerce-response info request ks)))))
@@ -73,13 +75,23 @@
 ;; Public api
 ;;
 
+(s/defschema Options
+  {(s/optional-key :coercion) s/Any})
+
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
 ; TODO: extract parameter schemas from handler fnks?
 (defn resource
-  "Creates a nested compojure-api Route from an enchanced ring-swagger operations map.
-  Applies both request- and response-coercion based on those definitions.
+  "Creates a nested compojure-api Route from options and enchanced ring-swagger operations map.
+  By default, applies both request- and response-coercion based on those definitions.
 
-  Enchancements:
+  Options:
+
+  - **:coercion**       A function from request->type->coercion-matcher, used
+                        in resource coercion for :body, :string and :response.
+                        Setting value to `(constantly nil)` disables both request- &
+                        response coercion. See tests and wiki for details.
+
+  Enchancements to ring-swagger operations map:
 
   1) :parameters use ring request keys (query-params, path-params, ...) instead of
   swagger-params (query, path, ...). This keeps things simple as ring keys are used in
@@ -118,9 +130,11 @@
      :post {}
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
-  [info]
-  (let [info (merge-parameters-and-responses info)
-        root-info (swaggerize (root-info info))
-        childs (create-childs info)
-        handler (create-handler info)]
-    (routes/create nil nil root-info childs handler)))
+  ([info]
+   (resource {} info))
+  ([options info]
+   (let [info (merge-parameters-and-responses info)
+         root-info (swaggerize (root-info info))
+         childs (create-childs info)
+         handler (create-handler options info)]
+     (routes/create nil nil root-info childs handler))))
