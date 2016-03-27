@@ -99,9 +99,11 @@
         (provider request))
       default-coercion-matchers)))
 
+(def coercion-request-ks [::options :coercion])
+
 (defn wrap-coercion [handler coercion]
   (fn [request]
-    (handler (assoc-in request [::options :coercion] coercion))))
+    (handler (assoc-in request coercion-request-ks coercion))))
 
 ;;
 ;; ring-middleware-format stuff
@@ -193,7 +195,7 @@
                                    e.g. `{:ignore-missing-mappings? true}`
 
   - **:coercion**                  A function from request->type->coercion-matcher, used
-                                   in endpoint coercion for :json, :query and :response.
+                                   in endpoint coercion for :body, :string and :response.
                                    Defaults to `(constantly compojure.api.middleware/default-coercion-matchers)`
 
   - **:components**                Components which should be accessible to handlers using
