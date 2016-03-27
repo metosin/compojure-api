@@ -7,7 +7,7 @@
 
 ```clj
 (defn resource
-  "Creates a nested compojure-api Route from options and enchanced ring-swagger operations map.
+  "Creates a nested compojure-api Route from enchanced ring-swagger operations map and options.
   By default, applies both request- and response-coercion based on those definitions.
 
   Options:
@@ -57,12 +57,12 @@
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
   ([info]
-   (resource {} info))
-  ([options info]
+   (resource info {}))
+  ([info options]
    (let [info (merge-parameters-and-responses info)
          root-info (swaggerize (root-info info))
          childs (create-childs info)
-         handler (create-handler options info)]
+         handler (create-handler info options)]
      (routes/create nil nil root-info childs handler))))
 ```                
 

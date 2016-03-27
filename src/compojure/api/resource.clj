@@ -50,7 +50,7 @@
       (routes/create "/" method (swaggerize info) nil nil))
     (select-keys info (:methods +mappings+))))
 
-(defn- create-handler [{:keys [coercion]} info]
+(defn- create-handler [info {:keys [coercion]}]
   (fn [{:keys [request-method] :as request}]
     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
           ks (if (contains? info request-method) [request-method] [])]
@@ -81,7 +81,7 @@
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
 ; TODO: extract parameter schemas from handler fnks?
 (defn resource
-  "Creates a nested compojure-api Route from options and enchanced ring-swagger operations map.
+  "Creates a nested compojure-api Route from enchanced ring-swagger operations map and options.
   By default, applies both request- and response-coercion based on those definitions.
 
   Options:
@@ -131,10 +131,10 @@
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
   ([info]
-   (resource {} info))
-  ([options info]
+   (resource info {}))
+  ([info options]
    (let [info (merge-parameters-and-responses info)
          root-info (swaggerize (root-info info))
          childs (create-childs info)
-         handler (create-handler options info)]
+         handler (create-handler info options)]
      (routes/create nil nil root-info childs handler))))
