@@ -1,3 +1,11 @@
+## Unreleased
+
+* updated dependencies:
+
+```clj
+[prismatic/plumbing "0.5.3"] is available but we use "0.5.2"
+```
+
 ## 1.0.2 (27.3.2016)
 
 * Parameter order is unreversed for fnk-style destructurings for small number of paramerers, fixes [#224](https://github.com/metosin/compojure-api/issues/224)
