@@ -250,5 +250,6 @@
 
 (defn compose-middleware [middleware]
   (->> middleware
+       (keep identity)
        (map middleware-fn)
        (apply comp identity)))

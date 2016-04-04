@@ -1,4 +1,6 @@
-## Unreleased
+## 1.0.3-SNAPSHOT
+
+* Strip nils from `:middleware`, fixes [#228](https://github.com/metosin/compojure-api/issues/228)
 
 * updated dependencies:
 
