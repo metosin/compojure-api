@@ -7,7 +7,7 @@
             :comments "same as Clojure"}
   :dependencies [[prismatic/plumbing "0.5.3"]
                  [potemkin "0.4.3"]
-                 [cheshire "5.5.0"]
+                 [cheshire "5.6.1"]
                  [compojure "1.5.0"]
                  [prismatic/schema "1.1.0"]
                  [org.tobereplaced/lettercase "1.0.0"]
@@ -27,7 +27,7 @@
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2"]
                              [lein-ring "0.9.7"]
-                             [funcool/codeina "0.3.0"]]
+                             [funcool/codeina "0.4.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [slingshot "0.12.2"]
                                   [peridot "0.4.3"]
