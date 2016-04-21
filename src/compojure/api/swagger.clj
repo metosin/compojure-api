@@ -4,7 +4,6 @@
             [compojure.api.middleware :as mw]
             [ring.util.http-response :refer [ok]]
             [ring.swagger.common :as rsc]
-            [ring.swagger.validator :as v]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as rsui]
@@ -116,10 +115,13 @@
 (defn validate
   "Validates a api. If the api is Swagger-enabled, the swagger-spec
   is requested and validated against the JSON Schema. Returns either
-  the (valid) api or throws an exception."
+  the (valid) api or throws an exception. Requires lazily the
+  ring.swagger.validator -namespace allowing it to be excluded, #227"
   [api]
+  (require 'ring.swagger.validator)
   (when-let [uri (swagger-spec-path api)]
-    (let [{status :status :as response} (api {:request-method :get
+    (let [validate (resolve 'ring.swagger.validator/validate)
+          {status :status :as response} (api {:request-method :get
                                               :uri uri
                                               mw/rethrow-exceptions? true})
           body (-> response :body slurp (cheshire/parse-string true))]
@@ -129,7 +131,7 @@
                         {:status status
                          :body body})))
 
-      (when-let [errors (seq (v/validate body))]
+      (when-let [errors (seq (validate body))]
         (throw (ex-info (str "Invalid swagger spec from " uri)
                         {:errors errors
                          :body body})))))
