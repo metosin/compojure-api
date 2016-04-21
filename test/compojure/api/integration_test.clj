@@ -1252,8 +1252,9 @@
               {:exceptions {:handlers {::ex/response-validation check-for-response-handler}}}
               (swagger-routes)
               (GET "/test-response" []
-                    :return {:correct s/Str}
-                    (ok incorrect-return-value)))] ; This should fail and trigger our error handler
+                :return {:correct s/Str}
+                ; This should fail and trigger our error handler
+                (ok incorrect-return-value)))]
 
     (fact "return case, valid request & valid model"
       (let [[status body] (get* app "/test-response")]
