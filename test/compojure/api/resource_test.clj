@@ -4,9 +4,7 @@
             [plumbing.core :refer [fnk]]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]
-            [schema.coerce :as sc]
-            [schema.utils :as su])
+            [schema.core :as s])
   (:import [clojure.lang ExceptionInfo]))
 
 (defn has-body [expected]
@@ -68,9 +66,8 @@
       (handler {:request-method :get, :query-params {:x "1", :y "a"}}) => request-validation-failed?
       (handler {:request-method :get, :query-params {:x "1", :y "2"}}) => (has-body {:total 3})
 
-      (fact "if no handler is found, exception is thrown"
-        (handler {:request-method :post, :query-params {:x "1"}})
-        => (throws ExceptionInfo #"No handler defined for :post"))))
+      (fact "if no handler is found, nil is returned"
+        (handler {:request-method :post, :query-params {:x "1"}}) => nil)))
 
   (fact "handler preference"
     (let [handler (resource
@@ -112,24 +109,44 @@
 
 (fact "compojure-api routing integration"
   (let [handler (context "/rest" []
+
                   (GET "/no" request
                     (ok (select-keys request [:uri :path-info])))
+
                   (ANY "/any" []
                     (resource
                       {:handler (constantly (ok "ANY"))}))
-                  ;; impossible route: get & post
+
+                  (context "/context" []
+                    (resource
+                      {:handler (constantly (ok "CONTEXT"))}))
+
                   (GET "/get" []
                     (resource
                       {:post {:handler (constantly (ok "GET"))}}))
+
                   (resource
-                    {:handler (fn [request]
-                                (ok (select-keys request [:uri :path-info])))}))]
-    (handler {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no"
-                                                                    :path-info "/no"})
-    (handler {:request-method :get, :uri "/rest/any"}) => (has-body "ANY")
-    (handler {:request-method :get, :uri "/rest/get"}) => throws
-    (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"
-                                                                           :path-info "/in-peaces"})))
+                    {:get {:handler (fn [request]
+                                      (ok (select-keys request [:uri :path-info])))}}))]
+
+    (fact "normal endpoint"
+      (handler {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no", :path-info "/no"}))
+
+    (fact "wrapped in ANY"
+      (handler {:request-method :get, :uri "/rest/any"}) => (has-body "ANY"))
+
+    (fact "wrapped in context"
+      (handler {:request-method :get, :uri "/rest/context"}) => (has-body "CONTEXT"))
+
+    (fact "impossible route"
+      (handler {:request-method :get, :uri "/rest/get"}) => (has-body {:uri "/rest/get", :path-info "/get"}))
+
+    (fact "top-level GET hits"
+      (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"
+                                                                             :path-info "/in-peaces"}))
+
+    (fact "top-level POST misses"
+      (handler {:request-method :post, :uri "/rest/in-peaces"}) => nil)))
 
 (fact "swagger-integration"
   (let [app (api
