@@ -8,6 +8,7 @@
             [ring.swagger.common :as rsc]
             [clojure.string :as str]
             [linked.core :as linked]
+            [compojure.response]
             [schema.core :as s])
   (:import [clojure.lang AFn IFn Var]))
 
@@ -52,6 +53,9 @@
           (for [[p m i] (mapcat #(get-routes % options) valid-childs)]
             [(->paths path p) m (rsc/deep-merge info i)]))
         (into [] (if path [[path method info]])))))
+
+  compojure.response/Renderable
+  (render [_ request] (compojure.response/render (handler request) request))
 
   IFn
   (invoke [_ request]

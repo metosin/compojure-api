@@ -4,7 +4,9 @@
             [plumbing.core :refer [fnk]]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [schema.core :as s])
+            [schema.core :as s]
+            [schema.coerce :as sc]
+            [schema.utils :as su])
   (:import [clojure.lang ExceptionInfo]))
 
 (defn has-body [expected]
@@ -112,11 +114,20 @@
   (let [handler (context "/rest" []
                   (GET "/no" request
                     (ok (select-keys request [:uri :path-info])))
+                  (ANY "/any" []
+                    (resource
+                      {:handler (constantly (ok "ANY"))}))
+                  ;; impossible route: get & post
+                  (GET "/get" []
+                    (resource
+                      {:post {:handler (constantly (ok "GET"))}}))
                   (resource
                     {:handler (fn [request]
                                 (ok (select-keys request [:uri :path-info])))}))]
     (handler {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no"
                                                                     :path-info "/no"})
+    (handler {:request-method :get, :uri "/rest/any"}) => (has-body "ANY")
+    (handler {:request-method :get, :uri "/rest/get"}) => throws
     (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"
                                                                            :path-info "/in-peaces"})))
 

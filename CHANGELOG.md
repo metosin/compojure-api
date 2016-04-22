@@ -2,6 +2,7 @@
 
 * Strip nils from `:middleware`, fixes [#228](https://github.com/metosin/compojure-api/issues/228)
 * Lazily require `ring.swagger.validator` namespace in `compojure.api.swagger/validate` to allow compojure-api apps in [Google App Engine](https://cloud.google.com/appengine), Fixes [#227](https://github.com/metosin/compojure-api/issues/227). **NOTE** exluding `metosin/scjsv` will cause the validate to fail at runtime.
+* Resources now implement `compojure.response/Renderable`, so that they can be used with endpoint macros like `ANY`
 
 ```
 [metosin/compojure-api "1.0.3" :exclusions [[metosin/scjsv]]]
