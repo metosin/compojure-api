@@ -113,35 +113,29 @@
                   (GET "/no" request
                     (ok (select-keys request [:uri :path-info])))
 
-                  (ANY "/any" []
-                    (resource
-                      {:handler (constantly (ok "ANY"))}))
-
                   (context "/context" []
                     (resource
                       {:handler (constantly (ok "CONTEXT"))}))
 
-                  (GET "/get" []
+                  ;; does not work
+                  (ANY "/any" []
                     (resource
-                      {:post {:handler (constantly (ok "GET"))}}))
+                      {:handler (constantly (ok "ANY"))}))
 
                   (resource
                     {:get {:handler (fn [request]
                                       (ok (select-keys request [:uri :path-info])))}}))]
 
-    (fact "normal endpoint"
+    (fact "normal endpoint works"
       (handler {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no", :path-info "/no"}))
 
-    (fact "wrapped in ANY"
-      (handler {:request-method :get, :uri "/rest/any"}) => (has-body "ANY"))
+    (fact "wrapped in ANY fails at runtime"
+      (handler {:request-method :get, :uri "/rest/any"}) => throws)
 
-    (fact "wrapped in context"
+    (fact "wrapped in context works"
       (handler {:request-method :get, :uri "/rest/context"}) => (has-body "CONTEXT"))
 
-    (fact "impossible route"
-      (handler {:request-method :get, :uri "/rest/get"}) => (has-body {:uri "/rest/get", :path-info "/get"}))
-
-    (fact "top-level GET hits"
+    (fact "top-level GET works"
       (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"
                                                                              :path-info "/in-peaces"}))
 

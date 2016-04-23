@@ -55,7 +55,16 @@
         (into [] (if path [[path method info]])))))
 
   compojure.response/Renderable
-  (render [_ request] (compojure.response/render (handler request) request))
+  (render [_ {:keys [uri request-method]}]
+    (throw
+      (ex-info
+        (str "\ncompojure.api.routes/Route can't be returned from endpoint "
+             (-> request-method name str/upper-case) " \"" uri "\". "
+             "For nested routes, use `context` instead: (context \"path\" []  ...)\n")
+        {:request-method request-method
+         :path path
+         :method method
+         :uri uri})))
 
   IFn
   (invoke [_ request]
