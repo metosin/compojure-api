@@ -124,5 +124,78 @@
 
   )
 
+(defn resource-bench []
+
+  (let [resource-map {:post {:responses {200 {:schema {:result s/Int}}}
+                             :parameters {:body-params {:x s/Int, :y s/Int}}
+                             :handler (fn [{{:keys [x y]} :body-params}]
+                                        (ok {:result (+ x y)}))}}]
+
+    (let [my-resource (resource resource-map)
+          app (api
+                (context "/plus" []
+                  my-resource))
+          data (h/json {:x 10, :y 20})
+          call #(post* app "/plus" data)]
+
+      (title "JSON POST to pre-defined resource with 2-way coercion")
+
+      (assert (= {:result 30} (parse (call))))
+      (cc/bench (call)))
+
+    ;; 62µs
+
+    (let [app (api
+                (context "/plus" []
+                  (resource resource-map)))
+          data (h/json {:x 10, :y 20})
+          call #(post* app "/plus" data)]
+
+      (title "JSON POST to inlined resource with 2-way coercion")
+
+      (assert (= {:result 30} (parse (call))))
+      (cc/bench (call)))
+
+    ;; 68µs
+
+    (let [my-resource (resource resource-map)
+          app my-resource
+          data {:x 10, :y 20}
+          call #(app {:request-method :post :uri "/irrelevant" :body-params data})]
+
+      (title "direct POST to pre-defined resource with 2-way coercion")
+
+      (assert (= {:result 30} (:body (call))))
+      (cc/bench (call)))
+
+    ;; 26µs
+
+    (let [my-resource (resource resource-map)
+          app (context "/plus" []
+                my-resource)
+          data {:x 10, :y 20}
+          call #(app {:request-method :post :uri "/plus" :body-params data})]
+
+      (title "POST to pre-defined resource with 2-way coercion")
+
+      (assert (= {:result 30} (:body (call))))
+      (cc/bench (call)))
+
+    ;; 30µs
+
+    (let [app (context "/plus" []
+                (resource resource-map))
+          data {:x 10, :y 20}
+          call #(app {:request-method :post :uri "/plus" :body-params data})]
+
+      (title "POST to inlined resource with 2-way coercion")
+
+      (assert (= {:result 30} (:body (call))))
+      (cc/bench (call)))
+
+    ;; 40µs
+    ))
+
 (comment
-  (bench))
+  (bench)
+  (resource-bench))
