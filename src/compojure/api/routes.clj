@@ -42,7 +42,10 @@
   ([handler]
    (get-routes handler nil))
   ([handler options]
-   (-get-routes handler options)))
+   (mapv
+     (fn [route]
+       (update-in route [0] (fn [uri] (if (str/blank? uri) "/" uri))))
+     (-get-routes handler options))))
 
 (defrecord Route [path method info childs handler]
   Routing
@@ -50,7 +53,7 @@
     (let [valid-childs (filter-routes this options)]
       (if (seq childs)
         (vec
-          (for [[p m i] (mapcat #(get-routes % options) valid-childs)]
+          (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
             [(->paths path p) m (rsc/deep-merge info i)]))
         (into [] (if path [[path method info]])))))
 

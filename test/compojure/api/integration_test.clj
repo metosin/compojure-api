@@ -1274,3 +1274,13 @@
     (fact "swagger parameters are in correct order"
       (-> app get-spec :paths (get "/ping") :get :parameters (->> (map (comp keyword :name)))) => [:a :b :c :d :e])))
 
+(fact "empty top-level route, #https://github.com/metosin/ring-swagger/issues/92"
+  (let [app (api
+              {:swagger {:spec "/swagger.json"}}
+              (GET "/" [] (ok {:kikka "kukka"})))]
+    (fact "api works"
+      (let [[status body] (get* app "/")]
+        status => 200
+        body => {:kikka "kukka"}))
+    (fact "swagger docs"
+      (-> app get-spec :paths keys) => ["/"])))
