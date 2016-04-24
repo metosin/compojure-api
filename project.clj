@@ -14,7 +14,7 @@
                  [frankiesardo/linked "1.2.6"]
                  [ring-middleware-format "0.7.0"]
                  [metosin/ring-http-response "0.6.5"]
-                 [metosin/ring-swagger "0.22.6"]
+                 [metosin/ring-swagger "0.22.7"]
                  [metosin/ring-swagger-ui "2.1.4-0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}

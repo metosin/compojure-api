@@ -29,6 +29,7 @@
 * updated dependencies:
 
 ```clj
+[metosin/ring-swagger "0.22.7"] is available but we use "0.22.6"
 [prismatic/plumbing "0.5.3"] is available but we use "0.5.2"
 [cheshire "5.6.1"] is available but we use "5.5.0"
 ```
