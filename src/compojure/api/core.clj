@@ -4,17 +4,14 @@
             [compojure.api.middleware :as mw]
             [clojure.tools.macro :as macro]))
 
-(defn- ring-handler [handlers]
-  (condp = (count handlers)
-    0 (constantly nil)
-    1 (first handlers)
-    (fn [request] (some #(% request) handlers))))
+(defn- handle [handlers request]
+  (some #(% request) handlers))
 
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
-  (if-let [handlers (seq (keep identity handlers))]
-    (routes/create nil nil {} (vec handlers) (ring-handler handlers))))
+  (let [handlers (seq (keep identity handlers))]
+    (routes/create nil nil {} (vec handlers) (partial handle handlers))))
 
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
@@ -37,7 +34,7 @@
   not satisfying compojure.api.routes/Routing -protocol."
   [& handlers]
   (let [handlers (keep identity handlers)]
-    (routes/create nil nil {} nil (ring-handler handlers))))
+    (routes/create nil nil {} nil (partial handle handlers))))
 
 (defmacro middleware
   "Wraps routes with given middlewares using thread-first macro.
