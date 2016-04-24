@@ -1,4 +1,4 @@
-## 1.1.0-SNAPSHOT
+## 1.1.0 (25.4.2016)
 
 * **BREAKING**: Move `compojure.api.swgger/validate` to `compojure.api.validator/validate`.
 * **BREAKING**: If a `resource` doesn't define a handler for a given `request-method` or for top-level, nil is returned (instead of throwing exeption)
@@ -17,6 +17,7 @@
            :parameters {:query-params {:name s/Str}}
            :handler (fnk [[:query-params name]]
                       (ok {:message (format "hello, %s!" name)}))}}))
+```
 
 * api-level swagger-options default to `{:ui nil, :spec nil}`. Setting up just the spec or ui, doesn't automatically setup the other (like previously)
 * Strip nils from `:middleware`, fixes [#228](https://github.com/metosin/compojure-api/issues/228)
