@@ -1,9 +1,8 @@
 ## 1.1.0-SNAPSHOT
 
-* Strip nils from `:middleware`, fixes [#228](https://github.com/metosin/compojure-api/issues/228)
-* Lazily require `ring.swagger.validator` namespace in `compojure.api.swagger/validate` to allow compojure-api apps in [Google App Engine](https://cloud.google.com/appengine), Fixes [#227](https://github.com/metosin/compojure-api/issues/227). **NOTE** exluding `metosin/scjsv` will cause the validate to fail at runtime.
-* **BREAKING**: If a resource doesn't define a handler for a given `request-method` or for top-level, nil is returned (instead of throwing exeption)
-* Resource-routing is done with `context`. Trying to return a `compojure.api.routing/Route` from an endpoint like `ANY` will throw descriptive (runtime-)exception.
+* **BREAKING**: Move `compojure.api.swgger/validate` to `compojure.api.validator/validate`.
+* **BREAKING**: If a `resource` doesn't define a handler for a given `request-method` or for top-level, nil is returned (instead of throwing exeption)
+* **BREAKING** Resource-routing is done by `context`. Trying to return a `compojure.api.routing/Route` from an endpoint like `ANY` will throw descriptive (runtime-)exception.
 
 ```clj
 (context "/hello" []
@@ -18,9 +17,13 @@
            :parameters {:query-params {:name s/Str}}
            :handler (fnk [[:query-params name]]
                       (ok {:message (format "hello, %s!" name)}))}}))
-```
 
-[metosin/compojure-api "1.0.3" :exclusions [[metosin/scjsv]]]
+* api-level swagger-options default to `{:ui nil, :spec nil}`. Setting up just the spec or ui, doesn't automatically setup the other (like previously)
+* Strip nils from `:middleware`, fixes [#228](https://github.com/metosin/compojure-api/issues/228)
+* Support compojure-api apps in [Google App Engine](https://cloud.google.com/appengine) by allowing [scjsv](https://github.com/metosin/scjsv) to be excluded (uses [json-schema-validator](https://github.com/fge/json-schema-validator), which uses rogue threads):
+
+```clj
+[metosin/compojure-api "1.1.0" :exclusions [[metosin/scjsv]]]
 ```
 
 * updated dependencies:
