@@ -12,7 +12,7 @@
   (merge
     middleware/api-middleware-defaults
     {:api {:invalid-routes-fn routes/log-invalid-child-routes}
-     :swagger nil}))
+     :swagger {:ui nil, :spec nil}}))
 
 (defn
   ^{:doc (str

@@ -1,15 +1,36 @@
-## 1.0.3-SNAPSHOT
+## 1.1.0-SNAPSHOT
 
+* **BREAKING**: Move `compojure.api.swgger/validate` to `compojure.api.validator/validate`.
+* **BREAKING**: If a `resource` doesn't define a handler for a given `request-method` or for top-level, nil is returned (instead of throwing exeption)
+* **BREAKING** Resource-routing is done by `context`. Trying to return a `compojure.api.routing/Route` from an endpoint like `ANY` will throw descriptive (runtime-)exception.
+
+```clj
+(context "/hello" []
+  (resource
+    {:description "hello-resource"
+     :responses {200 {:schema {:message s/Str}}}
+     :post {:summary "post-hello"
+            :parameters {:body-params {:name s/Str}}
+            :handler (fnk [[:body-params name]]
+                       (ok {:message (format "hello, %s!" name)}))}
+     :get {:summary "get-hello"
+           :parameters {:query-params {:name s/Str}}
+           :handler (fnk [[:query-params name]]
+                      (ok {:message (format "hello, %s!" name)}))}}))
+
+* api-level swagger-options default to `{:ui nil, :spec nil}`. Setting up just the spec or ui, doesn't automatically setup the other (like previously)
 * Strip nils from `:middleware`, fixes [#228](https://github.com/metosin/compojure-api/issues/228)
-* Lazily require `ring.swagger.validator` namespace in `compojure.api.swagger/validate` to allow compojure-api apps in [Google App Engine](https://cloud.google.com/appengine), Fixes [#227](https://github.com/metosin/compojure-api/issues/227). **NOTE** exluding `metosin/scjsv` will cause the validate to fail at runtime.
+* `describe` works with anonymous body-schemas (via ring-swagger `0.22.7`), Fixes [#168](https://github.com/metosin/compojure-api/issues/168)
+* Support compojure-api apps in [Google App Engine](https://cloud.google.com/appengine) by allowing [scjsv](https://github.com/metosin/scjsv) to be excluded (uses [json-schema-validator](https://github.com/fge/json-schema-validator), which uses rogue threads):
 
-```
-[metosin/compojure-api "1.0.3" :exclusions [[metosin/scjsv]]]
+```clj
+[metosin/compojure-api "1.1.0" :exclusions [[metosin/scjsv]]]
 ```
 
 * updated dependencies:
 
 ```clj
+[metosin/ring-swagger "0.22.7"] is available but we use "0.22.6"
 [prismatic/plumbing "0.5.3"] is available but we use "0.5.2"
 [cheshire "5.6.1"] is available but we use "5.5.0"
 ```

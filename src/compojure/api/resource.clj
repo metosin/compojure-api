@@ -41,8 +41,7 @@
 (defn- resolve-handler [info request-method]
   (or
     (get-in info [request-method :handler])
-    (get-in info [:handler])
-    (throw (ex-info (str "No handler defined for " request-method) info))))
+    (get-in info [:handler])))
 
 (defn- create-childs [info]
   (map
@@ -54,9 +53,10 @@
   (fn [{:keys [request-method] :as request}]
     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
           ks (if (contains? info request-method) [request-method] [])]
-      (-> ((resolve-handler info request-method)
-            (coerce-request request info ks))
-          (coerce-response info request ks)))))
+      (if-let [handler (resolve-handler info request-method)]
+        (-> (coerce-request request info ks)
+            handler
+            (coerce-response info request ks))))))
 
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]
@@ -106,7 +106,7 @@
 
   3) special key `:handler` either under operations or at top-level. Value should be a
   ring-handler function, responsible for the actual request processing. Handler lookup
-  order is the following: operations-level, top-level, exception.
+  order is the following: operations-level, top-level.
 
   4) request-coercion is applied once, using deep-merged parameters for a given
   operation or resource-level if only resource-level handler is defined.

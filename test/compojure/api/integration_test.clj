@@ -10,6 +10,7 @@
             [ring.util.http-status :as status]
             [compojure.api.middleware :as mw]
             [ring.swagger.middleware :as rsm]
+            [compojure.api.validator :as validator]
             [compojure.api.routes :as routes]))
 
 ;;
@@ -463,7 +464,85 @@
                          :consumes ["application/json" "application/edn"]
                          :produces ["application/json" "application/edn"]
                          :definitions {}
-                         :paths {"/user" {:get {:responses {:default {:description ""}}}}}})))
+                         :paths {"/user" {:get {:responses {:default {:description ""}}}}}}))
+
+  (fact "swagger-routes"
+
+    (fact "with defaults"
+      (let [app (api (swagger-routes))]
+
+        (fact "api-docs are mounted to /"
+          (let [[status body] (raw-get* app "/")]
+            status => 200
+            body => #"<title>Swagger UI</title>"))
+
+        (fact "spec is mounted to /swagger.json"
+          (let [[status body] (get* app "/swagger.json")]
+            status => 200
+            body => (contains {:swagger "2.0"})))))
+
+    (fact "with partial overridden values"
+      (let [app (api (swagger-routes {:ui "/api-docs"}))]
+
+        (fact "api-docs are mounted"
+          (let [[status body] (raw-get* app "/api-docs")]
+            status => 200
+            body => #"<title>Swagger UI</title>"))
+
+        (fact "spec is mounted to /swagger.json"
+          (let [[status body] (get* app "/swagger.json")]
+            status => 200
+            body => (contains {:swagger "2.0"}))))))
+
+  (fact "swagger via api-options"
+
+    (fact "with defaults"
+      (let [app (api)]
+
+        (fact "api-docs are not mounted"
+          (let [[status body] (raw-get* app "/")]
+            status => nil))
+
+        (fact "spec is not mounted"
+          (let [[status body] (get* app "/swagger.json")]
+            status => nil))))
+
+    (fact "with spec"
+      (let [app (api {:swagger {:spec "/swagger.json"}})]
+
+        (fact "api-docs are not mounted"
+          (let [[status body] (raw-get* app "/")]
+            status => nil))
+
+        (fact "spec is mounted to /swagger.json"
+          (let [[status body] (get* app "/swagger.json")]
+            status => 200
+            body => (contains {:swagger "2.0"}))))))
+
+  (fact "with ui"
+    (let [app (api {:swagger {:ui "/api-docs"}})]
+
+      (fact "api-docs are mounted"
+        (let [[status body] (raw-get* app "/api-docs")]
+          status => 200
+          body => #"<title>Swagger UI</title>"))
+
+      (fact "spec is not mounted"
+        (let [[status body] (get* app "/swagger.json")]
+          status => nil))))
+
+  (fact "with ui and spec"
+    (let [app (api {:swagger {:spec "/swagger.json", :ui "/api-docs"}})]
+
+      (fact "api-docs are mounted"
+        (let [[status body] (raw-get* app "/api-docs")]
+          status => 200
+          body => #"<title>Swagger UI</title>"))
+
+      (fact "spec is mounted to /swagger.json"
+        (let [[status body] (get* app "/swagger.json")]
+          status => 200
+          body => (contains {:swagger "2.0"}))))))
 
 (facts "swagger-docs with anonymous Return and Body models"
   (let [app (api
@@ -971,7 +1050,7 @@
           body => {:data "ping"}))
 
       (fact "the api is valid"
-        (swagger/validate app) => app)))
+        (validator/validate app) => app)))
 
   (fact "a swagger api with invalid swagger records"
     (let [app (api
@@ -986,7 +1065,7 @@
           body => {:data "ping"}))
 
       (fact "the api is invalid"
-        (swagger/validate app)
+        (validator/validate app)
         => (throws
              IllegalArgumentException
              (str
@@ -1005,7 +1084,7 @@
           body => {:data "ping"}))
 
       (fact "the api is valid"
-        (swagger/validate app) => app))))
+        (validator/validate app) => app))))
 
 (fact "component integration"
   (let [system {:magic 42}]
@@ -1191,7 +1270,8 @@
 (fact "using local symbols for restructuring params"
   (let [responses {400 {:schema {:fail s/Str}}}
         app (api
-              {:swagger {:data {:info {:version "2.0.0"}}}}
+              {:swagger {:spec "/swagger.json"
+                         :data {:info {:version "2.0.0"}}}}
               (GET "/a" []
                 :responses responses
                 :return {:ok s/Str}
@@ -1274,3 +1354,23 @@
     (fact "swagger parameters are in correct order"
       (-> app get-spec :paths (get "/ping") :get :parameters (->> (map (comp keyword :name)))) => [:a :b :c :d :e])))
 
+(fact "empty top-level route, #https://github.com/metosin/ring-swagger/issues/92"
+  (let [app (api
+              {:swagger {:spec "/swagger.json"}}
+              (GET "/" [] (ok {:kikka "kukka"})))]
+    (fact "api works"
+      (let [[status body] (get* app "/")]
+        status => 200
+        body => {:kikka "kukka"}))
+    (fact "swagger docs"
+      (-> app get-spec :paths keys) => ["/"])))
+
+(fact "describe works on anonymous bodys, #168"
+  (let [app (api
+              (swagger-routes)
+              (POST "/" []
+                :body [body (describe {:kikka [{:kukka String}]} "kikkas")]
+                (ok body)))]
+    (fact "description is in place"
+      (-> app get-spec :paths (get "/") :post :parameters first )
+      => (contains {:description "kikkas"}))))

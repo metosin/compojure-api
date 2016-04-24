@@ -8,24 +8,7 @@
             [ring.swagger.core :as swagger]
             [ring.swagger.ui :as rsui]
             [ring.swagger.swagger2 :as swagger2]
-            [compojure.api.routes :as routes]
-            [cheshire.core :as cheshire]))
-
-#_(defn ensure-parameter-schema-names [endpoint]
-    (if (get-in endpoint [:parameters :body])
-      (update-in endpoint [:parameters :body] #(swagger/with-named-sub-schemas % "Body"))
-      endpoint))
-
-#_(defn ensure-return-schema-names [endpoint]
-    (if (get-in endpoint [:responses])
-      (update-in
-        endpoint [:responses]
-        (fn [responses]
-          (into {} (map
-                     (fn [[k v]]
-                       [k (update-in v [:schema] swagger/with-named-sub-schemas "Response")])
-                     responses))))
-      endpoint))
+            [compojure.api.routes :as routes]))
 
 (defn base-path [request]
   (let [context (swagger/context request)]
@@ -106,33 +89,8 @@
             :tags [{:name \"sausages\", :description \"Sausage api-set\"}]}}"
   ([] (swagger-routes {}))
   ([options]
-   (if options
-     (let [{:keys [ui spec data] {ui-options :ui spec-options :spec} :options} (merge swagger-defaults options)]
+   (let [{:keys [ui spec data] {ui-options :ui} :options} (merge swagger-defaults options)]
+     (if (or ui spec)
        (c/routes
          (if ui (apply swagger-ui ui (mapcat identity (merge (if spec {:swagger-docs (apply str (remove clojure.string/blank? [(:basePath data) spec]))}) ui-options))))
          (if spec (apply swagger-docs spec (mapcat identity data))))))))
-
-(defn validate
-  "Validates a api. If the api is Swagger-enabled, the swagger-spec
-  is requested and validated against the JSON Schema. Returns either
-  the (valid) api or throws an exception. Requires lazily the
-  ring.swagger.validator -namespace allowing it to be excluded, #227"
-  [api]
-  (require 'ring.swagger.validator)
-  (when-let [uri (swagger-spec-path api)]
-    (let [validate (resolve 'ring.swagger.validator/validate)
-          {status :status :as response} (api {:request-method :get
-                                              :uri uri
-                                              mw/rethrow-exceptions? true})
-          body (-> response :body slurp (cheshire/parse-string true))]
-
-      (when-not (= status 200)
-        (throw (ex-info (str "Coudn't read swagger spec from " uri)
-                        {:status status
-                         :body body})))
-
-      (when-let [errors (seq (validate body))]
-        (throw (ex-info (str "Invalid swagger spec from " uri)
-                        {:errors errors
-                         :body body})))))
-  api)

@@ -66,9 +66,8 @@
       (handler {:request-method :get, :query-params {:x "1", :y "a"}}) => request-validation-failed?
       (handler {:request-method :get, :query-params {:x "1", :y "2"}}) => (has-body {:total 3})
 
-      (fact "if no handler is found, exception is thrown"
-        (handler {:request-method :post, :query-params {:x "1"}})
-        => (throws ExceptionInfo #"No handler defined for :post"))))
+      (fact "if no handler is found, nil is returned"
+        (handler {:request-method :post, :query-params {:x "1"}}) => nil)))
 
   (fact "handler preference"
     (let [handler (resource
@@ -110,15 +109,38 @@
 
 (fact "compojure-api routing integration"
   (let [handler (context "/rest" []
+
                   (GET "/no" request
                     (ok (select-keys request [:uri :path-info])))
+
+                  (context "/context" []
+                    (resource
+                      {:handler (constantly (ok "CONTEXT"))}))
+
+                  ;; does not work
+                  (ANY "/any" []
+                    (resource
+                      {:handler (constantly (ok "ANY"))}))
+
                   (resource
-                    {:handler (fn [request]
-                                (ok (select-keys request [:uri :path-info])))}))]
-    (handler {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no"
-                                                                    :path-info "/no"})
-    (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"
-                                                                           :path-info "/in-peaces"})))
+                    {:get {:handler (fn [request]
+                                      (ok (select-keys request [:uri :path-info])))}}))]
+
+    (fact "normal endpoint works"
+      (handler {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no", :path-info "/no"}))
+
+    (fact "wrapped in ANY fails at runtime"
+      (handler {:request-method :get, :uri "/rest/any"}) => throws)
+
+    (fact "wrapped in context works"
+      (handler {:request-method :get, :uri "/rest/context"}) => (has-body "CONTEXT"))
+
+    (fact "top-level GET works"
+      (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"
+                                                                             :path-info "/in-peaces"}))
+
+    (fact "top-level POST misses"
+      (handler {:request-method :post, :uri "/rest/in-peaces"}) => nil)))
 
 (fact "swagger-integration"
   (let [app (api
