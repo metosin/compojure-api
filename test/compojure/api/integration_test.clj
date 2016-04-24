@@ -1364,3 +1364,13 @@
         body => {:kikka "kukka"}))
     (fact "swagger docs"
       (-> app get-spec :paths keys) => ["/"])))
+
+(fact "describe works on anonymous bodys, #168"
+  (let [app (api
+              (swagger-routes)
+              (POST "/" []
+                :body [body (describe {:kikka [{:kukka String}]} "kikkas")]
+                (ok body)))]
+    (fact "description is in place"
+      (-> app get-spec :paths (get "/") :post :parameters first )
+      => (contains {:description "kikkas"}))))

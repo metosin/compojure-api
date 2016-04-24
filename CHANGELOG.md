@@ -20,6 +20,7 @@
 
 * api-level swagger-options default to `{:ui nil, :spec nil}`. Setting up just the spec or ui, doesn't automatically setup the other (like previously)
 * Strip nils from `:middleware`, fixes [#228](https://github.com/metosin/compojure-api/issues/228)
+* `describe` works with anonymous body-schemas (via ring-swagger `0.22.7`), Fixes [#168](https://github.com/metosin/compojure-api/issues/168)
 * Support compojure-api apps in [Google App Engine](https://cloud.google.com/appengine) by allowing [scjsv](https://github.com/metosin/scjsv) to be excluded (uses [json-schema-validator](https://github.com/fge/json-schema-validator), which uses rogue threads):
 
 ```clj
