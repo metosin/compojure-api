@@ -11,22 +11,6 @@
             [compojure.api.routes :as routes]
             [cheshire.core :as cheshire]))
 
-#_(defn ensure-parameter-schema-names [endpoint]
-    (if (get-in endpoint [:parameters :body])
-      (update-in endpoint [:parameters :body] #(swagger/with-named-sub-schemas % "Body"))
-      endpoint))
-
-#_(defn ensure-return-schema-names [endpoint]
-    (if (get-in endpoint [:responses])
-      (update-in
-        endpoint [:responses]
-        (fn [responses]
-          (into {} (map
-                     (fn [[k v]]
-                       [k (update-in v [:schema] swagger/with-named-sub-schemas "Response")])
-                     responses))))
-      endpoint))
-
 (defn base-path [request]
   (let [context (swagger/context request)]
     (if (= "" context) "/" context)))
