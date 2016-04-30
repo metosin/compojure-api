@@ -1,3 +1,11 @@
+## Unreleased
+
+* updated dependencies:
+
+```clj
+[prismatic/schema "1.1.1"] is available but we use "1.1.0"
+```
+
 ## 1.1.0 (25.4.2016)
 
 * **BREAKING**: Move `compojure.api.swgger/validate` to `compojure.api.validator/validate`.
