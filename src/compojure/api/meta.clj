@@ -87,7 +87,7 @@
 ;           :paramerers {:query {:q s/Str}
 ;                        :body NewUser}}}
 (defmethod restructure-param :swagger [_ swagger acc]
-  (update-in acc [:swagger] rsc/deep-merge swagger))
+  (assoc-in acc [:swagger :swagger] swagger))
 
 ; Route name, used with path-for
 ; Example:
@@ -264,9 +264,12 @@
               (RuntimeException.
                 (str "unknown compojure destruction syntax: " arg))))))
 
-(defn merge-parameters [{:keys [responses] :as parameters}]
+(defn merge-parameters
+  "Merge parameters at runtime to allow usage of runtime-paramers with route-macros."
+  [{:keys [responses swagger] :as parameters}]
   (cond-> parameters
-          (seq responses) (assoc :responses (apply merge responses))))
+          (seq responses) (assoc :responses (apply merge responses))
+          swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
 
 (defn restructure [method [path arg & args] {:keys [context?]}]
   (let [[options body] (extract-parameters args true)

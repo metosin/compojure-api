@@ -1,5 +1,18 @@
 ## Unreleased
 
+* Allow usage of run-time parameters with `:swagger`.
+
+```clj
+(let [runtime-data {:x-name :boolean
+                    :operationId "echoBoolean"
+                    :description "Ehcoes a boolean"
+                    :parameters {:query {:q s/Bool}}}]
+  (api
+    (GET "/route" []
+      :swagger runtime-data
+      (ok {:it "works"}))))
+```
+
 * updated dependencies:
 
 ```clj
@@ -110,7 +123,7 @@
          childs (create-childs info)
          handler (create-handler info options)]
      (routes/create nil nil root-info childs handler))))
-```                
+```
 
 * updated dependencies:
 
@@ -122,7 +135,7 @@
 
 ## 1.0.1 (28.2.2016)
 
-* For response coercion, the original response is available in `ex-data` under `:response`. 
+* For response coercion, the original response is available in `ex-data` under `:response`.
 This can be used in logging, "what did the route try to return". Thanks to [Tim Gilbert](https://github.com/timgilbert).
 * Response coercion uses the `:default` code if available and response code doesn't match
 

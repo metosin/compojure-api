@@ -1123,31 +1123,59 @@
         body => {:i [42]}))))
 
 (fact ":swagger params just for ducumentation"
-  (let [app (api
-              (swagger-routes)
-              (GET "/route" [q]
-                :swagger {:x-name :boolean
-                          :operationId "echoBoolean"
-                          :description "Ehcoes a boolean"
-                          :parameters {:query {:q s/Bool}}}
-                (ok {:q q})))]
+  (fact "compile-time values"
+    (let [app (api
+                (swagger-routes)
+                (GET "/route" [q]
+                  :swagger {:x-name :boolean
+                            :operationId "echoBoolean"
+                            :description "Ehcoes a boolean"
+                            :parameters {:query {:q s/Bool}}}
+                  (ok {:q q})))]
 
-    (fact "there is no coercion"
-      (let [[status body] (get* app "/route" {:q "kikka"})]
-        status => 200
-        body => {:q "kikka"}))
+      (fact "there is no coercion"
+        (let [[status body] (get* app "/route" {:q "kikka"})]
+          status => 200
+          body => {:q "kikka"}))
 
-    (fact "swagger-docs are generated"
-      (-> app get-spec :paths vals first :get)
-      => (contains
-           {:x-name "boolean"
-            :operationId "echoBoolean"
-            :description "Ehcoes a boolean"
-            :parameters [{:description ""
-                          :in "query"
-                          :name "q"
-                          :required true
-                          :type "boolean"}]}))))
+      (fact "swagger-docs are generated"
+        (-> app get-spec :paths vals first :get)
+        => (contains
+             {:x-name "boolean"
+              :operationId "echoBoolean"
+              :description "Ehcoes a boolean"
+              :parameters [{:description ""
+                            :in "query"
+                            :name "q"
+                            :required true
+                            :type "boolean"}]}))))
+  (fact "run-time values"
+    (let [runtime-data {:x-name :boolean
+                        :operationId "echoBoolean"
+                        :description "Ehcoes a boolean"
+                        :parameters {:query {:q s/Bool}}}
+          app (api
+                (swagger-routes)
+                (GET "/route" [q]
+                  :swagger runtime-data
+                  (ok {:q q})))]
+
+      (fact "there is no coercion"
+        (let [[status body] (get* app "/route" {:q "kikka"})]
+          status => 200
+          body => {:q "kikka"}))
+
+      (fact "swagger-docs are generated"
+        (-> app get-spec :paths vals first :get)
+        => (contains
+             {:x-name "boolean"
+              :operationId "echoBoolean"
+              :description "Ehcoes a boolean"
+              :parameters [{:description ""
+                            :in "query"
+                            :name "q"
+                            :required true
+                            :type "boolean"}]})))))
 
 (fact "swagger-docs via api options, #218"
   (let [routes (routes
@@ -1372,5 +1400,5 @@
                 :body [body (describe {:kikka [{:kukka String}]} "kikkas")]
                 (ok body)))]
     (fact "description is in place"
-      (-> app get-spec :paths (get "/") :post :parameters first )
+      (-> app get-spec :paths (get "/") :post :parameters first)
       => (contains {:description "kikkas"}))))
