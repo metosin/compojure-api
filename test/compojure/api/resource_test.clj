@@ -122,6 +122,12 @@
                     (resource
                       {:handler (constantly (ok "ANY"))}))
 
+                  (context "/path/:id" []
+                    (resource
+                      {:parameters {:path-params {:id s/Int}}
+                       :handler (fn [request]
+                                  (ok (select-keys request [:path-params :route-params])))}))
+
                   (resource
                     {:get {:handler (fn [request]
                                       (ok (select-keys request [:uri :path-info])))}}))]
@@ -134,6 +140,10 @@
 
     (fact "wrapped in context works"
       (handler {:request-method :get, :uri "/rest/context"}) => (has-body "CONTEXT"))
+
+    (fact "path-parameters work: route-params are left untoucehed, path-params are coerced"
+      (handler {:request-method :get, :uri "/rest/path/12"}) => (has-body {:path-params {:id 12}
+                                                                           :route-params {:id "12"}}))
 
     (fact "top-level GET works"
       (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"

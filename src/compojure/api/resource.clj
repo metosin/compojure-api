@@ -8,16 +8,16 @@
 
 (def ^:private +mappings+
   {:methods #{:get :head :patch :delete :options :post :put}
-   :parameters {:query-params [:query :string true]
-                :body-params [:body :body false]
-                :form-params [:formData :string true]
-                :header-params [:header :string true]
-                :path-params [:path :string true]}})
+   :parameters {:query-params [:query-params :query :string true]
+                :body-params [:body-params :body :body false]
+                :form-params [:form-params :formData :string true]
+                :header-params [:header-params :header :string true]
+                :path-params [:route-params :path :string true]}})
 
 (defn- swaggerize [info]
   (as-> info info
         (reduce-kv
-          (fn [acc ring-key [swagger-key]]
+          (fn [acc ring-key [_ swagger-key]]
             (if-let [schema (get-in acc [:parameters ring-key])]
               (update acc :parameters #(-> % (dissoc ring-key) (assoc swagger-key schema)))
               acc))
@@ -27,10 +27,10 @@
 
 (defn- coerce-request [request info ks]
   (reduce-kv
-    (fn [request ring-key [_ type open?]]
+    (fn [request ring-key [compojure-key _ type open?]]
       (if-let [schema (get-in info (concat ks [:parameters ring-key]))]
         (let [schema (if open? (assoc schema s/Keyword s/Any) schema)]
-          (update request ring-key merge (coerce/coerce! schema ring-key type request)))
+          (update request ring-key merge (coerce/coerce! schema compojure-key type request)))
         request))
     request
     (:parameters +mappings+)))

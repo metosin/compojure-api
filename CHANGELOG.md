@@ -13,6 +13,17 @@
       (ok {:it "works"}))))
 ```
 
+* Copy & coerce compojure `:route-params` into `:path-params` with resources
+  * Fixes [#231](https://github.com/metosin/compojure-api/issues/231).
+
+```clj
+(resource
+  {:parameters {:path-params {:id s/Int}}
+   :responses {200 {:schema s/Int}}
+   :handler (fnk [[:path-params id]]
+                  (ok (inc id)))})
+```
+
 * updated dependencies:
 
 ```clj
