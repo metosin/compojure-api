@@ -21,7 +21,7 @@
   {:parameters {:path-params {:id s/Int}}
    :responses {200 {:schema s/Int}}
    :handler (fnk [[:path-params id]]
-                  (ok (inc id)))})
+              (ok (inc id)))})
 ```
 
 * updated dependencies:
