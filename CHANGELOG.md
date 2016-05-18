@@ -1,4 +1,4 @@
-## Unreleased
+## 1.1.1 (18.5.2016)
 
 * Allow usage of run-time parameters with `:swagger`.
 
