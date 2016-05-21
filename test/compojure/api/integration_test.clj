@@ -1402,3 +1402,14 @@
     (fact "description is in place"
       (-> app get-spec :paths (get "/") :post :parameters first)
       => (contains {:description "kikkas"}))))
+
+(facts "swagger responses headers are mapped correctly, #232"
+  (let [app (api
+              (swagger-routes)
+              (context "/resource" []
+                (resource
+                  {:get {:responses {200 {:schema {:size s/Str}
+                                          :description "size"
+                                          :headers {"X-men" (describe s/Str "mutant")}}}}})))]
+    (-> app get-spec :paths vals first :get :responses :200 :headers)
+    => {:X-men {:description "mutant", :type "string"}}))

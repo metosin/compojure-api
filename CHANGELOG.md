@@ -1,3 +1,13 @@
+## 1.1.2 (21.5.2016)
+
+* Response headers are mapped correctly, fixes [#232](https://github.com/metosin/compojure-api/issues/232)
+
+* updated dependencies:
+
+```clj
+[metosin/ring-swagger "0.22.8"] is available but we use "0.22.7"
+```
+
 ## 1.1.1 (18.5.2016)
 
 * Allow usage of run-time parameters with `:swagger`.
