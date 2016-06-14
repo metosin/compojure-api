@@ -1,4 +1,4 @@
-## UNRELEASED
+## 1.1.3 (14.6.2016)
 
 * updated dependencies:
 
