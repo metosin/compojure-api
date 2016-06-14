@@ -170,7 +170,7 @@
         :summary "Foreign schema with unknown subschemas"
         :return (s/maybe Pizza)
         :body [body Pizza]
-        (ok)))
+        (ok body)))
 
     (context "/foreign" []
       :tags ["abc"]

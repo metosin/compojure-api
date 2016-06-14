@@ -9,19 +9,19 @@
                  [potemkin "0.4.3"]
                  [cheshire "5.6.1"]
                  [compojure "1.5.0"]
-                 [prismatic/schema "1.1.1"]
+                 [prismatic/schema "1.1.2"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.6"]
                  [ring-middleware-format "0.7.0"]
-                 [metosin/ring-http-response "0.6.5"]
-                 [metosin/ring-swagger "0.22.8"]
+                 [metosin/ring-http-response "0.7.0"]
+                 [metosin/ring-swagger "0.22.9"]
                  [metosin/ring-swagger-ui "2.1.4-0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
                        :dependencies [[org.clojure/clojure "1.8.0"]
                                       [http-kit "2.1.19"]
-                                      [reloaded.repl "0.2.1"]
+                                      [reloaded.repl "0.2.2"]
                                       [com.stuartsierra/component "0.3.1"]]}
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
@@ -30,11 +30,11 @@
                              [funcool/codeina "0.4.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [slingshot "0.12.2"]
-                                  [peridot "0.4.3"]
+                                  [peridot "0.4.4"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.3"]
                                   [com.stuartsierra/component "0.3.1"]
-                                  [reloaded.repl "0.2.1"]
+                                  [reloaded.repl "0.2.2"]
                                   [http-kit "2.1.19"]
                                   [criterium "0.4.4"]
                                   ; Required when using with Java 1.6

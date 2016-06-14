@@ -178,7 +178,8 @@
                                                                                :type "array"}}}}}
                        "/ping" {:get {:responses {:default {:description ""}}}}}
                :definitions {:Band {:type "object"
-                                    :properties {:description {:type "string"}
+                                    :properties {:description {:type "string"
+                                                               :x-nullable true}
                                                  :id {:format "int64", :type "integer"}
                                                  :name {:type "string"}
                                                  :toppings {:items {:enum ["olives"
@@ -191,7 +192,8 @@
                                     :required ["id" "name" "toppings"]
                                     :additionalProperties false}
                              :NewBand {:type "object"
-                                       :properties {:description {:type "string"}
+                                       :properties {:description {:type "string"
+                                                                  :x-nullable true}
                                                     :name {:type "string"}
                                                     :toppings {:items {:enum ["olives"
                                                                               "pepperoni"
