@@ -20,7 +20,7 @@
   (if-not (= path "/") path))
 
 (defn- ->paths [p1 p2]
-  (->path (str p1 (->path p2))))
+  (->path (str (->path p1) (->path p2))))
 
 (defprotocol Routing
   (-get-routes [handler options]))

@@ -1,3 +1,13 @@
+## UNRELEASED
+
+* Empty contexts (`/`) don't accumulate to the path, see https://github.com/weavejester/compojure/issues/125
+
+* updated dependencies:
+
+```clj
+[compojure "1.5.1"] is available but we use "1.5.0"
+```
+
 ## 1.1.3 (14.6.2016)
 
 * updated dependencies:

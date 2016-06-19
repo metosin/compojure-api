@@ -656,19 +656,17 @@
       (get* app "/a") => ok?
       (get* app "/b/b1") => ok?
       (get* app "/b") => ok?
-      (get* app "/b//b2") => ok?)
+      (get* app "/b/b2") => ok?)
 
     (fact "undocumented compojure easter eggs"
       (get* app "/b/b1/") => ok?
       (get* app "/b/") => ok?
-      (get* app "/b//") => ok?)
-
-    (fact "invalid routes"
-      (get* app "/b/b2") => not-ok?)
+      (fact "this is fixed in compojure 1.5.1"
+        (get* app "/b//") =not=> ok?))
 
     (fact "swagger-docs have trailing slashes removed"
       (->> app get-spec :paths keys)
-      => ["/" "/a" "/b/b1" "/b" "/b//b2"])))
+      => ["/" "/a" "/b/b1" "/b" "/b/b2"])))
 
 (fact "formats supported by ring-middleware-format"
   (let [app (api
