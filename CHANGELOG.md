@@ -6,7 +6,8 @@
 
 ```clj
 [compojure "1.5.1"] is available but we use "1.5.0"
-[cheshire "5.6.2"] is available but we use "5.6.1"
+[metosin/ring-http-response "0.8.0"] is available but we use "0.7.0"
+[cheshire "5.6.3"] is available but we use "5.6.1"
 ```
 
 ## 1.1.3 (14.6.2016)

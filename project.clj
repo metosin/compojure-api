@@ -7,13 +7,13 @@
             :comments "same as Clojure"}
   :dependencies [[prismatic/plumbing "0.5.3"]
                  [potemkin "0.4.3"]
-                 [cheshire "5.6.2"]
+                 [cheshire "5.6.3"]
                  [compojure "1.5.1"]
                  [prismatic/schema "1.1.2"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.6"]
                  [ring-middleware-format "0.7.0"]
-                 [metosin/ring-http-response "0.7.0"]
+                 [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.9"]
                  [metosin/ring-swagger-ui "2.1.4-0"]]
   :profiles {:uberjar {:aot :all
