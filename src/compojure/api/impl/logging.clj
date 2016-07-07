@@ -18,5 +18,5 @@
       (if (instance? Throwable x)
         (do
           (log level more)
-          (.printStackTrace x))
+          (.printStackTrace ^Throwable x))
         (log level (into [x] more))))))
