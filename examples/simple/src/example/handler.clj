@@ -1,4 +1,4 @@
-(ns simple.handler
+(ns example.handler
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))

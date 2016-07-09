@@ -1,6 +1,4 @@
-# simple
-
-FIXME
+# Simple compojure-api app
 
 ## Usage
 
@@ -21,4 +19,6 @@ java -jar target/server.jar
 
 ## License
 
-Copyright ©  FIXME
+Copyright © 2016 [Metosin Oy](http://www.metosin.fi)
+
+Distributed under the Eclipse Public License, the same as Clojure.
