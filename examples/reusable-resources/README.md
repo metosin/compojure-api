@@ -6,6 +6,8 @@ Demonstrates how to build reusable resource apis - both predefined & runtime-gen
 
 (not REST, just http-apis here).
 
+<img src="https://raw.githubusercontent.com/metosin/compojure-api/master/examples/reusable-resources/screenshot.png" />
+
 ## Usage
 
 ### Run the application locally

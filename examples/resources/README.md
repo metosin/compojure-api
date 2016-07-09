@@ -6,6 +6,8 @@ Demonstrates how to use resources to build data-driven apis.
 
 (not REST, just http-apis here).
 
+<img src="https://raw.githubusercontent.com/metosin/compojure-api/master/examples/resources/screenshot.png" />
+
 ## Usage
 
 ### Run the application locally
