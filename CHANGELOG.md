@@ -1,5 +1,6 @@
-## UNRELEASED
+## 1.1.4 (9.7.2016)
 
+* fix reflection warning with logging, thanks to [Matt K](https://github.com/mtkp).
 * Empty contexts (`/`) don't accumulate to the path, see https://github.com/weavejester/compojure/issues/125
 
 * updated dependencies:
