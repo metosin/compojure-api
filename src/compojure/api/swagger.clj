@@ -44,7 +44,7 @@
             base-path {:basePath (base-path request)}
             options (:ring-swagger (mw/get-options request))
             paths (:paths (mw/get-options request))
-            swagger (rsc/deep-merge base-path paths extra-info runtime-info)
+            swagger (apply rsc/deep-merge (keep identity [base-path paths extra-info runtime-info]))
             spec (swagger2/swagger-json swagger options)]
         (ok spec)))))
 
