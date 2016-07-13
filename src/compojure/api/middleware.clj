@@ -225,22 +225,22 @@
              (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
                   "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
                   "want to apply the matchers for all request types, wrap your option with 'constantly'"))
-     (-> handler
-         (cond-> components (wrap-components components))
-         ring.middleware.http-response/wrap-http-response
-         (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
-                                 :consumes (->mime-types formats)})
-         (wrap-options (select-keys options [:ring-swagger :coercion]))
-         (wrap-restful-params {:formats (remove response-only-mimes formats)
-                               :handle-error handle-req-error
-                               :format-options params-opts})
-         (wrap-exceptions exceptions)
-         (wrap-restful-response {:formats formats
-                                 :predicate serializable?
-                                 :format-options response-opts})
-         wrap-keyword-params
-         wrap-nested-params
-         wrap-params))))
+     (cond-> handler
+             components (wrap-components components)
+             true ring.middleware.http-response/wrap-http-response
+             formats (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
+                                             :consumes (->mime-types formats)})
+             true (wrap-options (select-keys options [:ring-swagger :coercion]))
+             formats (wrap-restful-params {:formats (remove response-only-mimes formats)
+                                           :handle-error handle-req-error
+                                           :format-options params-opts})
+             exceptions (wrap-exceptions exceptions)
+             formats (wrap-restful-response {:formats formats
+                                             :predicate serializable?
+                                             :format-options response-opts})
+             true wrap-keyword-params
+             true wrap-nested-params
+             true wrap-params))))
 
 (defn middleware-fn [middleware]
   (if (vector? middleware)
