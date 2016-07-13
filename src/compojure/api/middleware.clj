@@ -122,7 +122,7 @@
 
 (def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
-(defn ->mime-types [formats] (map mime-types formats))
+(defn ->mime-types [formats] (keep mime-types formats))
 
 (defn handle-req-error [^Throwable e handler request]
   ;; Ring-middleware-format catches all exceptions in req handling,

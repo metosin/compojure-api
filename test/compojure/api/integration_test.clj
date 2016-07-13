@@ -451,12 +451,12 @@
 
 (fact "swagger-docs"
   (let [app (api
-              {:format {:formats [:json-kw :edn]}}
+              {:format {:formats [:json-kw :edn :UNKNOWN]}}
               (swagger-routes)
               (GET "/user" []
                 (continue)))]
 
-    (fact "api-listing"
+    (fact "api-listing shows produces & consumes for known types"
       (get-spec app) => {:swagger "2.0"
                          :info {:title "Swagger API"
                                 :version "0.0.1"}
