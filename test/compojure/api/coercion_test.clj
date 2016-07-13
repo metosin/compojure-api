@@ -53,12 +53,20 @@
           (get* app "/ping") => (fails-with 500)))
 
       (fact "response-coercion can be disabled"
-        (let [app (api
-                    {:coercion mw/no-response-coercion}
-                    ping-route)]
-          (let [[status body] (get* app "/ping")]
-            status => 200
-            body => {:pong 123})))))
+        (fact "separately"
+          (let [app (api
+                      {:coercion mw/no-response-coercion}
+                      ping-route)]
+            (let [[status body] (get* app "/ping")]
+              status => 200
+              body => {:pong 123})))
+        (fact "all coercion"
+          (let [app (api
+                      {:coercion nil}
+                      ping-route)]
+            (let [[status body] (get* app "/ping")]
+              status => 200
+              body => {:pong 123}))))))
 
   (fact "body coersion"
     (let [beer-route (POST "/beer" []
@@ -79,6 +87,12 @@
                     beer-route)]
           (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
             status => 200
+            body => {:beers ["ipa" "apa" "ipa"]}))
+        (let [app (api
+                    {:coercion nil}
+                    beer-route)]
+          (let [[status body] (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]}))]
+            status => 200
             body => {:beers ["ipa" "apa" "ipa"]})))
 
       (fact "body-coercion can be changed"
@@ -88,7 +102,7 @@
                     beer-route)]
           (post* app "/beer" (json {:beers ["ipa" "apa" "ipa"]})) => (fails-with 400)))))
 
-  (fact "query coersion"
+  (fact "query coercion"
     (let [query-route (GET "/query" []
                         :query-params [i :- s/Int]
                         (ok {:i i}))]
@@ -128,6 +142,10 @@
                 (GET "/no-coercion" []
                   :coercion (constantly nil)
                   :query-params [i :- s/Int]
+                  (ok {:i i}))
+                (GET "/nil-coercion" []
+                  :coercion nil
+                  :query-params [i :- s/Int]
                   (ok {:i i})))]
 
       (fact "default coercion"
@@ -140,6 +158,9 @@
 
       (fact "no coercion"
         (let [[status body] (get* app "/no-coercion" {:i 10})]
+          status => 200
+          body => {:i "10"})
+        (let [[status body] (get* app "/nil-coercion" {:i 10})]
           status => 200
           body => {:i "10"})))))
 
@@ -172,7 +193,7 @@
 
   (fact "context coercion is used for subroutes"
     (let [app (context "/api" []
-                :coercion (constantly nil)
+                :coercion nil
                 (GET "/ping" []
                   :query-params [x :- Long]
                   (ok x)))]

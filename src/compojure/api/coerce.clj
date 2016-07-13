@@ -31,7 +31,7 @@
 (defn coerce-response! [request {:keys [status] :as response} responses]
   (if-let [schema (or (:schema (get responses status))
                       (:schema (get responses :default)))]
-    (let [matchers (mw/coercion-matchers request)]
+    (if-let [matchers (mw/coercion-matchers request)]
       (if-let [matcher (matchers :response)]
         (let [coercer (cached-coercer request)
               coerce (coercer schema matcher)
@@ -44,7 +44,8 @@
             (assoc response
               :compojure.api.meta/serializable? true
               :body body)))
-        response))
+        response)
+      response)
     response))
 
 (defn body-coercer-middleware [handler responses]
