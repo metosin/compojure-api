@@ -482,7 +482,9 @@
             body => (contains {:swagger "2.0"})))))
 
     (fact "with partial overridden values"
-      (let [app (api (swagger-routes {:ui "/api-docs"}))]
+      (let [app (api (swagger-routes {:ui "/api-docs"
+                                      :data {:info {:title "Kikka"}
+                                             :paths {"/ping" {:get {}}}}}))]
 
         (fact "api-docs are mounted"
           (let [[status body] (raw-get* app "/api-docs")]
@@ -492,7 +494,12 @@
         (fact "spec is mounted to /swagger.json"
           (let [[status body] (get* app "/swagger.json")]
             status => 200
-            body => (contains {:swagger "2.0"}))))))
+            body => (contains
+                      {:swagger "2.0"
+                       :info (contains
+                               {:title "Kikka"})
+                       :paths (contains
+                                {(keyword "/ping") anything})}))))))
 
   (fact "swagger via api-options"
 
