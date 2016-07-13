@@ -212,6 +212,9 @@
 (defmethod restructure-param :coercion [_ coercion acc]
   (update-in acc [:middleware] conj [mw/wrap-coercion coercion]))
 
+(defmethod restructure-param :raw [_ raw? acc]
+  (assoc acc :raw raw?))
+
 ;;
 ;; Impl
 ;;
@@ -275,6 +278,7 @@
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path arg)
 
+        {:keys [raw]} options
         {:keys [lets
                 letks
                 responses
@@ -282,7 +286,8 @@
                 middlewares
                 swagger
                 parameters
-                body]} (reduce
+                body]} (->
+                        (reduce
                          (fn [acc [k v]]
                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
                          {:lets lets
@@ -292,6 +297,9 @@
                           :swagger {}
                           :body body}
                          options)
+                        (cond-> raw
+                          (-> (select-keys [:swagger :body])
+                              (assoc :lets lets))))
 
         ;; migration helpers
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")

@@ -42,6 +42,8 @@
                                      defaults to `compojure.api.routes/log-invalid-child-routes`
   - **:swagger**                   Options to configure the Swagger-routes. Defaults to nil.
                                    See `compojure.api.swagger/swagger-routes` for details.
+  - **:raw**                       Setting :raw to true will prevent your api handler from
+                                   being wrapped with the usual compojure.api middlewares.
 
   ### api-middleware options
 
@@ -50,14 +52,19 @@
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
         options (rsc/deep-merge api-defaults options)
-        handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
+        raw (:raw options)
+        swagger-ui (-> (swagger/swagger-routes (:swagger options))
+                       (cond-> raw ;; if the api won't be wrapped, swagger-ui still needs to be
+                         (middleware/api-middleware (dissoc options :api :swagger))))
+        handler (apply c/routes (concat [swagger-ui] handlers))
         routes (routes/get-routes handler (:api options))
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
         api-handler (-> handler
                         (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
-                        (middleware/api-middleware (dissoc options :api :swagger))
+                        (cond-> (not raw)
+                          (middleware/api-middleware (dissoc options :api :swagger)))
                         (middleware/wrap-options {:paths paths
                                                   :coercer (coerce/memoized-coercer)
                                                   :lookup lookup}))]
