@@ -228,16 +228,16 @@
      (cond-> handler
              components (wrap-components components)
              true ring.middleware.http-response/wrap-http-response
-             formats (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
-                                             :consumes (->mime-types formats)})
+             (seq formats) (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
+                                                   :consumes (->mime-types formats)})
              true (wrap-options (select-keys options [:ring-swagger :coercion]))
-             formats (wrap-restful-params {:formats (remove response-only-mimes formats)
-                                           :handle-error handle-req-error
-                                           :format-options params-opts})
+             (seq formats) (wrap-restful-params {:formats (remove response-only-mimes formats)
+                                                 :handle-error handle-req-error
+                                                 :format-options params-opts})
              exceptions (wrap-exceptions exceptions)
-             formats (wrap-restful-response {:formats formats
-                                             :predicate serializable?
-                                             :format-options response-opts})
+             (seq formats) (wrap-restful-response {:formats formats
+                                                   :predicate serializable?
+                                                   :format-options response-opts})
              true wrap-keyword-params
              true wrap-nested-params
              true wrap-params))))
