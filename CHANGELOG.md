@@ -14,12 +14,15 @@
 ```    
 
 * unsetting `:format` option in `api-middleware` causes all format-middlewares not to mount
+* setting `:coercion` to `nil` translates to same as setting it to `(constantly nil)`
 * unsetting `:exceptions` option in `api-middleware` causes the exception handling to be disabled
 
 ```clj
 (api
-  {:exceptions nil}
-  ;; will be really thrown
+  {:exceptions nil ;; disable exception handling
+   :format nil     ;; disable ring-middleware-format
+   :coercion nil}  ;; disable all schema-coercion
+  ;; this will be really thrown
   (GET "/throw" []
     (throw (new RuntimeException))))
 ```
