@@ -1,3 +1,29 @@
+## 1.1.5-SNAPSHOT
+
+* `:data` in `swagger-routes` can be overridden even if run outside of `api`:
+
+```clj
+(def app
+  (routes
+    (swagger-routes
+      {:ui "/api-docs"
+       :spec "/swagger.json"
+       :data {:info {:title "Kikka"}
+              :paths {"/ping" {:get {:summary "ping get"}}}}})
+    (GET "/ping" [] "pong"))))
+```    
+
+* unsetting `:format` option in `api-middleware` causes all format-middlewares not to mount
+* unsetting `:exceptions` option in `api-middleware` causes the exception handling to be disabled
+
+```clj
+(api
+  {:exceptions nil}
+  ;; will be really thrown
+  (GET "/throw" []
+    (throw (new RuntimeException))))
+```
+
 ## 1.1.4 (9.7.2016)
 
 * fix reflection warning with logging, thanks to [Matt K](https://github.com/mtkp).
