@@ -932,6 +932,13 @@
       (let [[status body] (get* app "/specific-error")]
         body => {:custom-error "my error"}))))
 
+(fact "exception handling can be disabled"
+  (let [app (api
+              {:exceptions nil}
+              (GET "/throw" []
+                (throw (new RuntimeException))))]
+    (get* app "/throw") => throws))
+
 (defn old-ex-handler [e]
   {:status 500
    :body {:type "unknown-exception"
