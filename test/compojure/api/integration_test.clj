@@ -1425,3 +1425,18 @@
                                           :headers {"X-men" (describe s/Str "mutant")}}}}})))]
     (-> app get-spec :paths vals first :get :responses :200 :headers)
     => {:X-men {:description "mutant", :type "string"}}))
+
+(facts "api-middleware can be disabled"
+  (let [app (api
+              {:api {:disable-api-middleware? true}}
+              (swagger-routes)
+              (GET "/params" [x] (ok {:x x}))
+              (GET "/throw" [] (throw (RuntimeException. "kosh"))))]
+
+    (fact "json-parsing & wrap-params is off"
+      (let [[status body] (raw-get* app "/params" {:x 1})]
+        status => 200
+        body => {:x nil}))
+
+    (fact "exceptions are not caught"
+      (raw-get* app "/throw") => throws)))

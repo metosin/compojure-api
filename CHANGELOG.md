@@ -1,5 +1,8 @@
 ## 1.1.5-SNAPSHOT
 
+* New api-options `[:api :disable-api-middleware?]` to disable the api-middleware. 
+  * Thanks to [Alan Malloy](https://github.com/amalloy) for contributing.
+
 * `:data` in `swagger-routes` can be overridden even if run outside of `api`:
 
 ```clj

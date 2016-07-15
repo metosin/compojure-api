@@ -11,7 +11,8 @@
 (def api-defaults
   (merge
     middleware/api-middleware-defaults
-    {:api {:invalid-routes-fn routes/log-invalid-child-routes}
+    {:api {:invalid-routes-fn routes/log-invalid-child-routes
+           :disable-api-middleware? false}
      :swagger {:ui nil, :spec nil}}))
 
 (defn
@@ -24,7 +25,7 @@
       (api
         {:formats [:json-kw :edn :transit-msgpack :transit-json]
          :exceptions {:handlers {:compojure.api.exception/default my-logging-handler}}
-         :invalid-routes-fn (constantly nil)
+         :api {:invalid-routes-fn (constantly nil)}
          :swagger {:spec \"/swagger.json\"
                    :ui \"/api-docs\"
                    :data {:info {:version \"1.0.0\"
@@ -40,6 +41,7 @@
                                      invalid routes (not satisfying compojure.api.route.Routing)
                                      setting value to nil ignores invalid routes completely.
                                      defaults to `compojure.api.routes/log-invalid-child-routes`
+     - **:disable-api-middleware?**  boolean to disable the `api-middleware` from api.
   - **:swagger**                   Options to configure the Swagger-routes. Defaults to nil.
                                    See `compojure.api.swagger/swagger-routes` for details.
 
@@ -55,12 +57,15 @@
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
-        api-handler (-> handler
-                        (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
-                        (middleware/api-middleware (dissoc options :api :swagger))
-                        (middleware/wrap-options {:paths paths
-                                                  :coercer (coerce/memoized-coercer)
-                                                  :lookup lookup}))]
+        enable-api-middleware? (not (get-in options [:api :disable-api-middleware?]))
+        api-handler (cond-> handler
+                            swagger-data (rsm/wrap-swagger-data swagger-data)
+                            enable-api-middleware? (middleware/api-middleware
+                                                     (dissoc options :api :swagger))
+                            true (middleware/wrap-options
+                                   {:paths paths
+                                    :coercer (coerce/memoized-coercer)
+                                    :lookup lookup}))]
     (routes/create nil nil {} [handler] api-handler)))
 
 (defmacro
