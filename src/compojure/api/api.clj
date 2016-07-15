@@ -23,7 +23,7 @@
 
       (api
         {:formats [:json-kw :edn :transit-msgpack :transit-json]
-         :exceptions {:compojure.api.exception/default my-logging-handler}
+         :exceptions {:handlers {:compojure.api.exception/default my-logging-handler}}
          :invalid-routes-fn (constantly nil)
          :swagger {:spec \"/swagger.json\"
                    :ui \"/api-docs\"
