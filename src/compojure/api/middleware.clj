@@ -181,10 +181,10 @@
 
   ### Options
 
-  - **:exceptions**                for *compojure.api.middleware/wrap-exceptions*
+  - **:exceptions**                for *compojure.api.middleware/wrap-exceptions* (nil to unmount it)
       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
 
-  - **:format**                    for ring-middleware-format middlewares
+  - **:format**                    for ring-middleware-format middlewares (nil to unmount it)
       - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
       - **:params-opts**             for *ring.middleware.format-params/wrap-restful-params*,
                                      e.g. `{:transit-json {:handlers readers}}`
@@ -197,11 +197,12 @@
   - **:coercion**                  A function from request->type->coercion-matcher, used
                                    in endpoint coercion for :body, :string and :response.
                                    Defaults to `(constantly compojure.api.middleware/default-coercion-matchers)`
+                                   Setting value to nil disables all coercion
 
   - **:components**                Components which should be accessible to handlers using
                                    :components restructuring. (If you are using api,
                                    you might want to take look at using wrap-components
-                                   middleware manually.)"
+                                   middleware manually.). Defaults to nil (middleware not mounted)."
   ([handler] (api-middleware handler nil))
   ([handler options]
    (let [options (rsc/deep-merge api-middleware-defaults options)
