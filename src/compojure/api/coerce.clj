@@ -10,7 +10,7 @@
   "Returns a memoized version of a referentially transparent coercer fn. The
   memoized version of the function keeps a cache of the mapping from arguments
   to results and, when calls with the same arguments are repeated often, has
-  higher performance at the expense of higher memory use. FIFO with 100 entries.
+  higher performance at the expense of higher memory use. FIFO with 10000 entries.
   Cache will be filled if anonymous coercers are used (does not match the cache)"
   []
   (let [cache (atom (linked/map))
