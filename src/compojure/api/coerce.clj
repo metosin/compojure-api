@@ -29,24 +29,22 @@
   (or (-> request mw/get-options :coercer) sc/coercer))
 
 (defn coerce-response! [request {:keys [status] :as response} responses]
-  (if-let [schema (or (:schema (get responses status))
-                      (:schema (get responses :default)))]
-    (if-let [matchers (mw/coercion-matchers request)]
-      (if-let [matcher (matchers :response)]
-        (let [coercer (cached-coercer request)
-              coerce (coercer schema matcher)
-              body (coerce (:body response))]
-          (if (su/error? body)
-            (throw (ex-info
-                     (str "Response validation failed: " (su/error-val body))
-                     (assoc body :type ::ex/response-validation
-                                 :response response)))
-            (assoc response
-              :compojure.api.meta/serializable? true
-              :body body)))
-        response)
-      response)
-    response))
+  (-> (when-let [schema (or (:schema (get responses status))
+                            (:schema (get responses :default)))]
+        (when-let [matchers (mw/coercion-matchers request)]
+          (when-let [matcher (matchers :response)]
+            (let [coercer (cached-coercer request)
+                  coerce (coercer schema matcher)
+                  body (coerce (:body response))]
+              (if (su/error? body)
+                (throw (ex-info
+                        (str "Response validation failed: " (su/error-val body))
+                        (assoc body :type ::ex/response-validation
+                               :response response)))
+                (assoc response
+                  :compojure.api.meta/serializable? true
+                  :body body))))))
+      (or response)))
 
 (defn body-coercer-middleware [handler responses]
   (fn [request]
