@@ -1,7 +1,17 @@
 ## 1.1.5-SNAPSHOT
 
-* New api-options `[:api :disable-api-middleware?]` to disable the api-middleware. 
-  * Thanks to [Alan Malloy](https://github.com/amalloy) for contributing.
+* New api-options `[:api :disable-api-middleware?]` to disable the api-middleware completely. With this set, `api` only produces the (reverse) route-tree + set's swagger stuff and sets schema coercions for the api.
+  * Thanks to [Alan Malloy](https://github.com/amalloy) for contributing!
+
+```clj
+(api
+  {:api {:disable-api-middleware? true}
+   ;; Still available
+   :swagger {:ui "/api-docs"
+             :spec "/swagger.json"
+             :data {:info {:title "api"}}}}
+  ...)
+```
 
 * `:data` in `swagger-routes` can be overridden even if run outside of `api`:
 
@@ -17,8 +27,8 @@
 ```    
 
 * unsetting `:format` option in `api-middleware` causes all format-middlewares not to mount
-* setting `:coercion` to `nil` translates to same as setting it to `(constantly nil)`
 * unsetting `:exceptions` option in `api-middleware` causes the exception handling to be disabled
+* unsetting `:coercion` translates to same as setting it to `(constantly nil)`
 
 ```clj
 (api
@@ -28,6 +38,15 @@
   ;; this will be really thrown
   (GET "/throw" []
     (throw (new RuntimeException))))
+```
+
+* Depend explicitly on `ring` - brings in the needed Servlet dependency (which is needed in multipart-handling even if you 
+are not running on servlet container - see https://github.com/ring-clojure/ring/issues/251)
+
+* Updated dependencies:
+
+```clj
+[ring "1.5.0"]
 ```
 
 ## 1.1.4 (9.7.2016)
