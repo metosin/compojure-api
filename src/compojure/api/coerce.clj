@@ -10,7 +10,7 @@
   "Returns a memoized version of a referentially transparent coercer fn. The
   memoized version of the function keeps a cache of the mapping from arguments
   to results and, when calls with the same arguments are repeated often, has
-  higher performance at the expense of higher memory use. FIFO with 100 entries.
+  higher performance at the expense of higher memory use. FIFO with 10000 entries.
   Cache will be filled if anonymous coercers are used (does not match the cache)"
   []
   (let [cache (atom (linked/map))
@@ -29,24 +29,22 @@
   (or (-> request mw/get-options :coercer) sc/coercer))
 
 (defn coerce-response! [request {:keys [status] :as response} responses]
-  (if-let [schema (or (:schema (get responses status))
-                      (:schema (get responses :default)))]
-    (if-let [matchers (mw/coercion-matchers request)]
-      (if-let [matcher (matchers :response)]
-        (let [coercer (cached-coercer request)
-              coerce (coercer schema matcher)
-              body (coerce (:body response))]
-          (if (su/error? body)
-            (throw (ex-info
-                     (str "Response validation failed: " (su/error-val body))
-                     (assoc body :type ::ex/response-validation
-                                 :response response)))
-            (assoc response
-              :compojure.api.meta/serializable? true
-              :body body)))
-        response)
-      response)
-    response))
+  (-> (when-let [schema (or (:schema (get responses status))
+                            (:schema (get responses :default)))]
+        (when-let [matchers (mw/coercion-matchers request)]
+          (when-let [matcher (matchers :response)]
+            (let [coercer (cached-coercer request)
+                  coerce (coercer schema matcher)
+                  body (coerce (:body response))]
+              (if (su/error? body)
+                (throw (ex-info
+                        (str "Response validation failed: " (su/error-val body))
+                        (assoc body :type ::ex/response-validation
+                               :response response)))
+                (assoc response
+                  :compojure.api.meta/serializable? true
+                  :body body))))))
+      (or response)))
 
 (defn body-coercer-middleware [handler responses]
   (fn [request]
