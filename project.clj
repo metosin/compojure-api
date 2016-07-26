@@ -9,9 +9,9 @@
                  [potemkin "0.4.3"]
                  [cheshire "5.6.3"]
                  [compojure "1.5.1"]
-                 [prismatic/schema "1.1.2"]
+                 [prismatic/schema "1.1.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
-                 [frankiesardo/linked "1.2.6"]
+                 [frankiesardo/linked "1.2.7"]
                  [ring-middleware-format "0.7.0"]
                  [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.9"]
@@ -20,7 +20,7 @@
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
                        :dependencies [[org.clojure/clojure "1.8.0"]
-                                      [http-kit "2.1.19"]
+                                      [http-kit "2.2.0"]
                                       [reloaded.repl "0.2.2"]
                                       [com.stuartsierra/component "0.3.1"]]}
              :dev {:repl-options {:init-ns user}
@@ -35,7 +35,7 @@
                                   [midje "1.8.3"]
                                   [com.stuartsierra/component "0.3.1"]
                                   [reloaded.repl "0.2.2"]
-                                  [http-kit "2.1.19"]
+                                  [http-kit "2.2.0"]
                                   [criterium "0.4.4"]
                                   ; Required when using with Java 1.6
                                   [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]]

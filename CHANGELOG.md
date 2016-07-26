@@ -40,6 +40,13 @@
     (throw (new RuntimeException))))
 ```
 
+* updated dependencies:
+
+```clj
+[prismatic/schema "1.1.3"] is available but we use "1.1.2"
+[frankiesardo/linked "1.2.7"] is available but we use "1.2.6"
+```
+
 ## 1.1.4 (9.7.2016)
 
 * fix reflection warning with logging, thanks to [Matt K](https://github.com/mtkp).
