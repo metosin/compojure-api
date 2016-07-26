@@ -1,4 +1,4 @@
-## 1.1.5-SNAPSHOT
+## 1.1.5 (27.7.2016)
 
 * New api-options `[:api :disable-api-middleware?]` to disable the api-middleware completely. With this set, `api` only produces the (reverse) route-tree + set's swagger stuff and sets schema coercions for the api.
   * Thanks to [Alan Malloy](https://github.com/amalloy) for contributing!
