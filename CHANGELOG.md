@@ -40,15 +40,6 @@
     (throw (new RuntimeException))))
 ```
 
-* Depend explicitly on `ring` - brings in the needed Servlet dependency (which is needed in multipart-handling even if you 
-are not running on servlet container - see https://github.com/ring-clojure/ring/issues/251)
-
-* Updated dependencies:
-
-```clj
-[ring "1.5.0"]
-```
-
 ## 1.1.4 (9.7.2016)
 
 * fix reflection warning with logging, thanks to [Matt K](https://github.com/mtkp).

@@ -9,7 +9,6 @@
                  [potemkin "0.4.3"]
                  [cheshire "5.6.3"]
                  [compojure "1.5.1"]
-                 [ring "1.5.0"]
                  [prismatic/schema "1.1.2"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.6"]
