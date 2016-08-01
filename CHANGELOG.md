@@ -1,3 +1,16 @@
+## 1.1.6 (1.8.2016)
+
+* `:content-type` of user-defined formats are pushed into Swagger `:produces` and `:consumes`, thanks to [Waldemar](https://github.com/Velrok).
+
+```clj
+(def custom-json-format
+  (ring.middleware.format-response/make-encoder cheshire.core/generate-string "application/vnd.vendor.v1+json"))
+
+(api
+  {:format {:formats [custom-json-format :json :edn]}}
+  ...)
+```
+
 ## 1.1.5 (27.7.2016)
 
 * New api-options `[:api :disable-api-middleware?]` to disable the api-middleware completely. With this set, `api` only produces the (reverse) route-tree + set's swagger stuff and sets schema coercions for the api.

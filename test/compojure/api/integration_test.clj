@@ -11,7 +11,9 @@
             [compojure.api.middleware :as mw]
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
-            [compojure.api.routes :as routes]))
+            [compojure.api.routes :as routes]
+
+            [ring.middleware.format-response :as format-response]))
 
 ;;
 ;; Data
@@ -1440,3 +1442,27 @@
 
     (fact "exceptions are not caught"
       (raw-get* app "/throw") => throws)))
+
+(facts "custom formats contribute to Swagger :consumes & :produces"
+  (let [custom-json (format-response/make-encoder json "application/vnd.vendor.v1+json")
+        app (api
+              {:swagger {:spec "/swagger.json"}
+               :format {:formats [custom-json :json]}}
+              (POST "/echo" []
+                :body [data {:kikka s/Str}]
+                (ok data)))]
+
+    (fact "it works"
+      (let [response (app {:uri "/echo"
+                           :request-method :post
+                           :body (json-stream {:kikka "kukka"})
+                           :headers {"content-type" "application/vnd.vendor.v1+json"
+                                     "accept" "application/vnd.vendor.v1+json"}})]
+
+        (-> response :body slurp) => (json {:kikka "kukka"})
+        (-> response :headers) => (contains {"Content-Type" "application/vnd.vendor.v1+json; charset=utf-8"})))
+
+    (fact "spec is correct"
+      (get-spec app) => (contains
+                          {:produces ["application/vnd.vendor.v1+json" "application/json"]
+                           :consumes ["application/vnd.vendor.v1+json" "application/json"]}))))

@@ -2,6 +2,7 @@
   (:require [cheshire.core :as cheshire]
             [clojure.string :as str]
             [peridot.core :as p]
+            [clojure.java.io :as io]
             [compojure.api.routes :as routes])
   (:import [java.io InputStream]))
 
@@ -33,6 +34,8 @@
 ;;
 
 (defn json [x] (cheshire/generate-string x))
+
+(defn json-stream [x] (io/input-stream (.getBytes (json x))))
 
 (defn follow-redirect [state]
   (if (some-> state :response :headers (get "Location"))
