@@ -109,7 +109,7 @@
 ;; ring-middleware-format stuff
 ;;
 
-(def ^:private mime-types
+(def ^:private default-mime-types
   {:json "application/json"
    :json-kw "application/json"
    :edn "application/edn"
@@ -119,6 +119,11 @@
    :yaml-in-html "text/html"
    :transit-json "application/transit+json"
    :transit-msgpack "application/transit+msgpack"})
+
+(defn mime-types
+  [format]
+  (get default-mime-types format
+       (some-> format :content-type)))
 
 (def ^:private response-only-mimes #{:clojure :yaml-in-html})
 
