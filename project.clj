@@ -27,7 +27,7 @@
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2"]
                              [lein-ring "0.9.7"]
-                             [funcool/codeina "0.4.0"]]
+                             [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [slingshot "0.12.2"]
                                   [peridot "0.4.4"]
