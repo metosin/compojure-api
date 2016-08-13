@@ -50,8 +50,8 @@
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
             :target "gh-pages/doc"
-            :src-dir-uri "http://github.com/metosin/compojure-api/blob/master/"
-            :src-linenum-anchor-prefix "L"}
+            :src-uri "http://github.com/metosin/compojure-api/blob/master/"
+            :src-uri-prefix "#L"}
   :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
