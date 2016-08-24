@@ -1,3 +1,13 @@
+## 1.1.7 (24.8.2016)
+
+* Bundled with the latest Swagger-ui (2.2.1-0)
+
+* Updated deps:
+
+```clj
+[metosin/ring-swagger-ui "2.2.1-0"] is available but we use "2.1.4-0"
+```
+
 ## 1.1.6 (1.8.2016)
 
 * `:content-type` of user-defined formats are pushed into Swagger `:produces` and `:consumes`, thanks to [Waldemar](https://github.com/Velrok).
