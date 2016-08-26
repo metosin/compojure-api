@@ -1,3 +1,11 @@
+## UNRELEASED
+
+* Updated deps:
+
+```clj
+[metosin/ring-swagger-ui "2.2.2-0"] is available but we use "2.2.1-0"
+```
+
 ## 1.1.7 (24.8.2016)
 
 * Bundled with the latest Swagger-ui (2.2.1-0)

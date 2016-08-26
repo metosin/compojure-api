@@ -15,7 +15,7 @@
                  [ring-middleware-format "0.7.0"]
                  [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.9"]
-                 [metosin/ring-swagger-ui "2.2.1-0"]]
+                 [metosin/ring-swagger-ui "2.2.2-0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
