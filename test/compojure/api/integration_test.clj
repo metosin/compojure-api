@@ -13,7 +13,8 @@
             [compojure.api.validator :as validator]
             [compojure.api.routes :as routes]
 
-            [ring.middleware.format-response :as format-response]))
+            [ring.middleware.format-response :as format-response]
+            [cheshire.core :as json]))
 
 ;;
 ;; Data
@@ -390,7 +391,11 @@
                   (ok 1))
                 (GET "/return-string" []
                   :return String
-                  (ok "kikka"))))]
+                  (ok "kikka"))
+                (POST "/arrays" []
+                  :return [Long]
+                  :body [longs [Long]]
+                  (ok longs))))]
 
     (fact "when :return is set, longs can be returned"
       (let [[status body] (raw-get* api "/primitives/return-long")]
@@ -405,7 +410,12 @@
     (fact "when :return is set, raw strings can be returned"
       (let [[status body] (raw-get* api "/primitives/return-string")]
         status => 200
-        body => "\"kikka\""))))
+        body => "\"kikka\""))
+
+    (fact "primitive arrays work"
+      (let [[status body] (raw-post* api "/primitives/arrays" (json/generate-string [1 2 3]))]
+        status => 200
+        body => "[1,2,3]"))))
 
 (fact "compojure destructuring support"
   (let [app (api
