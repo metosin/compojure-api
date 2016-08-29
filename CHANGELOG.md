@@ -1,8 +1,16 @@
-## UNRELEASED
+## 1.1.8 (29.8.2016)
+
+* Lot's of new swagger-bindings from Ring-swagger:
+  * `schema.core.defrecord`
+  * `org.joda.time.LocalTime`
+  * primitive arrays, fixes [#177](https://github.com/metosin/compojure-api/issues/177)
+  * `s/Any` in body generates empty object instead of nil
+* Bundled with latest swagger-ui `2.2.2-0`
 
 * Updated deps:
 
 ```clj
+[metosin/ring-swagger "0.22.10"] is available but we use "0.22.9"
 [metosin/ring-swagger-ui "2.2.2-0"] is available but we use "2.2.1-0"
 ```
 

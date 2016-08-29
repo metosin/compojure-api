@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.1.7"
+(defproject metosin/compojure-api "1.1.8"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -14,7 +14,7 @@
                  [frankiesardo/linked "1.2.7"]
                  [ring-middleware-format "0.7.0"]
                  [metosin/ring-http-response "0.8.0"]
-                 [metosin/ring-swagger "0.22.9"]
+                 [metosin/ring-swagger "0.22.10"]
                  [metosin/ring-swagger-ui "2.2.2-0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
