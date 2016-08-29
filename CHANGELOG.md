@@ -1,3 +1,11 @@
+## Unreleased
+
+* updated dependencies:
+
+```clj
+[frankiesardo/linked "1.2.8"] is available but we use "1.2.7"
+```
+
 ## 1.1.8 (29.8.2016)
 
 * Lot's of new swagger-bindings from Ring-swagger:
