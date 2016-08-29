@@ -382,7 +382,8 @@
         body => {:total 1}))))
 
 (fact "primitive support"
-  (let [api (api
+  (let [app (api
+              {:swagger {:spec "/swagger.json"}}
               (context "/primitives" []
                 (GET "/return-long" []
                   :return Long
@@ -398,24 +399,43 @@
                   (ok longs))))]
 
     (fact "when :return is set, longs can be returned"
-      (let [[status body] (raw-get* api "/primitives/return-long")]
+      (let [[status body] (raw-get* app "/primitives/return-long")]
         status => 200
         body => "1"))
 
     (fact "when :return is not set, longs won't be encoded"
-      (let [[status body] (raw-get* api "/primitives/long")]
+      (let [[status body] (raw-get* app "/primitives/long")]
         status => 200
         body => number?))
 
     (fact "when :return is set, raw strings can be returned"
-      (let [[status body] (raw-get* api "/primitives/return-string")]
+      (let [[status body] (raw-get* app "/primitives/return-string")]
         status => 200
         body => "\"kikka\""))
 
     (fact "primitive arrays work"
-      (let [[status body] (raw-post* api "/primitives/arrays" (json/generate-string [1 2 3]))]
+      (let [[status body] (raw-post* app "/primitives/arrays" (json/generate-string [1 2 3]))]
         status => 200
-        body => "[1,2,3]"))))
+        body => "[1,2,3]"))
+
+    (fact "swagger-spec is valid"
+      (validator/validate app))
+
+    (fact "primitive array swagger-docs are good"
+
+      (-> app get-spec :paths (get "/primitives/arrays") :post :parameters)
+      => [{:description ""
+           :in "body"
+           :name ""
+           :required true
+           :schema {:items {:format "int64"
+                            :type "integer"}
+                    :type "array"}}]
+
+      (-> app get-spec :paths (get "/primitives/arrays") :post :responses :200 :schema)
+      => {:items {:format "int64",
+                  :type "integer"},
+          :type "array"})))
 
 (fact "compojure destructuring support"
   (let [app (api
