@@ -8,7 +8,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
 - Client negotiable formats: [JSON](http://www.json.org/), [EDN](https://github.com/edn-format/edn), [YAML](http://yaml.org/) & [Transit](https://github.com/cognitect/transit-format) (JSON & MessagePack)
 - Data-driven [resources](https://github.com/metosin/compojure-api/wiki/Resources-and-Liberator)
-- Bi-directional routing
+- [Bi-directional](https://github.com/metosin/compojure-api/wiki/Routing#bi-directional-routing) routing
 - Bundled middleware for common api behavior (exception mapping, parameters & formats)
 - Route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
 
