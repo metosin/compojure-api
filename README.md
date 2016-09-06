@@ -10,7 +10,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - Data-driven [resources](https://github.com/metosin/compojure-api/wiki/Resources-and-Liberator)
 - [Bi-directional](https://github.com/metosin/compojure-api/wiki/Routing#bi-directional-routing) routing
 - Bundled middleware for common api behavior (exception mapping, parameters & formats)
-- Route macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
+- Route functions & macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
 
 ## Latest version
 
