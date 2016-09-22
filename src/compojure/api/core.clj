@@ -2,6 +2,7 @@
   (:require [compojure.api.meta :as meta]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw]
+            [compojure.core :as compojure]
             [clojure.tools.macro :as macro]))
 
 (defn- handle [handlers request]
@@ -12,6 +13,15 @@
   [& handlers]
   (let [handlers (seq (keep identity handlers))]
     (routes/create nil nil {} (vec handlers) (partial handle handlers))))
+
+(defn wrap-routes
+  "Apply a middleware function to routes after they have been matched."
+  ([handler middleware]
+   (let [x-handler (compojure/wrap-routes handler middleware)]
+     ;; use original handler for docs and wrapped handler for implementation
+     (routes/create nil nil {} [handler] x-handler)))
+  ([handler middleware & args]
+   (wrap-routes handler #(apply middleware % args))))
 
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.

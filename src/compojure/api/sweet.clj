@@ -12,6 +12,7 @@
   [compojure.api.core
 
    routes
+   wrap-routes
    defroutes
    let-routes
    undocumented
