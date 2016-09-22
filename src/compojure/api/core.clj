@@ -46,7 +46,7 @@
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (partial handle handlers))))
 
-(defmacro middleware
+(defn middleware
   "Wraps routes with given middlewares using thread-first macro.
 
   Note that middlewares will be executed even if routes in body
@@ -54,9 +54,9 @@
   have side-effects."
   {:style/indent 1}
   [middleware & body]
-  `(let [body# (routes ~@body)
-         wrap-mw# (mw/compose-middleware ~middleware)]
-     (routes/create nil nil {} [body#] (wrap-mw# body#))))
+  (let [body (apply routes body)
+        wrap-mw (mw/compose-middleware middleware)]
+    (routes/create nil nil {} [body] (wrap-mw body))))
 
 (defmacro context {:style/indent 2} [& args] (meta/restructure nil      args {:context? true}))
 
