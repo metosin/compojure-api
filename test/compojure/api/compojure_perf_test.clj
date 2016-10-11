@@ -90,6 +90,7 @@
 
   ;; 20.0µs
   ;; 17.0µs
+  ;; 11.4µs static-context (-30%)
   (let [app (s/context "/a" []
               (s/context "/b" []
                 (s/context "/c" []
@@ -118,6 +119,7 @@
 (defn compojure-api-mw-bench []
 
   ;; 47.0µs (15 + 3906408 calls)
+  ;; 10.9µs (77 + 0 calls) - static-context (-75%)
   (let [calls (atom nil)
         mw (fn [handler x] (swap! calls update x (fnil inc 0)) (fn [req] (handler req)))
         app (s/context "/a" []

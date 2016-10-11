@@ -239,6 +239,11 @@
     `(do ~@body)
     (reverse (partition 2 bindings))))
 
+(defmacro static-context
+  [path route]
+  `(#'compojure.core/if-context
+     ~(#'compojure.core/context-route path)
+     ~route))
 ;;
 ;; Api
 ;;
@@ -271,6 +276,9 @@
           (seq responses) (assoc :responses (apply merge responses))
           swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
 
+(defn- route-args? [arg]
+  (not= arg []))
+
 (defn restructure [method [path route-arg & args] {:keys [context?]}]
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path route-arg)
@@ -293,6 +301,8 @@
                           :body body}
                          options)
 
+        static? (not (or (route-args? route-arg) (seq lets) (seq letks)))
+
         ;; migration helpers
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
         _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
@@ -307,7 +317,9 @@
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
-            form `(compojure.core/context ~path ~arg-with-request ~form)
+            form (if static?
+                   `(static-context ~path ~form)
+                   `(compojure.core/context ~path ~arg-with-request ~form))
 
             ;; create and apply a separate lookup-function to find the inner routes
             childs (let [form (vec body)
