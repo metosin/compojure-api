@@ -4,6 +4,7 @@
             [compojure.api.upload :refer :all]
             [schema.core :as s]
             ring.swagger.json-schema-dirty
+            ring.middleware.multipart-params.byte-array
             [examples.pizza :refer [pizza-routes Pizza]]
             [examples.ordered :refer [ordered-routes]]
             [examples.dates :refer [date-routes]])
@@ -183,14 +184,20 @@
         :summary "from examples.thingie ns"
         (ok {:source "examples.thingie"})))
 
-    (context "/file" []
-      :tags ["file"]
+    (context "/upload" []
+      :tags ["upload"]
 
-      (POST "/upload" []
+      (POST "/file" []
         :summary "ring-based file upload"
-        :multipart-params [file :- TempFileUpload]
+        :multipart-params [foo :- TempFileUpload]
         :middleware [wrap-multipart-params]
-        (ok (dissoc file :tempfile))))
+        (ok (dissoc foo :tempfile)))
+
+      (POST "/byte-array" []
+        :summary "ring-based byte-array upload"
+        :multipart-params [foo :- ByteArrayUpload]
+        :middleware [[wrap-multipart-params {:store (ring.middleware.multipart-params.byte-array/byte-array-store)}]]
+        (ok (dissoc foo :bytes))))
 
     (context "/component" []
       :tags ["component"]
