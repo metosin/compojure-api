@@ -29,6 +29,8 @@
 
 (defn compojure-bench []
 
+  ;; 3.8µs
+  ;; 2.6µs
   (let [app (c/routes
               (c/GET "/a/b/c/1" [] "ok")
               (c/GET "/a/b/c/2" [] "ok")
@@ -42,8 +44,8 @@
     (assert (-> (call) :body (= "ok")))
     (cc/quick-bench (call)))
 
-  ;; 3.8µs
-
+  ;; 15.9µs
+  ;; 11.6µs
   (let [app (c/context "/a" []
               (c/context "/b" []
                 (c/context "/c" []
@@ -67,14 +69,12 @@
 
     (title "Compojure - GET with context")
     (assert (-> (call) :body (= "ok")))
-    (cc/quick-bench (call)))
-
-  ;; 15.9µs
-
-  )
+    (cc/quick-bench (call))))
 
 (defn compojure-api-bench []
 
+  ;; 3.8µs
+  ;; 2.7µs
   (let [app (s/routes
               (s/GET "/a/b/c/1" [] "ok")
               (s/GET "/a/b/c/2" [] "ok")
@@ -88,8 +88,8 @@
     (assert (-> (call) :body (= "ok")))
     (cc/quick-bench (call)))
 
-  ;; 3.8µs
-
+  ;; 20.0µs
+  ;; 17.0µs
   (let [app (s/context "/a" []
               (s/context "/b" []
                 (s/context "/c" []
@@ -113,10 +113,8 @@
 
     (title "Compojure API - GET with context")
     (assert (-> (call) :body (= "ok")))
-    (cc/quick-bench (call)))
+    (cc/quick-bench (call))))
 
-  ;; 20.0µs
-  )
 
 (defn bench []
   (compojure-bench)
