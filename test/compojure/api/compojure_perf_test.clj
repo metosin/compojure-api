@@ -115,10 +115,46 @@
     (assert (-> (call) :body (= "ok")))
     (cc/quick-bench (call))))
 
+(defn compojure-api-mw-bench []
+
+  ;; 47.0µs (15 + 3906408 calls)
+  (let [calls (atom nil)
+        mw (fn [handler x] (swap! calls update x (fnil inc 0)) (fn [req] (handler req)))
+        app (s/context "/a" []
+              :middleware [[mw :a]]
+              (s/context "/b" []
+                :middleware [[mw :b]]
+                (s/context "/c" []
+                  :middleware [[mw :c]]
+                  (s/GET "/1" [] :middleware [[mw :c1]] "ok")
+                  (s/GET "/2" [] :middleware [[mw :c2]] "ok")
+                  (s/GET "/3" [] :middleware [[mw :c3]] "ok")
+                  (s/GET "/4" [] :middleware [[mw :c4]] "ok")
+                  (s/GET "/5" [] :middleware [[mw :c5]] "ok"))
+                (s/GET "/1" [] :middleware [[mw :b1]] "ok")
+                (s/GET "/2" [] :middleware [[mw :b2]] "ok")
+                (s/GET "/3" [] :middleware [[mw :b3]] "ok")
+                (s/GET "/4" [] :middleware [[mw :b4]] "ok")
+                (s/GET "/5" [] :middleware [[mw :b5]] "ok"))
+              (s/GET "/1" [] :middleware [[mw :a1]] "ok")
+              (s/GET "/2" [] :middleware [[mw :a2]] "ok")
+              (s/GET "/3" [] :middleware [[mw :a3]] "ok")
+              (s/GET "/4" [] :middleware [[mw :a4]] "ok")
+              (s/GET "/5" [] :middleware [[mw :a5]] "ok"))
+
+        call #(app {:request-method :get :uri "/a/b/c/5"})]
+
+    (clojure.pprint/pprint {:calls @calls, :total (->> @calls vals (reduce +))})
+    (reset! calls nil)
+    (title "Compojure API - GET with context with middleware")
+    (assert (-> (call) :body (= "ok")))
+    (cc/quick-bench (call))
+    (clojure.pprint/pprint {:calls @calls, :total (->> @calls vals (reduce +))})))
 
 (defn bench []
   (compojure-bench)
-  (compojure-api-bench))
+  (compojure-api-bench)
+  (compojure-api-mw-bench))
 
 (comment
   (bench))
