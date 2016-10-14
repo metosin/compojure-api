@@ -100,6 +100,11 @@
 * fix reflection warning with logging, thanks to [Matt K](https://github.com/mtkp).
 * Empty contexts (`/`) don't accumulate to the path, see https://github.com/weavejester/compojure/issues/125
 
+* **NOTE**: update of `ring-http-response` had a [breaking change](https://github.com/metosin/ring-http-response/blob/master/CHANGELOG.md#080-2862016): 
+  - first argument for `created` is `url`, not `body`. Has 2-arity version which takes both `url` & `body` in align to the [spec](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) & [ring](https://github.com/ring-clojure/ring/blob/master/ring-core/src/ring/util/response.clj#L37)
+   - fixes [#12](https://github.com/metosin/ring-http-response/issues/12).
+
+
 * updated dependencies:
 
 ```clj
