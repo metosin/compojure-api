@@ -11,7 +11,7 @@
    :parameters {:query-params [:query-params :query :string true]
                 :body-params [:body-params :body :body false]
                 :form-params [:form-params :formData :string true]
-                :header-params [:header-params :header :string true]
+                :header-params [:headers :header :string true]
                 :path-params [:route-params :path :string true]}})
 
 (defn- swaggerize [info]

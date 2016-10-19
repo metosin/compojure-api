@@ -91,6 +91,34 @@
       (handler {:request-method :get, :query-params {:x "1", :y "a"}}) => (has-body {:x "1", :y "a"})
       (handler {:request-method :get, :query-params {:x 1, :y 2}}) => (has-body {:x 1, :y 2})))
 
+  (fact "parameter mappings"
+    (let [handler (resource
+                    {:get {:parameters {:query-params {:q s/Str}
+                                        :body-params {:b s/Str}
+                                        :form-params {:f s/Str}
+                                        :header-params {:h s/Str}
+                                        :path-params {:p s/Str}}
+                           :handler (fn [request]
+                                      (ok (select-keys request [:query-params
+                                                                :body-params
+                                                                :form-params
+                                                                :header-params
+                                                                :path-params])))}}
+                    {:coercion (constantly nil)})]
+
+      (handler {:request-method :get
+                :query-params {:q "q"}
+                :body-params {:b "b"}
+                :form-params {:f "f"}
+                ;; the ring headers
+                :headers {"h" "h"}
+                ;; compojure routing
+                :route-params {:p "p"}}) => (has-body {:query-params {:q "q"}
+                                                       :body-params {:b "b"}
+                                                       :form-params {:f "f"}
+                                                       :header-params {:h "h"}
+                                                       :path-params {:p "p"}})))
+
   (fact "response coercion"
     (let [handler (resource
                     {:responses {200 {:schema {:total (s/constrained Long pos? 'pos)}}}

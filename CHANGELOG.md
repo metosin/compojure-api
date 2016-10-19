@@ -1,5 +1,6 @@
 ## Unreleased
 
+* Fix `:header-params` with resources, [#254](https://github.com/metosin/compojure-api/issues/254)
 * updated dependencies:
 
 ```clj
