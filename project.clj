@@ -11,7 +11,7 @@
                  [compojure "1.5.1"]
                  [prismatic/schema "1.1.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
-                 [frankiesardo/linked "1.2.8"]
+                 [frankiesardo/linked "1.2.9"]
                  [ring-middleware-format "0.7.0"]
                  [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.11"]

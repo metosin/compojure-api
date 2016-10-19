@@ -3,7 +3,7 @@
 * updated dependencies:
 
 ```clj
-[frankiesardo/linked "1.2.8"] is available but we use "1.2.7"
+[frankiesardo/linked "1.2.9"] is available but we use "1.2.7"
 [metosin/ring-swagger "0.22.11"] is available but we use "0.22.10"
 [metosin/ring-swagger-ui "2.2.5-0"] is available but we use "2.2.2-0"
 ```
