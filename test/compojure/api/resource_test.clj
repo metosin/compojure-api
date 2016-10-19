@@ -103,8 +103,7 @@
                                                                 :body-params
                                                                 :form-params
                                                                 :header-params
-                                                                :path-params])))}}
-                    {:coercion (constantly nil)})]
+                                                                :path-params])))}})]
 
       (handler {:request-method :get
                 :query-params {:q "q"}
