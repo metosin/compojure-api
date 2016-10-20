@@ -8,6 +8,8 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
+            [muuntaja.middleware]
+            [muuntaja.core]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as coerce]
@@ -154,6 +156,7 @@
   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
             :params-opts {}
             :response-opts {}}
+   :formats ::defaults
    :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
@@ -208,11 +211,13 @@
                                    :components restructuring. (If you are using api,
                                    you might want to take look at using wrap-components
                                    middleware manually.). Defaults to nil (middleware not mounted)."
-  ([handler] (api-middleware handler nil))
+  ([handler]
+   (api-middleware handler nil))
   ([handler options]
    (let [options (rsc/deep-merge api-middleware-defaults options)
-         {:keys [exceptions format components]} options
-         {:keys [formats params-opts response-opts]} format]
+         {:keys [exceptions format components formats]} options
+         muuntaja (if formats (muuntaja.core/create (if (= ::defaults formats) muuntaja.core/default-options formats)))
+         {:keys [params-opts response-opts] rmf-formats :formats} format]
      ; Break at compile time if there are deprecated options
      ; These three have been deprecated with 0.23
      (assert (not (:error-handler (:validation-errors options)))
@@ -231,19 +236,21 @@
              (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
                   "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
                   "want to apply the matchers for all request types, wrap your option with 'constantly'"))
+
      (cond-> handler
              components (wrap-components components)
              true ring.middleware.http-response/wrap-http-response
-             (seq formats) (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
-                                                   :consumes (->mime-types formats)})
+             muuntaja (rsm/wrap-swagger-data {:produces (:produces muuntaja)
+                                              :consumes (:consumes muuntaja)})
              true (wrap-options (select-keys options [:ring-swagger :coercion]))
-             (seq formats) (wrap-restful-params {:formats (remove response-only-mimes formats)
-                                                 :handle-error handle-req-error
-                                                 :format-options params-opts})
+             (seq rmf-formats) (wrap-restful-params {:formats (remove response-only-mimes rmf-formats)
+                                                     :handle-error handle-req-error
+                                                     :format-options params-opts})
+             #_#_formats (muuntaja.middleware/wrap-format muuntaja)
              exceptions (wrap-exceptions exceptions)
-             (seq formats) (wrap-restful-response {:formats formats
-                                                   :predicate serializable?
-                                                   :format-options response-opts})
+             (seq rmf-formats) (wrap-restful-response {:formats rmf-formats
+                                                       :predicate serializable?
+                                                       :format-options response-opts})
              true wrap-keyword-params
              true wrap-nested-params
              true wrap-params))))
