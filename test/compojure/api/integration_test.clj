@@ -12,10 +12,8 @@
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
             [compojure.api.routes :as routes]
-
-            [ring.middleware.format-response :as format-response]
-            [cheshire.core :as json]
-            [clojure.string :as str]))
+            [cheshire.core :as json])
+  (:import (java.io ByteArrayInputStream)))
 
 ;;
 ;; Data
@@ -197,7 +195,6 @@
                 (POST "/user_legacy" {user :body-params}
                   :return User
                   (ok user))))]
-
     (fact "GET"
       (let [[status body] (get* app "/models/pertti")]
         status => 200
@@ -245,7 +242,10 @@
     (fact "Invalid json in body causes 400 with error message in json"
       (let [[status body] (post* app "/models/user" "{INVALID}")]
         status => 400
-        (:message body) => (contains "Unexpected character")))))
+        body => (contains
+                  {:type "compojure.api.exception/request-parsing"
+                   :message (contains "Malformed application/json")
+                   :original (contains "Unexpected character")})))))
 
 (fact ":responses"
   (fact "normal cases"
@@ -1491,8 +1491,7 @@
                 :body [data {:kikka s/Str}]
                 (ok data)))]
 
-    ;; FIXME!
-    #_(fact "it works"
+    (fact "it works"
       (let [response (app {:uri "/echo"
                            :request-method :post
                            :body (json-stream {:kikka "kukka"})

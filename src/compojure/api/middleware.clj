@@ -2,9 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.api.exception :as ex]
             [compojure.api.impl.logging :as logging]
-            [ring.middleware.format-params :refer [wrap-restful-params]]
-            [ring.middleware.format-response :refer [wrap-restful-response]]
-            ring.middleware.http-response
+            [ring.middleware.http-response]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
@@ -15,9 +13,7 @@
             [ring.swagger.coerce :as coerce]
             [ring.util.http-response :refer :all]
             [schema.core :as s])
-  (:import [com.fasterxml.jackson.core JsonParseException]
-           [org.yaml.snakeyaml.parser ParserException]
-           [clojure.lang ArityException]))
+  (:import [clojure.lang ArityException]))
 
 ;;
 ;; Catch exceptions
@@ -45,12 +41,12 @@
         (handler request)
         (catch Throwable e
           (let [{:keys [type] :as data} (ex-data e)
-                type (or (get ex/legacy-exception-types type) type)
+                type (or (get ex/mapped-exception-types type) type)
                 handler (or (get handlers type) default-handler)]
             ; FIXME: Used for validate
             (if (rethrow-exceptions? request)
               (throw e)
-              (call-error-handler handler e data request))))))))
+              (call-error-handler handler e (assoc data :type type) request))))))))
 
 ;;
 ;; Component integration
@@ -111,53 +107,31 @@
 ;; ring-middleware-format stuff
 ;;
 
-(def ^:private default-mime-types
-  {:json "application/json"
-   :json-kw "application/json"
-   :edn "application/edn"
-   :clojure "application/clojure"
-   :yaml "application/x-yaml"
-   :yaml-kw "application/x-yaml"
-   :yaml-in-html "text/html"
-   :transit-json "application/transit+json"
-   :transit-msgpack "application/transit+msgpack"})
+(defn encode?
+  "Returns true if the response body is serializable: body is a
+  collection or response has key :compojure.api.meta/serializable?"
+  [_ response]
+  (or (:compojure.api.meta/serializable? response)
+      (coll? (:body response))))
 
-(defn mime-types
-  [format]
-  (get default-mime-types format
-       (some-> format :content-type)))
-
-(def ^:private response-only-mimes #{:clojure :yaml-in-html})
-
-(defn ->mime-types [formats] (keep mime-types formats))
-
-(defn handle-req-error [^Throwable e handler request]
-  ;; Ring-middleware-format catches all exceptions in req handling,
-  ;; i.e. (handler req) is inside try-catch. If r-m-f was changed to catch only
-  ;; exceptions from parsing the request, we wouldn't need to check the exception class.
-  (if (or (instance? JsonParseException e) (instance? ParserException e))
-    (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} e))
-    (throw e)))
-
-(defn serializable?
-  "Predicate which returns true if the response body is serializable.
-   That is, return type is set by :return compojure-api key or it's
-   a collection."
-  [_ {:keys [body] :as response}]
-  (when response
-    (or (:compojure.api.meta/serializable? response)
-        (coll? body))))
+(defn create-muuntaja [options]
+  (if options
+    (muuntaja.core/create
+      (->
+        (if (= ::defaults options)
+          muuntaja.core/default-options
+          options)
+        (assoc :encode? encode?)))))
 
 ;;
 ;; Api Middleware
 ;;
 
 (def api-middleware-defaults
-  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
-            :params-opts {}
-            :response-opts {}}
-   :formats ::defaults
+  {:formats ::defaults
    :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
+                           ;; FIXME: should map to ::ex/request-parsing?
+                           :muuntaja.core/decode ex/request-parsing-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
@@ -215,9 +189,8 @@
    (api-middleware handler nil))
   ([handler options]
    (let [options (rsc/deep-merge api-middleware-defaults options)
-         {:keys [exceptions format components formats]} options
-         muuntaja (if formats (muuntaja.core/create (if (= ::defaults formats) muuntaja.core/default-options formats)))
-         {:keys [params-opts response-opts] rmf-formats :formats} format]
+         {:keys [exceptions components formats]} options
+         muuntaja (create-muuntaja formats)]
      ; Break at compile time if there are deprecated options
      ; These three have been deprecated with 0.23
      (assert (not (:error-handler (:validation-errors options)))
@@ -243,14 +216,10 @@
              muuntaja (rsm/wrap-swagger-data {:produces (:produces muuntaja)
                                               :consumes (:consumes muuntaja)})
              true (wrap-options (select-keys options [:ring-swagger :coercion]))
-             (seq rmf-formats) (wrap-restful-params {:formats (remove response-only-mimes rmf-formats)
-                                                     :handle-error handle-req-error
-                                                     :format-options params-opts})
-             #_#_formats (muuntaja.middleware/wrap-format muuntaja)
+             muuntaja (muuntaja.middleware/wrap-format-request muuntaja)
              exceptions (wrap-exceptions exceptions)
-             (seq rmf-formats) (wrap-restful-response {:formats rmf-formats
-                                                       :predicate serializable?
-                                                       :format-options response-opts})
+             muuntaja (muuntaja.middleware/wrap-format-response muuntaja)
+             muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja)
              true wrap-keyword-params
              true wrap-nested-params
              true wrap-params))))

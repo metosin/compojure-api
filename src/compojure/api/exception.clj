@@ -50,12 +50,12 @@
 
 (defn request-parsing-handler
   [^Exception ex data req]
-  (let [cause (.getCause ex)]
-    (response/bad-request {:type (cond
-                                   (instance? JsonParseException cause) "json-parse-exception"
-                                   (instance? ParserException cause) "yaml-parse-exception"
-                                   :else "parse-exception")
-                           :message (.getMessage cause)})))
+  (let [cause (.getCause ex)
+        original (.getCause cause)]
+    (response/bad-request
+      (merge (select-keys data [:type :format :charset])
+             (if original {:original (.getMessage original)})
+             {:message (.getMessage cause)}))))
 
 ;;
 ;; Logging
@@ -75,5 +75,6 @@
 ;; Mappings from other Exception types to our base types
 ;;
 
-(def legacy-exception-types
-  {:ring.swagger.schema/validation ::request-validation})
+(def mapped-exception-types
+  {:ring.swagger.schema/validation ::request-validation
+   :muuntaja.core/decode ::request-parsing})
