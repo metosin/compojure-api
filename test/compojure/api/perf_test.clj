@@ -36,7 +36,7 @@
   (->
     (app {:uri uri
           :request-method :post
-          :content-type "application/json"
+          :headers {"content-type" "application/json"}
           :body (io/input-stream (.getBytes json))})
     :body
     slurp))
