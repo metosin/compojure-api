@@ -21,11 +21,11 @@
        (finally
          (System/setErr err#)))))
 
-(facts serializable?
+(facts encode?
   (tabular
     (fact
-      (serializable? nil
-                     {:body ?body
+      (encode? nil
+               {:body ?body
                       :compojure.api.meta/serializable? ?serializable?}) => ?res)
     ?body ?serializable? ?res
     5 true true
