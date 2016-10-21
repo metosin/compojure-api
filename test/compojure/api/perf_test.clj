@@ -5,7 +5,9 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [clojure.java.io :as io]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [cheshire.core :as cheshire])
+  (:import (java.io ByteArrayInputStream)))
 
 ;;
 ;; start repl with `lein perf repl`
@@ -182,6 +184,53 @@
       (title "POST to inlined resource with 2-way coercion")
       (assert (= {:result 30} (:body (call))))
       (cc/bench (call)))))
+
+(defn e2e-json-comparison-different-payloads []
+  (let [json-request (fn [data]
+                       {:uri "/echo"
+                        :request-method :post
+                        :headers {"content-type" "application/json"
+                                  "accept" "application/json"}
+                        :body (cheshire/generate-string data)})
+        request-stream (fn [request]
+                         (let [b (.getBytes ^String (:body request))]
+                           (fn []
+                             (assoc request :body (ByteArrayInputStream. b)))))
+        app (api
+              (POST "/echo" []
+                :body [body s/Any]
+                (ok body)))]
+    (doseq [file ["dev-resources/json/json10b.json"
+                  "dev-resources/json/json100b.json"
+                  "dev-resources/json/json1k.json"
+                  "dev-resources/json/json10k.json"
+                  "dev-resources/json/json100k.json"]
+            :let [data (cheshire/parse-string (slurp file))
+                  request (json-request data)
+                  request! (request-stream request)]]
+
+      "10b"
+      ;; 42µs
+
+      "100b"
+      ;; 79µs
+
+      "1k"
+      ;; 367µs
+
+      "10k"
+      ;; 2870µs
+
+      "100k"
+      ;; 10800µs
+
+      (title file)
+      (cc/bench (-> (request!) app :body slurp)))))
+
+(comment
+  (bench)
+  (resource-bench)
+  (e2e-json-comparison-different-payloads))
 
 (comment
   (bench)
