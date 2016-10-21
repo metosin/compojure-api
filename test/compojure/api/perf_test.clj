@@ -52,18 +52,21 @@
 
 (defn bench []
 
+  ; 27µs
+  ; 27µs (-0%)
+  ; 25µs (1.0.0)
   (let [app (api
               (GET "/30" []
                 (ok {:result 30})))
         call #(h/get* app "/30")]
 
     (title "GET JSON")
-
     (assert (= {:result 30} (second (call))))
     (cc/bench (call)))
 
-  ; 27µs => 27µs (-0%) => 25µs (1.0.0)
-
+  ;; 73µs
+  ;; 53µs (-27%)
+  ;; 50µs (1.0.0)
   (let [app (api
               (POST "/plus" []
                 :return {:result s/Int}
@@ -73,12 +76,12 @@
         call #(post* app "/plus" data)]
 
     (title "JSON POST with 2-way coercion")
-
     (assert (= {:result 30} (parse (call))))
     (cc/bench (call)))
 
-  ;; 73µs => 53µs (-27%) => 50µs
-
+  ;; 85µs
+  ;; 67µs (-21%)
+  ;; 66µs (1.0.0)
   (let [app (api
               (context "/a" []
                 (context "/b" []
@@ -91,12 +94,12 @@
         call #(post* app "/a/b/c/plus" data)]
 
     (title "JSON POST with 2-way coercion + contexts")
-
     (assert (= {:result 30} (parse (call))))
     (cc/bench (call)))
 
-  ;; 85µs => 67µs (-21%) => 66µs (1.0.0)
-
+  ;; 266µs
+  ;; 156µs (-41%)
+  ;; 146µs (1.0.0)
   (let [app (api
               (POST "/echo" []
                 :return Order
@@ -116,13 +119,8 @@
         call #(post* app "/echo" data)]
 
     (title "JSON POST with nested data")
-
     (s/validate Order (parse (call)))
-    (cc/bench (call)))
-
-  ;; 266µs => 156µs (-41%) => 146µs (1.0.0)
-
-  )
+    (cc/bench (call))))
 
 (defn resource-bench []
 
@@ -131,6 +129,7 @@
                              :handler (fn [{{:keys [x y]} :body-params}]
                                         (ok {:result (+ x y)}))}}]
 
+    ;; 62µs
     (let [my-resource (resource resource-map)
           app (api
                 (context "/plus" []
@@ -139,12 +138,10 @@
           call #(post* app "/plus" data)]
 
       (title "JSON POST to pre-defined resource with 2-way coercion")
-
       (assert (= {:result 30} (parse (call))))
       (cc/bench (call)))
 
-    ;; 62µs
-
+    ;; 68µs
     (let [app (api
                 (context "/plus" []
                   (resource resource-map)))
@@ -152,24 +149,20 @@
           call #(post* app "/plus" data)]
 
       (title "JSON POST to inlined resource with 2-way coercion")
-
       (assert (= {:result 30} (parse (call))))
       (cc/bench (call)))
 
-    ;; 68µs
-
+    ;; 26µs
     (let [my-resource (resource resource-map)
           app my-resource
           data {:x 10, :y 20}
           call #(app {:request-method :post :uri "/irrelevant" :body-params data})]
 
       (title "direct POST to pre-defined resource with 2-way coercion")
-
       (assert (= {:result 30} (:body (call))))
       (cc/bench (call)))
 
-    ;; 26µs
-
+    ;; 30µs
     (let [my-resource (resource resource-map)
           app (context "/plus" []
                 my-resource)
@@ -177,24 +170,18 @@
           call #(app {:request-method :post :uri "/plus" :body-params data})]
 
       (title "POST to pre-defined resource with 2-way coercion")
-
       (assert (= {:result 30} (:body (call))))
       (cc/bench (call)))
 
-    ;; 30µs
-
+    ;; 40µs
     (let [app (context "/plus" []
                 (resource resource-map))
           data {:x 10, :y 20}
           call #(app {:request-method :post :uri "/plus" :body-params data})]
 
       (title "POST to inlined resource with 2-way coercion")
-
       (assert (= {:result 30} (:body (call))))
-      (cc/bench (call)))
-
-    ;; 40µs
-    ))
+      (cc/bench (call)))))
 
 (comment
   (bench)
