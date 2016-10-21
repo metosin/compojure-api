@@ -13,7 +13,6 @@
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-                 [ring-middleware-format "0.7.0"]
                  [metosin/muuntaja "0.1.0-SNAPSHOT"]
                  [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.11"]
