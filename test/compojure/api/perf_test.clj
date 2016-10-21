@@ -57,6 +57,7 @@
   ; 27µs
   ; 27µs (-0%)
   ; 25µs (1.0.0)
+  ; 25µs (muuntaja)
   (let [app (api
               (GET "/30" []
                 (ok {:result 30})))
@@ -69,6 +70,7 @@
   ;; 73µs
   ;; 53µs (-27%)
   ;; 50µs (1.0.0)
+  ;; 38µs (muuntaja), -24%
   (let [app (api
               (POST "/plus" []
                 :return {:result s/Int}
@@ -84,6 +86,7 @@
   ;; 85µs
   ;; 67µs (-21%)
   ;; 66µs (1.0.0)
+  ;; 56µs (muuntaja), -15%
   (let [app (api
               (context "/a" []
                 (context "/b" []
@@ -102,6 +105,7 @@
   ;; 266µs
   ;; 156µs (-41%)
   ;; 146µs (1.0.0)
+  ;;  74µs (muuntaja), -49%
   (let [app (api
               (POST "/echo" []
                 :return Order
@@ -132,6 +136,7 @@
                                         (ok {:result (+ x y)}))}}]
 
     ;; 62µs
+    ;; 44µs (muuntaja)
     (let [my-resource (resource resource-map)
           app (api
                 (context "/plus" []
@@ -144,6 +149,7 @@
       (cc/bench (call)))
 
     ;; 68µs
+    ;; 52µs (muuntaja)
     (let [app (api
                 (context "/plus" []
                   (resource resource-map)))
@@ -211,18 +217,23 @@
 
       "10b"
       ;; 42µs
+      ;; 24µs (muuntaja), -43%
 
       "100b"
       ;; 79µs
+      ;; 39µs (muuntaja), -50%
 
       "1k"
       ;; 367µs
+      ;;  92µs (muuntaja), -75%
 
       "10k"
       ;; 2870µs
+      ;; 837µs (muuntaja), -70%
 
       "100k"
       ;; 10800µs
+      ;;  8050µs (muuuntaja), -25%
 
       (title file)
       (cc/bench (-> (request!) app :body slurp)))))
