@@ -104,7 +104,7 @@
     (handler (assoc-in request coercion-request-ks coercion))))
 
 ;;
-;; ring-middleware-format stuff
+;; Muuntaja
 ;;
 
 (defn encode?
@@ -130,8 +130,6 @@
 (def api-middleware-defaults
   {:formats ::defaults
    :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
-                           ;; FIXME: should map to ::ex/request-parsing?
-                           :muuntaja.core/decode ex/request-parsing-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
@@ -166,12 +164,9 @@
   - **:exceptions**                for *compojure.api.middleware/wrap-exceptions* (nil to unmount it)
       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
 
-  - **:format**                    for ring-middleware-format middlewares (nil to unmount it)
-      - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
-      - **:params-opts**             for *ring.middleware.format-params/wrap-restful-params*,
-                                     e.g. `{:transit-json {:handlers readers}}`
-      - **:response-opts**           for *ring.middleware.format-params/wrap-restful-response*,
-                                     e.g. `{:transit-json {:handlers writers}}`
+  - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
+                                   a created Muuntaja or nil (to unmount it). See
+                                   https://github.com/metosin/muuntaja for details.
 
   - **:ring-swagger**              options for ring-swagger's swagger-json method.
                                    e.g. `{:ignore-missing-mappings? true}`
@@ -191,6 +186,7 @@
    (let [options (rsc/deep-merge api-middleware-defaults options)
          {:keys [exceptions components formats]} options
          muuntaja (create-muuntaja formats)]
+
      ; Break at compile time if there are deprecated options
      ; These three have been deprecated with 0.23
      (assert (not (:error-handler (:validation-errors options)))
@@ -210,11 +206,16 @@
                   "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
                   "want to apply the matchers for all request types, wrap your option with 'constantly'"))
 
+     ;; 1.2.0+
+     (assert (not (map? (:format options)))
+             (str "ERROR: Option [:format] is not used with 1.2.0 or later. Compojure-api uses now Muuntaja insted of"
+                  "ring-middleware-format and the new formatting options for it should be under [:formats]. See "
+                  "'(doc compojure.api.middleware/api-middleware)' for more details."))
+
      (cond-> handler
              components (wrap-components components)
              true ring.middleware.http-response/wrap-http-response
-             muuntaja (rsm/wrap-swagger-data {:produces (:produces muuntaja)
-                                              :consumes (:consumes muuntaja)})
+             muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces]))
              true (wrap-options (select-keys options [:ring-swagger :coercion]))
              muuntaja (muuntaja.middleware/wrap-format-request muuntaja)
              exceptions (wrap-exceptions exceptions)
