@@ -3,9 +3,7 @@
             [clojure.walk :as walk]
             [compojure.api.impl.logging :as logging]
             [schema.utils :as su])
-  (:import [schema.utils ValidationError NamedError]
-           [com.fasterxml.jackson.core JsonParseException]
-           [org.yaml.snakeyaml.parser ParserException]))
+  (:import (schema.utils ValidationError NamedError)))
 
 ;;
 ;; Default exception handlers

@@ -6,9 +6,9 @@
             [ring.util.http-predicates :refer :all]
             [compojure.api.test-utils :refer :all]
             [schema.core :as s])
-  (:import [java.security SecureRandom]
-           [org.joda.time LocalDate]
-           [com.fasterxml.jackson.core JsonGenerationException]))
+  (:import (java.security SecureRandom)
+           (org.joda.time LocalDate)
+           (com.fasterxml.jackson.core JsonGenerationException)))
 
 (facts "path-string"
 

@@ -10,7 +10,7 @@
             [linked.core :as linked]
             [compojure.response]
             [schema.core :as s])
-  (:import [clojure.lang AFn IFn Var]))
+  (:import (clojure.lang AFn IFn Var)))
 
 ;;
 ;; Route records
