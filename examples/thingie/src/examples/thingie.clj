@@ -8,7 +8,7 @@
             [examples.pizza :refer [pizza-routes Pizza]]
             [examples.ordered :refer [ordered-routes]]
             [examples.dates :refer [date-routes]])
-  (:import [org.joda.time DateTime]))
+  (:import (org.joda.time DateTime)))
 
 ;;
 ;; Schemas
@@ -24,27 +24,28 @@
 
 (def app
   (api
-    {:swagger {:ui "/"
-               :spec "/swagger.json"
-               :data {:info {:version "1.0.0"
-                             :title "Thingies API"
-                             :description "the description"
-                             :termsOfService "http://www.metosin.fi"
-                             :contact {:name "My API Team"
-                                       :email "foo@example.com"
-                                       :url "http://www.metosin.fi"}
-                             :license {:name "Eclipse Public License"
-                                       :url "http://www.eclipse.org/legal/epl-v10.html"}}
-                      :tags [{:name "math", :description "Math with parameters"}
-                             {:name "pizzas", :description "Pizza API"}
-                             {:name "failing", :description "Handling uncaught exceptions"}
-                             {:name "dates", :description "Dates API"}
-                             {:name "responses", :description "Responses demo"}
-                             {:name "primitives", :description "Returning primitive values"}
-                             {:name "context", :description "context routes"}
-                             {:name "echo", :description "Echoes data"}
-                             {:name "ordered", :description "Ordered routes"}
-                             {:name "file", :description "File upload"}]}}}
+    {:swagger
+     {:ui "/"
+      :spec "/swagger.json"
+      :data {:info {:version "1.0.0"
+                    :title "Thingies API"
+                    :description "the description"
+                    :termsOfService "http://www.metosin.fi"
+                    :contact {:name "My API Team"
+                              :email "foo@example.com"
+                              :url "http://www.metosin.fi"}
+                    :license {:name "Eclipse Public License"
+                              :url "http://www.eclipse.org/legal/epl-v10.html"}}
+             :tags [{:name "math", :description "Math with parameters"}
+                    {:name "pizzas", :description "Pizza API"}
+                    {:name "failing", :description "Handling uncaught exceptions"}
+                    {:name "dates", :description "Dates API"}
+                    {:name "responses", :description "Responses demo"}
+                    {:name "primitives", :description "Returning primitive values"}
+                    {:name "context", :description "context routes"}
+                    {:name "echo", :description "Echoes data"}
+                    {:name "ordered", :description "Ordered routes"}
+                    {:name "file", :description "File upload"}]}}}
 
     (context "/math" []
       :tags ["math"]
