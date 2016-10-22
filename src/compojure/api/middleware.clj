@@ -166,7 +166,7 @@
 
   - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
                                    a created Muuntaja or nil (to unmount it). See
-                                   https://github.com/metosin/muuntaja for details.
+                                   https://github.com/metosin/muuntaja/wiki/Configuration for details.
 
   - **:ring-swagger**              options for ring-swagger's swagger-json method.
                                    e.g. `{:ignore-missing-mappings? true}`
