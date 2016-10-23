@@ -3,7 +3,8 @@
 * **BREAKING**: use [Muuntaja](https://github.com/metosin/muuntaja) instead of [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format), [#255](https://github.com/metosin/compojure-api/pull/255)
   for format negotiation, encoding and decoding.
   - 4x more throughput on 1k JSON request-response echo
-  - api key `:format` has been deprecated (fails at api creation time), use `:formats` instead. See [how to configure Muuntaja](https://github.com/metosin/muuntaja/wiki/Configuration) how to use.
+  - api key `:format` has been deprecated (fails at api creation time), use `:formats` instead. It consumes either a
+    Muuntaja instance, Muuntaja options map or `nil` (unmounts it). See [how to configure Muuntaja](https://github.com/metosin/muuntaja/wiki/Configuration) how to use.
 * **EXPERIMENTAL**: fast `context`s, [#253](https://github.com/metosin/compojure-api/pull/253) - use static routes if a `context` doesn't do any lexical bindings
   - up to 4x faster `context` routing.
 * Depend on the new (async) `[ring "1.6.0-beta6"]`
