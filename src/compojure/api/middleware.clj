@@ -165,7 +165,7 @@
       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
 
   - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
-                                   a created Muuntaja or nil (to unmount it). See
+                                   a Muuntaja instance or nil (to unmount it). See
                                    https://github.com/metosin/muuntaja/wiki/Configuration for details.
 
   - **:ring-swagger**              options for ring-swagger's swagger-json method.
