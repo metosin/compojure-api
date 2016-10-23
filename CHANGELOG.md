@@ -10,7 +10,7 @@
 * New deps:
 
 ```clj
-[metosin/ring-swagger-ui "0.1.0-SNAPSHOT"]
+[metosin/muuntaja "0.1.0-SNAPSHOT"]
 ```
 
 * Removed deps:
