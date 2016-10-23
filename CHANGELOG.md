@@ -1,4 +1,4 @@
-## Unreleased
+## 1.1.9 (23.10.2016)
 
 * Fix `:header-params` with resources, [#254](https://github.com/metosin/compojure-api/issues/254)
 * updated dependencies:
