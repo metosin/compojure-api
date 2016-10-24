@@ -4,9 +4,9 @@
             [midje.sweet :refer :all]
             [ring.util.http-response :refer [ok]]
             [ring.util.http-status :as status]
-            ring.util.test
+            [ring.util.test]
             [slingshot.slingshot :refer [throw+]])
-  (:import [java.io PrintStream ByteArrayOutputStream]))
+  (:import (java.io PrintStream ByteArrayOutputStream)))
 
 (defmacro without-err
   "Evaluates exprs in a context in which *err* is bound to a fresh
@@ -21,11 +21,11 @@
        (finally
          (System/setErr err#)))))
 
-(facts serializable?
+(facts encode?
   (tabular
     (fact
-      (serializable? nil
-                     {:body ?body
+      (encode? nil
+               {:body ?body
                       :compojure.api.meta/serializable? ?serializable?}) => ?res)
     ?body ?serializable? ?res
     5 true true
