@@ -5,15 +5,14 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[ring "1.6.0-beta6"]
-                 [potemkin "0.4.3"]
+  :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.6.3"]
                  [compojure "1.5.1"]
                  [prismatic/schema "1.1.3"]
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-                 [metosin/muuntaja "0.1.0-SNAPSHOT"]
+                 [metosin/muuntaja "0.1.0"]
                  [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.11"]
                  [metosin/ring-swagger-ui "2.2.5-0"]]

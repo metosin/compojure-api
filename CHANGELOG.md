@@ -7,13 +7,11 @@
     Muuntaja instance, Muuntaja options map or `nil` (unmounts it). See [how to configure Muuntaja](https://github.com/metosin/muuntaja/wiki/Configuration) how to use.
 * **EXPERIMENTAL**: fast `context`s, [#253](https://github.com/metosin/compojure-api/pull/253) - use static routes if a `context` doesn't do any lexical bindings
   - up to 4x faster `context` routing.
-* Depend on the new (async) `[ring "1.6.0-beta6"]`
 
 * Updated deps:
 
 ```clj
-[metosin/muuntaja "0.1.0-SNAPSHOT"]
-[ring "1.6.0-beta6"] is available but we use "1.5.0"
+[metosin/muuntaja "0.1.0"]
 ```
 
 * Removed deps:
