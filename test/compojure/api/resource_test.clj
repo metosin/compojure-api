@@ -5,7 +5,7 @@
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s])
-  (:import [clojure.lang ExceptionInfo]))
+  (:import (clojure.lang ExceptionInfo)))
 
 (defn has-body [expected]
   (fn [{:keys [body]}]

@@ -2,8 +2,8 @@
   (:require [compojure.api.sweet :refer :all]
             [schema.core :as s]
             [ring.util.http-response :refer :all])
-  (:import [java.util Date]
-           [org.joda.time DateTime LocalDate]))
+  (:import (java.util Date)
+           (org.joda.time LocalDate DateTime)))
 
 (s/defschema Dates {:date Date
                     :date-time DateTime
