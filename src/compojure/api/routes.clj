@@ -10,7 +10,7 @@
             [linked.core :as linked]
             [compojure.response]
             [schema.core :as s])
-  (:import (clojure.lang AFn IFn Var)))
+  (:import (clojure.lang AFn IFn Var IDeref)))
 
 ;;
 ;; Route records
@@ -47,11 +47,15 @@
        (update-in route [0] (fn [uri] (if (str/blank? uri) "/" uri))))
      (-get-routes handler options))))
 
+(defn- realize-childs [route]
+  (update route :childs #(if (instance? IDeref %) @% %)))
+
 (defrecord Route [path method info childs handler]
   Routing
   (-get-routes [this options]
-    (let [valid-childs (filter-routes this options)]
-      (if (seq childs)
+    (let [this (realize-childs this)
+          valid-childs (filter-routes this options)]
+      (if (seq (:childs this))
         (vec
           (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
             [(->paths path p) m (rsc/deep-merge info i)]))

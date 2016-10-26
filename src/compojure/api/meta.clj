@@ -327,7 +327,7 @@
                          form (if (seq lets) `(dummy-let ~lets ~form) form)
                          form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
                          form `(fn [~'+compojure-api-request+] ~form)
-                         form `(~form {})]
+                         form `(delay (~form {}))]
                      form)]
 
         `(routes/create ~path-string ~method (merge-parameters ~swagger) ~childs ~form))

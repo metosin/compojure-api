@@ -7,6 +7,7 @@
     Muuntaja instance, Muuntaja options map or `nil` (unmounts it). See [how to configure Muuntaja](https://github.com/metosin/muuntaja/wiki/Configuration) how to use.
 * **EXPERIMENTAL**: fast `context`s, [#253](https://github.com/metosin/compojure-api/pull/253) - use static routes if a `context` doesn't do any lexical bindings
   - up to 4x faster `context` routing.
+* Support delayed child route resolution.
 
 * Updated deps:
 
