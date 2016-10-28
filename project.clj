@@ -12,7 +12,7 @@
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-                 [metosin/muuntaja "0.1.0"]
+                 [metosin/muuntaja "0.2.0-SNAPSHOT"]
                  [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.11"]
                  [metosin/ring-swagger-ui "2.2.5-0"]]

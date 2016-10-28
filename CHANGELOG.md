@@ -12,7 +12,7 @@
 * Updated deps:
 
 ```clj
-[metosin/muuntaja "0.1.0"]
+[metosin/muuntaja "0.2.0-SNAPSHOT"]
 ```
 
 * Removed deps:
