@@ -12,7 +12,8 @@
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
             [compojure.api.routes :as routes]
-            [muuntaja.options :as options]
+            [muuntaja.core :as muuntaja]
+            [muuntaja.core :as formats]
             [cheshire.core :as json]))
 
 ;;
@@ -484,8 +485,8 @@
 
 (fact "swagger-docs"
   (let [app (api
-              {:formats (options/formats
-                          muuntaja.core/default-options
+              {:formats (muuntaja/select-formats
+                          muuntaja/default-options
                           ["application/json" "application/edn"])}
               (swagger-routes)
               (GET "/user" []
@@ -1482,9 +1483,9 @@
                        :encoder [muuntaja.formats/make-json-encoder]}
         app (api
               {:swagger {:spec "/swagger.json"}
-               :formats (-> muuntaja.core/default-options
+               :formats (-> muuntaja/default-options
                             (update :formats assoc custom-type custom-format)
-                            (options/formats ["application/json" custom-type]))}
+                            (muuntaja/select-formats ["application/json" custom-type]))}
               (POST "/echo" []
                 :body [data {:kikka s/Str}]
                 (ok data)))]
