@@ -104,6 +104,7 @@
 
 (facts "middleware ordering"
   (let [app (api
+              {:middleware [[middleware* 0]]}
               (middleware [middleware* [middleware* 2]]
                 (context "/middlewares" []
                   :middleware [(fn [handler] (middleware* handler 3)) [middleware* 4]]
@@ -117,17 +118,17 @@
     (fact "are applied left-to-right"
       (let [[status _ headers] (get* app "/middlewares/simple" {})]
         status => 200
-        (get headers mw*) => "1234/4321"))
+        (get headers mw*) => "01234/43210"))
 
     (fact "are applied left-to-right closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested" {})]
         status => 200
-        (get headers mw*) => "123456/654321"))
+        (get headers mw*) => "0123456/6543210"))
 
     (fact "are applied left-to-right for both nested & declared closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested-declared" {})]
         status => 200
-        (get headers mw*) => "12345678/87654321"))))
+        (get headers mw*) => "012345678/876543210"))))
 
 (facts "middleware - multiple routes"
   (let [app (api

@@ -124,6 +124,22 @@
         (assoc :encode? encode?)))))
 
 ;;
+;; middleware
+;;
+
+(defn middleware-fn [middleware]
+  (if (vector? middleware)
+    (let [[f & arguments] middleware]
+      #(apply f % arguments))
+    middleware))
+
+(defn compose-middleware [middleware]
+  (->> middleware
+       (keep identity)
+       (map middleware-fn)
+       (apply comp identity)))
+
+;;
 ;; Api Middleware
 ;;
 
@@ -133,6 +149,7 @@
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
+   :middleware nil
    :coercion (constantly default-coercion-matchers)
    :ring-swagger nil})
 
@@ -168,6 +185,8 @@
                                    a Muuntaja instance or nil (to unmount it). See
                                    https://github.com/metosin/muuntaja/wiki/Configuration for details.
 
+  - **:middleware**                vector of extra middleware to be applied last (just before the handler).
+
   - **:ring-swagger**              options for ring-swagger's swagger-json method.
                                    e.g. `{:ignore-missing-mappings? true}`
 
@@ -184,7 +203,7 @@
    (api-middleware handler nil))
   ([handler options]
    (let [options (rsc/deep-merge api-middleware-defaults options)
-         {:keys [exceptions components formats]} options
+         {:keys [exceptions components formats middleware]} options
          muuntaja (create-muuntaja formats)]
 
      ; Break at compile time if there are deprecated options
@@ -213,6 +232,7 @@
                   "'(doc compojure.api.middleware/api-middleware)' for more details."))
 
      (cond-> handler
+             middleware ((compose-middleware middleware))
              components (wrap-components components)
              true ring.middleware.http-response/wrap-http-response
              muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces]))
@@ -224,15 +244,3 @@
              true wrap-keyword-params
              true wrap-nested-params
              true wrap-params))))
-
-(defn middleware-fn [middleware]
-  (if (vector? middleware)
-    (let [[f & arguments] middleware]
-      #(apply f % arguments))
-    middleware))
-
-(defn compose-middleware [middleware]
-  (->> middleware
-       (keep identity)
-       (map middleware-fn)
-       (apply comp identity)))

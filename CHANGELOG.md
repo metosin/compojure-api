@@ -8,6 +8,13 @@
 * **EXPERIMENTAL**: fast `context`s, [#253](https://github.com/metosin/compojure-api/pull/253) - use static routes if a `context` doesn't do any lexical bindings
   - up to 4x faster `context` routing.
 * Support delayed child route resolution.
+* `:middleware` for `api` & `api-middleware`, run last just before the actual routes. Uses same syntax as with the routing macros.
+
+```clj
+(api
+  {:middleware [no-cache [wrap-require-role :user]]}
+  ...)
+```
 
 * Updated deps:
 
