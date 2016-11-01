@@ -976,29 +976,6 @@
                 (throw (new RuntimeException))))]
     (get* app "/throw") => throws))
 
-(defn old-ex-handler [e]
-  {:status 500
-   :body {:type "unknown-exception"
-          :class (.getName (.getClass e))}})
-
-(fact "Deprecated options"
-  (facts "Old options throw assertion error"
-    (api {:validation-errors {:error-handler identity}} nil) => (throws AssertionError)
-    (api {:validation-errors {:catch-core-errors? true}} nil) => (throws AssertionError)
-    (api {:exceptions {:exception-handler identity}} nil) => (throws AssertionError))
-  (facts "Old handler functions work, with a warning"
-    (let [app (api
-                {:exceptions {:handlers {::ex/default old-ex-handler}}}
-                (GET "/" []
-                  (throw (RuntimeException.))))]
-      (with-out-str
-        (let [[status body] (get* app "/")]
-          status => 500
-          body => {:type "unknown-exception"
-                   :class "java.lang.RuntimeException"}))
-      (with-out-str
-        (get* app "/")) => "WARN Error-handler arity has been changed.\n")))
-
 (s/defn schema-error [a :- s/Int]
   {:bar a})
 
@@ -1279,34 +1256,6 @@
 
 (fact "defapi & api define same results, #159"
   (get-spec with-defapi) => (get-spec (with-api)))
-
-(fact "coercion api change in 1.0.0 migration test"
-
-  (fact "with defaults"
-    (let [app (api
-                (GET "/ping" []
-                  :return s/Bool
-                  (ok 1)))]
-      (let [[status] (get* app "/ping")]
-        status => 500)))
-
-  (fact "with pre 1.0.0 syntax, api can't be created (with a nice error message)"
-    (let [app' `(api
-                  {:coercion (dissoc mw/default-coercion-matchers :response)}
-                  (GET "/ping" []
-                    :return s/Bool
-                    (ok 1)))]
-      (eval app') => (throws AssertionError)))
-
-  (fact "with post 1.0.0 syntax, works ok"
-    (let [app (api
-                {:coercion (constantly (dissoc mw/default-coercion-matchers :response))}
-                (GET "/ping" []
-                  :return s/Bool
-                  (ok 1)))]
-      (let [[status body] (get* app "/ping")]
-        status => 200
-        body => 1))))
 
 (fact "handling invalid routes with api"
   (let [invalid-routes (routes (constantly nil))]

@@ -206,25 +206,6 @@
          {:keys [exceptions components formats middleware]} options
          muuntaja (create-muuntaja formats)]
 
-     ; Break at compile time if there are deprecated options
-     ; These three have been deprecated with 0.23
-     (assert (not (:error-handler (:validation-errors options)))
-             (str "ERROR: Option: [:validation-errors :error-handler] is no longer supported, "
-                  "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."
-                  "Also note that exception-handler arity has been changed."))
-     (assert (not (:catch-core-errors? (:validation-errors options)))
-             (str "ERROR: Option [:validation-errors :catch-core-errors?] is no longer supported, "
-                  "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."
-                  "Also note that exception-handler arity has been changed."))
-     (assert (not (:exception-handler (:exceptions options)))
-             (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
-                  "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
-                  "Also note that exception-handler arity has been changed."))
-     (assert (not (map? (:coercion options)))
-             (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
-                  "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
-                  "want to apply the matchers for all request types, wrap your option with 'constantly'"))
-
      ;; 1.2.0+
      (assert (not (map? (:format options)))
              (str "ERROR: Option [:format] is not used with 1.2.0 or later. Compojure-api uses now Muuntaja insted of"
