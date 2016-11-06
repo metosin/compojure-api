@@ -2,7 +2,7 @@
   (:require [compojure.api.exception :refer :all]
             [midje.sweet :refer :all]
             [schema.core :as s])
-  (:import [schema.utils ValidationError NamedError]))
+  (:import (schema.utils ValidationError NamedError)))
 
 (fact "stringify-error"
   (fact "ValidationError"

@@ -2,20 +2,18 @@
   (:require [compojure.core :refer :all]
             [compojure.api.exception :as ex]
             [compojure.api.impl.logging :as logging]
-            [ring.middleware.format-params :refer [wrap-restful-params]]
-            [ring.middleware.format-response :refer [wrap-restful-response]]
-            ring.middleware.http-response
+            [ring.middleware.http-response]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
+            [muuntaja.middleware]
+            [muuntaja.core]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as coerce]
             [ring.util.http-response :refer :all]
             [schema.core :as s])
-  (:import [com.fasterxml.jackson.core JsonParseException]
-           [org.yaml.snakeyaml.parser ParserException]
-           [clojure.lang ArityException]))
+  (:import [clojure.lang ArityException]))
 
 ;;
 ;; Catch exceptions
@@ -43,12 +41,12 @@
         (handler request)
         (catch Throwable e
           (let [{:keys [type] :as data} (ex-data e)
-                type (or (get ex/legacy-exception-types type) type)
+                type (or (get ex/mapped-exception-types type) type)
                 handler (or (get handlers type) default-handler)]
             ; FIXME: Used for validate
             (if (rethrow-exceptions? request)
               (throw e)
-              (call-error-handler handler e data request))))))))
+              (call-error-handler handler e (assoc data :type type) request))))))))
 
 ;;
 ;; Component integration
@@ -106,58 +104,52 @@
     (handler (assoc-in request coercion-request-ks coercion))))
 
 ;;
-;; ring-middleware-format stuff
+;; Muuntaja
 ;;
 
-(def ^:private default-mime-types
-  {:json "application/json"
-   :json-kw "application/json"
-   :edn "application/edn"
-   :clojure "application/clojure"
-   :yaml "application/x-yaml"
-   :yaml-kw "application/x-yaml"
-   :yaml-in-html "text/html"
-   :transit-json "application/transit+json"
-   :transit-msgpack "application/transit+msgpack"})
+(defn encode?
+  "Returns true if the response body is serializable: body is a
+  collection or response has key :compojure.api.meta/serializable?"
+  [_ response]
+  (or (:compojure.api.meta/serializable? response)
+      (coll? (:body response))))
 
-(defn mime-types
-  [format]
-  (get default-mime-types format
-       (some-> format :content-type)))
+(defn create-muuntaja [options]
+  (if options
+    (muuntaja.core/create
+      (->
+        (if (= ::defaults options)
+          muuntaja.core/default-options
+          options)
+        (assoc :encode? encode?)))))
 
-(def ^:private response-only-mimes #{:clojure :yaml-in-html})
+;;
+;; middleware
+;;
 
-(defn ->mime-types [formats] (keep mime-types formats))
+(defn middleware-fn [middleware]
+  (if (vector? middleware)
+    (let [[f & arguments] middleware]
+      #(apply f % arguments))
+    middleware))
 
-(defn handle-req-error [^Throwable e handler request]
-  ;; Ring-middleware-format catches all exceptions in req handling,
-  ;; i.e. (handler req) is inside try-catch. If r-m-f was changed to catch only
-  ;; exceptions from parsing the request, we wouldn't need to check the exception class.
-  (if (or (instance? JsonParseException e) (instance? ParserException e))
-    (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} e))
-    (throw e)))
-
-(defn serializable?
-  "Predicate which returns true if the response body is serializable.
-   That is, return type is set by :return compojure-api key or it's
-   a collection."
-  [_ {:keys [body] :as response}]
-  (when response
-    (or (:compojure.api.meta/serializable? response)
-        (coll? body))))
+(defn compose-middleware [middleware]
+  (->> middleware
+       (keep identity)
+       (map middleware-fn)
+       (apply comp identity)))
 
 ;;
 ;; Api Middleware
 ;;
 
 (def api-middleware-defaults
-  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
-            :params-opts {}
-            :response-opts {}}
+  {:formats ::defaults
    :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
+   :middleware nil
    :coercion (constantly default-coercion-matchers)
    :ring-swagger nil})
 
@@ -189,12 +181,11 @@
   - **:exceptions**                for *compojure.api.middleware/wrap-exceptions* (nil to unmount it)
       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
 
-  - **:format**                    for ring-middleware-format middlewares (nil to unmount it)
-      - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
-      - **:params-opts**             for *ring.middleware.format-params/wrap-restful-params*,
-                                     e.g. `{:transit-json {:handlers readers}}`
-      - **:response-opts**           for *ring.middleware.format-params/wrap-restful-response*,
-                                     e.g. `{:transit-json {:handlers writers}}`
+  - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
+                                   a Muuntaja instance or nil (to unmount it). See
+                                   https://github.com/metosin/muuntaja/wiki/Configuration for details.
+
+  - **:middleware**                vector of extra middleware to be applied last (just before the handler).
 
   - **:ring-swagger**              options for ring-swagger's swagger-json method.
                                    e.g. `{:ignore-missing-mappings? true}`
@@ -208,54 +199,29 @@
                                    :components restructuring. (If you are using api,
                                    you might want to take look at using wrap-components
                                    middleware manually.). Defaults to nil (middleware not mounted)."
-  ([handler] (api-middleware handler nil))
+  ([handler]
+   (api-middleware handler nil))
   ([handler options]
    (let [options (rsc/deep-merge api-middleware-defaults options)
-         {:keys [exceptions format components]} options
-         {:keys [formats params-opts response-opts]} format]
-     ; Break at compile time if there are deprecated options
-     ; These three have been deprecated with 0.23
-     (assert (not (:error-handler (:validation-errors options)))
-             (str "ERROR: Option: [:validation-errors :error-handler] is no longer supported, "
-                  "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."
-                  "Also note that exception-handler arity has been changed."))
-     (assert (not (:catch-core-errors? (:validation-errors options)))
-             (str "ERROR: Option [:validation-errors :catch-core-errors?] is no longer supported, "
-                  "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."
-                  "Also note that exception-handler arity has been changed."))
-     (assert (not (:exception-handler (:exceptions options)))
-             (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
-                  "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
-                  "Also note that exception-handler arity has been changed."))
-     (assert (not (map? (:coercion options)))
-             (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
-                  "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
-                  "want to apply the matchers for all request types, wrap your option with 'constantly'"))
+         {:keys [exceptions components formats middleware]} options
+         muuntaja (create-muuntaja formats)]
+
+     ;; 1.2.0+
+     (assert (not (map? (:format options)))
+             (str "ERROR: Option [:format] is not used with 1.2.0 or later. Compojure-api uses now Muuntaja insted of"
+                  "ring-middleware-format and the new formatting options for it should be under [:formats]. See "
+                  "'(doc compojure.api.middleware/api-middleware)' for more details."))
+
      (cond-> handler
+             middleware ((compose-middleware middleware))
              components (wrap-components components)
              true ring.middleware.http-response/wrap-http-response
-             (seq formats) (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
-                                                   :consumes (->mime-types formats)})
+             muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces]))
              true (wrap-options (select-keys options [:ring-swagger :coercion]))
-             (seq formats) (wrap-restful-params {:formats (remove response-only-mimes formats)
-                                                 :handle-error handle-req-error
-                                                 :format-options params-opts})
+             muuntaja (muuntaja.middleware/wrap-format-request muuntaja)
              exceptions (wrap-exceptions exceptions)
-             (seq formats) (wrap-restful-response {:formats formats
-                                                   :predicate serializable?
-                                                   :format-options response-opts})
+             muuntaja (muuntaja.middleware/wrap-format-response muuntaja)
+             muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja)
              true wrap-keyword-params
              true wrap-nested-params
              true wrap-params))))
-
-(defn middleware-fn [middleware]
-  (if (vector? middleware)
-    (let [[f & arguments] middleware]
-      #(apply f % arguments))
-    middleware))
-
-(defn compose-middleware [middleware]
-  (->> middleware
-       (keep identity)
-       (map middleware-fn)
-       (apply comp identity)))

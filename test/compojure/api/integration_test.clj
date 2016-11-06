@@ -12,8 +12,8 @@
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
             [compojure.api.routes :as routes]
-
-            [ring.middleware.format-response :as format-response]
+            [muuntaja.core :as muuntaja]
+            [muuntaja.core :as formats]
             [cheshire.core :as json]))
 
 ;;
@@ -104,6 +104,7 @@
 
 (facts "middleware ordering"
   (let [app (api
+              {:middleware [[middleware* 0]]}
               (middleware [middleware* [middleware* 2]]
                 (context "/middlewares" []
                   :middleware [(fn [handler] (middleware* handler 3)) [middleware* 4]]
@@ -117,17 +118,17 @@
     (fact "are applied left-to-right"
       (let [[status _ headers] (get* app "/middlewares/simple" {})]
         status => 200
-        (get headers mw*) => "1234/4321"))
+        (get headers mw*) => "01234/43210"))
 
     (fact "are applied left-to-right closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested" {})]
         status => 200
-        (get headers mw*) => "123456/654321"))
+        (get headers mw*) => "0123456/6543210"))
 
     (fact "are applied left-to-right for both nested & declared closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested-declared" {})]
         status => 200
-        (get headers mw*) => "12345678/87654321"))))
+        (get headers mw*) => "012345678/876543210"))))
 
 (facts "middleware - multiple routes"
   (let [app (api
@@ -196,7 +197,6 @@
                 (POST "/user_legacy" {user :body-params}
                   :return User
                   (ok user))))]
-
     (fact "GET"
       (let [[status body] (get* app "/models/pertti")]
         status => 200
@@ -244,7 +244,10 @@
     (fact "Invalid json in body causes 400 with error message in json"
       (let [[status body] (post* app "/models/user" "{INVALID}")]
         status => 400
-        (:message body) => (contains "Unexpected character")))))
+        body => (contains
+                  {:type "compojure.api.exception/request-parsing"
+                   :message (contains "Malformed application/json")
+                   :original (contains "Unexpected character")})))))
 
 (fact ":responses"
   (fact "normal cases"
@@ -483,7 +486,9 @@
 
 (fact "swagger-docs"
   (let [app (api
-              {:format {:formats [:json-kw :edn :UNKNOWN]}}
+              {:formats (muuntaja/select-formats
+                          muuntaja/default-options
+                          ["application/json" "application/edn"])}
               (swagger-routes)
               (GET "/user" []
                 (continue)))]
@@ -971,29 +976,6 @@
                 (throw (new RuntimeException))))]
     (get* app "/throw") => throws))
 
-(defn old-ex-handler [e]
-  {:status 500
-   :body {:type "unknown-exception"
-          :class (.getName (.getClass e))}})
-
-(fact "Deprecated options"
-  (facts "Old options throw assertion error"
-    (api {:validation-errors {:error-handler identity}} nil) => (throws AssertionError)
-    (api {:validation-errors {:catch-core-errors? true}} nil) => (throws AssertionError)
-    (api {:exceptions {:exception-handler identity}} nil) => (throws AssertionError))
-  (facts "Old handler functions work, with a warning"
-    (let [app (api
-                {:exceptions {:handlers {::ex/default old-ex-handler}}}
-                (GET "/" []
-                  (throw (RuntimeException.))))]
-      (with-out-str
-        (let [[status body] (get* app "/")]
-          status => 500
-          body => {:type "unknown-exception"
-                   :class "java.lang.RuntimeException"}))
-      (with-out-str
-        (get* app "/")) => "WARN Error-handler arity has been changed.\n")))
-
 (s/defn schema-error [a :- s/Int]
   {:bar a})
 
@@ -1275,34 +1257,6 @@
 (fact "defapi & api define same results, #159"
   (get-spec with-defapi) => (get-spec (with-api)))
 
-(fact "coercion api change in 1.0.0 migration test"
-
-  (fact "with defaults"
-    (let [app (api
-                (GET "/ping" []
-                  :return s/Bool
-                  (ok 1)))]
-      (let [[status] (get* app "/ping")]
-        status => 500)))
-
-  (fact "with pre 1.0.0 syntax, api can't be created (with a nice error message)"
-    (let [app' `(api
-                  {:coercion (dissoc mw/default-coercion-matchers :response)}
-                  (GET "/ping" []
-                    :return s/Bool
-                    (ok 1)))]
-      (eval app') => (throws AssertionError)))
-
-  (fact "with post 1.0.0 syntax, works ok"
-    (let [app (api
-                {:coercion (constantly (dissoc mw/default-coercion-matchers :response))}
-                (GET "/ping" []
-                  :return s/Bool
-                  (ok 1)))]
-      (let [[status body] (get* app "/ping")]
-        status => 200
-        body => 1))))
-
 (fact "handling invalid routes with api"
   (let [invalid-routes (routes (constantly nil))]
 
@@ -1474,10 +1428,14 @@
       (raw-get* app "/throw") => throws)))
 
 (facts "custom formats contribute to Swagger :consumes & :produces"
-  (let [custom-json (format-response/make-encoder json "application/vnd.vendor.v1+json")
+  (let [custom-type "application/vnd.vendor.v1+json"
+        custom-format {:decoder [muuntaja.formats/make-json-decoder]
+                       :encoder [muuntaja.formats/make-json-encoder]}
         app (api
               {:swagger {:spec "/swagger.json"}
-               :format {:formats [custom-json :json]}}
+               :formats (-> muuntaja/default-options
+                            (update :formats assoc custom-type custom-format)
+                            (muuntaja/select-formats ["application/json" custom-type]))}
               (POST "/echo" []
                 :body [data {:kikka s/Str}]
                 (ok data)))]
@@ -1493,6 +1451,7 @@
         (-> response :headers) => (contains {"Content-Type" "application/vnd.vendor.v1+json; charset=utf-8"})))
 
     (fact "spec is correct"
-      (get-spec app) => (contains
-                          {:produces ["application/vnd.vendor.v1+json" "application/json"]
-                           :consumes ["application/vnd.vendor.v1+json" "application/json"]}))))
+      (get-spec app)
+      => (contains
+           {:produces (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)
+            :consumes (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)}))))

@@ -1,20 +1,20 @@
-(defproject metosin/compojure-api "1.1.9"
+(defproject metosin/compojure-api "1.2.0-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[prismatic/plumbing "0.5.3"]
-                 [potemkin "0.4.3"]
+  :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.6.3"]
                  [compojure "1.5.1"]
                  [prismatic/schema "1.1.3"]
+                 [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-                 [ring-middleware-format "0.7.0"]
+                 [metosin/muuntaja "0.2.0-SNAPSHOT"]
                  [metosin/ring-http-response "0.8.0"]
-                 [metosin/ring-swagger "0.22.11"]
+                 [metosin/ring-swagger "0.22.12"]
                  [metosin/ring-swagger-ui "2.2.5-0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -43,7 +43,9 @@
                           :reload-paths ["src" "examples/thingie/src"]}
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
                    :main examples.server}
-             :perf {:jvm-opts ^:replace []}
+             :perf {:jvm-opts ^:replace ["-server"
+                                         "-Xmx4096m"
+                                         "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
   :eastwood {:namespaces [:source-paths]

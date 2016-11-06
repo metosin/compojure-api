@@ -4,7 +4,7 @@
             [peridot.core :as p]
             [clojure.java.io :as io]
             [compojure.api.routes :as routes])
-  (:import [java.io InputStream]))
+  (:import (java.io InputStream)))
 
 (defn read-body [body]
   (if (instance? InputStream body)
