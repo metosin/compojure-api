@@ -1,4 +1,4 @@
-## 1.2.0-SNAPSHOT
+## 1.2.0-alpha1
 
 * **BREAKING**: use [Muuntaja](https://github.com/metosin/muuntaja) instead of [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format), [#255](https://github.com/metosin/compojure-api/pull/255)
   for format negotiation, encoding and decoding.
