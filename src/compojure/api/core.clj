@@ -51,7 +51,10 @@
 
   Note that middlewares will be executed even if routes in body
   do not match the request uri. Be careful with middlewares that
-  have side-effects."
+  have side-effects.
+
+  Check wrap-routes for version that only runs the middleware
+  after route is matched."
   {:style/indent 1}
   [middleware & body]
   (let [body (apply routes body)
