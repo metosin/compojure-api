@@ -16,8 +16,8 @@
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
   The name may optionally be followed by a doc-string and metadata map."
-  [name & routes]
   {:style/indent 1}
+  [name & routes]
   (let [[name routes] (macro/name-with-attributes name routes)]
     `(def ~name (routes ~@routes))))
 
@@ -25,8 +25,8 @@
   "Takes a vector of bindings and a body of routes.
 
   Equivalent to: `(let [...] (routes ...))`"
-  [bindings & body]
   {:style/indent 1}
+  [bindings & body]
   `(let ~bindings (routes ~@body)))
 
 (defn undocumented
@@ -42,19 +42,19 @@
   Note that middlewares will be executed even if routes in body
   do not match the request uri. Be careful with middlewares that
   have side-effects."
-  [middleware & body]
   {:style/indent 1}
+  [middleware & body]
   `(let [body# (routes ~@body)
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
 
-(defmacro context [& args] {:style/indent 2} (meta/restructure nil      args {:context? true}))
+(defmacro context {:style/indent 2} [& args] (meta/restructure nil      args {:context? true}))
 
-(defmacro GET     [& args] {:style/indent 2} (meta/restructure :get     args nil))
-(defmacro ANY     [& args] {:style/indent 2} (meta/restructure nil      args nil))
-(defmacro HEAD    [& args] {:style/indent 2} (meta/restructure :head    args nil))
-(defmacro PATCH   [& args] {:style/indent 2} (meta/restructure :patch   args nil))
-(defmacro DELETE  [& args] {:style/indent 2} (meta/restructure :delete  args nil))
-(defmacro OPTIONS [& args] {:style/indent 2} (meta/restructure :options args nil))
-(defmacro POST    [& args] {:style/indent 2} (meta/restructure :post    args nil))
-(defmacro PUT     [& args] {:style/indent 2} (meta/restructure :put     args nil))
+(defmacro GET     {:style/indent 2} [& args] (meta/restructure :get     args nil))
+(defmacro ANY     {:style/indent 2} [& args] (meta/restructure nil      args nil))
+(defmacro HEAD    {:style/indent 2} [& args] (meta/restructure :head    args nil))
+(defmacro PATCH   {:style/indent 2} [& args] (meta/restructure :patch   args nil))
+(defmacro DELETE  {:style/indent 2} [& args] (meta/restructure :delete  args nil))
+(defmacro OPTIONS {:style/indent 2} [& args] (meta/restructure :options args nil))
+(defmacro POST    {:style/indent 2} [& args] (meta/restructure :post    args nil))
+(defmacro PUT     {:style/indent 2} [& args] (meta/restructure :put     args nil))
