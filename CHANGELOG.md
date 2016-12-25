@@ -22,6 +22,7 @@
 ```clj
 [metosin/muuntaja "0.2.0-SNAPSHOT"]
 [metosin/ring-swagger "0.22.12"] is available but we use "0.22.11"
+[metosin/ring-swagger-ui "2.2.8"] is available but we use "2.2.5-0"
 ```
 
 * Removed deps:

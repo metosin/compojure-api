@@ -15,25 +15,25 @@
                  [metosin/muuntaja "0.2.0-20161115.083911-5"]
                  [metosin/ring-http-response "0.8.0"]
                  [metosin/ring-swagger "0.22.12"]
-                 [metosin/ring-swagger-ui "2.2.5-0"]]
+                 [metosin/ring-swagger-ui "2.2.8"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
                        :dependencies [[org.clojure/clojure "1.8.0"]
                                       [http-kit "2.2.0"]
                                       [reloaded.repl "0.2.3"]
-                                      [com.stuartsierra/component "0.3.1"]]}
+                                      [com.stuartsierra/component "0.3.2"]]}
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.9.7"]
+                             [lein-ring "0.10.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [slingshot "0.12.2"]
                                   [peridot "0.4.4"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.3"]
-                                  [com.stuartsierra/component "0.3.1"]
+                                  [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]
