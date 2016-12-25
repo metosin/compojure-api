@@ -1,3 +1,13 @@
+## Unreleased
+
+* Fix Cider indentation for route macros, by [Joe Littlejohn](https://github.com/joelittlejohn)
+
+* Updated deps:
+
+```
+[metosin/ring-swagger-ui "2.2.8"] is available but we use "2.2.5-0"
+```
+
 ## 1.2.0-alpha1
 
 * **BREAKING**: use [Muuntaja](https://github.com/metosin/muuntaja) instead of [ring-middleware-format](https://github.com/ngrunwald/ring-middleware-format), [#255](https://github.com/metosin/compojure-api/pull/255)
@@ -22,7 +32,6 @@
 ```clj
 [metosin/muuntaja "0.2.0-SNAPSHOT"]
 [metosin/ring-swagger "0.22.12"] is available but we use "0.22.11"
-[metosin/ring-swagger-ui "2.2.8"] is available but we use "2.2.5-0"
 ```
 
 * Removed deps:
