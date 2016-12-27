@@ -10,7 +10,8 @@
             [linked.core :as linked]
             [compojure.response]
             [schema.core :as s])
-  (:import (clojure.lang AFn IFn Var IDeref)))
+  (:import (clojure.lang AFn IFn Var IDeref)
+           (java.io Writer)))
 
 ;;
 ;; Route records
@@ -78,6 +79,15 @@
     (handler request))
   (applyTo [this args]
     (AFn/applyToHelper this args)))
+
+(defmethod print-method Route
+  [this ^Writer w]
+  (.write w (str "#Route"
+                 (cond-> (dissoc this :handler)
+                         (not (seq (:info this))) (dissoc :info)
+                         (not (:childs this)) (dissoc :childs)
+                         (not (:method this)) (dissoc :method)
+                         (:childs this) (update :childs deref)))))
 
 (defn create [path method info childs handler]
   (->Route path method info childs handler))
