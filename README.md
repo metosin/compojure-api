@@ -95,6 +95,11 @@ lein new compojure-api my-api
 lein new compojure-api my-api +midje
 lein new compojure-api my-api +clojure-test
 ```
+To run:
+
+```
+lein ring server-headless
+```
 
 ## License
 
