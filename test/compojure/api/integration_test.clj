@@ -17,7 +17,7 @@
             [muuntaja.core :as formats]
             [cheshire.core :as json]
             [clojure.java.io :as io]
-            [muuntaja.core :as m]))
+            [muuntaja.core :as muuntaja]))
 
 ;;
 ;; Data
@@ -1460,7 +1460,7 @@
             :consumes (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)}))))
 
 (facts ":body doesn't keywordize keys"
-  (let [m (muuntaja.core/create)
+  (let [m (muuntaja/create)
         data {:items {"kikka" 42}}
         body* (atom nil)
         app (api
@@ -1477,7 +1477,7 @@
     (facts ":body-params keywordizes params"
       (app {:uri "/echo"
             :request-method :post
-            :body (m/encode m "application/transit+json" data)
+            :body (muuntaja/encode m "application/transit+json" data)
             :headers {"content-type" "application/transit+json"
                       "accept" "application/transit+json"}}) => http/ok?
       @body* => {:items {:kikka 42}})
@@ -1485,7 +1485,7 @@
     (facts ":body does not keywordizes params"
       (app {:uri "/echo2"
             :request-method :post
-            :body (m/encode m "application/transit+json" data)
+            :body (muuntaja/encode m "application/transit+json" data)
             :headers {"content-type" "application/transit+json"
                       "accept" "application/transit+json"}}) => http/ok?
       @body* => {:items {"kikka" 42}})
