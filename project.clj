@@ -14,7 +14,7 @@
                  [frankiesardo/linked "1.2.9"]
                  [metosin/muuntaja "0.2.0-20161115.083911-5"]
                  [metosin/ring-http-response "0.8.0"]
-                 [metosin/ring-swagger "0.22.12"]
+                 [metosin/ring-swagger "0.22.13"]
                  [metosin/ring-swagger-ui "2.2.8"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
