@@ -89,7 +89,7 @@
                     "application/yaml" coerce/query-schema-coercion-matcher}}
    :string coerce/query-schema-coercion-matcher
    :response {:default (constantly nil)
-              ;; FIXME: don't auto-coerce the JSON responses? => would be a breaking change in 1.2
+              ;; TODO: don't auto-coerce the JSON responses? => would be a breaking change in 1.2
               :formats {"application/json" coerce/json-schema-coercion-matcher}}})
 
 (defn create-coercion
