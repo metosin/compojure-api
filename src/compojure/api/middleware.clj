@@ -85,8 +85,7 @@
 
 (def default-coercion-options
   {:body {:default (constantly nil)
-          :formats {"application/json" coerce/json-schema-coercion-matcher
-                    "application/yaml" coerce/query-schema-coercion-matcher}}
+          :formats {"application/json" coerce/json-schema-coercion-matcher}}
    :string coerce/query-schema-coercion-matcher
    :response {:default (constantly nil)
               ;; TODO: don't auto-coerce the JSON responses? => would be a breaking change in 1.2
