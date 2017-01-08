@@ -12,7 +12,8 @@
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as coerce]
             [ring.util.http-response :refer :all]
-            [schema.core :as s])
+            [schema.core :as s]
+            [schema.coerce :as sc])
   (:import [clojure.lang ArityException]))
 
 ;;
@@ -87,15 +88,42 @@
    :string coerce/query-schema-coercion-matcher
    :response coerce/json-schema-coercion-matcher})
 
+(def default-coercion-options
+  {:body {:default (constantly nil)
+          :formats {"application/json" coerce/json-schema-coercion-matcher
+                    "application/yaml" coerce/query-schema-coercion-matcher}}
+   :string coerce/query-schema-coercion-matcher
+   :response {:default (constantly nil)
+              ;; FIXME: don't auto-coerce the JSON responses? => would be a breaking change in 1.2
+              :formats {"application/json" coerce/json-schema-coercion-matcher}}})
+
+(defn create-coercion
+  ([] (create-coercion default-coercion-options))
+  ([{{body-default :default
+      body-formats :formats} :body
+     {response-default :default
+      response-formats :formats} :response
+     string-default :string}]
+   (fn [request]
+     (let [request-format (-> request :muuntaja.core/request :format)]
+       (fn [type]
+         (case type
+           :body (or (get body-formats request-format) body-default)
+           :string string-default
+           :response (or (get response-formats request-format) response-default)))))))
+
+(def ^:private default-coercion (create-coercion))
+
 (def no-response-coercion
-  (constantly (dissoc default-coercion-matchers :response)))
+  (create-coercion
+    (dissoc default-coercion-options :response)))
 
 (defn coercion-matchers [request]
   (let [options (get-options request)]
     (if (contains? options :coercion)
       (if-let [provider (:coercion options)]
         (provider request))
-      default-coercion-matchers)))
+      (default-coercion request))))
 
 (def coercion-request-ks [::options :coercion])
 
@@ -150,7 +178,7 @@
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
    :middleware nil
-   :coercion (constantly default-coercion-matchers)
+   :coercion default-coercion
    :ring-swagger nil})
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
@@ -191,9 +219,9 @@
                                    e.g. `{:ignore-missing-mappings? true}`
 
   - **:coercion**                  A function from request->type->coercion-matcher, used
-                                   in endpoint coercion for :body, :string and :response.
-                                   Defaults to `(constantly compojure.api.middleware/default-coercion-matchers)`
-                                   Setting value to nil disables all coercion
+                                   in endpoint coercion for types :body, :string and :response.
+                                   Defaults to `compojure.api.middleware/default-coercion`
+                                   Setting value to nil disables all coercion.
 
   - **:components**                Components which should be accessible to handlers using
                                    :components restructuring. (If you are using api,

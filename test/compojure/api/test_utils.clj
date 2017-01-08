@@ -3,7 +3,8 @@
             [clojure.string :as str]
             [peridot.core :as p]
             [clojure.java.io :as io]
-            [compojure.api.routes :as routes])
+            [compojure.api.routes :as routes]
+            [muuntaja.core :as muuntaja])
   (:import (java.io InputStream)))
 
 (defn read-body [body]
@@ -83,6 +84,16 @@
   (let [[status body] (raw-post* app uri "" nil headers)]
     [status (parse-body body)]))
 
+;;
+;; ring-request
+;;
+
+(defn ring-request [m format data]
+  {:uri "/echo"
+   :request-method :post
+   :body (muuntaja/encode m format data)
+   :headers {"content-type" format
+             "accept" format}})
 ;;
 ;; get-spec
 ;;
