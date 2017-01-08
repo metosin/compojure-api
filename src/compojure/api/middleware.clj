@@ -83,11 +83,6 @@
 
 (s/defschema CoercionType (s/enum :body :string :response))
 
-(def default-coercion-matchers
-  {:body coerce/json-schema-coercion-matcher
-   :string coerce/query-schema-coercion-matcher
-   :response coerce/json-schema-coercion-matcher})
-
 (def default-coercion-options
   {:body {:default (constantly nil)
           :formats {"application/json" coerce/json-schema-coercion-matcher
