@@ -38,9 +38,9 @@
                   body (coerce (:body response))]
               (if (su/error? body)
                 (throw (ex-info
-                        (str "Response validation failed: " (su/error-val body))
-                        (assoc body :type ::ex/response-validation
-                               :response response)))
+                         (str "Response validation failed: " (su/error-val body))
+                         (assoc body :type ::ex/response-validation
+                                     :response response)))
                 (assoc response
                   :compojure.api.meta/serializable? true
                   :body body))))))
@@ -50,8 +50,9 @@
   (fn [request]
     (coerce-response! request (handler request) responses)))
 
-(defn coerce! [schema key type request]
-  (let [value (walk/keywordize-keys (key request))]
+(defn coerce! [schema key type keywordize? request]
+  (let [transform (if keywordize? walk/keywordize-keys identity)
+        value (transform (key request))]
     (if-let [matchers (mw/coercion-matchers request)]
       (if-let [matcher (matchers type)]
         (let [coercer (cached-coercer request)

@@ -30,7 +30,7 @@
     (fn [request ring-key [compojure-key _ type open?]]
       (if-let [schema (get-in info (concat ks [:parameters ring-key]))]
         (let [schema (if open? (assoc schema s/Keyword s/Any) schema)]
-          (update request ring-key merge (coerce/coerce! schema compojure-key type request)))
+          (update request ring-key merge (coerce/coerce! schema compojure-key type (not= :body type) request)))
         request))
     request
     (:parameters +mappings+)))

@@ -5,6 +5,7 @@
             [compojure.api.swagger :as swagger]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
+            [ring.util.http-predicates :as http]
             [schema.core :as s]
             [ring.swagger.core :as rsc]
             [ring.util.http-status :as status]
@@ -14,7 +15,9 @@
             [compojure.api.routes :as routes]
             [muuntaja.core :as muuntaja]
             [muuntaja.core :as formats]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [clojure.java.io :as io]
+            [muuntaja.core :as muuntaja]))
 
 ;;
 ;; Data
@@ -1429,7 +1432,7 @@
 
 (facts "custom formats contribute to Swagger :consumes & :produces"
   (let [custom-type "application/vnd.vendor.v1+json"
-        custom-format {:decoder [muuntaja.formats/make-json-decoder]
+        custom-format {:decoder [muuntaja.formats/make-json-decoder {:key-fn true}]
                        :encoder [muuntaja.formats/make-json-encoder]}
         app (api
               {:swagger {:spec "/swagger.json"}
@@ -1455,3 +1458,45 @@
       => (contains
            {:produces (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)
             :consumes (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)}))))
+
+(facts ":body doesn't keywordize keys"
+  (let [m (muuntaja/create)
+        data {:items {"kikka" 42}}
+        body* (atom nil)
+        app (api
+              (swagger-routes)
+              (POST "/echo" []
+                :body-params [items :- {:kikka Long}]
+                (reset! body* {:items items})
+                (ok))
+              (POST "/echo2" []
+                :body [body {:items {(s/required-key "kikka") Long}}]
+                (reset! body* body)
+                (ok)))]
+
+    (facts ":body-params keywordizes params"
+      (app {:uri "/echo"
+            :request-method :post
+            :body (muuntaja/encode m "application/transit+json" data)
+            :headers {"content-type" "application/transit+json"
+                      "accept" "application/transit+json"}}) => http/ok?
+      @body* => {:items {:kikka 42}})
+
+    (facts ":body does not keywordizes params"
+      (app {:uri "/echo2"
+            :request-method :post
+            :body (muuntaja/encode m "application/transit+json" data)
+            :headers {"content-type" "application/transit+json"
+                      "accept" "application/transit+json"}}) => http/ok?
+      @body* => {:items {"kikka" 42}})
+
+    (facts "swagger spec is generated both ways"
+      (let [spec (get-spec app)
+            echo-schema-name (-> (get-in spec [:paths "/echo" :post :parameters 0 :name])
+                                 name (str "Items") keyword)
+            echo2-schema-name (-> (get-in spec [:paths "/echo2" :post :parameters 0 :name])
+                                  name (str "Items") keyword)
+            echo-schema (get-in spec [:definitions echo-schema-name :properties])
+            echo2-schema (get-in spec [:definitions echo2-schema-name :properties])]
+        echo-schema => {:kikka {:type "integer", :format "int64"}}
+        echo2-schema => {:kikka {:type "integer", :format "int64"}}))))

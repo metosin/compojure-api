@@ -33,9 +33,10 @@
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
   extracted from a key in a ring request."
-  [schema, key, type :- mw/CoercionType]
-  (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
-  `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+))
+  ([schema, key, type :- mw/CoercionType]
+    (src-coerce! schema, key, type, true))
+  ([schema, key, type :- mw/CoercionType, keywordize?]
+    `(coerce/coerce! ~schema ~key ~type ~keywordize? ~+compojure-api-request+)))
 
 (defn- convert-return [schema]
   {200 {:schema schema
@@ -129,7 +130,7 @@
 ; :body [user User]
 (defmethod restructure-param :body [_ [value schema] acc]
   (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :body-params :body)])
+      (update-in [:lets] into [value (src-coerce! schema :body-params :body false)])
       (assoc-in [:swagger :parameters :body] schema)))
 
 ; reads query-params into a enhanced let. First parameter is the let symbol,
