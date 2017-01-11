@@ -4,7 +4,7 @@
 
 * Updated dependencies to [avoid a path traversal vulnerability](https://groups.google.com/forum/#!topic/clojure/YDrKBV26rnA) in Ring.
 
-``clj
+```clj
 [compojure "1.5.2"] is available but we use "1.5.1"
 [metosin/ring-http-response "0.8.1"] is available but we use "0.8.0"
 [metosin/ring-swagger "0.22.14"] is available but we use "0.22.11"
