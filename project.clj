@@ -7,14 +7,14 @@
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.6.3"]
-                 [compojure "1.5.1"]
+                 [compojure "1.5.2"]
                  [prismatic/schema "1.1.3"]
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
                  [metosin/muuntaja "0.2.0-20161115.083911-5"]
-                 [metosin/ring-http-response "0.8.0"]
-                 [metosin/ring-swagger "0.22.13"]
+                 [metosin/ring-http-response "0.8.1"]
+                 [metosin/ring-swagger "0.22.14"]
                  [metosin/ring-swagger-ui "2.2.8"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -54,6 +54,7 @@
             :target "gh-pages/doc"
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
+  :deploy-repositories [["releases" :clojars]]
   :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
