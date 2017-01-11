@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.1.9"
+(defproject metosin/compojure-api "1.1.10-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -8,21 +8,21 @@
   :dependencies [[prismatic/plumbing "0.5.3"]
                  [potemkin "0.4.3"]
                  [cheshire "5.6.3"]
-                 [compojure "1.5.1"]
+                 [compojure "1.5.2"]
                  [prismatic/schema "1.1.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
                  [ring-middleware-format "0.7.0"]
-                 [metosin/ring-http-response "0.8.0"]
-                 [metosin/ring-swagger "0.22.11"]
-                 [metosin/ring-swagger-ui "2.2.5-0"]]
+                 [metosin/ring-http-response "0.8.1"]
+                 [metosin/ring-swagger "0.22.14"]
+                 [metosin/ring-swagger-ui "2.2.8"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
                        :dependencies [[org.clojure/clojure "1.8.0"]
                                       [http-kit "2.2.0"]
                                       [reloaded.repl "0.2.3"]
-                                      [com.stuartsierra/component "0.3.1"]]}
+                                      [com.stuartsierra/component "0.3.2"]]}
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
@@ -33,7 +33,7 @@
                                   [peridot "0.4.4"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.8.3"]
-                                  [com.stuartsierra/component "0.3.1"]
+                                  [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]
@@ -52,6 +52,7 @@
             :target "gh-pages/doc"
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
+  :deploy-repositories [["releases" :clojars]]
   :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]

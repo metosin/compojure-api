@@ -1,3 +1,16 @@
+## Unreleased
+
+## 1.1.10 (11.1.2017)
+
+* Updated dependencies to [avoid a path traversal vulnerability](https://groups.google.com/forum/#!topic/clojure/YDrKBV26rnA) in Ring.
+
+``clj
+[compojure "1.5.2"] is available but we use "1.5.1"
+[metosin/ring-http-response "0.8.1"] is available but we use "0.8.0"
+[metosin/ring-swagger "0.22.14"] is available but we use "0.22.11"
+[metosin/ring-swagger-ui "2.2.8"] is available but we use "2.2.5-0"
+```
+
 ## 1.1.9 (23.10.2016)
 
 * Fix `:header-params` with resources, [#254](https://github.com/metosin/compojure-api/issues/254)
