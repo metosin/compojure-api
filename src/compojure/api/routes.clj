@@ -87,7 +87,7 @@
                          (not (seq (:info this))) (dissoc :info)
                          (not (:childs this)) (dissoc :childs)
                          (not (:method this)) (dissoc :method)
-                         (:childs this) (update :childs deref)))))
+                         (:childs this) realize-childs))))
 
 (defn create [path method info childs handler]
   (->Route path method info childs handler))
