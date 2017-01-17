@@ -1,5 +1,7 @@
 # Simple compojure-api app
 
+Demonstrates how to use [metrics-clojure](https://github.com/sjl/metrics-clojure) with compojure-api.
+
 ## Usage
 
 ### Run the application locally
@@ -19,6 +21,6 @@ java -jar target/server.jar
 
 ## License
 
-Copyright © 2016 [Metosin Oy](http://www.metosin.fi)
+Copyright © 2016-2017 [Metosin Oy](http://www.metosin.fi)
 
 Distributed under the Eclipse Public License, the same as Clojure.
