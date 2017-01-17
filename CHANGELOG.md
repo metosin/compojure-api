@@ -51,6 +51,7 @@ nil
 * Updated deps:
 
 ```
+[cheshire "5.7.0"] is available but we use "5.6.3"
 [compojure "1.5.2"] is available but we use "1.5.1"
 [metosin/ring-http-response "0.8.1"] is available but we use "0.8.0"
 [metosin/ring-swagger "0.22.14"] is available but we use "0.22.12"
