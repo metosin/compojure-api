@@ -1,4 +1,4 @@
-## 0.2.0-20161115.083911-5
+## 1.2.0-20161028.114958-3
 
 * Fix Cider indentation for route macros, by [Joe Littlejohn](https://github.com/joelittlejohn)
 * Restructuring `:body` does not keywordize all keys,
