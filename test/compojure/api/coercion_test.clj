@@ -81,7 +81,7 @@
             body => {:beers ["ipa" "apa"]})))
 
       (fact "body-coercion can be disabled"
-        (let [no-body-coercion (constantly (dissoc mw/default-coercion-matchers :body))
+        (let [no-body-coercion (mw/create-coercion (dissoc mw/default-coercion-options :body))
               app (api
                     {:coercion no-body-coercion}
                     beer-route)]
@@ -96,7 +96,7 @@
             body => {:beers ["ipa" "apa" "ipa"]})))
 
       (fact "body-coercion can be changed"
-        (let [nop-body-coercion (constantly (assoc mw/default-coercion-matchers :body (constantly nil)))
+        (let [nop-body-coercion (mw/create-coercion (assoc mw/default-coercion-options :body {:default (constantly nil)}))
               app (api
                     {:coercion nop-body-coercion}
                     beer-route)]
@@ -115,7 +115,7 @@
             body => {:i 10})))
 
       (fact "query-coercion can be disabled"
-        (let [no-query-coercion (constantly (dissoc mw/default-coercion-matchers :string))
+        (let [no-query-coercion (mw/create-coercion (dissoc mw/default-coercion-options :string))
               app (api
                     {:coercion no-query-coercion}
                     query-route)]
@@ -124,7 +124,7 @@
             body => {:i "10"})))
 
       (fact "query-coercion can be changed"
-        (let [nop-query-coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
+        (let [nop-query-coercion (mw/create-coercion (assoc mw/default-coercion-options :string (constantly nil)))
               app (api
                     {:coercion nop-query-coercion}
                     query-route)]
@@ -136,7 +136,7 @@
                   :query-params [i :- s/Int]
                   (ok {:i i}))
                 (GET "/disabled-coercion" []
-                  :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
+                  :coercion (mw/create-coercion (assoc mw/default-coercion-options :string (constantly nil)))
                   :query-params [i :- s/Int]
                   (ok {:i i}))
                 (GET "/no-coercion" []

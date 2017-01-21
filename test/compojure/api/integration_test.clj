@@ -17,14 +17,15 @@
             [muuntaja.core :as formats]
             [cheshire.core :as json]
             [clojure.java.io :as io]
-            [muuntaja.core :as muuntaja]))
+            [muuntaja.core :as muuntaja]
+            [muuntaja.core :as m]))
 
 ;;
 ;; Data
 ;;
 
-(s/defschema User {:id Long
-                   :name String})
+(s/defschema User {:id s/Int
+                   :name s/Str})
 
 (def pertti {:id 1 :name "Pertti"})
 
@@ -200,6 +201,7 @@
                 (POST "/user_legacy" {user :body-params}
                   :return User
                   (ok user))))]
+
     (fact "GET"
       (let [[status body] (get* app "/models/pertti")]
         status => 200
@@ -1500,3 +1502,73 @@
             echo2-schema (get-in spec [:definitions echo2-schema-name :properties])]
         echo-schema => {:kikka {:type "integer", :format "int64"}}
         echo2-schema => {:kikka {:type "integer", :format "int64"}}))))
+
+
+(def ^:dynamic *response* nil)
+
+(facts "format-based body & response coercion"
+  (let [m (muuntaja/create)]
+
+    (facts "application/transit & application/edn validate request & response (no coercion)"
+      (let [valid-data {:items {"kikka" :kukka}}
+            invalid-data {"items" {"kikka" :kukka}}
+            Schema {:items {(s/required-key "kikka") s/Keyword}}
+            app (api
+                  (POST "/echo" []
+                    :body [_ Schema]
+                    :return Schema
+                    (ok *response*)))]
+
+        (doseq [format ["application/transit+json" "application/edn"]]
+          (fact {:midje/description format}
+
+            (fact "fails with invalid body"
+              (app (ring-request m format invalid-data)) => http/bad-request?)
+
+            (fact "fails with invalid response"
+              (binding [*response* invalid-data]
+                (app (ring-request m format valid-data)) => http/internal-server-error?))
+
+            (fact "succeeds with valid body & response"
+              (binding [*response* valid-data]
+                (let [response (app (ring-request m format valid-data))]
+                  response => http/ok?
+                  (m/decode m format (:body response)) => valid-data)))))))
+
+    (facts "application/json & application/x-yaml - coerce request, validate response"
+      (let [valid-data {:int 1, :keyword "kikka"}
+            valid-response-data {:int 1, :keyword :kikka}
+            invalid-data {:int "1", :keyword "kikka"}
+            Schema {:int s/Int, :keyword s/Keyword}
+            app (api
+                  (POST "/echo" []
+                    :body [_ Schema]
+                    :return Schema
+                    (ok *response*)))]
+
+        (doseq [format ["application/json" "application/x-yaml"]]
+          (fact {:midje/description format}
+
+            (fact "fails with invalid body"
+              (app (ring-request m format invalid-data)) => http/bad-request?)
+
+            (fact "fails with invalid response"
+              (binding [*response* invalid-data]
+                (app (ring-request m format valid-data)) => http/internal-server-error?))
+
+            (fact "does not coerce response"
+              (binding [*response* valid-data]
+                (app (ring-request m format valid-data)) => http/internal-server-error?))
+
+            (fact "succeeds with valid body & response"
+              (binding [*response* valid-response-data]
+                (let [response (app (ring-request m format valid-data))]
+                  response => http/ok?
+                  (m/decode m format (:body response)) => valid-data)))))))
+
+    (facts "msgpack"
+      ;; TODO: implement
+      )))
+
+(let [m (m/create)]
+  (m/decode m "application/x-yaml" (m/encode m "application/x-yaml" {:kikka :kukka})))

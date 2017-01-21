@@ -1,13 +1,57 @@
-## Unreleased
+## 1.2.0-20161028.114958-3
 
 * Fix Cider indentation for route macros, by [Joe Littlejohn](https://github.com/joelittlejohn)
 * Restructuring `:body` does not keywordize all keys,
   * e.g. EDN & Transit keys are not transformed, JSON keys based on the JSON decoder settings (defaulting to `true`).
+* **BREAKING**: Default coercion (`compojure.api.middleware`), fixes [#266](https://github.com/metosin/compojure-api/issues/266)
+  * same contract as before, but with better default implementation
+  * remove the `default-coercion-matchers`
+  * new `create-coercion` & `default-coercion-options` for more fine grained access, uses format information prodived by [Muuntaja](https://github.com/metosin/muuntaja#request) to get format-level coercion.
+  * old default coercion rules:
+    * coerce everything (request & response body) with `json-coercion-matcher`
+  * new default coercion rules:
+
+| Format | Request | Response |
+| --------|:-------:|:------------:|
+| `application/json` | `json-coercion-matcher` | validate |
+| `application/edn` | `json-coercion-matcher` | validate |
+| `application/msgpack` | `json-coercion-matcher` | validate |
+| `application/x-yaml` | `json-coercion-matcher` | validate |
+| `application/transit+json` | validate | validate |
+| `application/transit+msgpack` | validate | validate |
+
+as code:
+
+```clj
+(def default-coercion-options
+  {:body {:default (constantly nil)
+          :formats {"application/json" json-coercion-matcher
+                    "application/msgpack" json-coercion-matcher
+                    "application/x-yaml" json-coercion-matcher}}
+   :string string-coercion-matcher
+   :response {:default (constantly nil)
+              :formats {}}})
+```
+
+to create a valid `coercion` (for api or to routes):
+
+```clj
+;; create (with defaults)
+(mw/create-coercion)
+(mw/create-coercion mw/default-coercion-options)
+
+;; no response coercion
+(mw/create-coercion (dissoc mw/default-coercion-options :response)
+
+;; disable all coercion
+nil
+(mw/create-coercion nil)
+```
 
 * Updated deps:
 
-```
-[compojure "1.5.2"] is available but we use "1.5.1"
+```clj
+[cheshire "5.7.0"] is available but we use "5.6.3"
 [metosin/ring-http-response "0.8.1"] is available but we use "0.8.0"
 [metosin/ring-swagger "0.22.14"] is available but we use "0.22.12"
 [metosin/ring-swagger-ui "2.2.8"] is available but we use "2.2.5-0"
