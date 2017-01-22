@@ -317,6 +317,7 @@
       (let [form `(compojure.core/routes ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
+            ;; TODO: No wrap-routes, do these affect requests outside of the context?
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
             form (if static?
                    `(static-context ~path ~form)
