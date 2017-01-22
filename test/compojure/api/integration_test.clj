@@ -1581,13 +1581,13 @@
   (fact "simple middleware"
     (let [called? (atom false)
           app (api
-                (wrap-routes
+                (middleware
+                  [(fn [handler]
+                     (fn [req]
+                       (reset! called? true)
+                       (handler req)))]
                   (GET "/a" []
-                    (ok {:ok true}))
-                  (fn [handler]
-                    (fn [req]
-                      (reset! called? true)
-                      (handler req))))
+                    (ok {:ok true})))
                 (GET "/b" []
                   (ok {:ok true})))
           response (app {:uri "/a"
@@ -1605,14 +1605,14 @@
   (fact "middleware with args"
     (let [mw-value (atom nil)
           app (api
-                (wrap-routes
+                (middleware
+                  [[(fn [handler value]
+                      (fn [req]
+                        (reset! mw-value value)
+                        (handler req)))
+                    :foo-bar]]
                   (GET "/a" []
-                    (ok {:ok true}))
-                  (fn [handler value]
-                    (fn [req]
-                      (reset! mw-value value)
-                      (handler req)))
-                  :foo-bar)
+                    (ok {:ok true})))
                 (GET "/b" []
                   (ok {:ok true})))
           response (app {:uri "/a"

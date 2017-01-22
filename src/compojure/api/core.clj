@@ -14,15 +14,6 @@
   (let [handlers (seq (keep identity handlers))]
     (routes/create nil nil {} (vec handlers) (partial handle handlers))))
 
-(defn wrap-routes
-  "Apply a middleware function to routes after they have been matched."
-  ([handler middleware]
-   (let [x-handler (compojure/wrap-routes handler middleware)]
-     ;; use original handler for docs and wrapped handler for implementation
-     (routes/create nil nil {} [handler] x-handler)))
-  ([handler middleware & args]
-   (wrap-routes handler #(apply middleware % args))))
-
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
   The name may optionally be followed by a doc-string and metadata map."
@@ -57,9 +48,10 @@
   after route is matched."
   {:style/indent 1}
   [middleware & body]
-  (let [body (apply routes body)
-        wrap-mw (mw/compose-middleware middleware)]
-    (routes/create nil nil {} [body] (wrap-mw body))))
+  (let [handler (apply routes body)
+        x-handler (compojure/wrap-routes handler (mw/compose-middleware middleware))]
+    ;; use original handler for docs and wrapped handler for implementation
+    (routes/create nil nil {} [handler] x-handler)))
 
 (defmacro context {:style/indent 2} [& args] (meta/restructure nil      args {:context? true}))
 
