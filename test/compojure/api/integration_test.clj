@@ -1434,8 +1434,8 @@
 
 (facts "custom formats contribute to Swagger :consumes & :produces"
   (let [custom-type "application/vnd.vendor.v1+json"
-        custom-format {:decoder [muuntaja.formats/make-json-decoder {:key-fn true}]
-                       :encoder [muuntaja.formats/make-json-encoder]}
+        custom-format {:decoder [muuntaja.format.json/make-json-decoder {:key-fn true}]
+                       :encoder [muuntaja.format.json/make-json-encoder]}
         app (api
               {:swagger {:spec "/swagger.json"}
                :formats (-> muuntaja/default-options

@@ -51,6 +51,7 @@ nil
 
 ```clj
 [cheshire "5.7.0"] is available but we use "5.6.3"
+[metosin/muuntaja "0.2.0-20170122.164054-8"] is available but we use "0.2.0-20161031.085120-3"
 [metosin/ring-http-response "0.8.1"] is available but we use "0.8.0"
 [metosin/ring-swagger "0.22.14"] is available but we use "0.22.12"
 [metosin/ring-swagger-ui "2.2.8"] is available but we use "2.2.5-0"

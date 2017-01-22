@@ -147,7 +147,7 @@
         (if (= ::defaults options)
           muuntaja.core/default-options
           options)
-        (assoc :encode? encode?)))))
+        (assoc-in [:http :encode-response-body?] encode?)))))
 
 ;;
 ;; middleware
