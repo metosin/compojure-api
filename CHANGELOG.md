@@ -17,12 +17,12 @@
 
 | Format | Request | Response |
 | --------|:-------:|:------------:|
-| `application/json` | `json-coercion-matcher` | validate |
-| `application/edn` | `json-coercion-matcher` | validate |
-| `application/msgpack` | `json-coercion-matcher` | validate |
-| `application/x-yaml` | `json-coercion-matcher` | validate |
+| `application/edn` | validate | validate |
 | `application/transit+json` | validate | validate |
 | `application/transit+msgpack` | validate | validate |
+| `application/json` | `json-coercion-matcher` | validate |
+| `application/msgpack` | `json-coercion-matcher` | validate |
+| `application/x-yaml` | `json-coercion-matcher` | validate |
 
 defaults as code:
 
