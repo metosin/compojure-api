@@ -1,8 +1,12 @@
-## 1.2.0-20161028.114958-3
+## 1.2.0-alpha2 (22.1.2017)
+
+**this is an alpha release, feedback welcome**
 
 * Fix Cider indentation for route macros, by [Joe Littlejohn](https://github.com/joelittlejohn)
 * Restructuring `:body` does not keywordize all keys,
   * e.g. EDN & Transit keys are not transformed, JSON keys based on the JSON decoder settings (defaulting to `true`).
+* `resource` under `context`  requires exact routing match, fixes [#269](https://github.com/metosin/compojure-api/issues/269)
+* Endpoints can return `compojure.api.routes/Routes`, returned routes don't commit to swagger-docs - as they can be generated at runtime
 * **BREAKING**: Better request & response coercion
   * in `compojure.api.middleware`, the `default-coercion-matchers` is removed in favour of `create-coercion` & `default-coercion-options`
   * uses negotiated format information provided by [Muuntaja](https://github.com/metosin/muuntaja#request), fixes [#266](https://github.com/metosin/compojure-api/issues/266)
@@ -45,6 +49,31 @@ to create a valid `coercion` (for api or to routes):
 ;; disable all coercion
 nil
 (mw/create-coercion nil)
+```
+
+* Route-records printing is cleaned up
+
+```clj
+(context "/api" []
+  (GET "/ping" [] (ok))
+  (POST "/echo" []
+    :body [data {:name s/Str}]
+    :return {:name s/Str}
+    (ok data))
+  (context "/resource" []
+    (resource
+      {:get {:handler (constantly (ok))}})))
+; #Route {:path "/api",
+;         :childs [#Route {:path "/ping"
+;                          :method :get}
+;                  #Route {:path "/echo",
+;                          :method :post,
+;                          :info {:parameters {:body {:name Str}},
+;                                 :responses {200 {:schema {:name Str}
+;                                                  :description ""}}}}
+;                  #Route {:path "/resource"
+;                          :childs [#Route{:childs [#Route{:path "/"
+;                                                          :method :get}]}]}]}
 ```
 
 * Updated deps:
