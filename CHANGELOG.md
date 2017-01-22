@@ -2,6 +2,7 @@
 
 **this is an alpha release, feedback welcome**
 
+* **BREAKING**: Requires Java 1.8 (as Muuntaja requires it)
 * Fix Cider indentation for route macros, by [Joe Littlejohn](https://github.com/joelittlejohn)
 * Restructuring `:body` does not keywordize all keys,
   * e.g. EDN & Transit keys are not transformed, JSON keys based on the JSON decoder settings (defaulting to `true`).
