@@ -95,7 +95,6 @@
   (let [routes (context "/api" [] #'more-routes)]
     (routes/get-routes routes) => [["/api/more" :get {}]]))
 
-;; TODO: should this do something different?
 (facts "dynamic routes"
   (let [more-routes (fn [version]
                       (GET (str "/" version) []
