@@ -1570,10 +1570,9 @@
       ;; TODO: implement
       )))
 
-(fact "static contexts work"
+(fact "static contexts just work"
   (let [app (context "/:a" [a]
               (GET "/:b" [b]
                 (ok [a b])))]
     (app {:request-method :get, :uri "/a/b"}) => (contains {:body ["a" "b"]})
-    (app {:request-method :get, :uri "/a/c"}) => (contains {:body ["a" "c"]})))
-
+    (app {:request-method :get, :uri "/b/c"}) => (contains {:body ["b" "c"]})))
