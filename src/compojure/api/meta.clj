@@ -326,7 +326,7 @@
             childs (let [form (vec body)
                          form (if (seq letks) `(dummy-letk ~letks ~form) form)
                          form (if (seq lets) `(dummy-let ~lets ~form) form)
-                         form `(compojure.core/let-request [~arg ~'+compojure-api-request+] ~form)
+                         form `(compojure.core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
                          form `(fn [~'+compojure-api-request+] ~form)
                          form `(delay (~form {}))]
                      form)]
