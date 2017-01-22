@@ -51,12 +51,15 @@
 (defn- realize-childs [route]
   (update route :childs #(if (instance? IDeref %) @% %)))
 
+(defn- filter-childs [route]
+  (update route :childs (partial filter (partial satisfies? Routing))))
+
 (defrecord Route [path method info childs handler]
   Routing
   (-get-routes [this options]
-    (let [this (realize-childs this)
+    (let [this (-> this realize-childs)
           valid-childs (filter-routes this options)]
-      (if (seq (:childs this))
+      (if (-> this filter-childs :childs seq)
         (vec
           (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
             [(->paths path p) m (rsc/deep-merge info i)]))
@@ -74,12 +77,13 @@
 
 (defmethod print-method Route
   [this ^Writer w]
-  (.write w (str "#Route"
-                 (cond-> (dissoc this :handler)
-                         (not (seq (:info this))) (dissoc :info)
-                         (not (:childs this)) (dissoc :childs)
-                         (not (:method this)) (dissoc :method)
-                         (:childs this) realize-childs))))
+  (let [childs (some-> this realize-childs filter-childs :childs seq vec)]
+    (.write w (str "#Route"
+                   (cond-> (dissoc this :handler :childs)
+                           (not (:path this)) (dissoc :path)
+                           (not (seq (:info this))) (dissoc :info)
+                           (not (:method this)) (dissoc :method)
+                           childs (assoc :childs childs))))))
 
 (defn create [path method info childs handler]
   (->Route path method info childs handler))

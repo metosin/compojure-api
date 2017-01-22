@@ -70,10 +70,12 @@
   (let [methods (select-keys info (:methods +mappings+))]
     (-> info
         (merge
-          (p/for-map [[method method-info] methods]
-            method (-> method-info
-                       (->> (rsc/deep-merge (select-keys info [:parameters])))
-                       (update :responses (fn [responses] (merge (:responses info) responses)))))))))
+          (p/for-map [[method method-info] methods
+                      :let [responses (merge
+                                        (:responses info)
+                                        (:responses method-info))]]
+            method (cond-> (->> method-info (rsc/deep-merge (select-keys info [:parameters])))
+                           (seq responses) (assoc :responses responses)))))))
 
 (defn- root-info [info]
   (-> (reduce dissoc info (:methods +mappings+))
