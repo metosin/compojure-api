@@ -1496,3 +1496,10 @@
       (get-spec app) => (contains
                           {:produces ["application/vnd.vendor.v1+json" "application/json"]
                            :consumes ["application/vnd.vendor.v1+json" "application/json"]}))))
+
+(fact "static contexts work"
+  (let [app (context "/:a" [a]
+              (GET "/:b" [b]
+                (ok [a b])))]
+    (app {:request-method :get, :uri "/a/b"}) => (contains {:body ["a" "b"]})
+    (app {:request-method :get, :uri "/a/c"}) => (contains {:body ["a" "c"]})))
