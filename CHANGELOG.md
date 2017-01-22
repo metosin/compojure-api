@@ -3,13 +3,12 @@
 * Fix Cider indentation for route macros, by [Joe Littlejohn](https://github.com/joelittlejohn)
 * Restructuring `:body` does not keywordize all keys,
   * e.g. EDN & Transit keys are not transformed, JSON keys based on the JSON decoder settings (defaulting to `true`).
-* **BREAKING**: Default coercion (`compojure.api.middleware`), fixes [#266](https://github.com/metosin/compojure-api/issues/266)
-  * same contract as before, but with better default implementation
-  * remove the `default-coercion-matchers`
-  * new `create-coercion` & `default-coercion-options` for more fine grained access, uses format information prodived by [Muuntaja](https://github.com/metosin/muuntaja#request) to get format-level coercion.
-  * old default coercion rules:
-    * coerce everything (request & response body) with `json-coercion-matcher`
-  * new default coercion rules:
+* **BREAKING**: Better request & response coercion
+  * in `compojure.api.middleware`, the `default-coercion-matchers` is removed in favour of `create-coercion` & `default-coercion-options`
+  * uses negotiated format information provided by [Muuntaja](https://github.com/metosin/muuntaja#request), fixes [#266](https://github.com/metosin/compojure-api/issues/266)
+  * old custom `coercion` should work as before, as the contract has not changed
+  * **Old defaults**: coerce everything (request & response body) with `json-coercion-matcher`
+  * **New defaults**: see the table below:
 
 | Format | Request | Response |
 | --------|:-------:|:------------:|
@@ -20,7 +19,7 @@
 | `application/transit+json` | validate | validate |
 | `application/transit+msgpack` | validate | validate |
 
-as code:
+defaults as code:
 
 ```clj
 (def default-coercion-options
