@@ -38,10 +38,18 @@
 (defn- coerce-response [response info request ks]
   (coerce/coerce-response! request response (get-in info (concat ks [:responses]))))
 
-(defn- resolve-handler [info request-method]
-  (or
-    (get-in info [request-method :handler])
-    (get-in info [:handler])))
+(defn- resolve-handler [info path-info route request-method]
+  (and
+    (or
+      ;; directly under a context
+      (= path-info "/")
+      ;; under an compojure endpoint
+      route
+      ;; valilla ring
+      (nil? path-info))
+    (or
+      (get-in info [request-method :handler])
+      (get-in info [:handler]))))
 
 (defn- create-childs [info]
   (map
@@ -50,10 +58,10 @@
     (select-keys info (:methods +mappings+))))
 
 (defn- create-handler [info {:keys [coercion]}]
-  (fn [{:keys [request-method] :as request}]
+  (fn [{:keys [request-method path-info :compojure/route] :as request}]
     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
           ks (if (contains? info request-method) [request-method] [])]
-      (if-let [handler (resolve-handler info request-method)]
+      (if-let [handler (resolve-handler info path-info route request-method)]
         (-> (coerce-request request info ks)
             handler
             (coerce-response info request ks))))))

@@ -135,49 +135,56 @@
       (handler {:request-method :post, :query-params {:x "1"}}) => (has-body {:total 1}))))
 
 (fact "compojure-api routing integration"
-  (let [handler (context "/rest" []
+  (let [app (context "/rest" []
 
-                  (GET "/no" request
-                    (ok (select-keys request [:uri :path-info])))
+              (GET "/no" request
+                (ok (select-keys request [:uri :path-info])))
 
-                  (context "/context" []
-                    (resource
-                      {:handler (constantly (ok "CONTEXT"))}))
+              ;; works & api-docs
+              (context "/context" []
+                (resource
+                  {:handler (constantly (ok "CONTEXT"))}))
 
-                  ;; does not work
-                  (ANY "/any" []
-                    (resource
-                      {:handler (constantly (ok "ANY"))}))
+              ;; works, but no api-docs
+              (ANY "/any" []
+                (resource
+                  {:handler (constantly (ok "ANY"))}))
 
-                  (context "/path/:id" []
-                    (resource
-                      {:parameters {:path-params {:id s/Int}}
-                       :handler (fn [request]
-                                  (ok (select-keys request [:path-params :route-params])))}))
+              (context "/path/:id" []
+                (resource
+                  {:parameters {:path-params {:id s/Int}}
+                   :handler (fn [request]
+                              (ok (select-keys request [:path-params :route-params])))}))
 
-                  (resource
-                    {:get {:handler (fn [request]
-                                      (ok (select-keys request [:uri :path-info])))}}))]
+              (resource
+                {:get {:handler (fn [request]
+                                  (ok (select-keys request [:uri :path-info])))}}))]
 
     (fact "normal endpoint works"
-      (handler {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no", :path-info "/no"}))
+      (app {:request-method :get, :uri "/rest/no"}) => (has-body {:uri "/rest/no", :path-info "/no"}))
 
-    (fact "wrapped in ANY fails at runtime"
-      (handler {:request-method :get, :uri "/rest/any"}) => throws)
+    (fact "wrapped in ANY works"
+      (app {:request-method :get, :uri "/rest/any"}) => (has-body "ANY"))
 
     (fact "wrapped in context works"
-      (handler {:request-method :get, :uri "/rest/context"}) => (has-body "CONTEXT"))
+      (app {:request-method :get, :uri "/rest/context"}) => (has-body "CONTEXT"))
+
+    (fact "only exact path match works"
+      (app {:request-method :get, :uri "/rest/context/2"}) => nil)
 
     (fact "path-parameters work: route-params are left untoucehed, path-params are coerced"
-      (handler {:request-method :get, :uri "/rest/path/12"}) => (has-body {:path-params {:id 12}
-                                                                           :route-params {:id "12"}}))
+      (app {:request-method :get, :uri "/rest/path/12"}) => (has-body {:path-params {:id 12}
+                                                                       :route-params {:id "12"}}))
 
-    (fact "top-level GET works"
-      (handler {:request-method :get, :uri "/rest/in-peaces"}) => (has-body {:uri "/rest/in-peaces"
-                                                                             :path-info "/in-peaces"}))
+    (fact "top-level GET without extra path works"
+      (app {:request-method :get, :uri "/rest"}) => (has-body {:uri "/rest"
+                                                               :path-info "/"}))
 
-    (fact "top-level POST misses"
-      (handler {:request-method :post, :uri "/rest/in-peaces"}) => nil)))
+    (fact "top-level POST without extra path works"
+      (app {:request-method :post, :uri "/rest"}) => nil)
+
+    (fact "top-level GET with extra path misses"
+      (app {:request-method :get, :uri "/rest/in-peaces"}) => nil)))
 
 (fact "swagger-integration"
   (let [app (api
