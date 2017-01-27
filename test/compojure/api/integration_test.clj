@@ -983,15 +983,15 @@
       (let [[_ body] (get* app "/specific-error")]
         body => {:custom-error "my error"}))
 
-    (fact "direct class-based"
+    (fact "direct class"
       (let [[_ body] (get* app "/class")]
         body => (contains {:illegal irrelevant})))
 
-    (fact "direct class-based"
+    (fact "nested class"
       (let [[_ body] (get* app "/with-class-cause")]
         body => (contains {:illegal irrelevant})))
 
-    (fact "missing nested exception checking works"
+    (fact "missing nested class doesn't throw NPE"
       (let [[_ body] (get* app "/without-class-cause")]
         body => (contains {:custom-exception irrelevant})))))
 
