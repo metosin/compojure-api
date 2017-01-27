@@ -53,9 +53,8 @@
   (fn [k v acc] k))
 
 ;;
-;; Pass-through swagger metadata
+;; summary
 ;;
-
 
 (defmethod help/help-for [:restructuring :summary] [_ _]
   (help/text
@@ -70,14 +69,39 @@
 (defmethod restructure-param :summary [k v acc]
   (update-in acc [:swagger] assoc k v))
 
+;;
+;; description
+;;
+
+(defmethod help/help-for [:restructuring :description] [_ _]
+  (help/text
+    "A verbose explanation of the operation behavior."
+    "GFM syntax can be used for rich text representation."
+    (help/code
+      "(GET \"/ok\""
+      "  :description \"this is a `GET`.\""
+      "  (ok))")))
+
 (defmethod restructure-param :description [k v acc]
   (update-in acc [:swagger] assoc k v))
+
+;;
+;; OperationId
+;;
 
 (defmethod restructure-param :operationId [k v acc]
   (update-in acc [:swagger] assoc k v))
 
+;;
+;; Consumes
+;;
+
 (defmethod restructure-param :consumes [k v acc]
   (update-in acc [:swagger] assoc k v))
+
+;;
+;; Provides
+;;
 
 (defmethod restructure-param :produces [k v acc]
   (update-in acc [:swagger] assoc k v))
