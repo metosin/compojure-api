@@ -18,7 +18,8 @@
             [cheshire.core :as json]
             [clojure.java.io :as io]
             [muuntaja.core :as muuntaja]
-            [muuntaja.core :as m]))
+            [muuntaja.core :as m])
+  (:import (java.lang ReflectiveOperationException)))
 
 ;;
 ;; Data
@@ -77,8 +78,9 @@
       ::ex/response-validation (not-implemented error-body)
       (bad-request error-body))))
 
-(defn custom-exception-handler [^Exception ex data request]
-  (ok {:custom-exception (str ex)}))
+(defn custom-exception-handler [key]
+  (fn [^Exception ex data request]
+    (ok {key (str ex)})))
 
 (defn custom-error-handler [ex data request]
   (ok {:custom-error (:data data)}))
@@ -950,7 +952,8 @@
 
 (fact "exceptions options with custom exception and error handler"
   (let [app (api
-              {:exceptions {:handlers {::ex/default custom-exception-handler
+              {:exceptions {:handlers {::ex/default (custom-exception-handler :custom-exception)
+                                       IllegalAccessException (custom-exception-handler :illegal)
                                        ::custom-error custom-error-handler}}}
               (swagger-routes)
               (GET "/some-exception" []
@@ -958,7 +961,13 @@
               (GET "/some-error" []
                 (throw (ex-info "some ex info" {:data "some error" :type ::some-error})))
               (GET "/specific-error" []
-                (throw (ex-info "my ex info" {:data "my error" :type ::custom-error}))))]
+                (throw (ex-info "my ex info" {:data "my error" :type ::custom-error})))
+              (GET "/class" []
+                (throw (IllegalAccessException. "kosh")))
+              (GET "/with-class-cause" []
+                (throw (ReflectiveOperationException. "kosh" (IllegalAccessException.))))
+              (GET "/without-class-cause" []
+                (throw (ReflectiveOperationException. "kosh"))))]
 
     (fact "uses default exception handler for unknown exceptions"
       (let [[status body] (get* app "/some-exception")]
@@ -971,8 +980,20 @@
         (:custom-exception body) => (contains ":data \"some error\"")))
 
     (fact "uses specific error handler for ::custom-errors"
-      (let [[status body] (get* app "/specific-error")]
-        body => {:custom-error "my error"}))))
+      (let [[_ body] (get* app "/specific-error")]
+        body => {:custom-error "my error"}))
+
+    (fact "direct class"
+      (let [[_ body] (get* app "/class")]
+        body => (contains {:illegal irrelevant})))
+
+    (fact "nested class"
+      (let [[_ body] (get* app "/with-class-cause")]
+        body => (contains {:illegal irrelevant})))
+
+    (fact "missing nested class doesn't throw NPE"
+      (let [[_ body] (get* app "/without-class-cause")]
+        body => (contains {:custom-exception irrelevant})))))
 
 (fact "exception handling can be disabled"
   (let [app (api

@@ -43,7 +43,10 @@
         (catch Throwable e
           (let [{:keys [type] :as data} (ex-data e)
                 type (or (get ex/mapped-exception-types type) type)
-                handler (or (get handlers type) default-handler)]
+                handler (or (get handlers type)
+                            (get handlers (class e))
+                            (get handlers (class (.getCause e)))
+                            default-handler)]
             ; FIXME: Used for validate
             (if (rethrow-exceptions? request)
               (throw e)

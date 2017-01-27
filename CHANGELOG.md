@@ -1,3 +1,18 @@
+## UNRELEASED
+
+* class-based exception handling made easier, the `[:exceptions :handlers]` options also takes the exception class names as keys,
+used if the `:type`-based matching doesn't find a suitable handler: first against the exception class then the exception cause class.
+
+
+```clj
+(api
+  {:exceptions
+   {:handlers
+     {::ex/default (custom-exception-handler :custom-exception)
+      IllegalAccessException (custom-exception-handler :illegal)}}}
+   ...)
+```
+
 ## 1.2.0-alpha2 (22.1.2017)
 
 **this is an alpha release, feedback welcome**
