@@ -7,7 +7,7 @@
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.7.0"]
-                 [compojure "1.5.2"]
+                 [compojure "1.5.2" :exclusions [commons-codec]]
                  [prismatic/schema "1.1.3"]
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
