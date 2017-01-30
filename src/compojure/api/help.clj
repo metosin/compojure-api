@@ -51,9 +51,9 @@
         "(help topic)"
         "(help topic subject)")
       "\nTopics:\n"
-      (title (->> methods keys (map first) (distinct)))
+      (title (->> methods keys (map first) (distinct) (sort)))
       "\nTopics & subjects:\n"
-      (title (->> methods keys (map (partial str/join " ")))))))
+      (title (->> methods keys (map (partial str/join " ")) (sort))))))
 
 (defmethod help-for ::default [_ _] (help-text))
 
