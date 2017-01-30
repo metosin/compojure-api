@@ -1,4 +1,4 @@
-## 1.2.0-20170127.124515-7 (27.1.2017)
+## 1.2.0-20170130.143228-8 (30.1.2017)
 
 * Class-based exception handling made easier, the `[:exceptions :handlers]` options also allows exception classes as keys.
   * First do a `:type`-lookup, then by Exception class and it's superclasses.
@@ -11,6 +11,81 @@
      {::ex/default handle-defaults
       java.sql.SQLException handle-all-sql-exceptions}}}
    ...)
+```
+
+* Lovely inline-help (contents WIP):
+
+```clojure
+(require '[compojure.api.help :refer [help]])
+
+(help)
+; ------------------------------------------------------------
+; Usage:
+;
+; (help)
+; (help topic)
+; (help topic subject)
+;
+; Topics:
+; 
+; :restructuring
+;
+; Topics & subjects:
+;
+; :restructuring :query-params
+; :restructuring :summary
+
+(help :restructuring)
+; ------------------------------------------------------------
+; Topic:
+; 
+; :restructuring
+; 
+; Subjects:
+; 
+; :query-params
+; 
+; Restructures query-params with plumbing letk notation.
+;
+; Example: read x and optionally y (defaulting to 1)
+; from query parameters. Body of the endpoint sees the
+; coerced values.
+;
+; (GET "/ping"
+;   :query-params [x :- Long, {y :- Long 1}]
+;   (ok (+ x y)))
+;
+; :summary
+;
+; A short summary of what the operation does. For maximum
+; readability in the swagger-ui, this field SHOULD be less
+; than 120 characters.
+;
+; (GET "/ok"
+;   :summary "this endpoint alreays returns 200"
+;   (ok))
+```
+
+* help can be of anything. contributing to help:
+
+```clojure
+(defmethod help/help-for [:restructuring :query-params] [_ _]
+  (help/text
+    "Restructures query-params with plumbing letk notation.\n"
+    "Example: read x and optionally y (defaulting to 1)"
+    "from query parameters. Body of the endpoint sees the"
+    "coerced values.\n"
+    (help/code
+      "(GET \"/ping\""
+      "  :query-params [x :- Long, {y :- Long 1}]"
+      "  (ok (+ x y)))")))
+```
+
+
+* Updated deps:
+
+```clj
+[metosin/muuntaja "0.2.0-20170130.142747-9"] is available but we use "0.2.0-20170122.164054-8"
 ```
 
 ## 1.2.0-alpha2 (22.1.2017)
