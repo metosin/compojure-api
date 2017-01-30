@@ -19,7 +19,8 @@
             [clojure.java.io :as io]
             [muuntaja.core :as muuntaja]
             [muuntaja.core :as m])
-  (:import (java.lang ReflectiveOperationException)))
+  (:import (java.lang ReflectiveOperationException)
+           (java.sql SQLException SQLWarning)))
 
 ;;
 ;; Data
@@ -953,21 +954,19 @@
 (fact "exceptions options with custom exception and error handler"
   (let [app (api
               {:exceptions {:handlers {::ex/default (custom-exception-handler :custom-exception)
-                                       IllegalAccessException (custom-exception-handler :illegal)
+                                       SQLException (custom-exception-handler :sql-exception)
                                        ::custom-error custom-error-handler}}}
               (swagger-routes)
               (GET "/some-exception" []
-                (throw (new RuntimeException)))
+                (throw (RuntimeException.)))
               (GET "/some-error" []
                 (throw (ex-info "some ex info" {:data "some error" :type ::some-error})))
               (GET "/specific-error" []
                 (throw (ex-info "my ex info" {:data "my error" :type ::custom-error})))
               (GET "/class" []
-                (throw (IllegalAccessException. "kosh")))
-              (GET "/with-class-cause" []
-                (throw (ReflectiveOperationException. "kosh" (IllegalAccessException.))))
-              (GET "/without-class-cause" []
-                (throw (ReflectiveOperationException. "kosh"))))]
+                (throw (SQLException.)))
+              (GET "/sub-class" []
+                (throw (SQLWarning.))))]
 
     (fact "uses default exception handler for unknown exceptions"
       (let [[status body] (get* app "/some-exception")]
@@ -985,15 +984,11 @@
 
     (fact "direct class"
       (let [[_ body] (get* app "/class")]
-        body => (contains {:illegal irrelevant})))
+        body => (contains {:sql-exception "java.sql.SQLException"})))
 
-    (fact "nested class"
-      (let [[_ body] (get* app "/with-class-cause")]
-        body => (contains {:illegal irrelevant})))
-
-    (fact "missing nested class doesn't throw NPE"
-      (let [[_ body] (get* app "/without-class-cause")]
-        body => (contains {:custom-exception irrelevant})))))
+    (fact "sub-class"
+      (let [[_ body] (get* app "/sub-class")]
+        body => (contains {:sql-exception "java.sql.SQLWarning"})))))
 
 (fact "exception handling can be disabled"
   (let [app (api
