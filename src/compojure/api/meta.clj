@@ -317,7 +317,9 @@
       (let [form `(compojure.core/routes ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
-            form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
+            ;; FIXME: is using wrap-routes here okay?
+            ;; even if context path matches, middleware is only applied if handler is matched
+            form (if (seq middleware) `(compojure.api.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)
             form (if static?
                    `(static-context ~path ~form)
                    `(compojure.core/context ~path ~arg-with-request ~form))
@@ -338,6 +340,6 @@
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (compojure.core/compile-route method path arg-with-request (list form))
-            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
+            form (if (seq middleware) `(compojure.api.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
 
         `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))

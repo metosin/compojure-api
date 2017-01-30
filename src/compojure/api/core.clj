@@ -37,19 +37,28 @@
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (partial handle handlers))))
 
-(defn route-middleware
-  "Wraps routes with given middlewares using thread-first macro.
+(defn- pre-init [middleware]
+  (let [proxy (middleware (fn [req] ((:route-handler req) req)))]
+    (fn [handler]
+      (fn [request]
+        (proxy (assoc request :route-handler handler))))))
 
-  Note that middlewares will be executed even if routes in body
-  do not match the request uri. Be careful with middlewares that
-  have side-effects.
+(defn wrap-routes
+  "Apply a middleware function to routes after they have been matched."
+  ([handler middleware]
+   (let [middleware (pre-init middleware)]
+     (fn [request]
+       (let [mw (:route-middleware request identity)]
+         (handler (assoc request :route-middleware (comp mw middleware)))))))
+  ([handler middleware & args]
+   (wrap-routes handler #(apply middleware % args))))
 
-  Check wrap-routes for version that only runs the middleware
-  after route is matched."
+(defn middleware
+  "Wraps routes with given middlewares using thread-first macro."
   {:style/indent 1}
   [middleware & body]
   (let [handler (apply routes body)
-        x-handler (compojure/wrap-routes handler (mw/compose-middleware middleware))]
+        x-handler (wrap-routes handler (mw/compose-middleware middleware))]
     ;; use original handler for docs and wrapped handler for implementation
     (routes/create nil nil {} [handler] x-handler)))
 
