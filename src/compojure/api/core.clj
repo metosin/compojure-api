@@ -37,7 +37,7 @@
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (partial handle handlers))))
 
-(defn middleware
+(defn route-middleware
   "Wraps routes with given middlewares using thread-first macro.
 
   Note that middlewares will be executed even if routes in body

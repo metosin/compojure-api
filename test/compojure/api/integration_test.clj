@@ -109,30 +109,29 @@
 (facts "middleware ordering"
   (let [app (api
               {:middleware [[middleware* 0]]}
-              (middleware [middleware* [middleware* 2]]
-                (context "/middlewares" []
-                  :middleware [(fn [handler] (middleware* handler 3)) [middleware* 4]]
-                  (GET "/simple" req (reply-mw* req))
-                  (middleware [#(middleware* % 5) [middleware* 6]]
-                    (GET "/nested" req (reply-mw* req))
-                    (GET "/nested-declared" req
-                      :middleware [(fn [handler] (middleware* handler 7)) [middleware* 8]]
-                      (reply-mw* req))))))]
+              (context "/middlewares" []
+                :middleware [(fn [handler] (middleware* handler 1)) [middleware* 2]]
+                (GET "/simple" req (reply-mw* req))
+                (route-middleware [#(middleware* % "c") [middleware* "d"]]
+                  (GET "/nested" req (reply-mw* req))
+                  (GET "/nested-declared" req
+                    :middleware [(fn [handler] (middleware* handler "a")) [middleware* "b"]]
+                    (reply-mw* req)))))]
 
-    (fact "are applied left-to-right"
+    (fact "normal middleware are applied left-to-right"
       (let [[status _ headers] (get* app "/middlewares/simple" {})]
         status => 200
-        (get headers mw*) => "01234/43210"))
+        (get headers mw*) => "012/210"))
 
     (fact "are applied left-to-right closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested" {})]
         status => 200
-        (get headers mw*) => "0123456/6543210"))
+        (get headers mw*) => "012cd/dc210"))
 
-    (fact "are applied left-to-right for both nested & declared closest one first"
+    (fact "route-middleware are applied closest last"
       (let [[status _ headers] (get* app "/middlewares/nested-declared" {})]
         status => 200
-        (get headers mw*) => "012345678/876543210"))))
+        (get headers mw*) => "012abcd/dcba210"))))
 
 (facts "middleware - multiple routes"
   (let [app (api
@@ -1231,7 +1230,8 @@
 
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
-              (middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
+              (route-middleware
+                [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
                 (swagger-routes
                   {:data
                    {:info {:version "2.0.0"}
@@ -1581,7 +1581,7 @@
   (fact "simple middleware"
     (let [called? (atom false)
           app (api
-                (middleware
+                (route-middleware
                   [(fn [handler]
                      (fn [req]
                        (reset! called? true)
@@ -1605,7 +1605,7 @@
   (fact "middleware with args"
     (let [mw-value (atom nil)
           app (api
-                (middleware
+                (route-middleware
                   [[(fn [handler value]
                       (fn [req]
                         (reset! mw-value value)
