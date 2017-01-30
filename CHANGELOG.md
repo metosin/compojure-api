@@ -1,15 +1,15 @@
 ## 1.2.0-20170127.124515-7 (27.1.2017)
 
-* class-based exception handling made easier, the `[:exceptions :handlers]` options also takes the exception class names as keys,
-  used if the `:type`-based matching doesn't find a suitable handler: first against the exception class then the exception cause class.
-  Fixes [#266](https://github.com/metosin/compojure-api/issues/272)
+* Class-based exception handling made easier, the `[:exceptions :handlers]` options also allows exception classes as keys.
+  * First do a `:type`-lookup, then by Exception class and it's superclasses.
+  * Fixes [#266](https://github.com/metosin/compojure-api/issues/272)
 
 ```clj
 (api
   {:exceptions
    {:handlers
-     {::ex/default (custom-exception-handler :custom-exception)
-      IllegalAccessException (custom-exception-handler :illegal)}}}
+     {::ex/default handle-defaults
+      java.sql.SQLException handle-all-sql-exceptions}}}
    ...)
 ```
 
