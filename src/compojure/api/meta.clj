@@ -444,7 +444,7 @@
       "      (handler request)"
       "      (unauthorized))))"
       ""
-      "(def require-admin (partial require-role :admin))"
+      "(def require-admin #(require-role % :admin))"
       ""
       "(GET \"/admin\" []"
       "  :middleware [require-admin]"
@@ -455,7 +455,7 @@
       "  (ok))"
       ""
       "(GET \"/admin\" []"
-      "  :middleware [#(require-admin % :admin)]"
+      "  :middleware [#(require-role % :admin)]"
       "  (ok))"
       )))
 
