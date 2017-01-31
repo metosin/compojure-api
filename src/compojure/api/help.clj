@@ -24,9 +24,11 @@
 
 (defn- subject-text [topic subject]
   (text
+    ""
     (title subject)
     ""
-    (help-for topic subject)))
+    (help-for topic subject)
+    ""))
 
 (defn- topic-text [topic]
   (let [subjects (-> (methods help-for)

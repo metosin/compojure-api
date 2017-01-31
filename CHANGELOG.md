@@ -27,43 +27,65 @@
 ; (help topic subject)
 ;
 ; Topics:
-; 
-; :restructuring
+;
+; :meta
 ;
 ; Topics & subjects:
 ;
-; :restructuring :query-params
-; :restructuring :summary
+; :meta :body
+; :meta :body-params
+; :meta :coercion
+; :meta :components
+; :meta :consumes
+; :meta :description
+; :meta :form-params
+; :meta :header-params
+; :meta :middleware
+; :meta :multipart-params
+; :meta :name
+; :meta :no-doc
+; :meta :operationId
+; :meta :path-params
+; :meta :produces
+; :meta :responses
+; :meta :return
+; :meta :summary
+; :meta :swagger
+; :meta :tags
 
-(help :restructuring)
+(help/help :meta :middleware)
 ; ------------------------------------------------------------
-; Topic:
-; 
-; :restructuring
-; 
-; Subjects:
-; 
-; :query-params
-; 
-; Restructures query-params with plumbing letk notation.
 ;
-; Example: read x and optionally y (defaulting to 1)
-; from query parameters. Body of the endpoint sees the
-; coerced values.
+; :middleware
 ;
-; (GET "/ping"
-;   :query-params [x :- Long, {y :- Long 1}]
-;   (ok (+ x y)))
+; Applies the given vector of middleware to the route.
+; Middleware is presented as data in a Duct-style form:
 ;
-; :summary
+; 1) ring mw-function (handler->request->response)
 ;
-; A short summary of what the operation does. For maximum
-; readability in the swagger-ui, this field SHOULD be less
-; than 120 characters.
+; 2) mw-function and it's arguments separately - mw is
+;    created by applying function with handler and args
 ;
-; (GET "/ok"
-;   :summary "this endpoint alreays returns 200"
+; (defn require-role [handler role]
+;   (fn [request]
+;     (if (has-role? request role)
+;       (handler request)
+;       (unauthorized))))
+;
+; (def require-admin (partial require-role :admin))
+;
+; (GET "/admin" []
+;   :middleware [require-admin]
 ;   (ok))
+;
+; (GET "/admin" []
+;   :middleware [[require-role :admin]]
+;   (ok))
+;
+; (GET "/admin" []
+;   :middleware [#(require-admin % :admin)]
+;   (ok))
+;
 ```
 
 * help can be of anything. contributing to help:
