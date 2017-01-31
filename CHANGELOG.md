@@ -1,4 +1,4 @@
-## 1.2.0-20170130.143228-8 (30.1.2017)
+## 1.2.0-alpha3 (31.1.2017)
 
 * Class-based exception handling made easier, the `[:exceptions :handlers]` options also allows exception classes as keys.
   * First do a `:type`-lookup, then by Exception class and it's superclasses.
@@ -13,7 +13,7 @@
    ...)
 ```
 
-* Lovely inline-help (contents WIP):
+* Lovely inline-help, `compojure.api.help/help`.
 
 ```clojure
 (require '[compojure.api.help :refer [help]])
