@@ -75,7 +75,7 @@
   (::components req))
 
 ;;
-;; Ring-swagger options
+;; Options
 ;;
 
 (defn wrap-options
