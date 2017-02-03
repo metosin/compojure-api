@@ -270,7 +270,7 @@
 ;; query
 ;;
 
-(defmethod help/help-for [:meta :body] [_ _]
+(defmethod help/help-for [:meta :query] [_ _]
   (help/text
     "query-params with let-syntax. First parameter is the symbol,"
     "second is the Schema used in coercion (and api-docs).\n"
@@ -288,13 +288,13 @@
 ;; headers
 ;;
 
-(defmethod help/help-for [:meta :body] [_ _]
+(defmethod help/help-for [:meta :headers] [_ _]
   (help/text
     "header-params with let-syntax. First parameter is the symbol,"
     "second is the Schema used in coercion (and api-docs).\n"
     (help/code
       "(GET \"/headers\" []"
-      "  :query [headers HeaderSchema]"
+      "  :headers [headers HeaderSchema]"
       "  (ok headers))")))
 
 (defmethod restructure-param :headers [_ [value schema] acc]
@@ -390,7 +390,7 @@
 ;; :query-params
 ;;
 
-(defmethod help/help-for [:meta :header-params] [_ _]
+(defmethod help/help-for [:meta :query-params] [_ _]
   (help/text
     "query-params with letk. Schema is used for both coercion and api-docs."
     "https://github.com/plumatic/plumbing/tree/master/src/plumbing/fnk#fnk-syntax\n"
