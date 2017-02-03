@@ -1,3 +1,7 @@
+## 1.2.0-20170203.150811-9
+
+* Fix help-for for some restructure methods [#275](https://github.com/metosin/compojure-api/pull/275) by [Nicolás Berger](https://github.com/nberger)
+
 ## 1.2.0-alpha3 (31.1.2017)
 
 * Class-based exception handling made easier, the `[:exceptions :handlers]` options also allows exception classes as keys.

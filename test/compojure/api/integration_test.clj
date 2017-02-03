@@ -19,8 +19,7 @@
             [clojure.java.io :as io]
             [muuntaja.core :as muuntaja]
             [muuntaja.core :as m])
-  (:import (java.lang ReflectiveOperationException)
-           (java.sql SQLException SQLWarning)))
+  (:import (java.sql SQLException SQLWarning)))
 
 ;;
 ;; Data
