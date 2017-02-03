@@ -6,8 +6,7 @@
 (facts help-for-api-meta
   (fact "all restructure-param methods have a help text"
     (let [restructure-method-names (-> (methods api.meta/restructure-param)
-                                       keys
-                                       (conj :bla))
+                                       keys)
           meta-help-topics (-> (methods help/help-for)
                                (dissoc  ::help/default)
                                keys
