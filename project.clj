@@ -13,7 +13,7 @@
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
                  [metosin/muuntaja "0.2.0-20170130.142747-9"]
-                 [metosin/ring-http-response "0.8.1"]
+                 [metosin/ring-http-response "0.8.2"]
                  [metosin/ring-swagger "0.22.14"]
                  [metosin/ring-swagger-ui "2.2.8"]]
   :profiles {:uberjar {:aot :all
@@ -26,7 +26,7 @@
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.10.0"]
+                             [lein-ring "0.11.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [slingshot "0.12.2"]

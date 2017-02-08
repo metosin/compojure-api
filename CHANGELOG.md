@@ -1,6 +1,12 @@
-## 1.2.0-20170203.150811-9
+## 1.2.0-SNAPSHOT
 
 * Fix help-for for some restructure methods [#275](https://github.com/metosin/compojure-api/pull/275) by [Nicolás Berger](https://github.com/nberger)
+
+* Updated deps:
+
+```clj
+[metosin/ring-http-response "0.8.2"] is available but we use "0.8.1"
+```
 
 ## 1.2.0-alpha3 (31.1.2017)
 
