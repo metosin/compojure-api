@@ -6,7 +6,7 @@
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
-            [ring.swagger.ui :as rsui]
+            [ring.swagger.swagger-ui :as swagger-ui]
             [ring.swagger.swagger2 :as swagger2]
             [compojure.api.routes :as routes]))
 
@@ -28,16 +28,13 @@
        (swagger2/transform-operations routes/non-nil-routes)
        (swagger2/transform-operations routes/strip-no-doc-endpoints)))
 
-(defn swagger-ui [& params]
+(defn swagger-ui [options]
   (c/undocumented
-    (apply rsui/swagger-ui params)))
+    (swagger-ui/swagger-ui options)))
 
-(defn swagger-docs [& body]
-  (let [[path body] (if (string? (first body))
-                      [(first body) (rest body)]
-                      ["/swagger.json" body])
-        [extra-info] (common/extract-parameters body false)]
-    (c/GET path request
+(defn swagger-docs [{:keys [uri] :or {uri "/swagger.json"} :as options}]
+  (let [extra-info (dissoc options :uri)]
+    (c/GET uri request
       :no-doc true
       :name ::swagger
       (let [runtime-info (rsm/get-swagger-data request)
@@ -89,8 +86,9 @@
             :tags [{:name \"sausages\", :description \"Sausage api-set\"}]}}"
   ([] (swagger-routes {}))
   ([options]
-   (let [{:keys [ui spec data] {ui-options :ui} :options} (merge swagger-defaults options)]
+   (let [{:keys [ui spec data] {ui-options :ui} :options} (merge swagger-defaults options)
+         path (apply str (remove clojure.string/blank? [(:basePath data) spec]))]
      (if (or ui spec)
        (c/routes
-         (if ui (apply swagger-ui ui (mapcat identity (merge (if spec {:swagger-docs (apply str (remove clojure.string/blank? [(:basePath data) spec]))}) ui-options))))
-         (if spec (apply swagger-docs spec (mapcat identity data))))))))
+         (if ui (swagger-ui (merge (if spec {:swagger-docs path}) ui-options {:uri ui})))
+         (if spec (swagger-docs (assoc data :uri spec))))))))
