@@ -1,7 +1,9 @@
 (ns examples.thingie
   (:require [ring.util.http-response :refer :all]
+            [clojure.java.io :as io]
             [compojure.api.sweet :refer :all]
             [compojure.api.upload :refer :all]
+            [compojure.api.download :as download]
             [schema.core :as s]
             ring.swagger.json-schema-dirty
             ring.middleware.multipart-params.byte-array
@@ -199,6 +201,16 @@
         :multipart-params [foo :- ByteArrayUpload]
         :middleware [[wrap-multipart-params {:store (ring.middleware.multipart-params.byte-array/byte-array-store)}]]
         (ok (dissoc foo :bytes))))
+
+    (context "/download" []
+      :tags ["download"]
+
+      (GET "/file" []
+        :summary "file download"
+        :return download/FileResponse
+        :produces ["image/png"]
+        (-> (ok (io/input-stream (io/resource "screenshot.png")))
+            (header "Content-Type" "image/png"))))
 
     (context "/component" []
       :tags ["component"]

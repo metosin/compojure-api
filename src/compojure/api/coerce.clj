@@ -2,6 +2,7 @@
   (:require [schema.coerce :as sc]
             [compojure.api.middleware :as mw]
             [compojure.api.exception :as ex]
+            [ring.swagger.download :as rs-download]
             [clojure.walk :as walk]
             [schema.utils :as su]
             [linked.core :as linked]))
@@ -42,7 +43,9 @@
                          (assoc body :type ::ex/response-validation
                                      :response response)))
                 (assoc response
-                  :compojure.api.meta/serializable? true
+                  ;; FIXME: there should be better way to implement this
+                  ;; protocol?
+                  :compojure.api.meta/serializable? (and (not (= rs-download/FileResponse schema)))
                   :body body))))))
       (or response)))
 
