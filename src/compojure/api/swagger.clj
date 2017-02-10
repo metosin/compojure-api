@@ -29,10 +29,12 @@
        (swagger2/transform-operations routes/strip-no-doc-endpoints)))
 
 (defn swagger-ui [options]
+  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-ui takes just one map as argument, with `:uri` for the path.")
   (c/undocumented
     (swagger-ui/swagger-ui options)))
 
 (defn swagger-docs [{:keys [uri] :or {uri "/swagger.json"} :as options}]
+  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-docs takes just one map as argument, with `:uri` for the path.")
   (let [extra-info (dissoc options :uri)]
     (c/GET uri request
       :no-doc true

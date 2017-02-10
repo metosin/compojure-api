@@ -1,6 +1,7 @@
 (ns compojure.api.swagger-test
   (:require [schema.core :as s]
             [compojure.api.sweet :refer :all]
+            [compojure.api.swagger :as swagger]
             compojure.core
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]))
@@ -185,3 +186,9 @@
     {} "/swagger.json" "/"
     {:data {:basePath "/app"}} "/app/swagger.json" "/app"
     {:data {:basePath "/app"} :options {:ui {:swagger-docs "/imaginary.json"}}} "/imaginary.json" "/app"))
+
+(fact "change of contract in 1.2.0 with swagger-docs % swagger-ui"
+  (fact "swagger-ui"
+    (swagger/swagger-ui "/path") => (throws AssertionError))
+  (fact "swagger-docs"
+    (swagger/swagger-docs "/path") => (throws AssertionError)))
