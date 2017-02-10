@@ -5,16 +5,16 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[prismatic/plumbing "0.5.3"]
+  :dependencies [[prismatic/plumbing "0.5.4"]
                  [potemkin "0.4.3"]
-                 [cheshire "5.6.3"]
-                 [compojure "1.5.2"]
-                 [prismatic/schema "1.1.3"]
+                 [cheshire "5.7.1"]
+                 [compojure "1.6.0"]
+                 [prismatic/schema "1.1.6"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-                 [ring-middleware-format "0.7.0"]
-                 [metosin/ring-http-response "0.8.1"]
-                 [metosin/ring-swagger "0.22.14"]
+                 [ring-middleware-format "0.7.2"]
+                 [metosin/ring-http-response "0.9.0"]
+                 [metosin/ring-swagger "0.24.1"]
                  [metosin/ring-swagger-ui "2.2.8"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -26,7 +26,7 @@
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.9.7"]
+                             [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [slingshot "0.12.2"]
@@ -44,7 +44,7 @@
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
                    :main examples.server}
              :perf {:jvm-opts ^:replace []}
-             :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
+             :logging {:dependencies [[org.clojure/tools.logging "0.4.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}

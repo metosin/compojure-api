@@ -6,7 +6,7 @@
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
-            [ring.swagger.ui :as rsui]
+            [ring.swagger.swagger-ui :as swagger-ui]
             [ring.swagger.swagger2 :as swagger2]
             [compojure.api.routes :as routes]))
 
@@ -28,15 +28,14 @@
        (swagger2/transform-operations routes/non-nil-routes)
        (swagger2/transform-operations routes/strip-no-doc-endpoints)))
 
-(defn swagger-ui [& params]
+(defn swagger-ui [options]
+  (assert (map? options) "Since 1.1.11, compojure.api.swagger/swagger-ui takes just one map as argument, with `:path` for the path.")
   (c/undocumented
-    (apply rsui/swagger-ui params)))
+    (swagger-ui/swagger-ui options)))
 
-(defn swagger-docs [& body]
-  (let [[path body] (if (string? (first body))
-                      [(first body) (rest body)]
-                      ["/swagger.json" body])
-        [extra-info] (common/extract-parameters body false)]
+(defn swagger-docs [{:keys [path] :or {path "/swagger.json"} :as options}]
+  (assert (map? options) "Since 1.1.11, compojure.api.swagger/swagger-docs takes just one map as argument, with `:path` for the path.")
+  (let [extra-info (dissoc options :path)]
     (c/GET path request
       :no-doc true
       :name ::swagger
@@ -57,21 +56,15 @@
 (defn swagger-routes
   "Returns routes for swagger-articats (ui & spec). Accepts an options map, with the
   following options:
-
-  **:ui**              Uri for the swagger-ui (defaults to \"/\").
+  **:ui**              Path for the swagger-ui (defaults to \"/\").
                        Setting the value to nil will cause the swagger-ui not to be mounted
-
-  **:spec**            Uri for the swagger-spec (defaults to \"/swagger.json\")
+  **:spec**            Path for the swagger-spec (defaults to \"/swagger.json\")
                        Setting the value to nil will cause the swagger-ui not to be mounted
-
   **:data**            Swagger data in the Ring-Swagger format.
-
   **:options**
     **:ui**            Options to configure the ui
     **:spec**          Options to configure the spec. Nada at the moment.
-
   Example options:
-
     {:ui \"/api-docs\"
      :spec \"/swagger.json\"
      :options {:ui {:jsonEditor true}
@@ -89,8 +82,9 @@
             :tags [{:name \"sausages\", :description \"Sausage api-set\"}]}}"
   ([] (swagger-routes {}))
   ([options]
-   (let [{:keys [ui spec data] {ui-options :ui} :options} (merge swagger-defaults options)]
+   (let [{:keys [ui spec data] {ui-options :ui} :options} (merge swagger-defaults options)
+         path (apply str (remove clojure.string/blank? [(:basePath data) spec]))]
      (if (or ui spec)
        (c/routes
-         (if ui (apply swagger-ui ui (mapcat identity (merge (if spec {:swagger-docs (apply str (remove clojure.string/blank? [(:basePath data) spec]))}) ui-options))))
-         (if spec (apply swagger-docs spec (mapcat identity data))))))))
+         (if ui (swagger-ui (merge (if spec {:swagger-docs path}) ui-options {:path ui})))
+         (if spec (swagger-docs (assoc data :path spec))))))))

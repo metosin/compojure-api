@@ -1,5 +1,22 @@
 ## Unreleased
 
+## 1.1.11 (25.7.2017)
+
+ * **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
+   - normally you would use swagger api-options or `swagger-routes` and thus be unaffected of this.
+
+* updated dependencies:
+
+```clj
+[prismatic/plumbing "0.5.4"] is available but we use "0.5.3"
+[cheshire "5.7.1"] is available but we use "5.6.3"
+[compojure "1.6.0"] is available but we use "1.5.2"
+[prismatic/schema "1.1.6"] is available but we use "1.1.3"
+[ring-middleware-format "0.7.2"] is available but we use "0.7.0"
+[metosin/ring-http-response "0.9.0"] is available but we use "0.8.1"
+[metosin/ring-swagger "0.24.1"] is available but we use "0.22.14"
+```
+
 ## 1.1.10 (11.1.2017)
 
 * Updated dependencies to [avoid a path traversal vulnerability](https://groups.google.com/forum/#!topic/clojure/YDrKBV26rnA) in Ring.
