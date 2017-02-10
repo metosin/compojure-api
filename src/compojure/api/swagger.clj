@@ -29,14 +29,14 @@
        (swagger2/transform-operations routes/strip-no-doc-endpoints)))
 
 (defn swagger-ui [options]
-  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-ui takes just one map as argument, with `:uri` for the path.")
+  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-ui takes just one map as argument, with `:path` for the path.")
   (c/undocumented
     (swagger-ui/swagger-ui options)))
 
-(defn swagger-docs [{:keys [uri] :or {uri "/swagger.json"} :as options}]
-  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-docs takes just one map as argument, with `:uri` for the path.")
-  (let [extra-info (dissoc options :uri)]
-    (c/GET uri request
+(defn swagger-docs [{:keys [path] :or {path "/swagger.json"} :as options}]
+  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-docs takes just one map as argument, with `:path` for the path.")
+  (let [extra-info (dissoc options :path)]
+    (c/GET path request
       :no-doc true
       :name ::swagger
       (let [runtime-info (rsm/get-swagger-data request)
@@ -57,10 +57,10 @@
   "Returns routes for swagger-articats (ui & spec). Accepts an options map, with the
   following options:
 
-  **:ui**              Uri for the swagger-ui (defaults to \"/\").
+  **:ui**              Path for the swagger-ui (defaults to \"/\").
                        Setting the value to nil will cause the swagger-ui not to be mounted
 
-  **:spec**            Uri for the swagger-spec (defaults to \"/swagger.json\")
+  **:spec**            Path for the swagger-spec (defaults to \"/swagger.json\")
                        Setting the value to nil will cause the swagger-ui not to be mounted
 
   **:data**            Swagger data in the Ring-Swagger format.
@@ -92,5 +92,5 @@
          path (apply str (remove clojure.string/blank? [(:basePath data) spec]))]
      (if (or ui spec)
        (c/routes
-         (if ui (swagger-ui (merge (if spec {:swagger-docs path}) ui-options {:uri ui})))
-         (if spec (swagger-docs (assoc data :uri spec))))))))
+         (if ui (swagger-ui (merge (if spec {:swagger-docs path}) ui-options {:path ui})))
+         (if spec (swagger-docs (assoc data :path spec))))))))
