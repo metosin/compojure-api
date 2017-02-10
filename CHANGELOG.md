@@ -1,10 +1,13 @@
 ## 1.2.0-SNAPSHOT
 
 * Fix help-for for some restructure methods [#275](https://github.com/metosin/compojure-api/pull/275) by [Nicolás Berger](https://github.com/nberger)
+* **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `uri` key instead of separate optional path & vararg opts.
+  - normally you would use swagger api-options or `swagger-routes` and thus be uneffected of this.
 
 * Updated deps:
 
 ```clj
+[metosin/ring-swagger "0.23.0-SNAPSHOT"] is available but we use "0.22.14"
 [metosin/ring-http-response "0.8.2"] is available but we use "0.8.1"
 ```
 
