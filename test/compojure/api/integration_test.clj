@@ -690,7 +690,6 @@
         ok? (fn [[status body]]
               (and (= status 200)
                    (= body response)))
-        not-ok? (comp not ok?)
         app (api
               (swagger-routes {:ui nil})
               (GET "/" [] ok)
