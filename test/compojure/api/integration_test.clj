@@ -1243,7 +1243,7 @@
 
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
-              (middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
+              (route-middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
                 (swagger-routes
                   {:data
                    {:info {:version "2.0.0"}
@@ -1593,7 +1593,7 @@
   (fact "simple middleware"
     (let [called? (atom false)
           app (api
-                (middleware
+                (route-middleware
                   [(fn [handler]
                      (fn [req]
                        (reset! called? true)
@@ -1617,7 +1617,7 @@
   (fact "middleware with args"
     (let [mw-value (atom nil)
           app (api
-                (middleware
+                (route-middleware
                   [[(fn [handler value]
                       (fn [req]
                         (reset! mw-value value)
