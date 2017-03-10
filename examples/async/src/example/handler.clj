@@ -2,7 +2,8 @@
   "Asynchronous compojure-api application."
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]))
+            [manifold.deferred :as d]
+            compojure.api.async))
 
 (def app
   (api
@@ -30,4 +31,11 @@
          (future
            (Thread/sleep 2000)
            (respond (ok {:result (+ x y)})))
-         nil)))))
+         nil))
+
+     (GET "/times" []
+       :return {:result Long}
+       :query-params [x :- Long, y :- Long]
+       :summary "multiply two numbers together"
+       (doto (d/deferred)
+         (deliver (ok {:result (* x y)})))))))

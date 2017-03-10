@@ -4,7 +4,8 @@
                  [metosin/compojure-api "1.2.0-SNAPSHOT" :exclude [compojue, metosin/muuntaja]]
                  [metosin/muuntaja "0.2.0-SNAPSHOT"]
                  [ring/ring "1.6.0-beta7"]
-                 [compojure "1.6.0-beta3"]]
+                 [compojure "1.6.0-beta3"]
+                 [manifold "0.1.6-alpha6"]]
   :ring {:handler example.handler/app
          :async? true}
   :uberjar-name "server.jar"
