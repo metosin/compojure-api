@@ -5,7 +5,8 @@
                  [metosin/muuntaja "0.2.0-SNAPSHOT"]
                  [ring/ring "1.6.0-beta7"]
                  [compojure "1.6.0-beta3"]
-                 [manifold "0.1.6-alpha6"]]
+                 [manifold "0.1.6-alpha6"]
+                 [org.clojure/core.async "0.3.441"]]
   :ring {:handler example.handler/app
          :async? true}
   :uberjar-name "server.jar"

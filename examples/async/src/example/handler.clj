@@ -3,6 +3,7 @@
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [manifold.deferred :as d]
+            [clojure.core.async :as async]
             compojure.api.async))
 
 (def app
@@ -23,19 +24,35 @@
        :summary "adds two numbers together"
        (ok {:result (+ x y)}))
 
-     (GET "/slowplus" []
+     (GET "/minus" []
        :return {:result Long}
        :query-params [x :- Long, y :- Long]
-       :summary "slowly adds two numbers together"
+       :summary "subtract two numbers from each other"
        (fn [_ respond _]
          (future
-           (Thread/sleep 2000)
-           (respond (ok {:result (+ x y)})))
+           (respond (ok {:result (- x y)})))
          nil))
 
      (GET "/times" []
        :return {:result Long}
        :query-params [x :- Long, y :- Long]
        :summary "multiply two numbers together"
-       (doto (d/deferred)
-         (deliver (ok {:result (* x y)})))))))
+       (let [d (d/deferred)]
+         (future
+           (d/success! d (ok {:result (* x y)})))
+         d))
+
+     (GET "/divide" []
+       :return {:result Long}
+       :query-params [x :- Long, y :- Long]
+       :summary "multiply two numbers together"
+       (let [chan (async/chan)]
+         (future
+           (async/go
+             (try
+               (async/>! chan (ok {:result (/ x y)}))
+               (catch Throwable e
+                 (async/>! chan e))
+               (finally
+                 (async/close! chan)))))
+         chan)))))
