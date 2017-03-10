@@ -66,9 +66,10 @@
         (into [] (if path [[path method info]])))))
 
   compojure.response/Renderable
-  ;; XXX(miikka) Should this be async as well?
   (render [_ request]
     (handler request))
+
+  ;; TODO Implement compojure.response/Sendable for async support
 
   IFn
   (invoke [_ request]
