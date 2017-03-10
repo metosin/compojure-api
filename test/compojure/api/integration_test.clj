@@ -134,6 +134,17 @@
         status => 200
         (get headers mw*) => "012345678/876543210"))))
 
+(facts "context middleware"
+  (let [app (api
+              (context "/middlewares" []
+                :middleware [(fn [h] (fn [r] (ok {:middleware "hello"})))]
+                (GET "/simple" req (reply-mw* req))))]
+
+    (fact "is applied even if route is not matched"
+      (let [[status body] (get* app "/middlewares/non-existing" {})]
+        status => 200
+        body => {:middleware "hello"}))))
+
 (facts "middleware - multiple routes"
   (let [app (api
               (GET "/first" []
