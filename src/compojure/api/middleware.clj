@@ -14,7 +14,8 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [schema.coerce :as sc])
-  (:import [clojure.lang ArityException]))
+  (:import [clojure.lang ArityException]
+           [muuntaja.records Muuntaja]))
 
 ;;
 ;; Catch exceptions
@@ -152,14 +153,13 @@
   (or (:compojure.api.meta/serializable? response)
       (coll? (:body response))))
 
-(defn create-muuntaja [options]
-  (if options
-    (muuntaja.core/create
-      (->
-        (if (= ::defaults options)
-          muuntaja.core/default-options
-          options)
-        (assoc-in [:http :encode-response-body?] encode?)))))
+(defn create-muuntaja [muuntaja-or-options]
+  (if muuntaja-or-options
+    (if (instance? Muuntaja muuntaja-or-options)
+      (assoc muuntaja-or-options :encode-response-body? encode?)
+      (muuntaja.core/create
+        (-> muuntaja-or-options
+            (assoc-in [:http :encode-response-body?] encode?))))))
 
 ;;
 ;; middleware
@@ -182,7 +182,7 @@
 ;;
 
 (def api-middleware-defaults
-  {:formats ::defaults
+  {:formats muuntaja.core/default-options
    :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
