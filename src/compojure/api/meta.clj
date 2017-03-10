@@ -571,7 +571,7 @@
 
 (defn restructure [method [path route-arg & args] {:keys [context?]}]
   (let [[options body] (extract-parameters args true)
-        [path-string lets arg-with-request arg] (destructure-compojure-api-request path route-arg)
+        [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
 
         {:keys [lets
                 letks
