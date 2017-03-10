@@ -28,6 +28,10 @@
 * Fix help-for for some restructure methods [#275](https://github.com/metosin/compojure-api/pull/275) by [Nicolás Berger](https://github.com/nberger)
 * **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
   - normally you would use swagger api-options or `swagger-routes` and thus be unaffected of this.
+* **BREAKING**: `middleware` is removed because it dangerously applied the
+middleware even to requests that didn't match the contained routes. New `route-middleware`
+only applies middlewares when the request is matched against contained routes.
+  * `route-middleware` is not exposed in `sweet` namespace but is available at `compojure.api.core`
 
 * Updated deps:
 
@@ -158,10 +162,6 @@
   * e.g. EDN & Transit keys are not transformed, JSON keys based on the JSON decoder settings (defaulting to `true`).
 * `resource` under `context`  requires exact routing match, fixes [#269](https://github.com/metosin/compojure-api/issues/269)
 * Endpoints can return `compojure.api.routes/Routes`, returned routes don't commit to swagger-docs - as they can be generated at runtime
-* **BREAKING**: `middleware` is removed because it dangerously applied the
-middleware even to requests that didn't match the contained routes. New `route-middleware`
-only applies middlewares when the request is matched against contained routes.
-  * `route-middleware` is not exposed in `sweet` namespace but is available at `compojure.api.core`
 * **BREAKING**: Better request & response coercion
   * in `compojure.api.middleware`, the `default-coercion-matchers` is removed in favour of `create-coercion` & `default-coercion-options`
   * uses negotiated format information provided by [Muuntaja](https://github.com/metosin/muuntaja#request), fixes [#266](https://github.com/metosin/compojure-api/issues/266)
