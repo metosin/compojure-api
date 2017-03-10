@@ -2,6 +2,7 @@
   (:require [compojure.api.meta :as meta]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw]
+            [compojure.core :as compojure]
             [clojure.tools.macro :as macro]))
 
 (defn routes
@@ -33,17 +34,47 @@
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (meta/routing handlers))))
 
-(defmacro middleware
-  "Wraps routes with given middlewares using thread-first macro.
+;; FIXME: Compojure 1.6 should contain these two function
+;; Current version applies middlewares in wrong order
 
-  Note that middlewares will be executed even if routes in body
-  do not match the request uri. Be careful with middlewares that
-  have side-effects."
+(defn- pre-init [middleware]
+  (let [proxy (middleware
+               (fn
+                 ([request]
+                  ((:route-handler request) request))
+                 ([request respond raise]
+                  ((:route-handler request) request respond raise))))]
+    (fn [handler]
+      (let [prep-request #(assoc % :route-handler handler)]
+        (fn
+          ([request]
+           (proxy (prep-request request)))
+          ([request respond raise]
+           (proxy (prep-request request) respond raise)))))))
+
+(defn wrap-routes
+  {:no-doc true}
+  ([handler middleware]
+   (let [middleware   (pre-init middleware)
+         prep-request (fn [request]
+                        (let [mw (:route-middleware request identity)]
+                          (assoc request :route-middleware (comp mw middleware))))]
+       (fn
+         ([request]
+          (handler (prep-request request)))
+         ([request respond raise]
+          (handler (prep-request request) respond raise)))))
+  ([handler middleware & args]
+   (wrap-routes handler #(apply middleware % args))))
+
+(defn route-middleware
+  "Wraps routes with given middlewares using thread-first macro."
   {:style/indent 1}
   [middleware & body]
-  `(let [body# (routes ~@body)
-         wrap-mw# (mw/compose-middleware ~middleware)]
-     (routes/create nil nil {} [body#] (wrap-mw# body#))))
+  (let [handler (apply routes body)
+        x-handler (wrap-routes handler (mw/compose-middleware middleware))]
+    ;; use original handler for docs and wrapped handler for implementation
+    (routes/create nil nil {} [handler] x-handler)))
 
 (defmacro context {:style/indent 2} [& args] (meta/restructure nil      args {:context? true}))
 

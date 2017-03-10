@@ -633,6 +633,6 @@
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (compojure.core/compile-route method path arg-with-request (list form))
-            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
+            form (if (seq middleware) `(compojure.api.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
 
         `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
