@@ -28,7 +28,7 @@
 (defn cached-coercer [request]
   (or (-> request mw/get-options :coercer) sc/coercer))
 
-(defn coerce-response! [request {:keys [status] :as response} responses]
+(defn- coerce-response* [request {:keys [status] :as response} responses respond raise]
   (-> (when-let [schema (or (:schema (get responses status))
                             (:schema (get responses :default)))]
         (when-let [matchers (mw/coercion-matchers request)]
@@ -44,11 +44,20 @@
                 (assoc response
                   :compojure.api.meta/serializable? true
                   :body body))))))
-      (or response)))
+      (or response)
+      respond))
+
+(defn coerce-response! [request response responses]
+  (coerce-response* request response responses identity #(throw %)))
 
 (defn body-coercer-middleware [handler responses]
-  (fn [request]
-    (coerce-response! request (handler request) responses)))
+  (fn
+    ([request]
+     (coerce-response! request (handler request) responses))
+    ([request respond raise]
+     (handler request
+              (fn [response] (coerce-response* request response responses respond raise))
+              raise))))
 
 (defn coerce! [schema key type keywordize? request]
   (let [transform (if keywordize? walk/keywordize-keys identity)

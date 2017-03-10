@@ -66,12 +66,16 @@
         (into [] (if path [[path method info]])))))
 
   compojure.response/Renderable
+  ;; XXX(miikka) Should this be async as well?
   (render [_ request]
     (handler request))
 
   IFn
   (invoke [_ request]
     (handler request))
+  (invoke [_ request respond raise]
+    (handler request respond raise))
+
   (applyTo [this args]
     (AFn/applyToHelper this args)))
 
