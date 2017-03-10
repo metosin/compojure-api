@@ -3,6 +3,7 @@
             [compojure.api.test-utils :refer :all]
             [compojure.api.exception :as ex]
             [compojure.api.swagger :as swagger]
+            [compojure.api.core :refer [route-middleware wrap-routes]]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [ring.util.http-predicates :as http]
@@ -109,30 +110,30 @@
 (facts "middleware ordering"
   (let [app (api
               {:middleware [[middleware* 0]]}
-              (middleware [middleware* [middleware* 2]]
+              (route-middleware [[middleware* "a"] [middleware* "b"]]
                 (context "/middlewares" []
-                  :middleware [(fn [handler] (middleware* handler 3)) [middleware* 4]]
+                  :middleware [(fn [handler] (middleware* handler 1)) [middleware* 2]]
                   (GET "/simple" req (reply-mw* req))
-                  (middleware [#(middleware* % 5) [middleware* 6]]
+                  (route-middleware [#(middleware* % "c") [middleware* "d"]]
                     (GET "/nested" req (reply-mw* req))
                     (GET "/nested-declared" req
-                      :middleware [(fn [handler] (middleware* handler 7)) [middleware* 8]]
+                      :middleware [(fn [handler] (middleware* handler "e")) [middleware* "f"]]
                       (reply-mw* req))))))]
 
     (fact "are applied left-to-right"
       (let [[status _ headers] (get* app "/middlewares/simple" {})]
         status => 200
-        (get headers mw*) => "01234/43210"))
+        (get headers mw*) => "012ab/ba210"))
 
     (fact "are applied left-to-right closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested" {})]
         status => 200
-        (get headers mw*) => "0123456/6543210"))
+        (get headers mw*) => "012abcd/dcba210"))
 
     (fact "are applied left-to-right for both nested & declared closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested-declared" {})]
         status => 200
-        (get headers mw*) => "012345678/876543210"))))
+        (get headers mw*) => "012abcdef/fedcba210"))))
 
 (facts "context middleware"
   (let [app (api

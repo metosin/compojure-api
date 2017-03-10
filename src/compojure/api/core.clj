@@ -53,7 +53,7 @@
   ([handler middleware & args]
    (wrap-routes handler #(apply middleware % args))))
 
-(defn middleware
+(defn route-middleware
   "Wraps routes with given middlewares using thread-first macro."
   {:style/indent 1}
   [middleware & body]
