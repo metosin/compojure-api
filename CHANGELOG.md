@@ -17,7 +17,7 @@
 ```clj
 (GET "/file" []
   :summary "a file download"
-  :return File
+  :return java.io.File
   :produces #{"image/png"}
   (-> (io/resource "screenshot.png")
       (io/input-stream)
