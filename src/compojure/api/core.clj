@@ -55,8 +55,8 @@
           ([request respond raise]
            (proxy (prep-request request) respond raise)))))))
 
-(defn- wrap-routes
-  "Apply a middleware function to routes after they have been matched."
+(defn wrap-routes
+  {:no-doc true}
   ([handler middleware]
    (let [middleware   (pre-init middleware)
          prep-request (fn [request]
