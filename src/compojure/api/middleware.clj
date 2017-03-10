@@ -22,18 +22,27 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn- call-error-handler [error-handler error data request]
-  (try
-    (error-handler error data request)
-    (catch ArityException _
-      (logging/log! :warn "Error-handler arity has been changed.")
-      (error-handler error))))
-
 (defn- super-classes [k]
   (loop [sk (.getSuperclass k), ks []]
     (if-not (= sk Object)
       (recur (.getSuperclass sk) (conj ks sk))
       ks)))
+
+(defn- call-error-handler [default-handler handlers error request]
+  (let [{:keys [type] :as data} (ex-data error)
+        type (or (get ex/mapped-exception-types type) type)
+        ex-class (class error)
+        error-handler (or (get handlers type)
+                          (get handlers ex-class)
+                          (some
+                           (partial get handlers)
+                           (super-classes ex-class))
+                          default-handler)]
+        (try
+          (error-handler error (assoc data :type type) request)
+          (catch ArityException _
+            (logging/log! :warn "Error-handler arity has been changed.")
+            (error-handler error)))))
 
 (defn wrap-exceptions
   "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
@@ -43,23 +52,22 @@
   [handler {:keys [handlers]}]
   (let [default-handler (get handlers ::ex/default ex/safe-handler)]
     (assert (fn? default-handler) "Default exception handler must be a function.")
-    (fn [request]
-      (try
-        (handler request)
-        (catch Throwable e
-          (let [{:keys [type] :as data} (ex-data e)
-                type (or (get ex/mapped-exception-types type) type)
-                ex-class (class e)
-                handler (or (get handlers type)
-                            (get handlers ex-class)
-                            (some
-                              (partial get handlers)
-                              (super-classes ex-class))
-                            default-handler)]
-            ; FIXME: Used for validate
-            (if (rethrow-exceptions? request)
-              (throw e)
-              (call-error-handler handler e (assoc data :type type) request))))))))
+    (fn
+      ([request]
+       (try
+         (handler request)
+         (catch Throwable e
+           ;; FIXME: Used for validate
+           (if (rethrow-exceptions? request)
+             (throw e)
+             (call-error-handler default-handler handlers e request)))))
+      ([request respond raise]
+       (handler request respond
+                (fn [e]
+                  ;; FIXME: Used for validate
+                  (if (rethrow-exceptions? e)
+                    (raise e)
+                    (respond (call-error-handler default-handler handlers e request)))))))))
 
 ;;
 ;; Component integration
