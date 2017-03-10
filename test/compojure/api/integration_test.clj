@@ -19,7 +19,9 @@
             [cheshire.core :as json]
             [clojure.java.io :as io]
             [muuntaja.core :as muuntaja]
-            [muuntaja.core :as m]))
+            [muuntaja.core :as m])
+  (:import (java.sql SQLException SQLWarning)
+           (java.io File)))
 
 ;;
 ;; Data
@@ -78,8 +80,9 @@
       ::ex/response-validation (not-implemented error-body)
       (bad-request error-body))))
 
-(defn custom-exception-handler [^Exception ex data request]
-  (ok {:custom-exception (str ex)}))
+(defn custom-exception-handler [key]
+  (fn [^Exception ex data request]
+    (ok {key (str ex)})))
 
 (defn custom-error-handler [ex data request]
   (ok {:custom-error (:data data)}))
@@ -700,7 +703,6 @@
         ok? (fn [[status body]]
               (and (= status 200)
                    (= body response)))
-        not-ok? (comp not ok?)
         app (api
               (swagger-routes {:ui nil})
               (GET "/" [] ok)
@@ -962,15 +964,20 @@
 
 (fact "exceptions options with custom exception and error handler"
   (let [app (api
-              {:exceptions {:handlers {::ex/default custom-exception-handler
+              {:exceptions {:handlers {::ex/default (custom-exception-handler :custom-exception)
+                                       SQLException (custom-exception-handler :sql-exception)
                                        ::custom-error custom-error-handler}}}
               (swagger-routes)
               (GET "/some-exception" []
-                (throw (new RuntimeException)))
+                (throw (RuntimeException.)))
               (GET "/some-error" []
                 (throw (ex-info "some ex info" {:data "some error" :type ::some-error})))
               (GET "/specific-error" []
-                (throw (ex-info "my ex info" {:data "my error" :type ::custom-error}))))]
+                (throw (ex-info "my ex info" {:data "my error" :type ::custom-error})))
+              (GET "/class" []
+                (throw (SQLException.)))
+              (GET "/sub-class" []
+                (throw (SQLWarning.))))]
 
     (fact "uses default exception handler for unknown exceptions"
       (let [[status body] (get* app "/some-exception")]
@@ -983,8 +990,16 @@
         (:custom-exception body) => (contains ":data \"some error\"")))
 
     (fact "uses specific error handler for ::custom-errors"
-      (let [[status body] (get* app "/specific-error")]
-        body => {:custom-error "my error"}))))
+      (let [[_ body] (get* app "/specific-error")]
+        body => {:custom-error "my error"}))
+
+    (fact "direct class"
+      (let [[_ body] (get* app "/class")]
+        body => (contains {:sql-exception "java.sql.SQLException"})))
+
+    (fact "sub-class"
+      (let [[_ body] (get* app "/sub-class")]
+        body => (contains {:sql-exception "java.sql.SQLWarning"})))))
 
 (fact "exception handling can be disabled"
   (let [app (api
@@ -1588,6 +1603,42 @@
                 (ok [a b])))]
     (app {:request-method :get, :uri "/a/b"}) => (contains {:body ["a" "b"]})
     (app {:request-method :get, :uri "/b/c"}) => (contains {:body ["b" "c"]})))
+
+(facts "file responses don't get coerced"
+  (let [message "aja hiljaa sillalla"
+        app (api
+              (swagger-routes)
+              (GET "/file" []
+                :return File
+                (ok message)))]
+
+    (fact "spec is not mounted"
+      (let [[status body] (raw-get* app "/file")]
+        status => 200
+        body => message))))
+
+(fact "nil routes are ignored"
+  (let [create-app (fn [{:keys [dev?]}]
+                     (context "/api" []
+                       (GET "/ping" [] (ok))
+                       (context "/db" []
+                         (if dev?
+                           (GET "/drop" [] (ok))))
+                       (if dev?
+                         (context "/dev" []
+                           (GET "/tools" [] (ok))))))]
+
+    (facts "with routes"
+      (let [app (create-app {:dev? true})]
+        (app {:request-method :get, :uri "/api/ping"}) => http/ok?
+        (app {:request-method :get, :uri "/api/db/drop"}) => http/ok?
+        (app {:request-method :get, :uri "/api/dev/tools"}) => http/ok?))
+
+    (facts "without routes"
+      (let [app (create-app {:dev? false})]
+        (app {:request-method :get, :uri "/api/ping"}) => http/ok?
+        (app {:request-method :get, :uri "/api/db/drop"}) => nil
+        (app {:request-method :get, :uri "/api/dev/tools"}) => nil))))
 
 (facts "wrap-routes"
   (fact "simple middleware"

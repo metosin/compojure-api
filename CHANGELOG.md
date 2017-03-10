@@ -1,3 +1,153 @@
+## 1.2.0-SNAPSHOT
+
+* Allow `nil` paths in routing, allows easy (static) conditional routing like:
+
+```clj
+(defn app [dev-mode?]
+  (api
+    (GET "ping" [] (ok "pong"))
+    (if dev-mode?
+      (GET "/drop-the-db" [] (ok "dropped")))))
+```
+
+* Support `java.io.File` as response type, mapping to file downloads
+  * no response coercion
+  * fixes [#259](https://github.com/metosin/compojure-api/issues/259)
+
+```clj
+(GET "/file" []
+  :summary "a file download"
+  :return File
+  :produces #{"image/png"}
+  (-> (io/resource "screenshot.png")
+      (io/input-stream)
+      (ok)
+      (header "Content-Type" "image/png"))))
+```
+
+* Fix help-for for some restructure methods [#275](https://github.com/metosin/compojure-api/pull/275) by [Nicolás Berger](https://github.com/nberger)
+* **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
+  - normally you would use swagger api-options or `swagger-routes` and thus be unaffected of this.
+
+* Updated deps:
+
+```clj
+[metosin/ring-swagger "0.23.0"] is available but we use "0.22.14"
+[metosin/ring-http-response "0.8.2"] is available but we use "0.8.1"
+```
+
+## 1.2.0-alpha3 (31.1.2017)
+
+* Class-based exception handling made easier, the `[:exceptions :handlers]` options also allows exception classes as keys.
+  * First do a `:type`-lookup, then by Exception class and it's superclasses.
+  * Fixes [#266](https://github.com/metosin/compojure-api/issues/272)
+
+```clj
+(api
+  {:exceptions
+   {:handlers
+     {::ex/default handle-defaults
+      java.sql.SQLException handle-all-sql-exceptions}}}
+   ...)
+```
+
+* Lovely inline-help, `compojure.api.help/help`.
+
+```clojure
+(require '[compojure.api.help :refer [help]])
+
+(help)
+; ------------------------------------------------------------
+; Usage:
+;
+; (help)
+; (help topic)
+; (help topic subject)
+;
+; Topics:
+;
+; :meta
+;
+; Topics & subjects:
+;
+; :meta :body
+; :meta :body-params
+; :meta :coercion
+; :meta :components
+; :meta :consumes
+; :meta :description
+; :meta :form-params
+; :meta :header-params
+; :meta :middleware
+; :meta :multipart-params
+; :meta :name
+; :meta :no-doc
+; :meta :operationId
+; :meta :path-params
+; :meta :produces
+; :meta :responses
+; :meta :return
+; :meta :summary
+; :meta :swagger
+; :meta :tags
+
+(help/help :meta :middleware)
+; ------------------------------------------------------------
+;
+; :middleware
+;
+; Applies the given vector of middleware to the route.
+; Middleware is presented as data in a Duct-style form:
+;
+; 1) ring mw-function (handler->request->response)
+;
+; 2) mw-function and it's arguments separately - mw is
+;    created by applying function with handler and args
+;
+; (defn require-role [handler role]
+;   (fn [request]
+;     (if (has-role? request role)
+;       (handler request)
+;       (unauthorized))))
+;
+; (def require-admin (partial require-role :admin))
+;
+; (GET "/admin" []
+;   :middleware [require-admin]
+;   (ok))
+;
+; (GET "/admin" []
+;   :middleware [[require-role :admin]]
+;   (ok))
+;
+; (GET "/admin" []
+;   :middleware [#(require-admin % :admin)]
+;   (ok))
+;
+```
+
+* help can be of anything. contributing to help:
+
+```clojure
+(defmethod help/help-for [:restructuring :query-params] [_ _]
+  (help/text
+    "Restructures query-params with plumbing letk notation.\n"
+    "Example: read x and optionally y (defaulting to 1)"
+    "from query parameters. Body of the endpoint sees the"
+    "coerced values.\n"
+    (help/code
+      "(GET \"/ping\""
+      "  :query-params [x :- Long, {y :- Long 1}]"
+      "  (ok (+ x y)))")))
+```
+
+
+* Updated deps:
+
+```clj
+[metosin/muuntaja "0.2.0-20170130.142747-9"] is available but we use "0.2.0-20170122.164054-8"
+```
+
 ## 1.2.0-alpha2 (22.1.2017)
 
 **this is an alpha release, feedback welcome**

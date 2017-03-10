@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.2.0-alpha2"
+(defproject metosin/compojure-api "1.2.0-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -7,14 +7,14 @@
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.7.0"]
-                 [compojure "1.5.2"]
+                 [compojure "1.5.2" :exclusions [commons-codec]]
                  [prismatic/schema "1.1.3"]
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-                 [metosin/muuntaja "0.2.0-20170122.164054-8"]
-                 [metosin/ring-http-response "0.8.1"]
-                 [metosin/ring-swagger "0.22.14"]
+                 [metosin/muuntaja "0.2.0-20170130.142747-9"]
+                 [metosin/ring-http-response "0.8.2"]
+                 [metosin/ring-swagger "0.23.0"]
                  [metosin/ring-swagger-ui "2.2.8"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -26,7 +26,7 @@
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.10.0"]
+                             [lein-ring "0.11.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [slingshot "0.12.2"]

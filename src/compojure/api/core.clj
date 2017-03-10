@@ -5,14 +5,11 @@
             [compojure.core :as compojure]
             [clojure.tools.macro :as macro]))
 
-(defn- handle [handlers request]
-  (some #(% request) handlers))
-
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
   (let [handlers (seq (keep identity handlers))]
-    (routes/create nil nil {} (vec handlers) (partial handle handlers))))
+    (routes/create nil nil {} (vec handlers) (meta/routing handlers))))
 
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
@@ -35,7 +32,7 @@
   not satisfying compojure.api.routes/Routing -protocol."
   [& handlers]
   (let [handlers (keep identity handlers)]
-    (routes/create nil nil {} nil (partial handle handlers))))
+    (routes/create nil nil {} nil (meta/routing handlers))))
 
 ;; FIXME: Compojure 1.6 should contain these two function
 ;; Current version applies middlewares in wrong order

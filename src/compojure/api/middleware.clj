@@ -29,6 +29,12 @@
       (logging/log! :warn "Error-handler arity has been changed.")
       (error-handler error))))
 
+(defn- super-classes [k]
+  (loop [sk (.getSuperclass k), ks []]
+    (if-not (= sk Object)
+      (recur (.getSuperclass sk) (conj ks sk))
+      ks)))
+
 (defn wrap-exceptions
   "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
   - **:handlers** - a map from exception type to handler
@@ -43,7 +49,13 @@
         (catch Throwable e
           (let [{:keys [type] :as data} (ex-data e)
                 type (or (get ex/mapped-exception-types type) type)
-                handler (or (get handlers type) default-handler)]
+                ex-class (class e)
+                handler (or (get handlers type)
+                            (get handlers ex-class)
+                            (some
+                              (partial get handlers)
+                              (super-classes ex-class))
+                            default-handler)]
             ; FIXME: Used for validate
             (if (rethrow-exceptions? request)
               (throw e)
@@ -63,7 +75,7 @@
   (::components req))
 
 ;;
-;; Ring-swagger options
+;; Options
 ;;
 
 (defn wrap-options
