@@ -27,6 +27,7 @@
        :query-params [x :- Long, y :- Long]
        :summary "slowly adds two numbers together"
        (fn [_ respond _]
-         (Thread/sleep 2000)
-         (respond (ok {:result (+ x y)}))
+         (future
+           (Thread/sleep 2000)
+           (respond (ok {:result (+ x y)})))
          nil)))))
