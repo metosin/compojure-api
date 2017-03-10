@@ -534,6 +534,12 @@
   `(#'compojure.core/if-context
      ~(#'compojure.core/context-route path)
      ~route))
+
+(defn routing [handlers]
+  (if-let [handlers (seq (keep identity handlers))]
+    (apply some-fn handlers)
+    (constantly nil)))
+
 ;;
 ;; Api
 ;;
@@ -603,7 +609,7 @@
     (if context?
 
       ;; context
-      (let [form `(compojure.core/routes ~@body)
+      (let [form `(routing [~@body])
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)

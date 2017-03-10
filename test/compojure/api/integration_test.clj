@@ -690,7 +690,6 @@
         ok? (fn [[status body]]
               (and (= status 200)
                    (= body response)))
-        not-ok? (comp not ok?)
         app (api
               (swagger-routes {:ui nil})
               (GET "/" [] ok)
@@ -1591,3 +1590,26 @@
                 (ok [a b])))]
     (app {:request-method :get, :uri "/a/b"}) => (contains {:body ["a" "b"]})
     (app {:request-method :get, :uri "/b/c"}) => (contains {:body ["b" "c"]})))
+
+(fact "nil routes are ignored"
+  (let [create-app (fn [{:keys [dev?]}]
+                     (context "/api" []
+                       (GET "/ping" [] (ok))
+                       (context "/db" []
+                         (if dev?
+                           (GET "/drop" [] (ok))))
+                       (if dev?
+                         (context "/dev" []
+                           (GET "/tools" [] (ok))))))]
+
+    (facts "with routes"
+      (let [app (create-app {:dev? true})]
+        (app {:request-method :get, :uri "/api/ping"}) => http/ok?
+        (app {:request-method :get, :uri "/api/db/drop"}) => http/ok?
+        (app {:request-method :get, :uri "/api/dev/tools"}) => http/ok?))
+
+    (facts "without routes"
+      (let [app (create-app {:dev? false})]
+        (app {:request-method :get, :uri "/api/ping"}) => http/ok?
+        (app {:request-method :get, :uri "/api/db/drop"}) => nil
+        (app {:request-method :get, :uri "/api/dev/tools"}) => nil))))
