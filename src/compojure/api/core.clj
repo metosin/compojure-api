@@ -37,19 +37,36 @@
   (let [handlers (keep identity handlers)]
     (routes/create nil nil {} nil (partial handle handlers))))
 
-(defn- pre-init [middleware]
-  (let [proxy (middleware (fn [req] ((:route-handler req) req)))]
-    (fn [handler]
-      (fn [request]
-        (proxy (assoc request :route-handler handler))))))
+;; FIXME: Compojure 1.6 should contain these two function
+;; Current version applies middlewares in wrong order
 
-(defn wrap-routes
+(defn- pre-init [middleware]
+  (let [proxy (middleware
+               (fn
+                 ([request]
+                  ((:route-handler request) request))
+                 ([request respond raise]
+                  ((:route-handler request) request respond raise))))]
+    (fn [handler]
+      (let [prep-request #(assoc % :route-handler handler)]
+        (fn
+          ([request]
+           (proxy (prep-request request)))
+          ([request respond raise]
+           (proxy (prep-request request) respond raise)))))))
+
+(defn- wrap-routes
   "Apply a middleware function to routes after they have been matched."
   ([handler middleware]
-   (let [middleware (pre-init middleware)]
-     (fn [request]
-       (let [mw (:route-middleware request identity)]
-         (handler (assoc request :route-middleware (comp mw middleware)))))))
+   (let [middleware   (pre-init middleware)
+         prep-request (fn [request]
+                        (let [mw (:route-middleware request identity)]
+                          (assoc request :route-middleware (comp mw middleware))))]
+       (fn
+         ([request]
+          (handler (prep-request request)))
+         ([request respond raise]
+          (handler (prep-request request) respond raise)))))
   ([handler middleware & args]
    (wrap-routes handler #(apply middleware % args))))
 

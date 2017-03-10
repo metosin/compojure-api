@@ -11,8 +11,7 @@
 * **BREAKING**: `middleware` is removed because it dangerously applied the
 middleware even to requests that didn't match the contained routes. New `route-middleware`
 only applies middlewares when the request is matched against contained routes.
-  * Route middlewares (`route-middleware` and handler `:middleware` data) are applied
-  in reverse order compared to normal: the closest middleware is applied last
+  * `route-middleware` is not exposed in `sweet` namespace but is available at `compojure.api.core`
 * **BREAKING**: Better request & response coercion
   * in `compojure.api.middleware`, the `default-coercion-matchers` is removed in favour of `create-coercion` & `default-coercion-options`
   * uses negotiated format information provided by [Muuntaja](https://github.com/metosin/muuntaja#request), fixes [#266](https://github.com/metosin/compojure-api/issues/266)
