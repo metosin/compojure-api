@@ -19,7 +19,8 @@
             [clojure.java.io :as io]
             [muuntaja.core :as muuntaja]
             [muuntaja.core :as m])
-  (:import (java.sql SQLException SQLWarning)))
+  (:import (java.sql SQLException SQLWarning)
+           (java.io File)))
 
 ;;
 ;; Data
@@ -1590,6 +1591,19 @@
                 (ok [a b])))]
     (app {:request-method :get, :uri "/a/b"}) => (contains {:body ["a" "b"]})
     (app {:request-method :get, :uri "/b/c"}) => (contains {:body ["b" "c"]})))
+
+(facts "file responses don't get coerced"
+  (let [message "aja hiljaa sillalla"
+        app (api
+              (swagger-routes)
+              (GET "/file" []
+                :return File
+                (ok message)))]
+
+    (fact "spec is not mounted"
+      (let [[status body] (raw-get* app "/file")]
+        status => 200
+        body => message))))
 
 (fact "nil routes are ignored"
   (let [create-app (fn [{:keys [dev?]}]

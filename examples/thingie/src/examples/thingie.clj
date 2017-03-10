@@ -7,8 +7,10 @@
             ring.middleware.multipart-params.byte-array
             [examples.pizza :refer [pizza-routes Pizza]]
             [examples.ordered :refer [ordered-routes]]
-            [examples.dates :refer [date-routes]])
-  (:import (org.joda.time DateTime)))
+            [examples.dates :refer [date-routes]]
+            [clojure.java.io :as io])
+  (:import (org.joda.time DateTime)
+           (java.io File)))
 
 ;;
 ;; Schemas
@@ -199,6 +201,18 @@
         :multipart-params [foo :- ByteArrayUpload]
         :middleware [[wrap-multipart-params {:store (ring.middleware.multipart-params.byte-array/byte-array-store)}]]
         (ok (dissoc foo :bytes))))
+
+    (context "/download" []
+      :tags ["download"]
+
+      (GET "/file" []
+        :summary "file download"
+        :return File
+        :produces ["image/png"]
+        (-> (io/resource "screenshot.png")
+            (io/input-stream)
+            (ok)
+            (header "Content-Type" "image/png"))))
 
     (context "/component" []
       :tags ["component"]

@@ -1,5 +1,30 @@
 ## 1.2.0-SNAPSHOT
 
+* Allow `nil` paths in routing, allows easy (static) conditional routing like:
+
+```clj
+(defn app [dev-mode?]
+  (api
+    (GET "ping" [] (ok "pong"))
+    (if dev-mode?
+      (GET "/drop-the-db" [] (ok "dropped")))))
+```
+
+* Support `java.io.File` as response type, mapping to file downloads
+  * no response coercion
+  * fixes [#259](https://github.com/metosin/compojure-api/issues/259)
+
+```clj
+(GET "/file" []
+  :summary "a file download"
+  :return java.io.File
+  :produces #{"image/png"}
+  (-> (io/resource "screenshot.png")
+      (io/input-stream)
+      (ok)
+      (header "Content-Type" "image/png"))))
+```
+
 * Fix help-for for some restructure methods [#275](https://github.com/metosin/compojure-api/pull/275) by [Nicolás Berger](https://github.com/nberger)
 * **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
   - normally you would use swagger api-options or `swagger-routes` and thus be unaffected of this.
