@@ -81,8 +81,11 @@
 (defn wrap-options
   "Injects compojure-api options into the request."
   [handler options]
-  (fn [request]
-    (handler (update-in request [::options] merge options))))
+  (fn
+    ([request]
+     (handler (update-in request [::options] merge options)))
+    ([request respond raise]
+     (handler (update-in request [::options] merge options) respond raise))))
 
 (defn get-options
   "Extracts compojure-api options from the request."
