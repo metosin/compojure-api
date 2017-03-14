@@ -50,24 +50,24 @@
     - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
                                              by default prints stack trace."
   [handler {:keys [handlers]}]
-  (let [default-handler (get handlers ::ex/default ex/safe-handler)]
+  (let [default-handler (get handlers ::ex/default ex/safe-handler)
+        rethrow-or-respond (fn [e request respond raise]
+                             ;; FIXME: Used for validate
+                             (if (rethrow-exceptions? request)
+                               (raise e)
+                               (respond (call-error-handler default-handler handlers e request))))]
     (assert (fn? default-handler) "Default exception handler must be a function.")
     (fn
       ([request]
        (try
          (handler request)
          (catch Throwable e
-           ;; FIXME: Used for validate
-           (if (rethrow-exceptions? request)
-             (throw e)
-             (call-error-handler default-handler handlers e request)))))
+           (rethrow-or-respond e request identity #(throw %)))))
       ([request respond raise]
-       (handler request respond
-                (fn [e]
-                  ;; FIXME: Used for validate
-                  (if (rethrow-exceptions? e)
-                    (raise e)
-                    (respond (call-error-handler default-handler handlers e request)))))))))
+       (try
+         (handler request respond (fn [e] (rethrow-or-respond e request respond raise)))
+         (catch Throwable e
+           (rethrow-or-respond e request respond raise)))))))
 
 ;;
 ;; Component integration
