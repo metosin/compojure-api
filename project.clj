@@ -48,7 +48,8 @@
                                          "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
-             :async {:dependencies [[compojure "1.6.0-beta3"]
+             :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
+                     :dependencies [[compojure "1.6.0-beta3"]
                                     [manifold "0.1.6-alpha6"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}

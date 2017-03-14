@@ -43,9 +43,21 @@
     (p/follow-redirect state)
     state))
 
+(def ^:dynamic *async?* (= "true" (System/getProperty "compojure-api.test.async")))
+
+(defn- call-async [handler request]
+  (let [result (promise)]
+    (handler request #(result [:ok %]) #(result [:fail %]))
+    (if-let [[status value] (deref result 1500 nil)]
+      (if (= status :ok)
+        value
+        (throw value))
+      (throw (Exception. "Timeout while waiting for the request handler.")))))
+
 (defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
-        (-> (p/session app)
+        (-> (cond->> app *async?* (partial call-async))
+            (p/session)
             (p/request uri
                        :request-method :get
                        :params (or params {})
