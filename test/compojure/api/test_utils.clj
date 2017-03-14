@@ -52,7 +52,8 @@
       (if (= status :ok)
         value
         (throw value))
-      (throw (Exception. "Timeout while waiting for the request handler.")))))
+      (throw (Exception. (str "Timeout while waiting for the request handler. "
+                              request))))))
 
 (defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
