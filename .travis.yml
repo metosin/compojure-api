@@ -1,7 +1,7 @@
 sudo: false
 language: clojure
-lein: lein2
-script: lein2 do clean, all midje, all check
+lein: 2.7.1
+script: lein do clean, all midje, all check
 jdk:
 #  - openjdk7
   - oraclejdk8
