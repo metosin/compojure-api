@@ -151,7 +151,9 @@
 (facts "context middleware"
   (let [app (api
               (context "/middlewares" []
-                :middleware [(fn [h] (fn [r] (ok {:middleware "hello"})))]
+                       :middleware [(fn [h] (fn mw
+                                              ([r] (ok {:middleware "hello"}))
+                                              ([r respond _] (respond (mw r)))))]
                 (GET "/simple" req (reply-mw* req))))]
 
     (fact "is applied even if route is not matched"
