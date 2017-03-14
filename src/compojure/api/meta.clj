@@ -536,21 +536,9 @@
      ~(#'compojure.core/context-route path)
      (constantly ~route)))
 
-(defn- handle
-  ([handlers request]
-   (some #(% request) handlers))
-  ([handlers request respond raise]
-   (if-let [handler (first handlers)]
-     (handler request
-              #(if (nil? %)
-                 (handle (rest handlers) request respond raise)
-                 (respond %))
-              raise)
-     (respond nil))))
-
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity handlers))]
-    (partial handle handlers)
+    (apply compojure.core/routes handlers)
     (constantly nil)))
 
 ;;
