@@ -62,7 +62,9 @@
 (defn constant-middleware
   "This middleware rewrites all responses with a constant response."
   [_ res]
-  (constantly res))
+  (fn
+    ([_] res)
+    ([_ respond _] (respond res))))
 
 (defn reply-mw*
   "Handler which replies with response where a header contains copy
@@ -75,8 +77,11 @@
   "If request has query-param x, presume it's a integer and multiply it by two
    before passing request to next handler."
   [handler]
-  (fn [req]
-    (handler (update-in req [:query-params "x"] #(* (Integer. %) 2)))))
+  (fn
+    ([req]
+     (handler (update-in req [:query-params "x"] #(* (Integer. %) 2))))
+    ([req respond raise]
+     (handler (update-in req [:query-params "x"] #(* (Integer. %) 2)) respond raise))))
 
 (defn custom-validation-error-handler [ex data request]
   (let [error-body {:custom-error (:uri request)}]

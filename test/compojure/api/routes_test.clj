@@ -30,7 +30,9 @@
   (#'routes/string-path-parameters "/:foo.json") => {:foo String})
 
 (facts "nested routes"
-  (let [mw (fn [handler] (fn [request] (handler request)))
+  (let [mw (fn [handler]
+             (fn ([request] (handler request))
+                 ([request raise respond] (handler request raise respond))))
         more-routes (fn [version]
                       (routes
                         (GET "/more" []
@@ -149,9 +151,3 @@
   (let [app (context "/api" req
               (GET "/ping" [] (ok (:magic req))))]
     (app {:request-method :get :uri "/api/ping" :magic {:just "works"}}) => (contains {:body {:just "works"}})))
-
-;; This actually won't work with Compojure 1.5, which does not support async requests.
-#_(fact "routes with async requests"
-    (let [app (context "/api" []
-                (GET "/ping" [] (ok {:pong true})))]
-      (call-async app {:request-method :get :uri "/api/ping"}) => (contains {:body {:pong true}})))

@@ -76,8 +76,11 @@
 (defn wrap-components
   "Assoc given components to the request."
   [handler components]
-  (fn [req]
-    (handler (assoc req ::components components))))
+  (fn
+    ([req]
+     (handler (assoc req ::components components)))
+    ([req respond raise]
+     (handler (assoc req ::components components) respond raise))))
 
 (defn get-components [req]
   (::components req))
@@ -149,8 +152,11 @@
 (def coercion-request-ks [::options :coercion])
 
 (defn wrap-coercion [handler coercion]
-  (fn [request]
-    (handler (assoc-in request coercion-request-ks coercion))))
+  (fn
+    ([request]
+     (handler (assoc-in request coercion-request-ks coercion)))
+    ([request respond raise]
+     (handler (assoc-in request coercion-request-ks coercion) respond raise))))
 
 ;;
 ;; Muuntaja

@@ -50,7 +50,7 @@
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
                      :dependencies [[compojure "1.6.0-beta3"]
-                                    [manifold "0.1.6-alpha6"]]}}
+                                    [manifold "0.1.6"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]

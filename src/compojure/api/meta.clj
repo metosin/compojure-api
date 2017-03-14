@@ -539,7 +539,7 @@
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity handlers))]
     (apply compojure.core/routes handlers)
-    (constantly nil)))
+    (fn ([_] nil) ([_ respond _] (respond nil)))))
 
 ;;
 ;; Api
