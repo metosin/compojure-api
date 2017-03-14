@@ -58,7 +58,7 @@
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
   :deploy-repositories [["releases" :clojars]]
-  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7"]
+  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7:dev,async"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
