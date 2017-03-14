@@ -28,6 +28,10 @@
 * Fix help-for for some restructure methods [#275](https://github.com/metosin/compojure-api/pull/275) by [Nicolás Berger](https://github.com/nberger)
 * **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
   - normally you would use swagger api-options or `swagger-routes` and thus be unaffected of this.
+* **BREAKING**: `middleware` is removed because it dangerously applied the
+middleware even to requests that didn't match the contained routes. New `route-middleware`
+only applies middlewares when the request is matched against contained routes.
+  * `route-middleware` is not exposed in `sweet` namespace but is available at `compojure.api.core`
 
 * Updated deps:
 

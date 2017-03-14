@@ -1,6 +1,7 @@
 (ns compojure.api.routes-test
   (:require [midje.sweet :refer :all]
             [compojure.api.sweet :refer :all]
+            [compojure.api.core :refer [route-middleware]]
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]
             [ring.util.http-predicates :refer :all]
@@ -43,7 +44,7 @@
                    (ok {:message (str "pong - " version)}))
                  (POST "/ping" []
                    (ok {:message (str "pong - " version)}))
-                 (middleware [mw]
+                 (route-middleware [mw]
                    (GET "/hello" []
                      :return {:message String}
                      :summary "cool ping"
