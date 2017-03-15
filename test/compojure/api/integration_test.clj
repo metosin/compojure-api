@@ -19,7 +19,8 @@
             [cheshire.core :as json]
             [clojure.java.io :as io]
             [muuntaja.core :as muuntaja]
-            [muuntaja.core :as m])
+            [muuntaja.core :as m]
+            [compojure.api.core :as c])
   (:import (java.sql SQLException SQLWarning)
            (java.io File)))
 
@@ -1689,3 +1690,13 @@
                            :request-method :get})]
         (-> response :body slurp) => (json {:ok true})
         @mw-value => nil))))
+
+(facts "ring-handler"
+  (let [app (api (GET "/ping" [] (ok)))
+        ring-app (c/ring-handler app)]
+    (fact "both work"
+      (get* app "/ping") => (contains 200)
+      (get* ring-app "/ping") => (contains 200))
+    (fact "ring-app is also a Fn"
+      app =not=> fn?
+      ring-app => fn?)))

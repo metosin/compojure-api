@@ -5,6 +5,12 @@
             [compojure.core :as compojure]
             [clojure.tools.macro :as macro]))
 
+(defn ring-handler
+  "Creates vanilla ring-handler from any invokable thing (e.g. compojure-api route)"
+  [handler]
+  (fn [request]
+    (handler request)))
+
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
