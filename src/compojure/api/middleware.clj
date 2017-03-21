@@ -14,7 +14,19 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [schema.coerce :as sc])
-  (:import [clojure.lang ArityException]))
+  (:import [clojure.lang ArityException]
+           (java.io Writer)))
+
+;;
+;; Wrapper class to hide implementation details when printing
+;;
+
+(defrecord Options [])
+
+(defmethod print-method Options
+  [_ ^Writer w]
+  (.write w "<<Options>>"))
+
 
 ;;
 ;; Catch exceptions
@@ -69,7 +81,7 @@
   "Assoc given components to the request."
   [handler components]
   (fn [req]
-    (handler (assoc req ::components components))))
+    (handler (assoc req ::components (map->Options components)))))
 
 (defn get-components [req]
   (::components req))
@@ -82,7 +94,7 @@
   "Injects compojure-api options into the request."
   [handler options]
   (fn [request]
-    (handler (update-in request [::options] merge options))))
+    (handler (update request ::options #(map->Options (merge % options))))))
 
 (defn get-options
   "Extracts compojure-api options from the request."
@@ -254,7 +266,7 @@
              middleware ((compose-middleware middleware))
              components (wrap-components components)
              true ring.middleware.http-response/wrap-http-response
-             muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces]))
+             muuntaja (rsm/wrap-swagger-data (map->Options (select-keys muuntaja [:consumes :produces])))
              true (wrap-options (select-keys options [:ring-swagger :coercion]))
              muuntaja (muuntaja.middleware/wrap-format-request muuntaja)
              exceptions (wrap-exceptions exceptions)
