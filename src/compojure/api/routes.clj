@@ -69,9 +69,7 @@
   (render [_ request]
     (handler request))
 
-  compojure.response/Sendable
-  (send* [_ request respond raise]
-    (handler request #(compojure.response/send % request respond raise) raise))
+  ;; Sendable implementation in compojure.api.async
 
   IFn
   (invoke [_ request]
