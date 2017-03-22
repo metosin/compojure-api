@@ -45,6 +45,21 @@
   - **:swagger**                   Options to configure the Swagger-routes. Defaults to nil.
                                    See `compojure.api.swagger/swagger-routes` for details.
 
+  - **:handler-wont-404**          Normally, api checks URIs for swagger-ui routes before
+                                   delegating to your supplied handler. This is necessary because
+                                   otherwise, swagger-ui requests would pass through your handler,
+                                   finding no match, and your handler would return a 404, meaning
+                                   that compojure would never check the swagger-ui routes.
+                                   You can slightly improve performance of your api routes if you
+                                   promise that your routes will not return a 404 for paths you
+                                   don't recognize, for example in a setup like:
+
+                                   (-> (api {:handler-wont-404 true} (GET ...))
+                                       (routes (constantly {:status 404 :body \"Not found\"})))
+
+                                   If you do, api will check your routes for matches before looking
+                                   for a matching swagger-ui route.
+
   ### api-middleware options
 
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
@@ -52,7 +67,10 @@
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
         options (rsc/deep-merge api-defaults options)
-        handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
+        handler (apply c/routes
+                       (if (:handler-wont-404 options)
+                         (concat handlers [(swagger/swagger-routes (:swagger options))])
+                         (concat [(swagger/swagger-routes (:swagger options))] handlers)))
         routes (routes/get-routes handler (:api options))
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
         lookup (routes/route-lookup-table routes)

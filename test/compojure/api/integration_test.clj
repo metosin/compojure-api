@@ -1249,25 +1249,35 @@
                             :type "boolean"}]})))))
 
 (fact "swagger-docs via api options, #218"
-  (let [routes (routes
-                 (context "/api" []
-                   (GET "/ping" []
-                     :summary "ping"
-                     (ok {:message "pong"}))
-                   (POST "/pong" []
-                     :summary "pong"
-                     (ok {:message "ping"})))
-                 (ANY "*" []
-                   (ok {:message "404"})))
-        api1 (api {:swagger {:spec "/swagger.json", :ui "/"}} routes)
-        api2 (api (swagger-routes) routes)]
+  (let [without-404 (context "/api" []
+                      (GET "/ping" []
+                        :summary "ping"
+                        (ok {:message "pong"}))
+                      (POST "/pong" []
+                        :summary "pong"
+                        (ok {:message "ping"})))
+        not-found-handler (ANY "*" []
+                            (ok {:message "404"}))
+        swagger-opts {:swagger {:spec "/swagger.json", :ui "/"}}
+        handler (routes without-404 not-found-handler)
+        api1 (api swagger-opts handler)
+        api2 (api (swagger-routes) handler)
+        api3 (routes (api (assoc swagger-opts :handler-wont-404 true)
+                          without-404)
+                     not-found-handler)]
 
     (fact "both generate same swagger-spec"
       (get-spec api1) => (get-spec api2))
 
     (fact "not-found handler works"
       (second (get* api1 "/missed")) => {:message "404"}
-      (second (get* api2 "/missed")) => {:message "404"})))
+      (second (get* api2 "/missed")) => {:message "404"})
+
+    (fact ":handler-wont-404 works"
+      (get-spec api3) => (-> (get-spec api1)
+                             (update :paths dissoc "/*"))
+      (second (get* api3 "/api/ping")) => {:message "pong"}
+      (second (get* api3 "/missed")) => {:message "404"})))
 
 (fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
   (let [app (api
