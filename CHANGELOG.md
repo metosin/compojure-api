@@ -39,6 +39,8 @@ only applies middlewares when the request is matched against contained routes.
 * Updated deps:
 
 ```clj
+[prismatic/schema "1.1.4"] is available but we use "1.1.3"
+[metosin/ring-swagger-ui "2.2.10"] is available but we use "2.2.8"
 [metosin/ring-swagger "0.23.0"] is available but we use "0.22.14"
 [metosin/ring-http-response "0.8.2"] is available but we use "0.8.1"
 ```

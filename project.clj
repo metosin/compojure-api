@@ -8,14 +8,14 @@
   :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.7.0"]
                  [compojure "1.5.2" :exclusions [commons-codec]]
-                 [prismatic/schema "1.1.3"]
+                 [prismatic/schema "1.1.4"]
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
                  [metosin/muuntaja "0.2.0-20170130.142747-9"]
                  [metosin/ring-http-response "0.8.2"]
                  [metosin/ring-swagger "0.23.0"]
-                 [metosin/ring-swagger-ui "2.2.8"]]
+                 [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
