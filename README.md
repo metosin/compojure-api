@@ -2,15 +2,17 @@
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
-- [API Docs](http://metosin.github.io/compojure-api/doc/) & [Wiki](https://github.com/metosin/compojure-api/wiki)
 - [Schema](https://github.com/Prismatic/schema) for input & output data coercion
 - [Swagger](http://swagger.io/) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
+- [Async](https://github.com/metosin/compojure-api/wiki/Async) with ring-async, [manifold](https://github.com/ztellman/manifold) and [core.async](https://github.com/clojure/core.async) 
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
 - Client negotiable formats: [JSON](http://www.json.org/), [EDN](https://github.com/edn-format/edn), [YAML](http://yaml.org/) & [Transit](https://github.com/cognitect/transit-format) (JSON & MessagePack)
 - Data-driven [resources](https://github.com/metosin/compojure-api/wiki/Resources-and-Liberator)
 - [Bi-directional](https://github.com/metosin/compojure-api/wiki/Routing#bi-directional-routing) routing
 - Bundled middleware for common api behavior ([exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling), parameters & formats)
 - Route functions & macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
+
+[API Docs](http://metosin.github.io/compojure-api/doc/) & [Wiki](https://github.com/metosin/compojure-api/wiki)
 
 ## Latest version
 
