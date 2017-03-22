@@ -47,7 +47,10 @@
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
+             :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
+                     :dependencies [[compojure "1.6.0-beta3"]
+                                    [manifold "0.1.6"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
@@ -55,7 +58,7 @@
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
   :deploy-repositories [["releases" :clojars]]
-  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7"]
+  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7:dev,async"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]

@@ -10,7 +10,8 @@
             [schema-tools.core :as st]
             [compojure.api.coerce :as coerce]
             [compojure.api.help :as help]
-            compojure.core))
+            compojure.core
+            compojure.api.compojure-compat))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
@@ -531,14 +532,14 @@
 
 (defmacro static-context
   [path route]
-  `(#'compojure.core/if-context
+  `(#'compojure.api.compojure-compat/make-context
      ~(#'compojure.core/context-route path)
-     ~route))
+     (constantly ~route)))
 
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity handlers))]
-    (apply some-fn handlers)
-    (constantly nil)))
+    (apply compojure.core/routes handlers)
+    (fn ([_] nil) ([_ respond _] (respond nil)))))
 
 ;;
 ;; Api

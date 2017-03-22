@@ -31,7 +31,9 @@
   (#'routes/string-path-parameters "/:foo.json") => {:foo String})
 
 (facts "nested routes"
-  (let [mw (fn [handler] (fn [request] (handler request)))
+  (let [mw (fn [handler]
+             (fn ([request] (handler request))
+                 ([request raise respond] (handler request raise respond))))
         more-routes (fn [version]
                       (routes
                         (GET "/more" []

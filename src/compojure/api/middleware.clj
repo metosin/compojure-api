@@ -22,18 +22,27 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn- call-error-handler [error-handler error data request]
-  (try
-    (error-handler error data request)
-    (catch ArityException _
-      (logging/log! :warn "Error-handler arity has been changed.")
-      (error-handler error))))
-
 (defn- super-classes [k]
   (loop [sk (.getSuperclass k), ks []]
     (if-not (= sk Object)
       (recur (.getSuperclass sk) (conj ks sk))
       ks)))
+
+(defn- call-error-handler [default-handler handlers error request]
+  (let [{:keys [type] :as data} (ex-data error)
+        type (or (get ex/mapped-exception-types type) type)
+        ex-class (class error)
+        error-handler (or (get handlers type)
+                          (get handlers ex-class)
+                          (some
+                           (partial get handlers)
+                           (super-classes ex-class))
+                          default-handler)]
+        (try
+          (error-handler error (assoc data :type type) request)
+          (catch ArityException _
+            (logging/log! :warn "Error-handler arity has been changed.")
+            (error-handler error)))))
 
 (defn wrap-exceptions
   "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
@@ -41,25 +50,24 @@
     - **:compojure.api.exception/default** - Handler used when exception type doesn't match other handler,
                                              by default prints stack trace."
   [handler {:keys [handlers]}]
-  (let [default-handler (get handlers ::ex/default ex/safe-handler)]
+  (let [default-handler (get handlers ::ex/default ex/safe-handler)
+        rethrow-or-respond (fn [e request respond raise]
+                             ;; FIXME: Used for validate
+                             (if (rethrow-exceptions? request)
+                               (raise e)
+                               (respond (call-error-handler default-handler handlers e request))))]
     (assert (fn? default-handler) "Default exception handler must be a function.")
-    (fn [request]
-      (try
-        (handler request)
-        (catch Throwable e
-          (let [{:keys [type] :as data} (ex-data e)
-                type (or (get ex/mapped-exception-types type) type)
-                ex-class (class e)
-                handler (or (get handlers type)
-                            (get handlers ex-class)
-                            (some
-                              (partial get handlers)
-                              (super-classes ex-class))
-                            default-handler)]
-            ; FIXME: Used for validate
-            (if (rethrow-exceptions? request)
-              (throw e)
-              (call-error-handler handler e (assoc data :type type) request))))))))
+    (fn
+      ([request]
+       (try
+         (handler request)
+         (catch Throwable e
+           (rethrow-or-respond e request identity #(throw %)))))
+      ([request respond raise]
+       (try
+         (handler request respond (fn [e] (rethrow-or-respond e request respond raise)))
+         (catch Throwable e
+           (rethrow-or-respond e request respond raise)))))))
 
 ;;
 ;; Component integration
@@ -68,8 +76,11 @@
 (defn wrap-components
   "Assoc given components to the request."
   [handler components]
-  (fn [req]
-    (handler (assoc req ::components components))))
+  (fn
+    ([req]
+     (handler (assoc req ::components components)))
+    ([req respond raise]
+     (handler (assoc req ::components components) respond raise))))
 
 (defn get-components [req]
   (::components req))
@@ -81,8 +92,11 @@
 (defn wrap-options
   "Injects compojure-api options into the request."
   [handler options]
-  (fn [request]
-    (handler (update-in request [::options] merge options))))
+  (fn
+    ([request]
+     (handler (update-in request [::options] merge options)))
+    ([request respond raise]
+     (handler (update-in request [::options] merge options) respond raise))))
 
 (defn get-options
   "Extracts compojure-api options from the request."
@@ -138,8 +152,11 @@
 (def coercion-request-ks [::options :coercion])
 
 (defn wrap-coercion [handler coercion]
-  (fn [request]
-    (handler (assoc-in request coercion-request-ks coercion))))
+  (fn
+    ([request]
+     (handler (assoc-in request coercion-request-ks coercion)))
+    ([request respond raise]
+     (handler (assoc-in request coercion-request-ks coercion) respond raise))))
 
 ;;
 ;; Muuntaja

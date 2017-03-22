@@ -50,16 +50,23 @@
   "This middleware appends given value or 1 to a header in request and response."
   ([handler] (middleware* handler 1))
   ([handler value]
-   (fn [request]
-     (let [append #(str % value)
-           request (update-in request [:headers mw*] append)
-           response (handler request)]
-       (update-in response [:headers mw*] append)))))
+   (fn
+     ([request]
+      (let [append #(str % value)
+            request (update-in request [:headers mw*] append)
+            response (handler request)]
+        (update-in response [:headers mw*] append)))
+     ([request respond raise]
+      (let [append #(str % value)
+            request (update-in request [:headers mw*] append)]
+        (handler request #(respond (update-in % [:headers mw*] append)) raise))))))
 
 (defn constant-middleware
   "This middleware rewrites all responses with a constant response."
   [_ res]
-  (constantly res))
+  (fn
+    ([_] res)
+    ([_ respond _] (respond res))))
 
 (defn reply-mw*
   "Handler which replies with response where a header contains copy
@@ -72,8 +79,11 @@
   "If request has query-param x, presume it's a integer and multiply it by two
    before passing request to next handler."
   [handler]
-  (fn [req]
-    (handler (update-in req [:query-params "x"] #(* (Integer. %) 2)))))
+  (fn
+    ([req]
+     (handler (update-in req [:query-params "x"] #(* (Integer. %) 2))))
+    ([req respond raise]
+     (handler (update-in req [:query-params "x"] #(* (Integer. %) 2)) respond raise))))
 
 (defn custom-validation-error-handler [ex data request]
   (let [error-body {:custom-error (:uri request)}]
@@ -142,7 +152,9 @@
 (facts "context middleware"
   (let [app (api
               (context "/middlewares" []
-                :middleware [(fn [h] (fn [r] (ok {:middleware "hello"})))]
+                       :middleware [(fn [h] (fn mw
+                                              ([r] (ok {:middleware "hello"}))
+                                              ([r respond _] (respond (mw r)))))]
                 (GET "/simple" req (reply-mw* req))))]
 
     (fact "is applied even if route is not matched"

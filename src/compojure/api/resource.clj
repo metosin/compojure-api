@@ -45,7 +45,7 @@
       (= path-info "/")
       ;; under an compojure endpoint
       route
-      ;; valilla ring
+      ;; vanilla ring
       (nil? path-info))
     (or
       (get-in info [request-method :handler])
@@ -58,13 +58,19 @@
     (select-keys info (:methods +mappings+))))
 
 (defn- create-handler [info {:keys [coercion]}]
-  (fn [{:keys [request-method path-info :compojure/route] :as request}]
-    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-          ks (if (contains? info request-method) [request-method] [])]
-      (if-let [handler (resolve-handler info path-info route request-method)]
-        (-> (coerce-request request info ks)
-            handler
-            (coerce-response info request ks))))))
+  (fn coercing-handler
+    ([{:keys [request-method path-info :compojure/route] :as request}]
+     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+           ks (if (contains? info request-method) [request-method] [])]
+       (when-let [handler (resolve-handler info path-info route request-method)]
+         (-> (coerce-request request info ks)
+             handler
+             (coerce-response info request ks)))))
+    ([request respond raise]
+     (try
+       (respond (coercing-handler request))
+       (catch Throwable e
+         (raise e))))))
 
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]
