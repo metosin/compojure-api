@@ -240,7 +240,11 @@
   ([handler]
    (api-middleware handler nil))
   ([handler options]
-   (let [options (rsc/deep-merge api-middleware-defaults options)
+   (let [options (-> (rsc/deep-merge api-middleware-defaults options)
+                     ;; [:formats :formats] can't be deep merged, else defaults always enables all the
+                     ;; formats
+                     (assoc-in [:formats :formats] (or (:formats (:formats options))
+                                                       (:formats (:formats api-middleware-defaults)))))
          {:keys [exceptions components formats middleware]} options
          muuntaja (create-muuntaja formats)]
 
