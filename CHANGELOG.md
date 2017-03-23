@@ -1,7 +1,9 @@
-## 1.2.0-SNAPSHOT
+## 1.2.0-alpha4 (23.3.2017)
 
 * `compojure.api.core/ring-handler` to turn a compojure-api route into a 1-arity function
   * can be passed into servers requiring handlers to be `Fn`
+
+* `:params` are populated correctly from `:body-params`
 
 * Allow `nil` paths in routing, allows easy (static) conditional routing like:
 
