@@ -75,4 +75,4 @@
 
 (def mapped-exception-types
   {:ring.swagger.schema/validation ::request-validation
-   :muuntaja.core/decode ::request-parsing})
+   :muuntaja/decode ::request-parsing})

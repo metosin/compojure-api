@@ -12,7 +12,12 @@
                  [prismatic/plumbing "0.5.3"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
+
+                 ;; api-formatters
                  [metosin/muuntaja "0.2.0-20170323.064148-15"]
+                 [circleci/clj-yaml "0.5.5"]
+                 [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
+
                  [metosin/ring-http-response "0.8.2"]
                  [metosin/ring-swagger "0.23.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]

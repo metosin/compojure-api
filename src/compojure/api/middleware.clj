@@ -6,8 +6,12 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
+
             [muuntaja.middleware]
-            [muuntaja.core]
+            [muuntaja.core :as m]
+            [muuntaja.format.yaml :as yaml-format]
+            [muuntaja.format.msgpack :as msgpack-format]
+
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.coerce :as coerce]
@@ -130,7 +134,7 @@
       response-formats :formats} :response
      string-default :string}]
    (fn [request]
-     (let [request-format (-> request :muuntaja.core/request :format)]
+     (let [request-format (-> request :muuntaja/request :format)]
        (fn [type]
          (case type
            :body (or (get body-formats request-format) body-default)
@@ -170,13 +174,21 @@
   (or (:compojure.api.meta/serializable? response)
       (coll? (:body response))))
 
-(defn create-muuntaja [muuntaja-or-options]
-  (if muuntaja-or-options
-    (if (instance? Muuntaja muuntaja-or-options)
-      (assoc muuntaja-or-options :encode-response-body? encode?)
-      (muuntaja.core/create
-        (-> muuntaja-or-options
-            (assoc-in [:http :encode-response-body?] encode?))))))
+(def muuntaja-options
+  (-> m/default-options
+      (yaml-format/with-yaml-format)
+      (msgpack-format/with-msgpack-format)))
+
+(defn create-muuntaja
+  ([]
+    (create-muuntaja muuntaja-options))
+  ([muuntaja-or-options]
+   (if muuntaja-or-options
+     (if (instance? Muuntaja muuntaja-or-options)
+       (assoc muuntaja-or-options :encode-response-body? encode?)
+       (m/create
+         (-> muuntaja-or-options
+             (assoc-in [:http :encode-response-body?] encode?)))))))
 
 ;;
 ;; middleware
@@ -199,7 +211,7 @@
 ;;
 
 (def api-middleware-defaults
-  {:formats muuntaja.core/default-options
+  {:formats muuntaja-options
    :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
