@@ -69,9 +69,14 @@
   (render [_ request]
     (handler request))
 
+  ;; Sendable implementation in compojure.api.async
+
   IFn
   (invoke [_ request]
     (handler request))
+  (invoke [_ request respond raise]
+    (handler request respond raise))
+
   (applyTo [this args]
     (AFn/applyToHelper this args)))
 

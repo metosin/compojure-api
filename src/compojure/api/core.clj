@@ -8,8 +8,9 @@
 (defn ring-handler
   "Creates vanilla ring-handler from any invokable thing (e.g. compojure-api route)"
   [handler]
-  (fn [request]
-    (handler request)))
+  (fn
+    ([request] (handler request))
+    ([request respond raise] (handler request respond raise))))
 
 (defn routes
   "Create a Ring handler by combining several handlers into one."

@@ -34,7 +34,7 @@
 (defmethod coerce-response? ::default [_] true)
 (defmethod coerce-response? File [_] false)
 
-(defn coerce-response! [request {:keys [status] :as response} responses]
+(defn- coerce-response* [request {:keys [status] :as response} responses respond raise]
   (-> (when-let [schema (or (:schema (get responses status))
                             (:schema (get responses :default)))]
         (when (coerce-response? schema)
@@ -44,18 +44,27 @@
                     coerce (coercer schema matcher)
                     body (coerce (:body response))]
                 (if (su/error? body)
-                  (throw (ex-info
+                  (raise (ex-info
                            (str "Response validation failed: " (su/error-val body))
                            (assoc body :type ::ex/response-validation
                                        :response response)))
                   (assoc response
                     :compojure.api.meta/serializable? true
                     :body body)))))))
-      (or response)))
+      (or response)
+      respond))
+
+(defn coerce-response! [request response responses]
+  (coerce-response* request response responses identity #(throw %)))
 
 (defn body-coercer-middleware [handler responses]
-  (fn [request]
-    (coerce-response! request (handler request) responses)))
+  (fn
+    ([request]
+     (coerce-response! request (handler request) responses))
+    ([request respond raise]
+     (handler request
+              (fn [response] (coerce-response* request response responses respond raise))
+              raise))))
 
 (defn coerce! [schema key type keywordize? request]
   (let [transform (if keywordize? walk/keywordize-keys identity)

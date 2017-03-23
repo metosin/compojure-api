@@ -42,18 +42,32 @@
 
 (def default-options (:exceptions api-middleware-defaults))
 
+(defn- call-async [handler request]
+  (let [result (promise)]
+    (handler request #(result [:ok %]) #(result [:fail %]))
+    (if-let [[status value] (deref result 1500 nil)]
+      (if (= status :ok)
+        value
+        (throw value))
+      (throw (Exception. "Timeout while waiting for the request handler.")))))
+
 (facts "wrap-exceptions"
   (with-out-str
     (without-err
       (let [exception (RuntimeException. "kosh")
             exception-class (.getName (.getClass exception))
             handler (-> (fn [_] (throw exception))
-                        (wrap-exceptions default-options))]
+                        (wrap-exceptions default-options))
+            async-handler (-> (fn [_ _ raise] (raise exception))
+                              (wrap-exceptions default-options))]
 
         (fact "converts exceptions into safe internal server errors"
           (handler {}) => (contains {:status status/internal-server-error
                                      :body (contains {:class exception-class
-                                                      :type "unknown-exception"})})))))
+                                                      :type "unknown-exception"})})
+          (call-async async-handler {}) => (contains {:status status/internal-server-error
+                                                      :body (contains {:class exception-class
+                                                                       :type "unknown-exception"})})))))
 
   (with-out-str
     (without-err
