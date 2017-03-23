@@ -51,7 +51,11 @@
   api
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
-        options (rsc/deep-merge api-defaults options)
+        options (-> (rsc/deep-merge api-defaults options)
+                    ;; [:formats :formats] can't be deep merged, else defaults always enables all the
+                    ;; formats
+                    (assoc-in [:formats :formats] (or (:formats (:formats options))
+                                                      (:formats (:formats api-defaults)))))
         handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
         routes (routes/get-routes handler (:api options))
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
