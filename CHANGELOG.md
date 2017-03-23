@@ -1,5 +1,8 @@
 ## 1.2.0-alpha4 (23.3.2017)
 
+* Initial support for Async Ring, using CPS, [manifold](https://github.com/ztellman/manifold) or [core.async](https://github.com/clojure/core.async)
+  * more info at https://github.com/metosin/compojure-api/wiki/Async
+
 * `compojure.api.core/ring-handler` to turn a compojure-api route into a 1-arity function
   * can be passed into servers requiring handlers to be `Fn`
 
