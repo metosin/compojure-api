@@ -80,6 +80,6 @@
 
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   defapi
-  [name & body]
   {:style/indent 1}
+  [name & body]
   `(def ~name (api ~@body)))
