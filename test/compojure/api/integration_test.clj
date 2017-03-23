@@ -1713,3 +1713,9 @@
     (fact "ring-app is also a Fn"
       app =not=> fn?
       ring-app => fn?)))
+
+(fact ":body-params are set to :params"
+  (let [app (api (POST "/echo" [x] (ok {:x x})))
+        [status body] (post* app "/echo" (json {:x 1}))]
+    status => 200
+    body => {:x 1}))

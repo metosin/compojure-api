@@ -289,6 +289,7 @@
              true ring.middleware.http-response/wrap-http-response
              muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces]))
              true (wrap-options (select-keys options [:ring-swagger :coercion]))
+             muuntaja (muuntaja.middleware/wrap-params)
              muuntaja (muuntaja.middleware/wrap-format-request muuntaja)
              exceptions (wrap-exceptions exceptions)
              muuntaja (muuntaja.middleware/wrap-format-response muuntaja)
