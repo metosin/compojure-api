@@ -51,7 +51,11 @@
              :perf {:jvm-opts ^:replace ["-server"
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
-             :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]]}
+             :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]
+                                      [org.slf4j/jcl-over-slf4j "1.7.12"]
+                                      [org.slf4j/jul-to-slf4j "1.7.12"]
+                                      [org.slf4j/log4j-over-slf4j "1.7.12"]
+                                      [ch.qos.logback/logback-classic "1.1.3" :exclusions [org.slf4j/slf4j-api]]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
                      :dependencies [[compojure "1.6.0-beta3"]
