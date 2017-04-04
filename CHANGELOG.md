@@ -1,3 +1,12 @@
+## 1.2.0-alpha5 (31.3.2017)
+
+* Use the latest Muuntaja.
+* Test with `[org.clojure/clojure "1.9.0-alpha15"]` (requires Midje `1.9.0-alpha6`)
+
+```clj
+[metosin/muuntaja "0.2.1"] is available but we use "0.2.0-20170323.064148-15"
+```
+
 ## 1.2.0-alpha4 (23.3.2017)
 
 * Initial support for Async Ring, using CPS, [manifold](https://github.com/ztellman/manifold) or [core.async](https://github.com/clojure/core.async)

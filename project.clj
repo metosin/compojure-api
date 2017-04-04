@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.2.0-SNAPSHOT"
+(defproject metosin/compojure-api "1.2.0-alpha5"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -14,7 +14,7 @@
                  [frankiesardo/linked "1.2.9"]
 
                  ;; api-formatters
-                 [metosin/muuntaja "0.2.0-20170323.064148-15"]
+                 [metosin/muuntaja "0.2.1"]
                  [circleci/clj-yaml "0.5.5"]
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
@@ -37,7 +37,7 @@
                                   [slingshot "0.12.2"]
                                   [peridot "0.4.4"]
                                   [javax.servlet/servlet-api "2.5"]
-                                  [midje "1.8.3"]
+                                  [midje "1.9.0-alpha6"]
                                   [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
@@ -52,14 +52,15 @@
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]
-                                      [org.slf4j/jcl-over-slf4j "1.7.12"]
-                                      [org.slf4j/jul-to-slf4j "1.7.12"]
-                                      [org.slf4j/log4j-over-slf4j "1.7.12"]
-                                      [ch.qos.logback/logback-classic "1.1.3" :exclusions [org.slf4j/slf4j-api]]]}
+                                      [org.slf4j/jcl-over-slf4j "1.7.25"]
+                                      [org.slf4j/jul-to-slf4j "1.7.25"]
+                                      [org.slf4j/log4j-over-slf4j "1.7.25"]
+                                      [ch.qos.logback/logback-classic "1.2.3" :exclusions [org.slf4j/slf4j-api]]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
+             :1.9 {:dependencies [[org.clojure/clojure "1.9.0-alpha15"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
                      :dependencies [[compojure "1.6.0-beta3"]
-                                    [manifold "0.1.6"]]}}
+                                    [manifold "0.1.6" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
@@ -67,7 +68,7 @@
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
   :deploy-repositories [["releases" :clojars]]
-  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.7:dev,async"]
+  :aliases {"all" ["with-profile" "dev:dev,1.7:dev,1.9:dev,async"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
