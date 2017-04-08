@@ -62,6 +62,11 @@
       (if handler
         [handler async]))))
 
+(defn- resolve-middleware [info request-method]
+  (let [direct-mw (:middleware info)
+        method-mw (:middleware (get info request-method))]
+    (concat direct-mw method-mw)))
+
 (defn- create-childs [info]
   (map
     (fn [[method info]]
@@ -69,22 +74,28 @@
     (select-keys info (:methods +mappings+))))
 
 (defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
-  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-        ks (if (contains? info request-method) [request-method] [])]
-    (when-let [[handler] (resolve-handler info path-info route request-method false)]
+  (when-let [[raw-handler] (resolve-handler info path-info route request-method false)]
+    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+          ks (if (contains? info request-method) [request-method] [])
+          handler (as-> (resolve-middleware info request-method) $
+                        (mw/compose-middleware $)
+                        ($ raw-handler))]
       (-> (coerce-request request info ks)
-          handler
+          (handler)
           (compojure.response/render request)
           (coerce-response info request ks)))))
 
 (defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
-  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-        ks (if (contains? info request-method) [request-method] [])
-        respond-coerced (fn [response]
-                          (respond
-                            (try (coerce-response response info request ks)
-                                 (catch Throwable e (raise e)))))]
-    (when-let [[handler async?] (resolve-handler info path-info route request-method true)]
+  (when-let [[raw-handler async?] (resolve-handler info path-info route request-method true)]
+    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+          ks (if (contains? info request-method) [request-method] [])
+          respond-coerced (fn [response]
+                            (respond
+                              (try (coerce-response response info request ks)
+                                   (catch Throwable e (raise e)))))
+          handler (as-> (resolve-middleware info request-method) $
+                        (mw/compose-middleware $)
+                        ($ raw-handler))]
       (try
         (as-> (coerce-request request info ks) $
               (if async?

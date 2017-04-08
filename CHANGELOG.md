@@ -1,5 +1,22 @@
 ## UNRELEASED
 
+* `resource` can have `:middleware` on both top-level & method-level.
+  * top-level mw are applied first if the resource can handle the request
+  * method-level mw are applied second if the method matches
+
+```clj
+(def mw [handler value]
+  (fn [request]
+    (println value)
+    (handler request)))
+
+(resource
+  {:middleware [[mw :top1] [mw :top2]]
+   :get {:middleware [[mw :get1] [mw :get2]]}
+   :post {:middleware [[mw :post1] [mw :post2]]}
+   :handler (constantly (ok))})
+```
+
 * updated deps:
 
 ```clj
