@@ -43,14 +43,14 @@
          d))
 
      (GET "/divide" []
-       :return {:result Long}
+       :return {:result Float}
        :query-params [x :- Long, y :- Long]
        :summary "multiply two numbers together"
        (let [chan (async/chan)]
          (future
            (async/go
              (try
-               (async/>! chan (ok {:result (/ x y)}))
+               (async/>! chan (ok {:result (float (/ x y))}))
                (catch Throwable e
                  (async/>! chan e))
                (finally
