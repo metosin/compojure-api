@@ -66,11 +66,17 @@
          (-> (coerce-request request info ks)
              handler
              (coerce-response info request ks)))))
-    ([request respond raise]
-     (try
-       (respond (coercing-handler request))
-       (catch Throwable e
-         (raise e))))))
+    ([{:keys [request-method path-info :compojure/route] :as request} respond raise]
+     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+           ks (if (contains? info request-method) [request-method] [])]
+       (when-let [handler (resolve-handler info path-info route request-method)]
+         (try
+           (-> (coerce-request request info ks)
+               (handler #(respond (try (coerce-response % info request ks)
+                                       (catch Throwable e (raise e))))
+                        raise))
+           (catch Throwable e
+             (raise e))))))))
 
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]
@@ -154,3 +160,4 @@
          childs (create-childs info)
          handler (create-handler info options)]
      (routes/create nil nil root-info childs handler))))
+ 
