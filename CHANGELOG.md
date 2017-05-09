@@ -1,3 +1,7 @@
+## Unreleased
+
+* `resource` now supports async (3-arity) handlers as well.
+
 ## 1.2.0-alpha5 (31.3.2017)
 
 * Use the latest Muuntaja.
