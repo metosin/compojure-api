@@ -134,6 +134,31 @@
       (handler {:request-method :get, :query-params {:x "10"}}) => (has-body {:total 10})
       (handler {:request-method :post, :query-params {:x "1"}}) => (has-body {:total 1}))))
 
+(let [req-error (atom nil)
+      res-error (atom nil)
+      result    (atom nil)
+      handler   (resource
+                 {:parameters {:query-params {:x Long}}
+                  :responses {200 {:schema {:total (s/constrained Long pos? 'pos)}}}
+                  :handler (fn [{{x :x} :query-params} respond _]
+                             (future
+                               (respond (ok {:total x}))))})]
+  @(handler  {:query-params {:x 1}}
+             #(reset! result %)
+             nil)
+  @(handler  {:query-params {:x -1}}
+             #(identity %)
+             #(reset! res-error %))
+  (handler  {:query-params {:x "x"}}
+            #(identity %)
+            #(reset! req-error %))
+
+  (fact "3-arity handler"
+    @result => (has-body {:total 1})
+    (throw @res-error) => response-validation-failed?
+    (throw @req-error) => request-validation-failed?))
+
+
 (fact "compojure-api routing integration"
   (let [app (context "/rest" []
 

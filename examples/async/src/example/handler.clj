@@ -45,7 +45,7 @@
      (GET "/divide" []
        :return {:result Float}
        :query-params [x :- Long, y :- Long]
-       :summary "multiply two numbers together"
+       :summary "divide two numbers together"
        (let [chan (async/chan)]
          (future
            (async/go
@@ -55,4 +55,11 @@
                  (async/>! chan e))
                (finally
                  (async/close! chan)))))
-         chan)))))
+         chan)))
+   (context "/resource" []
+     (resource
+      {:responses {200 {:schema {:total Long}}}
+       :handler (fn [_ respond _]
+                  (future
+                    (respond (ok {:total 42})))
+                  nil)}))))
