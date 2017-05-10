@@ -145,8 +145,8 @@
         respond (promise), res-raise (promise), req-raise (promise)]
 
     (handler  {:query-params {:x 1}} respond nil)
-    (handler  {:query-params {:x -1}} #(identity %) res-raise)
-    (handler  {:query-params {:x "x"}} #(identity %) req-raise)
+    (handler  {:query-params {:x -1}} identity res-raise)
+    (handler  {:query-params {:x "x"}} identity req-raise)
 
     (deref respond 1000 :timeout) => (has-body {:total 1})
     (throw (deref res-raise 1000 :timeout)) => response-validation-failed?
