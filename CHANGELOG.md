@@ -2,6 +2,18 @@
 
 * `resource` now supports async (3-arity) handlers as well.
 
+* updated deps:
+
+```clj
+[cheshire "5.7.1"] is available but we use "5.7.0"
+[compojure "1.6.0"] is available but we use "1.5.2"
+[prismatic/schema "1.1.5"] is available but we use "1.1.4"
+[prismatic/plumbing "0.5.4"] is available but we use "0.5.3"
+[metosin/ring-http-response "0.9.0"] is available but we use "0.8.2"
+[metosin/ring-swagger "0.24.0"] is available but we use "0.23.0"
+[compojure "1.6.0"] is available but we use "1.6.0-beta3"
+```
+
 ## 1.2.0-alpha5 (31.3.2017)
 
 * Use the latest Muuntaja.

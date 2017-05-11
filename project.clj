@@ -6,10 +6,10 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
-                 [cheshire "5.7.0"]
-                 [compojure "1.5.2" :exclusions [commons-codec]]
-                 [prismatic/schema "1.1.4"]
-                 [prismatic/plumbing "0.5.3"]
+                 [cheshire "5.7.1"]
+                 [compojure "1.6.0" :exclusions [commons-codec]]
+                 [prismatic/schema "1.1.5"]
+                 [prismatic/plumbing "0.5.4"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
 
@@ -18,8 +18,8 @@
                  [circleci/clj-yaml "0.5.5"]
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
-                 [metosin/ring-http-response "0.8.2"]
-                 [metosin/ring-swagger "0.23.0"]
+                 [metosin/ring-http-response "0.9.0"]
+                 [metosin/ring-swagger "0.24.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -59,7 +59,7 @@
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0-alpha15"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
-                     :dependencies [[compojure "1.6.0-beta3"]
+                     :dependencies [[compojure "1.6.0"]
                                     [manifold "0.1.6" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
