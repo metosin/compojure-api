@@ -2,6 +2,15 @@
 
 * `resource` now supports async (3-arity) handlers as well.
 
+```clj
+(resource
+  {:parameters {:query-params {:x Long}}
+   :handler (fn [request respond raise]
+              (future
+                (res (ok {:total (-> request :query-params :x)})))
+              nil)})
+```
+
 * updated deps:
 
 ```clj
