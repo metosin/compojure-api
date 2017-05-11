@@ -6,7 +6,7 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
-                 [cheshire "5.7.1"]
+                 [cheshire "5.7.1" :exclusions [com.fasterxml.jackson.core/jackson-core]]
                  [compojure "1.6.0" :exclusions [commons-codec]]
                  [prismatic/schema "1.1.5"]
                  [prismatic/plumbing "0.5.4"]
@@ -41,9 +41,7 @@
                                   [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
-                                  [criterium "0.4.4"]
-                                  ; Required when using with Java 1.6
-                                  [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]]
+                                  [criterium "0.4.4"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/thingie/src"]}
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
