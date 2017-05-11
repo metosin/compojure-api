@@ -1,4 +1,4 @@
-## Unreleased
+## 1.2.0-alpha6 (11.6.2017)
 
 * `resource` now supports async (3-arity) handlers as well.
 
