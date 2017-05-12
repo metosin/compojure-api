@@ -1,5 +1,6 @@
 (ns compojure.api.core
   (:require [compojure.api.meta :as meta]
+            [compojure.api.async]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw]
             [compojure.core :as compojure]

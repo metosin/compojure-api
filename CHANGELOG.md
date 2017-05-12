@@ -1,6 +1,8 @@
 ## 1.2.0-alpha6 (11.6.2017)
 
 * depend directly on `[ring/ring-core "1.6.0"]`
+* `compojure.api.core` depends on `compojure.api.async`
+  * both [manifold](https://github.com/ztellman/manifold) `Deferred` and [core.async](https://github.com/clojure/core.async) `ManyToManyChannel` can be returned from endpoints.
 * `resource` now supports async (3-arity) handlers as well.
 
 ```clj
