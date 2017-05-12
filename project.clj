@@ -7,7 +7,6 @@
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.7.1" :exclusions [com.fasterxml.jackson.core/jackson-core]]
-                 [compojure "1.6.0" :exclusions [commons-codec]]
                  [prismatic/schema "1.1.5"]
                  [prismatic/plumbing "0.5.4"]
                  [org.tobereplaced/lettercase "1.0.0"]
@@ -18,6 +17,9 @@
                  [circleci/clj-yaml "0.5.5"]
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
+                 ;; http
+                 [ring/ring-core "1.6.0"]
+                 [compojure "1.6.0" :exclusions [commons-codec]]
                  [metosin/ring-http-response "0.9.0"]
                  [metosin/ring-swagger "0.24.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]

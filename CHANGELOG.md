@@ -1,5 +1,6 @@
 ## 1.2.0-alpha6 (11.6.2017)
 
+* depend directly on `[ring/ring-core "1.6.0"]`
 * `resource` now supports async (3-arity) handlers as well.
 
 ```clj
@@ -14,6 +15,7 @@
 * updated deps:
 
 ```clj
+[ring/ring-core "1.6.0"]
 [cheshire "5.7.1"] is available but we use "5.7.0"
 [compojure "1.6.0"] is available but we use "1.5.2"
 [prismatic/schema "1.1.5"] is available but we use "1.1.4"
