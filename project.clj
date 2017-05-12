@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.2.0-alpha5"
+(defproject metosin/compojure-api "1.2.0-alpha6"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -6,10 +6,9 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
-                 [cheshire "5.7.0"]
-                 [compojure "1.5.2" :exclusions [commons-codec]]
-                 [prismatic/schema "1.1.4"]
-                 [prismatic/plumbing "0.5.3"]
+                 [cheshire "5.7.1" :exclusions [com.fasterxml.jackson.core/jackson-core]]
+                 [prismatic/schema "1.1.5"]
+                 [prismatic/plumbing "0.5.4"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
 
@@ -18,8 +17,11 @@
                  [circleci/clj-yaml "0.5.5"]
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
-                 [metosin/ring-http-response "0.8.2"]
-                 [metosin/ring-swagger "0.23.0"]
+                 ;; http
+                 [ring/ring-core "1.6.0"]
+                 [compojure "1.6.0" :exclusions [commons-codec]]
+                 [metosin/ring-http-response "0.9.0"]
+                 [metosin/ring-swagger "0.24.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -41,9 +43,7 @@
                                   [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
-                                  [criterium "0.4.4"]
-                                  ; Required when using with Java 1.6
-                                  [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]]
+                                  [criterium "0.4.4"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/thingie/src"]}
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
@@ -59,7 +59,7 @@
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0-alpha15"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
-                     :dependencies [[compojure "1.6.0-beta3"]
+                     :dependencies [[compojure "1.6.0"]
                                     [manifold "0.1.6" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}

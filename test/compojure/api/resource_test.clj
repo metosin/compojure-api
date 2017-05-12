@@ -134,30 +134,23 @@
       (handler {:request-method :get, :query-params {:x "10"}}) => (has-body {:total 10})
       (handler {:request-method :post, :query-params {:x "1"}}) => (has-body {:total 1}))))
 
-(let [req-error (atom nil)
-      res-error (atom nil)
-      result    (atom nil)
-      handler   (resource
-                 {:parameters {:query-params {:x Long}}
-                  :responses {200 {:schema {:total (s/constrained Long pos? 'pos)}}}
-                  :handler (fn [{{x :x} :query-params} respond _]
-                             (future
-                               (respond (ok {:total x}))))})]
-  @(handler  {:query-params {:x 1}}
-             #(reset! result %)
-             nil)
-  @(handler  {:query-params {:x -1}}
-             #(identity %)
-             #(reset! res-error %))
-  (handler  {:query-params {:x "x"}}
-            #(identity %)
-            #(reset! req-error %))
+(fact "3-arity handler"
+  (let [handler (resource
+                  {:parameters {:query-params {:x Long}}
+                   :responses {200 {:schema {:total (s/constrained Long pos? 'pos)}}}
+                   :handler (fn [{{x :x} :query-params} res _]
+                              (future
+                                (res (ok {:total x})))
+                              nil)})
+        respond (promise), res-raise (promise), req-raise (promise)]
 
-  (fact "3-arity handler"
-    @result => (has-body {:total 1})
-    (throw @res-error) => response-validation-failed?
-    (throw @req-error) => request-validation-failed?))
+    (handler {:query-params {:x 1}} respond nil)
+    (handler {:query-params {:x -1}} identity res-raise)
+    (handler {:query-params {:x "x"}} identity req-raise)
 
+    (deref respond 1000 :timeout) => (has-body {:total 1})
+    (throw (deref res-raise 1000 :timeout)) => response-validation-failed?
+    (throw (deref req-raise 1000 :timeout)) => request-validation-failed?))
 
 (fact "compojure-api routing integration"
   (let [app (context "/rest" []

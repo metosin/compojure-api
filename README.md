@@ -32,7 +32,7 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 
 ## Examples
 
-### Hello World
+### Hello World Api
 
 ```clj
 (require '[compojure.api.sweet :refer :all])
@@ -43,6 +43,30 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
     :query-params [name :- String]
     (ok {:message (str "Hello, " name)})))
 ```
+
+### Hello World, data-driven
+
+```clj
+(resource
+  {:get
+   {:parameters {:query-params {:name String}
+    :handler (fn [{{:keys [name]} :query-params}]
+               (ok {:message (str "Hello, " name)}))}}})
+```
+
+### Hello World, async
+
+```clj
+(require '[manifold.deferred :as d])
+
+(GET "/hello-async" []
+  :query-params [name :- String]
+  (d/future
+    (Thread/sleep 1000)
+    (ok {:message (str "Hello, " name)})))
+```
+
+<sub>* requires server to be run in [async mode](https://github.com/metosin/compojure-api/wiki/Async)</sub>
 
 ### Api with Schema & Swagger-docs
 
@@ -86,6 +110,8 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 ## More samples
 
 https://github.com/metosin/compojure-api/tree/master/examples
+
+Nice full app: https://github.com/yogthos/memory-hole
 
 To try it yourself, clone this repository and do either:
 

@@ -27,7 +27,7 @@
 
 (def rethrow-exceptions? ::rethrow-exceptions?)
 
-(defn- super-classes [k]
+(defn- super-classes [^Class k]
   (loop [sk (.getSuperclass k), ks []]
     (if-not (= sk Object)
       (recur (.getSuperclass sk) (conj ks sk))
