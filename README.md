@@ -87,6 +87,8 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 
 https://github.com/metosin/compojure-api/tree/master/examples
 
+Nice full app: https://github.com/yogthos/memory-hole
+
 To try it yourself, clone this repository and do either:
 
 1. `lein run`
