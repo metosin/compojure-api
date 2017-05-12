@@ -1,4 +1,4 @@
-## 1.2.0-alpha6 (11.6.2017)
+## 1.2.0-alpha6 (12.5.2017)
 
 * depend directly on `[ring/ring-core "1.6.0"]`
 * `compojure.api.core` depends on `compojure.api.async`
