@@ -173,7 +173,7 @@
         (handler {:request-method :get, :query-params {:x 1}} respond (promise))
         (deref respond 1000 :timeout) => (has-body {:total 2})))
 
-    (fact "operation-level sync handler can be called from async"
+    (fact "sync handler can be called from async"
       (let [respond (promise)]
         (handler {:request-method :post, :query-params {:x 1}} respond (promise))
         (deref respond 1000 :timeout) => (has-body {:total 10}))
@@ -182,8 +182,8 @@
           (handler {:request-method :post, :query-params {:x -1}} (promise) raise)
           (throw (deref raise 1000 :timeout)) => response-validation-failed?)))
 
-    (fact "operation-level core.async"
-      (fact "3-arity"
+    (fact "core.async ManyToManyChannel"
+      (fact "works with 3-arity"
         (let [respond (promise)]
           (handler {:request-method :put, :query-params {:x 1}} respond (promise))
           (deref respond 1000 :timeout) => (has-body {:total 100}))
@@ -191,7 +191,7 @@
           (let [raise (promise)]
             (handler {:request-method :put, :query-params {:x -1}} (promise) raise)
             (throw (deref raise 1000 :timeout)) => response-validation-failed?)))
-      (fact "1-arity fails"
+      (fact "fails with 1-arity"
         (handler {:request-method :put, :query-params {:x 1}}) => (throws) #_(has-body {:total 100})
         (handler {:request-method :put, :query-params {:x -1}}) => (throws) #_response-validation-failed?))))
 
