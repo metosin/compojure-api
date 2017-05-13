@@ -6,16 +6,17 @@
     * sent via `compojure.response/send` so [manifold](https://github.com/ztellman/manifold) `Deferred` and [core.async](https://github.com/clojure/core.async) `ManyToManyChannel` can be returned.
 
 ```clj
+(require '[compojure.api.sweet :refer :all])
 (require '[clojure.core.async :as a])
 (require '[manifold.deferred :as d])
 
 (resource
   {:summary "async resource"
    :get {:summary "normal ring async"
-         :async-handler (fn [request res _]
+         :async-handler (fn [request respond raise]
                           (future
                             (Thread/sleep 100)
-                            (res (ok {:hello "world"})))
+                            (respond (ok {:hello "world"})))
                           nil)}
    :put {:summary "core.async"
          :handler (fn [request]

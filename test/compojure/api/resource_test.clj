@@ -145,9 +145,9 @@
                                       (res (ok {:total x})))
                                     nil)
                    :get {:summary "operation-level async handler"
-                         :async-handler (fn [{{x :x} :query-params} res _]
+                         :async-handler (fn [{{x :x} :query-params} respond _]
                                           (future
-                                            (res (ok {:total (inc x)})))
+                                            (respond (ok {:total (inc x)})))
                                           nil)}
                    :post {:summary "operation-level sync handler"
                           :handler (fn [{{x :x} :query-params}]
