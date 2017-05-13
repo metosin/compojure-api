@@ -170,7 +170,9 @@
     (fact "operation-level sync handler can be called from async"
       (let [respond (promise)]
         (handler {:request-method :post, :query-params {:x 1}} respond (promise))
-        (deref respond 1000 :timeout) => (has-body {:total 10})))))
+        (deref respond 1000 :timeout) => (has-body {:total 10})))
+
+    (future-fact "testing the compojure.response/send*")))
 
 (fact "compojure-api routing integration"
   (let [app (context "/rest" []
