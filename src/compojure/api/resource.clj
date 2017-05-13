@@ -38,7 +38,13 @@
 (defn- coerce-response [response info request ks]
   (coerce/coerce-response! request response (get-in info (concat ks [:responses]))))
 
-(defn- resolve-handler [info path-info route request-method]
+(defn- maybe-async [async? x]
+  (if (and async? x) [x true]))
+
+(defn- maybe-sync [x]
+  (if x [x false]))
+
+(defn- resolve-handler [info path-info route request-method async?]
   (and
     (or
       ;; directly under a context
@@ -47,9 +53,13 @@
       route
       ;; vanilla ring
       (nil? path-info))
-    (or
-      (get-in info [request-method :handler])
-      (get-in info [:handler]))))
+    (let [[handler async] (or
+                            (maybe-async async? (get-in info [request-method :async-handler]))
+                            (maybe-sync (get-in info [request-method :handler]))
+                            (maybe-async async? (get-in info [:async-handler]))
+                            (maybe-sync (get-in info [:handler])))]
+      (if handler
+        [handler async]))))
 
 (defn- create-childs [info]
   (map
@@ -62,19 +72,23 @@
     ([{:keys [request-method path-info :compojure/route] :as request}]
      (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
            ks (if (contains? info request-method) [request-method] [])]
-       (when-let [handler (resolve-handler info path-info route request-method)]
+       (when-let [[handler] (resolve-handler info path-info route request-method false)]
          (-> (coerce-request request info ks)
              handler
              (coerce-response info request ks)))))
     ([{:keys [request-method path-info :compojure/route] :as request} respond raise]
      (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-           ks (if (contains? info request-method) [request-method] [])]
-       (when-let [handler (resolve-handler info path-info route request-method)]
+           ks (if (contains? info request-method) [request-method] [])
+           respond-coerced (fn [response]
+                             (respond
+                               (try (coerce-response response info request ks)
+                                    (catch Throwable e (raise e)))))]
+       (when-let [[handler async?] (resolve-handler info path-info route request-method true)]
          (try
-           (-> (coerce-request request info ks)
-               (handler #(respond (try (coerce-response % info request ks)
-                                       (catch Throwable e (raise e))))
-                        raise))
+           (as-> (coerce-request request info ks) $
+                 (if async?
+                   (handler $ #(compojure.response/send % $ respond-coerced raise) raise)
+                   (-> $ (handler) (compojure.response/send $ respond-coerced raise))))
            (catch Throwable e
              (raise e))))))))
 
@@ -160,4 +174,4 @@
          childs (create-childs info)
          handler (create-handler info options)]
      (routes/create nil nil root-info childs handler))))
- 
+

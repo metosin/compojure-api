@@ -134,23 +134,43 @@
       (handler {:request-method :get, :query-params {:x "10"}}) => (has-body {:total 10})
       (handler {:request-method :post, :query-params {:x "1"}}) => (has-body {:total 1}))))
 
-(fact "3-arity handler"
+(fact "async"
   (let [handler (resource
                   {:parameters {:query-params {:x Long}}
                    :responses {200 {:schema {:total (s/constrained Long pos? 'pos)}}}
-                   :handler (fn [{{x :x} :query-params} res _]
+                   :summary "top-level async handler"
+                   :async-handler (fn [{{x :x} :query-params} res _]
                               (future
                                 (res (ok {:total x})))
-                              nil)})
-        respond (promise), res-raise (promise), req-raise (promise)]
+                                    nil)
+                   :get {:summary "operation-level async handler"
+                         :async-handler (fn [{{x :x} :query-params} res _]
+                                          (future
+                                            (res (ok {:total (inc x)})))
+                                          nil)}
+                   :post {:summary "operation-level sync handler"
+                          :handler (fn [{{x :x} :query-params}]
+                                     (ok {:total (* x 10)}))}})]
 
-    (handler {:query-params {:x 1}} respond nil)
-    (handler {:query-params {:x -1}} identity res-raise)
-    (handler {:query-params {:x "x"}} identity req-raise)
+    (fact "top-level async handler"
+      (let [respond (promise), res-raise (promise), req-raise (promise)]
+        (handler {:query-params {:x 1}} respond (promise))
+        (handler {:query-params {:x -1}} (promise) res-raise)
+        (handler {:query-params {:x "x"}} (promise) req-raise)
 
     (deref respond 1000 :timeout) => (has-body {:total 1})
     (throw (deref res-raise 1000 :timeout)) => response-validation-failed?
     (throw (deref req-raise 1000 :timeout)) => request-validation-failed?))
+
+    (fact "operation-level async handler"
+      (let [respond (promise)]
+        (handler {:request-method :get, :query-params {:x 1}} respond (promise))
+        (deref respond 1000 :timeout) => (has-body {:total 2})))
+
+    (fact "operation-level sync handler can be called from async"
+      (let [respond (promise)]
+        (handler {:request-method :post, :query-params {:x 1}} respond (promise))
+        (deref respond 1000 :timeout) => (has-body {:total 10})))))
 
 (fact "compojure-api routing integration"
   (let [app (context "/rest" []
