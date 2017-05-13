@@ -172,7 +172,8 @@
         (handler {:request-method :post, :query-params {:x 1}} respond (promise))
         (deref respond 1000 :timeout) => (has-body {:total 10})))
 
-    (future-fact "testing the compojure.response/send*")))
+    (future-fact "response coercion from sync->async")
+    (future-fact "testing the compojure.response/send")))
 
 (fact "compojure-api routing integration"
   (let [app (context "/rest" []
