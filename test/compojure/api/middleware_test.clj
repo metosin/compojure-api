@@ -4,8 +4,7 @@
             [midje.sweet :refer :all]
             [ring.util.http-response :refer [ok]]
             [ring.util.http-status :as status]
-            [ring.util.test]
-            [slingshot.slingshot :refer [throw+]])
+            [ring.util.test])
   (:import (java.io PrintStream ByteArrayOutputStream)))
 
 (defmacro without-err
@@ -26,7 +25,7 @@
     (fact
       (encode? nil
                {:body ?body
-                      :compojure.api.meta/serializable? ?serializable?}) => ?res)
+                :compojure.api.meta/serializable? ?serializable?}) => ?res)
     ?body ?serializable? ?res
     5 true true
     5 false false
@@ -71,8 +70,8 @@
 
   (with-out-str
     (without-err
-      (fact "Slingshot exception map type can be matched"
-        (let [handler (-> (fn [_] (throw+ {:type ::test} (RuntimeException. "kosh")))
+      (fact "Thrown ex-info type can be matched"
+        (let [handler (-> (fn [_] (throw (ex-info "kosh" {:type ::test})))
                           (wrap-exceptions (assoc-in default-options [:handlers ::test] (fn [ex _ _] {:status 500 :body "hello"}))))]
           (handler {}) => (contains {:status status/internal-server-error
                                      :body "hello"})))))
