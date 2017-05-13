@@ -88,7 +88,7 @@
            (as-> (coerce-request request info ks) $
                  (if async?
                    (handler $ #(compojure.response/send % $ respond-coerced raise) raise)
-                   (-> $ (handler) (compojure.response/send $ respond-coerced raise))))
+                   (compojure.response/send (handler $) $ respond-coerced raise)))
            (catch Throwable e
              (raise e))))))))
 
