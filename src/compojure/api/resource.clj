@@ -4,6 +4,7 @@
             [ring.swagger.common :as rsc]
             [schema.core :as s]
             [plumbing.core :as p]
+            [compojure.api.async]
             [compojure.api.middleware :as mw]))
 
 (def ^:private +mappings+
@@ -75,6 +76,7 @@
        (when-let [[handler] (resolve-handler info path-info route request-method false)]
          (-> (coerce-request request info ks)
              handler
+             (compojure.response/render request)
              (coerce-response info request ks)))))
     ([{:keys [request-method path-info :compojure/route] :as request} respond raise]
      (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)

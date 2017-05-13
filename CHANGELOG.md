@@ -1,3 +1,40 @@
+## UNRELEASED
+
+* **BREAKING**: `resource` separates 1-arity `:handler` and 3-arity `:async-handler`. Rules:
+  * if resource is called with 1-arity, `:handler` is used, sent via `compojure.response/render`
+  * if resource is called with 3-arity, `:async-handler` is used, with fallback to `:handler`.
+    * sent via `compojure.response/send` so [manifold](https://github.com/ztellman/manifold) `Deferred` and [core.async](https://github.com/clojure/core.async) `ManyToManyChannel` can be returned.
+
+```clj
+(require '[clojure.core.async :as a])
+(require '[manifold.deferred :as d])
+
+(resource
+  {:summary "async resource"
+   :get {:summary "normal ring async"
+         :async-handler (fn [request res _]
+                          (future
+                            (Thread/sleep 100)
+                            (res (ok {:hello "world"})))
+                          nil)}
+   :put {:summary "core.async"
+         :handler (fn [request]
+                    (a/go
+                      (a/<! (a/timeout 100))
+                      (ok {:hello "world"})))}
+   :post {:summary "manifold"
+          :handler (fn [request]
+                     (d/future
+                       (Thread/sleep 100)
+                       (ok {:hello "world"})))}})
+```
+
+* updated deps:
+
+```clj
+[ring/ring-core "1.6.1"] is available but we use "1.6.0"
+```
+
 ## 1.2.0-alpha6 (12.5.2017)
 
 * depend directly on `[ring/ring-core "1.6.0"]`

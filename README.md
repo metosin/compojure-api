@@ -44,6 +44,20 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
     (ok {:message (str "Hello, " name)})))
 ```
 
+### Hello World, async
+
+```clj
+(require '[clojure.core.async :as a])
+
+(GET "/hello-async" []
+  :query-params [name :- String]
+  (a/go
+    (a/<! (a/timeout 500))
+    (ok {:message (str "Hello, " name)})))
+```
+
+<sub>* requires server to be run in [async mode](https://github.com/metosin/compojure-api/wiki/Async)</sub>
+
 ### Hello World, data-driven
 
 ```clj
@@ -51,22 +65,10 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
   {:get
    {:parameters {:query-params {:name String}
     :handler (fn [{{:keys [name]} :query-params}]
-               (ok {:message (str "Hello, " name)}))}}})
+               (a/go
+                 (a/<! (a/timeout 500))
+                 (ok {:message (str "Hello, " name)})}}})
 ```
-
-### Hello World, async
-
-```clj
-(require '[manifold.deferred :as d])
-
-(GET "/hello-async" []
-  :query-params [name :- String]
-  (d/future
-    (Thread/sleep 1000)
-    (ok {:message (str "Hello, " name)})))
-```
-
-<sub>* requires server to be run in [async mode](https://github.com/metosin/compojure-api/wiki/Async)</sub>
 
 ### Api with Schema & Swagger-docs
 

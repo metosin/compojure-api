@@ -4,6 +4,7 @@
             [plumbing.core :refer [fnk]]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
+            [clojure.core.async :as a]
             [schema.core :as s])
   (:import (clojure.lang ExceptionInfo)))
 
@@ -150,7 +151,12 @@
                                           nil)}
                    :post {:summary "operation-level sync handler"
                           :handler (fn [{{x :x} :query-params}]
-                                     (ok {:total (* x 10)}))}})]
+                                     (ok {:total (* x 10)}))}
+                   :put {:summary "operation-level async send"
+                         :handler (fn [{{x :x} :query-params}]
+                                    (a/go
+                                      (a/<! (a/timeout 100))
+                                      (ok {:total (* x 100)})))}})]
 
     (fact "top-level async handler"
       (let [respond (promise), res-raise (promise), req-raise (promise)]
@@ -170,10 +176,24 @@
     (fact "operation-level sync handler can be called from async"
       (let [respond (promise)]
         (handler {:request-method :post, :query-params {:x 1}} respond (promise))
-        (deref respond 1000 :timeout) => (has-body {:total 10})))
+        (deref respond 1000 :timeout) => (has-body {:total 10}))
+      (fact "response coercion works"
+        (let [raise (promise)]
+          (handler {:request-method :post, :query-params {:x -1}} (promise) raise)
+          (throw (deref raise 1000 :timeout)) => response-validation-failed?)))
 
-    (future-fact "response coercion from sync->async")
-    (future-fact "testing the compojure.response/send")))
+    (fact "operation-level core.async"
+      (fact "3-arity"
+      (let [respond (promise)]
+        (handler {:request-method :put, :query-params {:x 1}} respond (promise))
+        (deref respond 1000 :timeout) => (has-body {:total 100}))
+      (fact "response coercion works"
+        (let [raise (promise)]
+          (handler {:request-method :put, :query-params {:x -1}} (promise) raise)
+            (throw (deref raise 1000 :timeout)) => response-validation-failed?)))
+      (fact "1-arity"
+        (handler {:request-method :put, :query-params {:x 1}}) => (has-body {:total 100})
+        (handler {:request-method :put, :query-params {:x -1}}) => response-validation-failed?))))
 
 (fact "compojure-api routing integration"
   (let [app (context "/rest" []
