@@ -1,4 +1,4 @@
-## UNRELEASED
+## 1.2.0-alpha7 (15.5.2017)
 
 * **BREAKING**: `resource` separates 1-arity `:handler` and 3-arity `:async-handler`. Rules:
   * if resource is called with 1-arity, `:handler` is used, sent via `compojure.response/render`

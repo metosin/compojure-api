@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.2.0-alpha6"
+(defproject metosin/compojure-api "1.2.0-alpha7"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -33,7 +33,7 @@
              :dev {:repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.11.0"]
+                             [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [org.clojure/core.async "0.3.442"]
