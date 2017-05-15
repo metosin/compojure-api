@@ -18,7 +18,7 @@
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
                  ;; http
-                 [ring/ring-core "1.6.0"]
+                 [ring/ring-core "1.6.1"]
                  [compojure "1.6.0" :exclusions [commons-codec]]
                  [metosin/ring-http-response "0.9.0"]
                  [metosin/ring-swagger "0.24.0"]
@@ -36,7 +36,7 @@
                              [lein-ring "0.11.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
-                                  [slingshot "0.12.2"]
+                                  [org.clojure/core.async "0.3.442"]
                                   [peridot "0.4.4"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.9.0-alpha6"]

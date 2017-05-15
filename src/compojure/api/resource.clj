@@ -4,6 +4,7 @@
             [ring.swagger.common :as rsc]
             [schema.core :as s]
             [plumbing.core :as p]
+            [compojure.api.async]
             [compojure.api.middleware :as mw]))
 
 (def ^:private +mappings+
@@ -38,7 +39,13 @@
 (defn- coerce-response [response info request ks]
   (coerce/coerce-response! request response (get-in info (concat ks [:responses]))))
 
-(defn- resolve-handler [info path-info route request-method]
+(defn- maybe-async [async? x]
+  (if (and async? x) [x true]))
+
+(defn- maybe-sync [x]
+  (if x [x false]))
+
+(defn- resolve-handler [info path-info route request-method async?]
   (and
     (or
       ;; directly under a context
@@ -47,9 +54,13 @@
       route
       ;; vanilla ring
       (nil? path-info))
-    (or
-      (get-in info [request-method :handler])
-      (get-in info [:handler]))))
+    (let [[handler async] (or
+                            (maybe-async async? (get-in info [request-method :async-handler]))
+                            (maybe-sync (get-in info [request-method :handler]))
+                            (maybe-async async? (get-in info [:async-handler]))
+                            (maybe-sync (get-in info [:handler])))]
+      (if handler
+        [handler async]))))
 
 (defn- create-childs [info]
   (map
@@ -57,26 +68,37 @@
       (routes/create "/" method (swaggerize info) nil nil))
     (select-keys info (:methods +mappings+))))
 
+(defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
+  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+        ks (if (contains? info request-method) [request-method] [])]
+    (when-let [[handler] (resolve-handler info path-info route request-method false)]
+      (-> (coerce-request request info ks)
+          handler
+          (compojure.response/render request)
+          (coerce-response info request ks)))))
+
+(defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
+  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+        ks (if (contains? info request-method) [request-method] [])
+        respond-coerced (fn [response]
+                          (respond
+                            (try (coerce-response response info request ks)
+                                 (catch Throwable e (raise e)))))]
+    (when-let [[handler async?] (resolve-handler info path-info route request-method true)]
+      (try
+        (as-> (coerce-request request info ks) $
+              (if async?
+                (handler $ #(compojure.response/send % $ respond-coerced raise) raise)
+                (compojure.response/send (handler $) $ respond-coerced raise)))
+        (catch Throwable e
+          (raise e))))))
+
 (defn- create-handler [info {:keys [coercion]}]
-  (fn coercing-handler
-    ([{:keys [request-method path-info :compojure/route] :as request}]
-     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-           ks (if (contains? info request-method) [request-method] [])]
-       (when-let [handler (resolve-handler info path-info route request-method)]
-         (-> (coerce-request request info ks)
-             handler
-             (coerce-response info request ks)))))
-    ([{:keys [request-method path-info :compojure/route] :as request} respond raise]
-     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-           ks (if (contains? info request-method) [request-method] [])]
-       (when-let [handler (resolve-handler info path-info route request-method)]
-         (try
-           (-> (coerce-request request info ks)
-               (handler #(respond (try (coerce-response % info request ks)
-                                       (catch Throwable e (raise e))))
-                        raise))
-           (catch Throwable e
-             (raise e))))))))
+  (fn
+    ([request]
+     (handle-sync info coercion request))
+    ([request respond raise]
+     (handle-async info coercion request respond raise))))
 
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]
@@ -160,4 +182,4 @@
          childs (create-childs info)
          handler (create-handler info options)]
      (routes/create nil nil root-info childs handler))))
- 
+
