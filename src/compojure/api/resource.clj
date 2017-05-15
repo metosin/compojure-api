@@ -68,31 +68,37 @@
       (routes/create "/" method (swaggerize info) nil nil))
     (select-keys info (:methods +mappings+))))
 
+(defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
+  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+        ks (if (contains? info request-method) [request-method] [])]
+    (when-let [[handler] (resolve-handler info path-info route request-method false)]
+      (-> (coerce-request request info ks)
+          handler
+          (compojure.response/render request)
+          (coerce-response info request ks)))))
+
+(defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
+  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+        ks (if (contains? info request-method) [request-method] [])
+        respond-coerced (fn [response]
+                          (respond
+                            (try (coerce-response response info request ks)
+                                 (catch Throwable e (raise e)))))]
+    (when-let [[handler async?] (resolve-handler info path-info route request-method true)]
+      (try
+        (as-> (coerce-request request info ks) $
+              (if async?
+                (handler $ #(compojure.response/send % $ respond-coerced raise) raise)
+                (compojure.response/send (handler $) $ respond-coerced raise)))
+        (catch Throwable e
+          (raise e))))))
+
 (defn- create-handler [info {:keys [coercion]}]
-  (fn coercing-handler
-    ([{:keys [request-method path-info :compojure/route] :as request}]
-     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-           ks (if (contains? info request-method) [request-method] [])]
-       (when-let [[handler] (resolve-handler info path-info route request-method false)]
-         (-> (coerce-request request info ks)
-             handler
-             (compojure.response/render request)
-             (coerce-response info request ks)))))
-    ([{:keys [request-method path-info :compojure/route] :as request} respond raise]
-     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-           ks (if (contains? info request-method) [request-method] [])
-           respond-coerced (fn [response]
-                             (respond
-                               (try (coerce-response response info request ks)
-                                    (catch Throwable e (raise e)))))]
-       (when-let [[handler async?] (resolve-handler info path-info route request-method true)]
-         (try
-           (as-> (coerce-request request info ks) $
-                 (if async?
-                   (handler $ #(compojure.response/send % $ respond-coerced raise) raise)
-                   (compojure.response/send (handler $) $ respond-coerced raise)))
-           (catch Throwable e
-             (raise e))))))))
+  (fn
+    ([request]
+     (handle-sync info coercion request))
+    ([request respond raise]
+     (handle-async info coercion request respond raise))))
 
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]
