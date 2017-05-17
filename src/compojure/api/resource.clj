@@ -104,7 +104,7 @@
         (catch Throwable e
           (raise e))))))
 
-(defn- create-handler [info {:keys [coercion]}]
+(defn- create-handler [{:keys [coercion] :as info}]
   (fn
     ([request]
      (handle-sync info coercion request))
@@ -136,10 +136,14 @@
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
 ; TODO: extract parameter schemas from handler fnks?
 (defn resource
-  "Creates a nested compojure-api Route from enchanced ring-swagger operations map and options.
+  "Creates a nested compojure-api Route from enchanced ring-swagger operations map.
   By default, applies both request- and response-coercion based on those definitions.
 
-  Options:
+  Extra keys:
+
+  - **:middleware**     Middleware in duct-format either at top-level or under methods.
+                        Top-level mw are applied first if route matches, method-level
+                        mw are applied next if method matches
 
   - **:coercion**       A function from request->type->coercion-matcher, used
                         in resource coercion for :body, :string and :response.
@@ -185,12 +189,10 @@
      :post {}
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
-  ([info]
-   (resource info {}))
-  ([info options]
-   (let [info (merge-parameters-and-responses info)
-         root-info (swaggerize (root-info info))
-         childs (create-childs info)
-         handler (create-handler info options)]
-     (routes/create nil nil root-info childs handler))))
+  [info]
+  (let [info (merge-parameters-and-responses info)
+        root-info (swaggerize (root-info info))
+        childs (create-childs info)
+        handler (create-handler info)]
+    (routes/create nil nil root-info childs handler)))
 

@@ -1,5 +1,7 @@
 ## UNRELEASED
 
+* **BREAKING**: `resource` function is always 1-arity, options and info are merged.
+
 * `resource` can have `:middleware` on both top-level & method-level.
   * top-level mw are applied first if the resource can handle the request
   * method-level mw are applied second if the method matches
