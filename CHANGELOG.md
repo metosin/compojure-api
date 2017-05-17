@@ -1,3 +1,11 @@
+## UNRELEASED
+
+* updated deps:
+
+```clj
+[prismatic/schema "1.1.6"] is available but we use "1.1.5"
+```
+
 ## 1.2.0-alpha7 (15.5.2017)
 
 * **BREAKING**: `resource` separates 1-arity `:handler` and 3-arity `:async-handler`. Rules:

@@ -7,7 +7,7 @@
             :comments "same as Clojure"}
   :dependencies [[potemkin "0.4.3"]
                  [cheshire "5.7.1" :exclusions [com.fasterxml.jackson.core/jackson-core]]
-                 [prismatic/schema "1.1.5"]
+                 [prismatic/schema "1.1.6"]
                  [prismatic/plumbing "0.5.4"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
