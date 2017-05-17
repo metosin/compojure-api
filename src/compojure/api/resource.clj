@@ -62,10 +62,11 @@
       (if handler
         [handler async]))))
 
-(defn- resolve-middleware [info request-method]
+(defn- middleware-chain [info request-method handler]
   (let [direct-mw (:middleware info)
-        method-mw (:middleware (get info request-method))]
-    (concat direct-mw method-mw)))
+        method-mw (:middleware (get info request-method))
+        middleware (mw/compose-middleware (concat direct-mw method-mw))]
+    (middleware handler)))
 
 (defn- create-childs [info]
   (map
@@ -77,9 +78,7 @@
   (when-let [[raw-handler] (resolve-handler info path-info route request-method false)]
     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
           ks (if (contains? info request-method) [request-method] [])
-          handler (as-> (resolve-middleware info request-method) $
-                        (mw/compose-middleware $)
-                        ($ raw-handler))]
+          handler (middleware-chain info request-method raw-handler)]
       (-> (coerce-request request info ks)
           (handler)
           (compojure.response/render request)
@@ -93,9 +92,7 @@
                             (respond
                               (try (coerce-response response info request ks)
                                    (catch Throwable e (raise e)))))
-          handler (as-> (resolve-middleware info request-method) $
-                        (mw/compose-middleware $)
-                        ($ raw-handler))]
+          handler (middleware-chain info request-method raw-handler)]
       (try
         (as-> (coerce-request request info ks) $
               (if async?
