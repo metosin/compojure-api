@@ -62,6 +62,12 @@
       (if handler
         [handler async]))))
 
+(defn- middleware-chain [info request-method handler]
+  (let [direct-mw (:middleware info)
+        method-mw (:middleware (get info request-method))
+        middleware (mw/compose-middleware (concat direct-mw method-mw))]
+    (middleware handler)))
+
 (defn- create-childs [info]
   (map
     (fn [[method info]]
@@ -69,22 +75,24 @@
     (select-keys info (:methods +mappings+))))
 
 (defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
-  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-        ks (if (contains? info request-method) [request-method] [])]
-    (when-let [[handler] (resolve-handler info path-info route request-method false)]
+  (when-let [[raw-handler] (resolve-handler info path-info route request-method false)]
+    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+          ks (if (contains? info request-method) [request-method] [])
+          handler (middleware-chain info request-method raw-handler)]
       (-> (coerce-request request info ks)
-          handler
+          (handler)
           (compojure.response/render request)
           (coerce-response info request ks)))))
 
 (defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
-  (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-        ks (if (contains? info request-method) [request-method] [])
-        respond-coerced (fn [response]
-                          (respond
-                            (try (coerce-response response info request ks)
-                                 (catch Throwable e (raise e)))))]
-    (when-let [[handler async?] (resolve-handler info path-info route request-method true)]
+  (when-let [[raw-handler async?] (resolve-handler info path-info route request-method true)]
+    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+          ks (if (contains? info request-method) [request-method] [])
+          respond-coerced (fn [response]
+                            (respond
+                              (try (coerce-response response info request ks)
+                                   (catch Throwable e (raise e)))))
+          handler (middleware-chain info request-method raw-handler)]
       (try
         (as-> (coerce-request request info ks) $
               (if async?
@@ -93,7 +101,7 @@
         (catch Throwable e
           (raise e))))))
 
-(defn- create-handler [info {:keys [coercion]}]
+(defn- create-handler [{:keys [coercion] :as info}]
   (fn
     ([request]
      (handle-sync info coercion request))
@@ -125,10 +133,14 @@
 ; TODO: validate input against ring-swagger schema, fail for missing handlers
 ; TODO: extract parameter schemas from handler fnks?
 (defn resource
-  "Creates a nested compojure-api Route from enchanced ring-swagger operations map and options.
+  "Creates a nested compojure-api Route from enchanced ring-swagger operations map.
   By default, applies both request- and response-coercion based on those definitions.
 
-  Options:
+  Extra keys:
+
+  - **:middleware**     Middleware in duct-format either at top-level or under methods.
+                        Top-level mw are applied first if route matches, method-level
+                        mw are applied next if method matches
 
   - **:coercion**       A function from request->type->coercion-matcher, used
                         in resource coercion for :body, :string and :response.
@@ -174,12 +186,10 @@
      :post {}
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
-  ([info]
-   (resource info {}))
-  ([info options]
-   (let [info (merge-parameters-and-responses info)
-         root-info (swaggerize (root-info info))
-         childs (create-childs info)
-         handler (create-handler info options)]
-     (routes/create nil nil root-info childs handler))))
+  [info]
+  (let [info (merge-parameters-and-responses info)
+        root-info (swaggerize (root-info info))
+        childs (create-childs info)
+        handler (create-handler info)]
+    (routes/create nil nil root-info childs handler)))
 

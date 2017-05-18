@@ -1,3 +1,30 @@
+## UNRELEASED
+
+* **BREAKING**: `resource` function is always 1-arity, options and info are merged.
+
+* `resource` can have `:middleware` on both top-level & method-level.
+  * top-level mw are applied first if the resource can handle the request
+  * method-level mw are applied second if the method matches
+
+```clj
+(def mw [handler value]
+  (fn [request]
+    (println value)
+    (handler request)))
+
+(resource
+  {:middleware [[mw :top1] [mw :top2]]
+   :get {:middleware [[mw :get1] [mw :get2]]}
+   :post {:middleware [[mw :post1] [mw :post2]]}
+   :handler (constantly (ok))})
+```
+
+* updated deps:
+
+```clj
+[prismatic/schema "1.1.6"] is available but we use "1.1.5"
+```
+
 ## 1.2.0-alpha7 (15.5.2017)
 
 * **BREAKING**: `resource` separates 1-arity `:handler` and 3-arity `:async-handler`. Rules:

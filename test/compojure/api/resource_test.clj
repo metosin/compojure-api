@@ -54,6 +54,20 @@
         (handler {:request-method :post, :query-params {:x "1"}}) => (has-body {:total 1})
         (handler {:request-method :post, :query-params {:x "1", :y "2"}}) => (throws ClassCastException))))
 
+  (fact "middleware"
+    (let [mw (fn [handler k] (fn [req] (update-in (handler req) [:body :mw] (fnil conj '()) k)))
+          handler (resource
+                    {:middleware [[mw :top1] [mw :top2]]
+                     :get {:middleware [[mw :get1] [mw :get2]]}
+                     :post {:middleware [[mw :post1] [mw :post2]]}
+                     :handler (constantly (ok))})]
+
+      (fact "top + method-level mw are applied if they are set"
+        (handler {:request-method :get}) => (has-body {:mw [:top1 :top2 :get1 :get2]})
+        (handler {:request-method :post}) => (has-body {:mw [:top1 :top2 :post1 :post2]}))
+      (fact "top-level mw are applied if method doesn't have mw"
+        (handler {:request-method :put}) => (has-body {:mw [:top1 :top2]}))))
+
   (fact "operation-level handlers"
     (let [handler (resource
                     {:parameters {:query-params {:x Long}}
@@ -80,12 +94,12 @@
 
   (fact "resource without coercion"
     (let [handler (resource
-                    {:get {:parameters {:query-params {(s/optional-key :y) Long
+                    {:coercion (constantly nil)
+                     :get {:parameters {:query-params {(s/optional-key :y) Long
                                                        (s/optional-key :x) Long}}
                            :handler (fn [{{:keys [x y]} :query-params}]
                                       (ok {:x x
-                                           :y y}))}}
-                    {:coercion (constantly nil)})]
+                                           :y y}))}})]
 
       (handler {:request-method :get}) => (has-body {:x nil, :y nil})
       (handler {:request-method :get, :query-params {:x "1"}}) => (has-body {:x "1", :y nil})
