@@ -1,4 +1,4 @@
-## UNRELEASED
+## 1.2.0-alpha8 (18.5.2017)
 
 * **BREAKING**: `resource` function is always 1-arity, options and info are merged.
 

@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.2.0-alpha7"
+(defproject metosin/compojure-api "1.2.0-alpha8"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
