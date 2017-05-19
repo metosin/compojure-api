@@ -85,7 +85,7 @@
           (coerce-response info request ks)))))
 
 (defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
-  (when-let [[raw-handler async?] (resolve-handler info path-info route request-method true)]
+  (if-let [[raw-handler async?] (resolve-handler info path-info route request-method true)]
     (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
           ks (if (contains? info request-method) [request-method] [])
           respond-coerced (fn [response]
@@ -99,7 +99,8 @@
                 (handler $ #(compojure.response/send % $ respond-coerced raise) raise)
                 (compojure.response/send (handler $) $ respond-coerced raise)))
         (catch Throwable e
-          (raise e))))))
+          (raise e))))
+    (respond nil)))
 
 (defn- create-handler [{:keys [coercion] :as info}]
   (fn
