@@ -160,9 +160,14 @@
     2.2) :responses are merged into operation :responses (operation can fully override them)
     2.3) all others (:produces, :consumes, :summary,...) are deep-merged by compojure-api
 
-  3) special key `:handler` either under operations or at top-level. Value should be a
-  ring-handler function, responsible for the actual request processing. Handler lookup
-  order is the following: operations-level, top-level.
+  3) special keys `:handler` and/or `:async-handler` either under operations or at top-level.
+  They should be 1-ary and 3-ary Ring handler functions, respectively, that are responsible
+  for the actual request processing. Handler lookup order is the following:
+
+    3.1) If called asynchronously, operations-level :async-handler
+    3.2) Operations-level :handler
+    3.3) If called asynchronously, top-level :async-handler
+    3.4) Top-level :handler
 
   4) request-coercion is applied once, using deep-merged parameters for a given
   operation or resource-level if only resource-level handler is defined.
@@ -192,4 +197,3 @@
         childs (create-childs info)
         handler (create-handler info)]
     (routes/create nil nil root-info childs handler)))
-
