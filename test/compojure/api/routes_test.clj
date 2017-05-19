@@ -152,3 +152,15 @@
   (let [app (context "/api" req
               (GET "/ping" [] (ok (:magic req))))]
     (app {:request-method :get :uri "/api/ping" :magic {:just "works"}}) => (contains {:body {:just "works"}})))
+
+(fact "dynamic context routes"
+  (let [endpoint? (atom true)
+        app (dynamic-context "/api" []
+              (when @endpoint?
+                (GET "/ping" [] (ok "pong"))))]
+    (fact "the endpoint exists"
+      (app {:request-method :get :uri "/api/ping"}) => (contains {:body "pong"}))
+
+    (reset! endpoint? false)
+    (fact "the endpoint does not exist"
+      (app {:request-method :get :uri "/api/ping"}) => nil)))
