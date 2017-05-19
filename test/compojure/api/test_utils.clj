@@ -55,6 +55,13 @@
       (throw (Exception. (str "Timeout while waiting for the request handler. "
                               request))))))
 
+(defn call
+  "Call handler synchronously or asynchronously depending on *async?*."
+  [handler request]
+  (if *async?*
+    (call-async handler request)
+    (handler request)))
+
 (defn raw-get* [app uri & [params headers]]
   (let [{{:keys [status body headers]} :response}
         (-> (cond->> app *async?* (partial call-async))
