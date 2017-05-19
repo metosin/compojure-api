@@ -576,7 +576,7 @@
 (defn- route-args? [arg]
   (not= arg []))
 
-(defn restructure [method [path route-arg & args] {:keys [context?]}]
+(defn restructure [method [path route-arg & args] {:keys [context? dynamic?]}]
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
 
@@ -598,7 +598,7 @@
                           :body body}
                          options)
 
-        static? (not (or (route-args? route-arg) (seq lets) (seq letks)))
+        static? (not (or dynamic? (route-args? route-arg) (seq lets) (seq letks)))
 
         ;; migration helpers
         _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")

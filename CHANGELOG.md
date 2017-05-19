@@ -1,3 +1,23 @@
+## Unreleased
+
+* Introduce `dynamic-context` that works like `context` before the fast context optimization ([#253](https://github.com/metosin/compojure-api/pull/253)).
+  * If you build routes dynamically inside `context`, they will not work as intended. If you need this, replace `context` with `dynamic-context`.
+  * See issue [#300](https://github.com/metosin/compojure-api/issues/300).
+
+  For example:
+
+```clj
+;; compojure-api 1.1
+(context "/static" []
+  (if (its-noon?)
+    (GET "/noon-route" [] (ok "it's noon")))
+
+;; compojure-api 1.2:
+(dynamic-context "/static" []
+  (if (its-noon?)
+    (GET "/noon-route" [] (ok "it's noon")))
+```
+
 ## 1.2.0-alpha8 (18.5.2017)
 
 * **BREAKING**: `resource` function is always 1-arity, options and info are merged.
