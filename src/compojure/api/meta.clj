@@ -584,9 +584,7 @@
                 letks
                 responses
                 middleware
-                middlewares
                 swagger
-                parameters
                 body]} (reduce
                          (fn [acc [k v]]
                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
@@ -599,10 +597,6 @@
                          options)
 
         static? (not (or dynamic? (route-args? route-arg) (seq lets) (seq letks)))
-
-        ;; migration helpers
-        _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
-        _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
 
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (merge ~@responses)]) middleware)]
