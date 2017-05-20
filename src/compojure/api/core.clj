@@ -51,15 +51,14 @@
     ;; use original handler for docs and wrapped handler for implementation
     (routes/create nil nil {} [handler] x-handler)))
 
-(defmacro context {:style/indent 2} [& args] (meta/restructure nil      args {:context? true}))
-(defmacro dynamic-context
-                  {:style/indent 2} [& args] (meta/restructure nil      args {:context? true :dynamic? true}))
+(defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true}))
+(defmacro dynamic-context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :dynamic? true}))
 
-(defmacro GET     {:style/indent 2} [& args] (meta/restructure :get     args nil))
-(defmacro ANY     {:style/indent 2} [& args] (meta/restructure nil      args nil))
-(defmacro HEAD    {:style/indent 2} [& args] (meta/restructure :head    args nil))
-(defmacro PATCH   {:style/indent 2} [& args] (meta/restructure :patch   args nil))
-(defmacro DELETE  {:style/indent 2} [& args] (meta/restructure :delete  args nil))
+(defmacro GET {:style/indent 2} [& args] (meta/restructure :get args nil))
+(defmacro ANY {:style/indent 2} [& args] (meta/restructure nil args nil))
+(defmacro HEAD {:style/indent 2} [& args] (meta/restructure :head args nil))
+(defmacro PATCH {:style/indent 2} [& args] (meta/restructure :patch args nil))
+(defmacro DELETE {:style/indent 2} [& args] (meta/restructure :delete args nil))
 (defmacro OPTIONS {:style/indent 2} [& args] (meta/restructure :options args nil))
-(defmacro POST    {:style/indent 2} [& args] (meta/restructure :post    args nil))
-(defmacro PUT     {:style/indent 2} [& args] (meta/restructure :put     args nil))
+(defmacro POST {:style/indent 2} [& args] (meta/restructure :post args nil))
+(defmacro PUT {:style/indent 2} [& args] (meta/restructure :put args nil))
