@@ -621,7 +621,12 @@
                          form `(delay (~form {}))]
                      form)]
 
-        `(routes/create ~path-string ~method (merge-parameters ~swagger) ~childs ~form))
+        `(routes/map->Route
+           {:path ~path-string
+            :method ~method
+            :info (merge-parameters ~swagger)
+            :childs ~childs
+            :handler ~form}))
 
       ;; endpoints
       (let [form `(do ~@body)
@@ -630,4 +635,8 @@
             form (compojure.core/compile-route method path arg-with-request (list form))
             form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
 
-        `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
+        `(routes/map->Route
+           {:path ~path-string
+            :method ~method
+            :info (merge-parameters ~swagger)
+            :handler ~form})))))
