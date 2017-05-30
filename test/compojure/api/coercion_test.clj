@@ -32,17 +32,18 @@
                         (ok {:value (or value "123")}))]
     (fact "200"
       (get* (api r-200) "/") => (has-body {:value "123"})
-      (get* (api r-200) "/" {:value 123}) => (fails-with 500)
+      (get* (api r-200) "/" {:value 123}) => (fails-with 500))
+
+    (fact "exception data"
       (get* (api r-200) "/" {:value 123})
       => (contains
            [500
-            (just
-              {:type "compojure.api.exception/response-validation"
-               :validation "schema",
-               :in ["response" "body"],
-               :value {:value 123},
-               :schema {:value "java.lang.String"},
-               :errors {:value "(not (instance? java.lang.String 123))"}})]))
+            {:type "compojure.api.exception/response-validation"
+             :validation "schema",
+             :in ["response" "body"],
+             :value {:value 123},
+             :schema {:value "java.lang.String"},
+             :errors {:value "(not (instance? java.lang.String 123))"}}]))
 
     (fact ":default"
       (get* (api r-default) "/") => (has-body {:value "123"})
@@ -166,7 +167,9 @@
           body => {:i 10}))
 
       (fact "disabled coercion"
-        (get* app "/disabled-coercion" {:i 10}) => (fails-with 400)
+        (get* app "/disabled-coercion" {:i 10}) => (fails-with 400))
+
+      (fact "exception data"
         (get* app "/disabled-coercion" {:i 10})
         => (contains
              [400
