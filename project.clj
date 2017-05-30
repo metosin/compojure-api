@@ -36,7 +36,7 @@
                              [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.8.0"]
-                                  [org.clojure/core.async "0.3.442"]
+                                  [org.clojure/core.async "0.3.443"]
                                   [peridot "0.4.4"]
                                   [javax.servlet/servlet-api "2.5"]
                                   [midje "1.9.0-alpha6"]
