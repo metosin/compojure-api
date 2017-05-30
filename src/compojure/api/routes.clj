@@ -90,9 +90,6 @@
                            (not (:method this)) (dissoc :method)
                            childs (assoc :childs childs))))))
 
-(defn create [path method info childs handler]
-  (->Route path method info childs handler))
-
 ;;
 ;; Invalid route handlers
 ;;

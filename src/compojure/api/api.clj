@@ -70,7 +70,9 @@
                                    {:paths paths
                                     :coercer (coerce/memoized-coercer)
                                     :lookup lookup}))]
-    (routes/create nil nil {} [handler] api-handler)))
+    (routes/map->Route
+      {:childs [handler]
+       :handler api-handler})))
 
 (defmacro
   ^{:doc (str

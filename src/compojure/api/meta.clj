@@ -584,9 +584,7 @@
                 letks
                 responses
                 middleware
-                middlewares
                 swagger
-                parameters
                 body]} (reduce
                          (fn [acc [k v]]
                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
@@ -599,10 +597,6 @@
                          options)
 
         static? (not (or dynamic? (route-args? route-arg) (seq lets) (seq letks)))
-
-        ;; migration helpers
-        _ (assert (not middlewares) ":middlewares is deprecated with 1.0.0, use :middleware instead.")
-        _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
 
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (merge ~@responses)]) middleware)]
@@ -627,7 +621,12 @@
                          form `(delay (~form {}))]
                      form)]
 
-        `(routes/create ~path-string ~method (merge-parameters ~swagger) ~childs ~form))
+        `(routes/map->Route
+           {:path ~path-string
+            :method ~method
+            :info (merge-parameters ~swagger)
+            :childs ~childs
+            :handler ~form}))
 
       ;; endpoints
       (let [form `(do ~@body)
@@ -636,4 +635,8 @@
             form (compojure.core/compile-route method path arg-with-request (list form))
             form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
 
-        `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
+        `(routes/map->Route
+           {:path ~path-string
+            :method ~method
+            :info (merge-parameters ~swagger)
+            :handler ~form})))))
