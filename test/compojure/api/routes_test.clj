@@ -74,7 +74,7 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:compojure.api.meta/no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
+      => [["/swagger.json" :get {:no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
           ["/api/:version/ping" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
           ["/api/:version/ping" :post {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
           ["/api/:version/hello" :get {:public  {:parameters {:query {:name String, s/Keyword s/Any}
@@ -96,7 +96,7 @@
 
 (facts "following var-routes, #219"
   (let [routes (context "/api" [] #'more-routes)]
-    (routes/get-routes routes) => [["/api/more" :get {:compojure.api.meta/static-context? true}]]))
+    (routes/get-routes routes) => [["/api/more" :get {:static-context? true}]]))
 
 (facts "dynamic routes"
   (let [more-routes (fn [version]
@@ -120,7 +120,7 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:compojure.api.meta/no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
+      => [["/swagger.json" :get {:no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
           ["/api/:version/[]" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
 
     (fact "swagger-docs can be generated"
@@ -172,4 +172,4 @@
               (context "/dynamic" req
                 (GET "/ping" [] (ok "pong"))))]
     (routes/get-static-context-routes app)
-    => [["/static/ping" :get {:compojure.api.meta/static-context? true}]]))
+    => [["/static/ping" :get {:static-context? true}]]))

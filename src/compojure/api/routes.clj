@@ -52,7 +52,7 @@
   ([handler]
    (get-static-context-routes handler nil))
   ([handler options]
-   (filter (fn [[_ _ info]] (get info :compojure.api.meta/static-context?))
+   (filter (fn [[_ _ info]] (get info :static-context?))
            (get-routes handler options))))
 
 (defn- realize-childs [route]
@@ -136,7 +136,7 @@
   {:paths
    (reduce
      (fn [acc [path method info]]
-       (if-not (true? (:compojure.api.meta/no-doc info))
+       (if-not (true? (:no-doc info))
          (let [public-info (get info :public {})]
            (update-in
             acc [path method]

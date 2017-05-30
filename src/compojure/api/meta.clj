@@ -151,7 +151,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :no-doc [_ v acc]
-  (update-in acc [:info] assoc ::no-doc v))
+  (update-in acc [:info] assoc :no-doc v))
 
 ;;
 ;; swagger
@@ -189,7 +189,6 @@
       "    (created (path-for ::user {:id (random-int)}))))")))
 
 (defmethod restructure-param :name [_ v acc]
-  ;; :x-name could be possibly moved from [:info :public] into [:info]
   (update-in acc [:info :public] assoc :x-name v))
 
 ;;
@@ -607,7 +606,7 @@
 
         static-context? (and static? context?)
         info (cond-> info
-               static-context? (assoc ::static-context? static-context?))
+               static-context? (assoc :static-context? static-context?))
 
         _ (assert (nil? swagger) ":swagger is deprecated with 2.0.0, use [:info :public] instead")
 
