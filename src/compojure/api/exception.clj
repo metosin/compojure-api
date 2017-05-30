@@ -51,10 +51,11 @@
         (update :errors stringify))))
 
 (defn request-validation-handler
-  "Creates error response based on Schema error.
+  "Creates error response based on Schema error. The following keys are available:
+
     :type            type of the exception (::request-validation)
     :validation      validation lib that was used (:schema)
-    :value           value of the
+    :value           value that was validated
     :in              location of the value (e.g. [:request :query-params])
     :schema          schema to be validated against
     :error           schema error
