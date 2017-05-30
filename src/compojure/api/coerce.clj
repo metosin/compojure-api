@@ -34,7 +34,7 @@
 (defmethod coerce-response? ::default [_] true)
 (defmethod coerce-response? File [_] false)
 
-(defn- coerce-response* [request {:keys [status] :as response} responses respond raise]
+(defn- coerce-response* [request {:keys [status body] :as response} responses respond raise]
   (-> (when-let [schema (or (:schema (get responses status))
                             (:schema (get responses :default)))]
         (when (coerce-response? schema)
@@ -42,15 +42,21 @@
             (when-let [matcher (matchers :response)]
               (let [coercer (cached-coercer request)
                     coerce (coercer schema matcher)
-                    body (coerce (:body response))]
-                (if (su/error? body)
-                  (raise (ex-info
-                           (str "Response validation failed: " (su/error-val body))
-                           (assoc body :type ::ex/response-validation
-                                       :response response)))
+                    coerced (coerce body)]
+                (if (su/error? coerced)
+                  (let [errors (su/error-val coerced)]
+                    (raise
+                      (ex-info
+                        (str "Response validation failed: " (pr-str errors))
+                        {:type ::ex/response-validation
+                         :validation :schema
+                         :in [:response :body]
+                         :schema schema
+                         :errors errors
+                         :response response})))
                   (assoc response
                     :compojure.api.meta/serializable? true
-                    :body body)))))))
+                    :body coerced)))))))
       (or response)
       respond))
 
@@ -73,11 +79,18 @@
       (if-let [matcher (matchers type)]
         (let [coercer (cached-coercer request)
               coerce (coercer schema matcher)
-              result (coerce value)]
-          (if (su/error? result)
-            (throw (ex-info
-                     (str "Request validation failed: " (su/error-val result))
-                     (assoc result :type ::ex/request-validation)))
-            result))
+              coerced (coerce value)]
+          (if (su/error? coerced)
+            (let [errors (su/error-val coerced)]
+              (throw (ex-info
+                       (str "Request validation failed: " (pr-str errors))
+                       {:type ::ex/request-validation
+                        :validation :schema
+                        :value value
+                        :in [:request key]
+                        :schema schema
+                        :errors errors
+                        :request request})))
+            coerced))
         value)
       value)))

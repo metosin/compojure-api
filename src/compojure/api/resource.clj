@@ -71,7 +71,10 @@
 (defn- create-childs [info]
   (map
     (fn [[method info]]
-      (routes/->Route "/" method (swaggerize info) nil nil nil))
+      (routes/map->Route
+        {:path "/"
+         :method method
+         :info (swaggerize info)}))
     (select-keys info (:methods +mappings+))))
 
 (defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]

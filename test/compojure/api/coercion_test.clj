@@ -4,6 +4,7 @@
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
+            [compojure.api.coerce]
             [compojure.api.middleware :as mw]))
 
 (defn has-body [expected]
@@ -12,7 +13,8 @@
 
 (defn fails-with [expected-status]
   (fn [[status body]]
-    (and (= status expected-status) (contains? body :errors))))
+    (and (= status expected-status)
+         (every? (partial contains? body) [:type :validation :in :value :schema :errors]))))
 
 (fact "response schemas"
   (let [r-200 (GET "/" []
@@ -30,7 +32,17 @@
                         (ok {:value (or value "123")}))]
     (fact "200"
       (get* (api r-200) "/") => (has-body {:value "123"})
-      (get* (api r-200) "/" {:value 123}) => (fails-with 500))
+      (get* (api r-200) "/" {:value 123}) => (fails-with 500)
+      (get* (api r-200) "/" {:value 123})
+      => (contains
+           [500
+            (just
+              {:type "compojure.api.exception/response-validation"
+               :validation "schema",
+               :in ["response" "body"],
+               :value {:value 123},
+               :schema {:value "java.lang.String"},
+               :errors {:value "(not (instance? java.lang.String 123))"}})]))
 
     (fact ":default"
       (get* (api r-default) "/") => (has-body {:value "123"})
@@ -154,7 +166,17 @@
           body => {:i 10}))
 
       (fact "disabled coercion"
-        (get* app "/disabled-coercion" {:i 10}) => (fails-with 400))
+        (get* app "/disabled-coercion" {:i 10}) => (fails-with 400)
+        (get* app "/disabled-coercion" {:i 10})
+        => (contains
+             [400
+              (contains
+                {:type "compojure.api.exception/request-validation"
+                 :validation "schema",
+                 :in ["request" "query-params"],
+                 :value {:i "10"}
+                 :schema {:Keyword "Any", :i "Int"},
+                 :errors {:i "(not (integer? \"10\"))"}})]))
 
       (fact "no coercion"
         (let [[status body] (get* app "/no-coercion" {:i 10})]
