@@ -1,5 +1,49 @@
 ## Unreleased
 
+* More descriptive error messages, fixes [#304](https://github.com/metosin/compojure-api/issues/304) and [#306](https://github.com/metosin/compojure-api/issues/306):
+  * when request or response validation fails, more info is provided both to exception hanlders and via default implementations to external clients:
+
+```clj
+(let [app (GET "/" []
+              :return {:x String}
+              (ok {:kikka 2}))]
+  (try
+    (app {:request-method :get, :uri "/"})
+    (catch Exception e
+      (ex-data e))))
+; {:type :compojure.api.exception/response-validation,
+;  :validation :schema,
+;  :in [:response :body],
+;  :schema {:x java.lang.String},
+;  :errors {:x missing-required-key,
+;           :kikka disallowed-key},
+;  :response {:status 200,
+;             :headers {},
+;             :body {:kikka 2}}}
+```
+
+```clj
+(let [app (GET "/" []
+            :query-params [x :- String]
+            (ok))]
+  (try
+    (app {:request-method :get, :uri "/" :query-params {:x 1}})
+    (catch Exception e
+      (ex-data e))))
+; {:type :compojure.api.exception/request-validation,
+;  :validation :schema,
+;  :value {:x 1},
+;  :in [:request :query-params],
+;  :schema {Keyword Any, :x java.lang.String},
+;  :errors {:x (not (instance? java.lang.String 1))},
+;  :request {:request-method :get,
+;            :uri "/",
+;            :query-params {:x 1},
+;            :route-params {},
+;            :params {},
+;            :compojure/route [:get "/"]}}
+```
+
 * Introduce `dynamic-context` that works like `context` before the fast context optimization ([#253](https://github.com/metosin/compojure-api/pull/253)).
   * If you build routes dynamically inside `context`, they will not work as intended. If you need this, replace `context` with `dynamic-context`.
   * See issue [#300](https://github.com/metosin/compojure-api/issues/300).
