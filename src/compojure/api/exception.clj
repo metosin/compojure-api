@@ -4,7 +4,9 @@
             [compojure.api.impl.logging :as logging]
             [schema.utils :as su]
             [schema.core :as s])
-  (:import (schema.utils ValidationError NamedError)))
+  (:import
+    (schema.core OptionalKey RequiredKey)
+    (schema.utils ValidationError NamedError)))
 
 ;;
 ;; Default exception handlers
@@ -27,6 +29,8 @@
     (fn [x]
       (cond
         (class? x) (.getName ^Class x)
+        (instance? OptionalKey x) (pr-str x)
+        (instance? RequiredKey x) (pr-str x)
         (satisfies? s/Schema x) (try (s/explain x) (catch Exception _ x))
         (instance? ValidationError x) (str (su/validation-error-explain x))
         (instance? NamedError x) (str (su/named-error-explain x))
@@ -45,8 +49,8 @@
   [e data req]
   (response/internal-server-error
     (-> data
-        (assoc :value (-> data :response :body))
         (dissoc :response)
+        (assoc :value (-> data :response :body))
         (update :schema stringify)
         (update :errors stringify))))
 
