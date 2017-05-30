@@ -68,7 +68,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :summary [k v acc]
-  (update-in acc [:swagger] assoc k v))
+  (update-in acc [:info :public] assoc k v))
 
 ;;
 ;; description
@@ -84,7 +84,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :description [k v acc]
-  (update-in acc [:swagger] assoc k v))
+  (update-in acc [:info :public] assoc k v))
 
 ;;
 ;; OperationId
@@ -102,7 +102,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :operationId [k v acc]
-  (update-in acc [:swagger] assoc k v))
+  (update-in acc [:info :public] assoc k v))
 
 ;;
 ;; Consumes
@@ -119,7 +119,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :consumes [k v acc]
-  (update-in acc [:swagger] assoc k v))
+  (update-in acc [:info :public] assoc k v))
 
 ;;
 ;; Provides
@@ -136,7 +136,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :produces [k v acc]
-  (update-in acc [:swagger] assoc k v))
+  (update-in acc [:info :public] assoc k v))
 
 ;;
 ;; no-doc
@@ -151,7 +151,8 @@
       "  (ok))")))
 
 (defmethod restructure-param :no-doc [_ v acc]
-  (update-in acc [:swagger] assoc :x-no-doc v))
+  ;; XXX(miikka) This could be moved from [:info :public] into [:info]
+  (update-in acc [:info :public] assoc :x-no-doc v))
 
 ;;
 ;; swagger
@@ -170,7 +171,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :swagger [_ swagger acc]
-  (assoc-in acc [:swagger :swagger] swagger))
+  (assoc-in acc [:info :public :swagger] swagger))
 
 ;;
 ;; name
@@ -189,7 +190,8 @@
       "    (created (path-for ::user {:id (random-int)}))))")))
 
 (defmethod restructure-param :name [_ v acc]
-  (update-in acc [:swagger] assoc :x-name v))
+  ;; :x-name could be possibly moved from [:info :public] into [:info]
+  (update-in acc [:info :public] assoc :x-name v))
 
 ;;
 ;; tags
@@ -204,7 +206,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :tags [_ tags acc]
-  (update-in acc [:swagger :tags] (comp set into) tags))
+  (update-in acc [:info :public :tags] (comp set into) tags))
 
 ;;
 ;; return
@@ -221,7 +223,7 @@
 (defmethod restructure-param :return [_ schema acc]
   (let [response (convert-return schema)]
     (-> acc
-        (update-in [:swagger :responses] (fnil conj []) response)
+        (update-in [:info :public :responses] (fnil conj []) response)
         (update-in [:responses] (fnil conj []) response))))
 
 ;;
@@ -246,7 +248,7 @@
 
 (defmethod restructure-param :responses [_ responses acc]
   (-> acc
-      (update-in [:swagger :responses] (fnil conj []) responses)
+      (update-in [:info :public :responses] (fnil conj []) responses)
       (update-in [:responses] (fnil conj []) responses)))
 
 ;;
@@ -265,7 +267,7 @@
 (defmethod restructure-param :body [_ [value schema] acc]
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :body-params :body false)])
-      (assoc-in [:swagger :parameters :body] schema)))
+      (assoc-in [:info :public :parameters :body] schema)))
 
 ;;
 ;; query
@@ -283,7 +285,7 @@
 (defmethod restructure-param :query [_ [value schema] acc]
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
-      (assoc-in [:swagger :parameters :query] schema)))
+      (assoc-in [:info :public :parameters :query] schema)))
 
 ;;
 ;; headers
@@ -301,7 +303,7 @@
 (defmethod restructure-param :headers [_ [value schema] acc]
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :headers :string)])
-      (assoc-in [:swagger :parameters :header] schema)))
+      (assoc-in [:info :public :parameters :header] schema)))
 
 ;;
 ;; body-params
@@ -320,7 +322,7 @@
   (let [schema (strict (fnk-schema body-params))]
     (-> acc
         (update-in [:letks] into [body-params (src-coerce! schema :body-params :body)])
-        (assoc-in [:swagger :parameters :body] schema))))
+        (assoc-in [:info :public :parameters :body] schema))))
 
 ;;
 ;; form-params
@@ -340,8 +342,8 @@
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
         (update-in [:letks] into [form-params (src-coerce! schema :form-params :string)])
-        (update-in [:swagger :parameters :formData] st/merge schema)
-        (assoc-in [:swagger :consumes] ["application/x-www-form-urlencoded"]))))
+        (update-in [:info :public :parameters :formData] st/merge schema)
+        (assoc-in [:info :public :consumes] ["application/x-www-form-urlencoded"]))))
 
 ;;
 ;; multipart-params
@@ -365,8 +367,8 @@
   (let [schema (strict (fnk-schema params))]
     (-> acc
         (update-in [:letks] into [params (src-coerce! schema :multipart-params :string)])
-        (update-in [:swagger :parameters :formData] st/merge schema)
-        (assoc-in [:swagger :consumes] ["multipart/form-data"]))))
+        (update-in [:info :public :parameters :formData] st/merge schema)
+        (assoc-in [:info :public :consumes] ["multipart/form-data"]))))
 
 ;;
 ;; header-params
@@ -385,7 +387,7 @@
   (let [schema (fnk-schema header-params)]
     (-> acc
         (update-in [:letks] into [header-params (src-coerce! schema :headers :string)])
-        (assoc-in [:swagger :parameters :header] schema))))
+        (assoc-in [:info :public :parameters :header] schema))))
 
 ;;
 ;; :query-params
@@ -404,7 +406,7 @@
   (let [schema (fnk-schema query-params)]
     (-> acc
         (update-in [:letks] into [query-params (src-coerce! schema :query-params :string)])
-        (assoc-in [:swagger :parameters :query] schema))))
+        (assoc-in [:info :public :parameters :query] schema))))
 
 ;;
 ;; path-params
@@ -423,7 +425,7 @@
   (let [schema (fnk-schema path-params)]
     (-> acc
         (update-in [:letks] into [path-params (src-coerce! schema :route-params :string)])
-        (assoc-in [:swagger :parameters :path] schema))))
+        (assoc-in [:info :public :parameters :path] schema))))
 
 ;;
 ;; middleware
@@ -566,12 +568,17 @@
               (RuntimeException.
                 (str "unknown compojure destruction syntax: " arg))))))
 
-(defn merge-parameters
-  "Merge parameters at runtime to allow usage of runtime-paramers with route-macros."
+(defn- merge-public-parameters
   [{:keys [responses swagger] :as parameters}]
   (cond-> parameters
-          (seq responses) (assoc :responses (apply merge responses))
-          swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
+    (seq responses) (assoc :responses (apply merge responses))
+    swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
+
+(defn merge-parameters
+  "Merge parameters at runtime to allow usage of runtime-paramers with route-macros."
+  [info]
+  (cond-> info
+    (contains? info :public) (update :public merge-public-parameters)))
 
 (defn- route-args? [arg]
   (not= arg []))
@@ -584,6 +591,7 @@
                 letks
                 responses
                 middleware
+                info
                 swagger
                 body]} (reduce
                          (fn [acc [k v]]
@@ -592,11 +600,13 @@
                           :letks []
                           :responses nil
                           :middleware []
-                          :swagger {}
+                          :info {}
                           :body body}
                          options)
 
         static? (not (or dynamic? (route-args? route-arg) (seq lets) (seq letks)))
+
+        _ (assert (nil? swagger) ":swagger is deprecated with 2.0.0, use [:info :public] instead")
 
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (merge ~@responses)]) middleware)]
@@ -624,7 +634,7 @@
         `(routes/map->Route
            {:path ~path-string
             :method ~method
-            :info (merge-parameters ~swagger)
+            :info (merge-parameters ~info)
             :childs ~childs
             :handler ~form}))
 
@@ -638,5 +648,5 @@
         `(routes/map->Route
            {:path ~path-string
             :method ~method
-            :info (merge-parameters ~swagger)
+            :info (merge-parameters ~info)
             :handler ~form})))))

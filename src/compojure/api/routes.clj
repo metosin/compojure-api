@@ -129,11 +129,12 @@
   {:paths
    (reduce
      (fn [acc [path method info]]
-       (update-in
-         acc [path method]
-         (fn [old-info]
-           (let [info (or old-info info)]
-             (ensure-path-parameters path info)))))
+       (let [public-info (get info :public {})]
+         (update-in
+          acc [path method]
+          (fn [old-info]
+            (let [public-info (or old-info public-info)]
+              (ensure-path-parameters path public-info))))))
      (linked/map)
      routes)})
 

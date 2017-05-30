@@ -74,14 +74,14 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:x-no-doc true, :x-name :compojure.api.swagger/swagger}]
-          ["/api/:version/ping" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]
-          ["/api/:version/ping" :post {:parameters {:path {:version String, s/Keyword s/Any}}}]
-          ["/api/:version/hello" :get {:parameters {:query {:name String, s/Keyword s/Any}
-                                                    :path {:version String, s/Keyword s/Any}}
-                                       :responses {200 {:description "", :schema {:message String}}}
-                                       :summary "cool ping"}]
-          ["/api/:version/more" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]])
+      => [["/swagger.json" :get {:public {:x-no-doc true, :x-name :compojure.api.swagger/swagger}}]
+          ["/api/:version/ping" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/ping" :post {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/hello" :get {:public  {:parameters {:query {:name String, s/Keyword s/Any}
+                                                              :path {:version String, s/Keyword s/Any}}
+                                                 :responses {200 {:description "", :schema {:message String}}}
+                                                 :summary "cool ping"}}]
+          ["/api/:version/more" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
 
     (fact "swagger-docs can be generated"
       (-> app get-spec :paths keys)
@@ -120,8 +120,8 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:x-no-doc true, :x-name :compojure.api.swagger/swagger}]
-          ["/api/:version/[]" :get {:parameters {:path {:version String, s/Keyword s/Any}}}]])
+      => [["/swagger.json" :get {:public {:x-no-doc true, :x-name :compojure.api.swagger/swagger}}]
+          ["/api/:version/[]" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
 
     (fact "swagger-docs can be generated"
       (-> app get-spec :paths keys)
