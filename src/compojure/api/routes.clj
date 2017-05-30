@@ -48,6 +48,13 @@
        (update-in route [0] (fn [uri] (if (str/blank? uri) "/" uri))))
      (-get-routes handler options))))
 
+(defn get-static-context-routes
+  ([handler]
+   (get-static-context-routes handler nil))
+  ([handler options]
+   (filter (fn [[_ _ info]] (get info :compojure.api.meta/static-context?))
+           (get-routes handler options))))
+
 (defn- realize-childs [route]
   (update route :childs #(if (instance? IDeref %) @% %)))
 

@@ -605,6 +605,10 @@
 
         static? (not (or dynamic? (route-args? route-arg) (seq lets) (seq letks)))
 
+        static-context? (and static? context?)
+        info (cond-> info
+               static-context? (assoc ::static-context? static-context?))
+
         _ (assert (nil? swagger) ":swagger is deprecated with 2.0.0, use [:info :public] instead")
 
         ;; response coercion middleware, why not just code?

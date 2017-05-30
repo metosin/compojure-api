@@ -96,7 +96,7 @@
 
 (facts "following var-routes, #219"
   (let [routes (context "/api" [] #'more-routes)]
-    (routes/get-routes routes) => [["/api/more" :get {}]]))
+    (routes/get-routes routes) => [["/api/more" :get {:compojure.api.meta/static-context? true}]]))
 
 (facts "dynamic routes"
   (let [more-routes (fn [version]
@@ -164,3 +164,12 @@
     (reset! endpoint? false)
     (fact "the endpoint does not exist"
       (app {:request-method :get :uri "/api/ping"}) => nil)))
+
+(fact "listing static context routes"
+  (let [app (routes
+              (context "/static" []
+                (GET "/ping" [] (ok "pong")))
+              (context "/dynamic" req
+                (GET "/ping" [] (ok "pong"))))]
+    (routes/get-static-context-routes app)
+    => [["/static/ping" :get {:compojure.api.meta/static-context? true}]]))
