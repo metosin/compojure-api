@@ -74,7 +74,7 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:public {:x-no-doc true, :x-name :compojure.api.swagger/swagger}}]
+      => [["/swagger.json" :get {:compojure.api.meta/no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
           ["/api/:version/ping" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
           ["/api/:version/ping" :post {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
           ["/api/:version/hello" :get {:public  {:parameters {:query {:name String, s/Keyword s/Any}
@@ -120,7 +120,7 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:public {:x-no-doc true, :x-name :compojure.api.swagger/swagger}}]
+      => [["/swagger.json" :get {:compojure.api.meta/no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
           ["/api/:version/[]" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
 
     (fact "swagger-docs can be generated"

@@ -151,8 +151,7 @@
       "  (ok))")))
 
 (defmethod restructure-param :no-doc [_ v acc]
-  ;; XXX(miikka) This could be moved from [:info :public] into [:info]
-  (update-in acc [:info :public] assoc :x-no-doc v))
+  (update-in acc [:info] assoc ::no-doc v))
 
 ;;
 ;; swagger

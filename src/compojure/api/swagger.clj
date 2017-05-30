@@ -24,9 +24,7 @@
           first))
 
 (defn transform-operations [swagger]
-  (->> swagger
-       (swagger2/transform-operations routes/non-nil-routes)
-       (swagger2/transform-operations routes/strip-no-doc-endpoints)))
+  (swagger2/transform-operations routes/non-nil-routes swagger))
 
 (defn swagger-ui [options]
   (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-ui takes just one map as argument, with `:path` for the path.")
