@@ -39,7 +39,7 @@
   ([schema, key, type :- mw/CoercionType]
     (src-coerce! schema, key, type, true))
   ([schema, key, type :- mw/CoercionType, keywordize?]
-    `(coerce/coerce! ~schema ~key ~type ~keywordize? ~+compojure-api-request+)))
+    `(coerce/coerce-request! ~schema ~key ~type ~keywordize? ~+compojure-api-request+)))
 
 (defn- convert-return [schema]
   {200 {:schema schema
@@ -612,7 +612,7 @@
         _ (assert (nil? swagger) ":swagger is deprecated with 2.0.0, use [:info :public] instead")
 
         ;; response coercion middleware, why not just code?
-        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
+        middleware (if (seq responses) (conj middleware `[coerce/wrap-coerce-response (common/merge-vector ~responses)]) middleware)]
 
     (if context?
 

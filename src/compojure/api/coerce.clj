@@ -63,16 +63,7 @@
 (defn coerce-response! [request response responses]
   (coerce-response* request response responses identity #(throw %)))
 
-(defn body-coercer-middleware [handler responses]
-  (fn
-    ([request]
-     (coerce-response! request (handler request) responses))
-    ([request respond raise]
-     (handler request
-              (fn [response] (coerce-response* request response responses respond raise))
-              raise))))
-
-(defn coerce! [schema key type keywordize? request]
+(defn coerce-request! [schema key type keywordize? request]
   (let [transform (if keywordize? walk/keywordize-keys identity)
         value (transform (key request))]
     (if-let [matchers (mw/coercion-matchers request)]
@@ -94,3 +85,16 @@
             coerced))
         value)
       value)))
+
+;;
+;; middleware
+;;
+
+(defn wrap-coerce-response [handler responses]
+  (fn
+    ([request]
+     (coerce-response! request (handler request) responses))
+    ([request respond raise]
+     (handler request
+              (fn [response] (coerce-response* request response responses respond raise))
+              raise))))
