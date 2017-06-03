@@ -65,10 +65,10 @@
   (let [c! coercion/coerce-response!]
 
     (fact "default coercion"
-      (c! {} (ok valid-value) responses) => (ok? valid-value)
-      (c! {} (ok invalid-value) responses) => throws
+      (c! irrelevant (ok valid-value) responses) => (ok? valid-value)
+      (c! irrelevant (ok invalid-value) responses) => throws
       (try
-        (c! {} (ok invalid-value) responses)
+        (c! ..request.. (ok invalid-value) responses)
         (catch Exception e
           (ex-data e) => (contains {:type :compojure.api.exception/response-validation
                                     :coercion :schema
@@ -76,7 +76,7 @@
                                     :schema Schema
                                     :value invalid-value
                                     :errors anything
-                                    :request {}}))))
+                                    :request ..request..}))))
 
     (fact ":schema coercion"
       (fact "default coercion"
@@ -89,7 +89,7 @@
 
     (fact "format-based custom coercion"
       (fact "request-negotiated response format"
-        (c! {}
+        (c! irrelevant
             (ok invalid-value)
             responses) => throws
         (c! {:muuntaja/response {:format "application/json"}
@@ -98,10 +98,10 @@
             responses) => (ok? valid-value)))
 
     (fact "no coercion"
-      (c! {}
+      (c! irrelevant
           (ok valid-value)
           responses) => (ok? valid-value)
-      (c! {}
+      (c! irrelevant
           (ok invalid-value)
           responses) => throws)))
 
