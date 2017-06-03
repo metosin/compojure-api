@@ -98,10 +98,10 @@
             responses) => (ok? valid-value)))
 
     (fact "no coercion"
-      (c! irrelevant
+      (c! {::mw/options {:coercion nil}}
           (ok valid-value)
           responses) => (ok? valid-value)
-      (c! irrelevant
+      (c! {::mw/options {:coercion nil}}
           (ok invalid-value)
-          responses) => throws)))
+          responses) => (ok? invalid-value))))
 
