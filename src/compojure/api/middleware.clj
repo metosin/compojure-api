@@ -18,7 +18,7 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [schema.coerce :as sc])
-  (:import [clojure.lang ArityException]
+  (:import [clojure.lang ArityException IMapEntry]
            [muuntaja.records Muuntaja]))
 
 ;;
@@ -146,6 +146,12 @@
 (def no-response-coercion
   (create-coercion
     (dissoc default-coercion-options :response)))
+
+(defn coercion [request]
+  (let [options (get-options request)]
+    (if-let [entry (find options :coercion)]
+      (.val ^IMapEntry entry)
+      :schema)))
 
 (defn coercion-matchers [request]
   (let [options (get-options request)]
