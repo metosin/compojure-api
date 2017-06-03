@@ -14,7 +14,7 @@
 (defn fails-with [expected-status]
   (fn [[status body]]
     (and (= status expected-status)
-         (every? (partial contains? body) [:type :validation :in :value :schema :errors]))))
+         (every? (partial contains? body) [:type :coercion :in :value :schema :errors]))))
 
 (fact "response schemas"
   (let [r-200 (GET "/" []
@@ -39,7 +39,7 @@
       => (contains
            [500
             {:type "compojure.api.exception/response-validation"
-             :validation "schema",
+             :coercion "schema",
              :in ["response" "body"],
              :value {:value 123},
              :schema {:value "java.lang.String"},
@@ -175,7 +175,7 @@
              [400
               (contains
                 {:type "compojure.api.exception/request-validation"
-                 :validation "schema",
+                 :coercion "schema",
                  :in ["request" "query-params"],
                  :value {:i "10"}
                  :schema {:Keyword "Any", :i "Int"},
