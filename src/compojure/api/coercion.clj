@@ -18,7 +18,7 @@
   (cond
     (nil? coercion) nil
     (keyword? coercion) (named-coercion coercion)
-    (instance? Coercion coercion) coercion
+    (satisfies? Coercion coercion) coercion
     :else (throw (ex-info (str "invalid coercion " coercion) {:coercion coercion}))))
 
 (defn coerce-request! [model in type keywordize? request]
@@ -27,7 +27,7 @@
     (if-let [coercion (-> request
                           (mw/coercion)
                           (find-coercion))]
-      (let [format (-> request :muuntaja/request :format)
+      (let [format (some-> request :muuntaja/request :format)
             result (coerce-request coercion model value type format request)]
         (if (instance? CoercionError result)
           (throw (ex-info
@@ -48,7 +48,9 @@
     (if-let [coercion (-> request
                           (mw/coercion)
                           (find-coercion))]
-      (let [result (coerce-response coercion model body :response nil response)]
+      (let [format (or (-> response :muuntaja/content-type)
+                       (some-> request :muuntaja/response :format))
+            result (coerce-response coercion model body :response format response)]
         (if (instance? CoercionError result)
           (throw (ex-info
                    (str "Response validation failed: " (pr-str result))
@@ -57,7 +59,7 @@
                      {:type ::ex/response-validation
                       :coercion (get-name coercion)
                       :value body
-                      :in [:request :body]
+                      :in [:response :body]
                       :request request
                       :response response})))
           (assoc response
