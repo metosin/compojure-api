@@ -29,9 +29,9 @@
     (fn [x]
       (cond
         (class? x) (.getName ^Class x)
-        (instance? OptionalKey x) (pr-str x)
-        (instance? RequiredKey x) (pr-str x)
-        (satisfies? s/Schema x) (try (s/explain x) (catch Exception _ x))
+        (instance? OptionalKey x) (pr-str (list 'opt (:k x)))
+        (instance? RequiredKey x) (pr-str (list 'req (:k x)))
+        (satisfies? s/Schema x) (try (pr-str (s/explain x)) (catch Exception _ x))
         (instance? ValidationError x) (str (su/validation-error-explain x))
         (instance? NamedError x) (str (su/named-error-explain x))
         :else x))
