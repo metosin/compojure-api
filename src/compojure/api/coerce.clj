@@ -34,7 +34,7 @@
 (defmethod coerce-response? ::default [_] true)
 (defmethod coerce-response? File [_] false)
 
-(defn- coerce-response* [request {:keys [status body] :as response} responses respond raise]
+(defn coerce-response! [request {:keys [status body] :as response} responses]
   (-> (when-let [schema (or (:schema (get responses status))
                             (:schema (get responses :default)))]
         (when (coerce-response? schema)
@@ -45,11 +45,11 @@
                     coerced (coerce body)]
                 (if (su/error? coerced)
                   (let [errors (su/error-val coerced)]
-                    (raise
+                    (throw
                       (ex-info
                         (str "Response validation failed: " (pr-str errors))
                         {:type ::ex/response-validation
-                         :validation :schema
+                         :coercion :schema
                          :in [:response :body]
                          :schema schema
                          :errors errors
@@ -57,11 +57,7 @@
                   (assoc response
                     :compojure.api.meta/serializable? true
                     :body coerced)))))))
-      (or response)
-      respond))
-
-(defn coerce-response! [request response responses]
-  (coerce-response* request response responses identity #(throw %)))
+      (or response)))
 
 (defn coerce-request! [schema key type keywordize? request]
   (let [transform (if keywordize? walk/keywordize-keys identity)
@@ -76,7 +72,7 @@
               (throw (ex-info
                        (str "Request validation failed: " (pr-str errors))
                        {:type ::ex/request-validation
-                        :validation :schema
+                        :coercion :schema
                         :value value
                         :in [:request key]
                         :schema schema
@@ -96,5 +92,6 @@
      (coerce-response! request (handler request) responses))
     ([request respond raise]
      (handler request
-              (fn [response] (coerce-response* request response responses respond raise))
+              (fn [response]
+                (respond (coerce-response! request response responses)))
               raise))))
