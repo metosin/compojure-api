@@ -4,7 +4,7 @@
             [linked.core :as linked]
             [ring.swagger.coerce :as coerce]
             [compojure.api.middleware :as mw]
-            [compojure.api.coercion :as coercion])
+            [compojure.api.coercion.core :as cc])
   (:import (java.io File)))
 
 (defn memoized-coercer
@@ -35,7 +35,7 @@
 (defmethod coerce-response? File [_] false)
 
 (defrecord SchemaCoercion [name options]
-  coercion/Coercion
+  cc/Coercion
   (get-name [_] name)
 
   (coerce-request [_ schema value type format request]
@@ -47,7 +47,7 @@
               coerced (coerce value)]
           (if (su/error? coerced)
             (let [errors (su/error-val coerced)]
-              (coercion/map->CoercionError
+              (cc/map->CoercionError
                 {:schema schema
                  :errors errors}))
             coerced))
@@ -55,7 +55,7 @@
 
   (coerce-response [this schema value type format request]
     (if (coerce-response? schema)
-      (coercion/coerce-request this schema value type format request)
+      (cc/coerce-request this schema value type format request)
       value)))
 
 (def string-coercion-matcher coerce/query-schema-coercion-matcher)
@@ -74,4 +74,4 @@
 
 (def default-coercion (create-coercion default-options))
 
-(defmethod coercion/named-coercion :schema [_] default-coercion)
+(defmethod cc/named-coercion :schema [_] default-coercion)
