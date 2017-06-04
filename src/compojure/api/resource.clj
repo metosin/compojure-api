@@ -89,7 +89,7 @@
 
 (defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
   (if-let [[raw-handler async?] (resolve-handler info path-info route request-method true)]
-    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+    (let [request (assoc-in request mw/coercion-request-ks coercion)
           ks (if (contains? info request-method) [request-method] [])
           respond-coerced (fn [response]
                             (respond

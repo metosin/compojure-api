@@ -17,7 +17,7 @@
   * Default coercion is `:schema`, resolving to `compojure.api.coercion.schema/SchemaCoercion`
   * Setting coercion to `nil` removes the coercion (was: `nil` or `(constantly nil)`).
 
-  * **TODO**: `compojure.api.coercion.schema/SpecCoercion`
+  * **TODO**: `compojure.api.coercion.spec/SpecCoercion`
 
 ## 2.0.0-alpha1 (30.5.2017)
 
