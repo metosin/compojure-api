@@ -1,6 +1,6 @@
 (ns compojure.api.resource
   (:require [compojure.api.routes :as routes]
-            [compojure.api.coerce :as coerce]
+            [compojure.api.coercion :as coercion]
             [ring.swagger.common :as rsc]
             [schema.core :as s]
             [plumbing.core :as p]
@@ -31,13 +31,13 @@
     (fn [request ring-key [compojure-key _ type open?]]
       (if-let [schema (get-in info (concat ks [:parameters ring-key]))]
         (let [schema (if open? (assoc schema s/Keyword s/Any) schema)]
-          (update request ring-key merge (coerce/coerce-request! schema compojure-key type (not= :body type) request)))
+          (update request ring-key merge (coercion/coerce-request! schema compojure-key type (not= :body type) request)))
         request))
     request
     (:parameters +mappings+)))
 
 (defn- coerce-response [response info request ks]
-  (coerce/coerce-response! request response (get-in info (concat ks [:responses]))))
+  (coercion/coerce-response! request response (get-in info (concat ks [:responses]))))
 
 (defn- maybe-async [async? x]
   (if (and async? x) [x true]))
@@ -79,7 +79,7 @@
 
 (defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
   (when-let [[raw-handler] (resolve-handler info path-info route request-method false)]
-    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
+    (let [request (assoc-in request mw/coercion-request-ks coercion)
           ks (if (contains? info request-method) [request-method] [])
           handler (middleware-chain info request-method raw-handler)]
       (-> (coerce-request request info ks)
@@ -105,12 +105,15 @@
           (raise e))))
     (respond nil)))
 
-(defn- create-handler [{:keys [coercion] :as info}]
-  (fn
-    ([request]
-     (handle-sync info coercion request))
-    ([request respond raise]
-     (handle-async info coercion request respond raise))))
+(defn- create-handler [info]
+  (let [coercion (if (contains? info :coercion)
+                   (:coercion info)
+                   mw/default-coercion)]
+    (fn
+      ([request]
+       (handle-sync info coercion request))
+      ([request respond raise]
+       (handle-async info coercion request respond raise)))))
 
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]

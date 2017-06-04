@@ -4,7 +4,7 @@
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [compojure.api.coerce]
+            [compojure.api.coercion.schema :as cs]
             [compojure.api.middleware :as mw]))
 
 (defn has-body [expected]
@@ -68,7 +68,7 @@
       (fact "response-coercion can be disabled"
         (fact "separately"
           (let [app (api
-                      {:coercion mw/no-response-coercion}
+                      {:coercion (cs/create-coercion (dissoc cs/default-options :response))}
                       ping-route)]
             (let [[status body] (get* app "/ping")]
               status => 200
@@ -94,7 +94,7 @@
             body => {:beers ["ipa" "apa"]})))
 
       (fact "body-coercion can be disabled"
-        (let [no-body-coercion (mw/create-coercion (dissoc mw/default-coercion-options :body))
+        (let [no-body-coercion (cs/create-coercion (dissoc cs/default-options :body))
               app (api
                     {:coercion no-body-coercion}
                     beer-route)]
@@ -109,7 +109,7 @@
             body => {:beers ["ipa" "apa" "ipa"]})))
 
       (fact "body-coercion can be changed"
-        (let [nop-body-coercion (mw/create-coercion (assoc mw/default-coercion-options :body {:default (constantly nil)}))
+        (let [nop-body-coercion (cs/create-coercion (assoc cs/default-options :body {:default (constantly nil)}))
               app (api
                     {:coercion nop-body-coercion}
                     beer-route)]
@@ -128,7 +128,7 @@
             body => {:i 10})))
 
       (fact "query-coercion can be disabled"
-        (let [no-query-coercion (mw/create-coercion (dissoc mw/default-coercion-options :string))
+        (let [no-query-coercion (cs/create-coercion (dissoc cs/default-options :string))
               app (api
                     {:coercion no-query-coercion}
                     query-route)]
@@ -137,7 +137,7 @@
             body => {:i "10"})))
 
       (fact "query-coercion can be changed"
-        (let [nop-query-coercion (mw/create-coercion (assoc mw/default-coercion-options :string (constantly nil)))
+        (let [nop-query-coercion (cs/create-coercion (assoc cs/default-options :string {:default (constantly nil)}))
               app (api
                     {:coercion nop-query-coercion}
                     query-route)]
@@ -149,14 +149,10 @@
                   :query-params [i :- s/Int]
                   (ok {:i i}))
                 (GET "/disabled-coercion" []
-                  :coercion (mw/create-coercion (assoc mw/default-coercion-options :string (constantly nil)))
+                  :coercion (cs/create-coercion (assoc cs/default-options :string {:default (constantly nil)}))
                   :query-params [i :- s/Int]
                   (ok {:i i}))
                 (GET "/no-coercion" []
-                  :coercion (constantly nil)
-                  :query-params [i :- s/Int]
-                  (ok {:i i}))
-                (GET "/nil-coercion" []
                   :coercion nil
                   :query-params [i :- s/Int]
                   (ok {:i i})))]
@@ -184,9 +180,6 @@
       (fact "no coercion"
         (let [[status body] (get* app "/no-coercion" {:i 10})]
           status => 200
-          body => {:i "10"})
-        (let [[status body] (get* app "/nil-coercion" {:i 10})]
-          status => 200
           body => {:i "10"})))))
 
 (facts "apiless coercion"
@@ -207,7 +200,7 @@
     (let [app (context "/api" []
                 :query-params [{y :- Long 0}]
                 (GET "/ping" []
-                  :coercion (constantly nil)
+                  :coercion nil
                   :query-params [x :- Long]
                   (ok [x y])))]
       (app {:request-method :get :uri "/api/ping" :query-params {}}) => throws

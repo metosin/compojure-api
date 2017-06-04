@@ -43,7 +43,7 @@
       value)))
 
 (defn coerce-response! [request {:keys [status body] :as response} responses]
-  (when-let [model (or (:schema (get responses status))
+  (if-let [model (or (:schema (get responses status))
                        (:schema (get responses :default)))]
     (if-let [coercion (-> request
                           (mw/coercion)
@@ -65,7 +65,8 @@
           (assoc response
             :compojure.api.meta/serializable? true
             :body result)))
-      response)))
+      response)
+    response))
 
 ;;
 ;; middleware

@@ -1,3 +1,24 @@
+## UNRELEASED
+
+* **BREAKING**: Simplified pluggable coercion.
+  * new namespace `compojure.api.coercion`, replacing `compojure.api.coerce`.
+  * `:coercion` can be set tp `api`, `context`, endpoint macros or a `resource`. It can be either:
+     * anything satisfying `compojure.api.coercion/Coercion`
+     * `keyword` for looking up a predefined `Coercion` via `compojure.api.coercion/named-coercion` multimethod.
+  * signature of `Coercion`:
+
+```clj
+(defprotocol Coercion
+  (get-name [this])
+  (coerce-request [this model value type format request])
+  (coerce-response [this model value type format request]))
+```
+
+  * Default coercion is `:schema`, resolving to `compojure.api.coercion.schema/SchemaCoercion`
+  * Setting coercion to `nil` removes the coercion (was: `nil` or `(constantly nil)`).
+
+  * **TODO**: `compojure.api.coercion.schema/SpecCoercion`
+
 ## 2.0.0-alpha1 (30.5.2017)
 
 * More descriptive error messages, fixes [#304](https://github.com/metosin/compojure-api/issues/304) and [#306](https://github.com/metosin/compojure-api/issues/306):

@@ -1606,10 +1606,9 @@
                 :return File
                 (ok message)))]
 
-    (fact "spec is not mounted"
-      (let [[status body] (raw-get* app "/file")]
-        status => 200
-        body => message))))
+    (let [[status body] (get* app "/file")]
+      status => 200
+      body => message)))
 
 (fact "nil routes are ignored"
   (let [create-app (fn [{:keys [dev?]}]

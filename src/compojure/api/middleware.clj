@@ -108,57 +108,13 @@
   [request]
   (::options request))
 
-;;
-;; coercion
-;;
-
-(def string-coercion-matcher coerce/query-schema-coercion-matcher)
-(def json-coercion-matcher coerce/json-schema-coercion-matcher)
-
-(s/defschema CoercionType (s/enum :body :string :response))
-
-(def default-coercion-options
-  {:body {:default (constantly nil)
-          :formats {"application/json" json-coercion-matcher
-                    "application/msgpack" json-coercion-matcher
-                    "application/x-yaml" json-coercion-matcher}}
-   :string string-coercion-matcher
-   :response {:default (constantly nil)
-              :formats {}}})
-
-(defn create-coercion
-  ([] (create-coercion default-coercion-options))
-  ([{{body-default :default
-      body-formats :formats} :body
-     {response-default :default
-      response-formats :formats} :response
-     string-default :string}]
-   (fn [request]
-     (let [request-format (-> request :muuntaja/request :format)]
-       (fn [type]
-         (case type
-           :body (or (get body-formats request-format) body-default)
-           :string string-default
-           :response (or (get response-formats request-format) response-default)))))))
-
-(def ^:private default-coercion (create-coercion))
-
-(def no-response-coercion
-  (create-coercion
-    (dissoc default-coercion-options :response)))
+(def default-coercion :schema)
 
 (defn coercion [request]
   (let [options (get-options request)]
     (if-let [entry (find options :coercion)]
       (.val ^IMapEntry entry)
-      :schema)))
-
-(defn coercion-matchers [request]
-  (let [options (get-options request)]
-    (if (contains? options :coercion)
-      (if-let [provider (:coercion options)]
-        (provider request))
-      (default-coercion request))))
+      default-coercion)))
 
 (def coercion-request-ks [::options :coercion])
 

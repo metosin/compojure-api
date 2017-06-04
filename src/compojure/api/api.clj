@@ -4,7 +4,7 @@
             [compojure.api.middleware :as middleware]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
-            [compojure.api.coerce :as coerce]
+            [compojure.api.coercion.schema :as schema-coercion]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]))
 
@@ -68,7 +68,7 @@
                                                      (dissoc options :api :swagger))
                             true (middleware/wrap-options
                                    {:paths paths
-                                    :coercer (coerce/memoized-coercer)
+                                    :coercer (schema-coercion/memoized-coercer)
                                     :lookup lookup}))]
     (routes/map->Route
       {:childs [handler]

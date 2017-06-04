@@ -45,11 +45,12 @@
     :in              location of the value ([:response :body])
     :schema          schema to be validated against
     :error           schema error
+    :request         raw request
     :response        raw response"
   [e data req]
   (response/internal-server-error
     (-> data
-        (dissoc :response)
+        (dissoc :request :response)
         (assoc :value (-> data :response :body))
         (update :schema stringify)
         (update :errors stringify))))

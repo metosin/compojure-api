@@ -69,6 +69,9 @@
    :string {:default string-coercion-matcher}
    :response {:default (constantly nil)}})
 
-(def schema-coercion (->SchemaCoercion :schema default-options))
+(defn create-coercion [options]
+  (->SchemaCoercion :schema options))
 
-(defmethod coercion/named-coercion :schema [_] schema-coercion)
+(def default-coercion (create-coercion default-options))
+
+(defmethod coercion/named-coercion :schema [_] default-coercion)
