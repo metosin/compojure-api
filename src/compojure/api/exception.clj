@@ -37,6 +37,7 @@
         :else x))
     error))
 
+;; TODO: coercion should handle how to publish data
 (defn response-validation-handler
   "Creates error response based on a response error. The following keys are available:
 
@@ -55,6 +56,7 @@
         (update :schema stringify)
         (update :errors stringify))))
 
+;; TODO: coercion should handle how to publish data
 (defn request-validation-handler
   "Creates error response based on Schema error. The following keys are available:
 

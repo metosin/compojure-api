@@ -26,28 +26,39 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.8.0"]
+                       :dependencies [[org.clojure/clojure "1.9.0-alpha16"]
                                       [http-kit "2.2.0"]
                                       [reloaded.repl "0.2.3"]
                                       [com.stuartsierra/component "0.3.2"]]}
-             :dev {:repl-options {:init-ns user}
-                   :plugins [[lein-clojars "0.9.1"]
+             :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
                              [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
-                   :dependencies [[org.clojure/clojure "1.8.0"]
+                   :dependencies [[org.clojure/clojure "1.9.0-alpha16"]
+                                  [metosin/spec-tools "0.2.0"]
                                   [org.clojure/core.async "0.3.443"]
                                   [peridot "0.4.4"]
-                                  [javax.servlet/servlet-api "2.5"]
+                                  [javax.servlet/javax.servlet-api "3.1.0"]
                                   [midje "1.9.0-alpha6"]
                                   [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]
+                   :test-paths ["test19"]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/thingie/src"]}
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
                    :main examples.server}
+             :dev18 {:plugins [[lein-midje "3.2.1"]]
+                     :dependencies [[org.clojure/clojure "1.8.0"]
+                                    [clojure-future-spec "1.9.0-alpha16"]
+                                    [metosin/spec-tools "0.2.0" :exlusions [org.clojure/spec.alpha]]
+                                    [org.clojure/core.async "0.3.443"]
+                                    [peridot "0.4.4"]
+                                    [javax.servlet/javax.servlet-api "3.1.0"]
+                                    [midje "1.9.0-alpha6"]
+                                    [com.stuartsierra/component "0.3.2"]
+                                    [criterium "0.4.4"]]}
              :perf {:jvm-opts ^:replace ["-server"
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
@@ -56,11 +67,8 @@
                                       [org.slf4j/jul-to-slf4j "1.7.25"]
                                       [org.slf4j/log4j-over-slf4j "1.7.25"]
                                       [ch.qos.logback/logback-classic "1.2.3" :exclusions [org.slf4j/slf4j-api]]]}
-             :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}
-             :1.9 {:dependencies [[org.clojure/clojure "1.9.0-alpha15"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
-                     :dependencies [[compojure "1.6.0"]
-                                    [manifold "0.1.6" :exclusions [org.clojure/tools.logging]]]}}
+                     :dependencies [[manifold "0.1.6" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
@@ -68,7 +76,7 @@
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
   :deploy-repositories [["releases" :clojars]]
-  :aliases {"all" ["with-profile" "dev:dev,1.7:dev,1.9:dev,async"]
+  :aliases {"all" ["with-profile" "dev:dev18:dev,async"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]

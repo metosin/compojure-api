@@ -14,10 +14,37 @@
   (coerce-response [this model value type format request]))
 ```
 
-  * Default coercion is `:schema`, resolving to `compojure.api.coercion.schema/SchemaCoercion`
-  * Setting coercion to `nil` removes the coercion (was: `nil` or `(constantly nil)`).
+  * `:schema` (default) resolves to `compojure.api.coercion.schema/SchemaCoercion`
+  * `:spec` resolves to `compojure.api.coercion.spec/SpecCoercion` (if [spec-tools](https://github.com/metosin/spec-tools) is found in classpath)
+  * `nil` removes the coercion (was: `nil` or `(constantly nil)`).
 
-  * **TODO**: `compojure.api.coercion.spec/SpecCoercion`
+```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[clojure.spec.alpha :as s])
+(require '[spec-tools.core :as st])
+
+(defn enum [values]
+  (st/spec (s/and (st/spec keyword?) values)))
+
+(s/def ::name string?)
+(s/def ::description string?)
+(s/def ::size (enum #{:L :M :S}))
+(s/def ::country (enum #{:FI :PO}))
+(s/def ::city string?)
+(s/def ::origin (s/keys :req-un [::country ::city]))
+(s/def ::pizza (s/keys :req-un [::name ::size ::origin] :opt-un [::description]))
+
+;; a spec-resource (doesn't emit swagger yet)
+(context "/spec" []
+  (resource
+    {:coercion :spec
+     :parameters {:body-params ::pizza}
+     :responses {200 {:schema ::pizza}}
+     :post {:handler (fn [{:keys [body-params]}]
+                       (ok body-params))}}))
+```
+
+* **BREAKING**: Clojure 1.7.0 is no longer supported (no back-port for `clojure.spec`).
 
 ## 2.0.0-alpha1 (30.5.2017)
 

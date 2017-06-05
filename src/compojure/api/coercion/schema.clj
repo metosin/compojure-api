@@ -4,7 +4,8 @@
             [linked.core :as linked]
             [ring.swagger.coerce :as coerce]
             [compojure.api.middleware :as mw]
-            [compojure.api.coercion.core :as cc])
+            [compojure.api.coercion.core :as cc]
+            [compojure.api.impl.logging :as log])
   (:import (java.io File)))
 
 (defn memoized-coercer
@@ -75,3 +76,5 @@
 (def default-coercion (create-coercion default-options))
 
 (defmethod cc/named-coercion :schema [_] default-coercion)
+
+(log/log! :info ":schema coercion enabled in compojure.api")

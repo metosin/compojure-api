@@ -1,10 +1,16 @@
 (ns compojure.api.coercion
   (:require [clojure.walk :as walk]
+            muuntaja.util
             [compojure.api.middleware :as mw]
             [compojure.api.exception :as ex]
             [compojure.api.coercion.core :as cc]
             [compojure.api.coercion.schema])
   (:import (compojure.api.coercion.core CoercionError)))
+
+;; enable :spec if spec-tools is present
+(muuntaja.util/when-ns
+  'spec-tools.core
+  (require 'compojure.api.coercion.spec))
 
 (defn find-coercion [coercion]
   (cond
