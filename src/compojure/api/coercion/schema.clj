@@ -39,6 +39,8 @@
   cc/Coercion
   (get-name [_] name)
 
+  (get-apidocs [_ _ data] data)
+
   (coerce-request [_ schema value type format request]
     (let [type-options (options type)]
       (if-let [matcher (or (get (get type-options :formats) format)

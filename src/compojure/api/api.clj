@@ -52,29 +52,29 @@
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
         options (-> (rsc/deep-merge api-defaults options)
-                    ;; [:formats :formats] can't be deep merged, else defaults always enables all the
-                    ;; formats
+                    ;; [:formats :formats] can't be deep merged :(
                     (assoc-in [:formats :formats] (or (:formats (:formats options))
                                                       (:formats (:formats api-defaults)))))
         handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
-        routes (routes/get-routes handler (:api options))
+        partial-api-route (routes/map->Route
+                            {:childs [handler]
+                             :info {:coercion (:coercion options)}})
+        routes (routes/get-routes partial-api-route (:api options))
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
         enable-api-middleware? (not (get-in options [:api :disable-api-middleware?]))
         api-middleware-options (middleware/api-middleware-options (dissoc options :api :swagger))
-        api-handler (cond-> handler
-                            swagger-data (rsm/wrap-swagger-data swagger-data)
-                            enable-api-middleware? (middleware/api-middleware
-                                                     api-middleware-options)
-                            true (middleware/wrap-options
-                                   {:paths paths
-                                    :coercer (schema-coercion/memoized-coercer)
-                                    :lookup lookup}))]
-    (routes/map->Route
-      {:childs [handler]
-       :info (select-keys api-middleware-options [:coercion])
-       :handler api-handler})))
+        api-handler (-> handler
+                        (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
+                        (cond-> enable-api-middleware? (middleware/api-middleware
+                                                         api-middleware-options))
+                        (middleware/wrap-options
+                          {:paths paths
+                           :coercion (:coercion options)
+                           :coercer (schema-coercion/memoized-coercer)
+                           :lookup lookup}))]
+    (assoc partial-api-route :handler api-handler)))
 
 (defmacro
   ^{:doc (str

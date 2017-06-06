@@ -5,6 +5,7 @@
 
 (defprotocol Coercion
   (get-name [this])
+  (get-apidocs [this spec data])
   (coerce-request [this model value type format request])
   (coerce-response [this model value type format request]))
 

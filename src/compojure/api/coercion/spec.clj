@@ -12,6 +12,10 @@
   cc/Coercion
   (get-name [_] name)
 
+  ;; TODO: spec-swagger
+  (get-apidocs [_ _ info]
+    (dissoc info :parameters :responses))
+
   (coerce-request [_ spec value type format request]
     (let [type-options (options type)]
       (if-let [conforming (or (get (get type-options :formats) format)

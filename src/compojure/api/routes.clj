@@ -9,7 +9,8 @@
             [clojure.string :as str]
             [linked.core :as linked]
             [compojure.response]
-            [schema.core :as s])
+            [schema.core :as s]
+            [compojure.api.coercion :as coercion])
   (:import (clojure.lang AFn IFn Var IDeref)
            (java.io Writer)))
 
@@ -137,12 +138,14 @@
    (reduce
      (fn [acc [path method info]]
        (if-not (true? (:no-doc info))
-         (let [public-info (get info :public {})]
+         (if-let [public-info (->> (get info :public {})
+                                   (coercion/get-apidocs (:coercion info) "swagger"))]
            (update-in
-            acc [path method]
-            (fn [old-info]
-              (let [public-info (or old-info public-info)]
-                (ensure-path-parameters path public-info)))))
+             acc [path method]
+             (fn [old-info]
+               (let [public-info (or old-info public-info)]
+                 (ensure-path-parameters path public-info))))
+           acc)
          acc))
      (linked/map)
      routes)})
