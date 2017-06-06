@@ -40,14 +40,14 @@
         error-handler (or (get handlers type)
                           (get handlers ex-class)
                           (some
-                           (partial get handlers)
-                           (super-classes ex-class))
+                            (partial get handlers)
+                            (super-classes ex-class))
                           default-handler)]
-        (try
-          (error-handler error (assoc data :type type) request)
-          (catch ArityException _
-            (logging/log! :warn "Error-handler arity has been changed.")
-            (error-handler error)))))
+    (try
+      (error-handler error (assoc data :type type) request)
+      (catch ArityException _
+        (logging/log! :warn "Error-handler arity has been changed.")
+        (error-handler error)))))
 
 (defn wrap-exceptions
   "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
@@ -108,6 +108,10 @@
   [request]
   (::options request))
 
+;;
+;; coercion
+;;
+
 (def default-coercion :schema)
 
 (defn coercion [request]
@@ -143,7 +147,7 @@
 
 (defn create-muuntaja
   ([]
-    (create-muuntaja muuntaja-options))
+   (create-muuntaja muuntaja-options))
   ([muuntaja-or-options]
    (if muuntaja-or-options
      (if (instance? Muuntaja muuntaja-or-options)
@@ -181,6 +185,13 @@
    :middleware nil
    :coercion default-coercion
    :ring-swagger nil})
+
+(defn api-middleware-options [options]
+  (-> (rsc/deep-merge api-middleware-defaults options)
+      ;; [:formats :formats] can't be deep merged, else defaults always enables all the
+      ;; formats. Figure out this or use meta-merge?
+      (assoc-in [:formats :formats] (or (:formats (:formats options))
+                                        (:formats (:formats api-middleware-defaults))))))
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
@@ -231,11 +242,7 @@
   ([handler]
    (api-middleware handler nil))
   ([handler options]
-   (let [options (-> (rsc/deep-merge api-middleware-defaults options)
-                     ;; [:formats :formats] can't be deep merged, else defaults always enables all the
-                     ;; formats
-                     (assoc-in [:formats :formats] (or (:formats (:formats options))
-                                                       (:formats (:formats api-middleware-defaults)))))
+   (let [options (api-middleware-options options)
          {:keys [exceptions components formats middleware]} options
          muuntaja (create-muuntaja formats)]
 
@@ -245,17 +252,17 @@
                   "ring-middleware-format and the new formatting options for it should be under [:formats]. See "
                   "'(doc compojure.api.middleware/api-middleware)' for more details."))
 
-     (cond-> handler
-             middleware ((compose-middleware middleware))
-             components (wrap-components components)
-             true ring.middleware.http-response/wrap-http-response
-             muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces]))
-             true (wrap-options (select-keys options [:ring-swagger :coercion]))
-             muuntaja (muuntaja.middleware/wrap-params)
-             muuntaja (muuntaja.middleware/wrap-format-request muuntaja)
-             exceptions (wrap-exceptions exceptions)
-             muuntaja (muuntaja.middleware/wrap-format-response muuntaja)
-             muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja)
-             true wrap-keyword-params
-             true wrap-nested-params
-             true wrap-params))))
+     (-> handler
+         (cond-> middleware ((compose-middleware middleware)))
+         (cond-> components (wrap-components components))
+         ring.middleware.http-response/wrap-http-response
+         (cond-> muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces])))
+         (wrap-options (select-keys options [:ring-swagger :coercion]))
+         (cond-> muuntaja (muuntaja.middleware/wrap-params))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
+         (cond-> exceptions (wrap-exceptions exceptions))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))
+         wrap-keyword-params
+         wrap-nested-params
+         wrap-params))))

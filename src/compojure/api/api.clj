@@ -62,16 +62,18 @@
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
         enable-api-middleware? (not (get-in options [:api :disable-api-middleware?]))
+        api-middleware-options (middleware/api-middleware-options (dissoc options :api :swagger))
         api-handler (cond-> handler
                             swagger-data (rsm/wrap-swagger-data swagger-data)
                             enable-api-middleware? (middleware/api-middleware
-                                                     (dissoc options :api :swagger))
+                                                     api-middleware-options)
                             true (middleware/wrap-options
                                    {:paths paths
                                     :coercer (schema-coercion/memoized-coercer)
                                     :lookup lookup}))]
     (routes/map->Route
       {:childs [handler]
+       :info (select-keys api-middleware-options [:coercion])
        :handler api-handler})))
 
 (defmacro
