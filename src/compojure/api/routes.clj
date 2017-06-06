@@ -48,6 +48,13 @@
        (update-in route [0] (fn [uri] (if (str/blank? uri) "/" uri))))
      (-get-routes handler options))))
 
+(defn get-static-context-routes
+  ([handler]
+   (get-static-context-routes handler nil))
+  ([handler options]
+   (filter (fn [[_ _ info]] (get info :static-context?))
+           (get-routes handler options))))
+
 (defn- realize-childs [route]
   (update route :childs #(if (instance? IDeref %) @% %)))
 
@@ -129,11 +136,14 @@
   {:paths
    (reduce
      (fn [acc [path method info]]
-       (update-in
-         acc [path method]
-         (fn [old-info]
-           (let [info (or old-info info)]
-             (ensure-path-parameters path info)))))
+       (if-not (true? (:no-doc info))
+         (let [public-info (get info :public {})]
+           (update-in
+            acc [path method]
+            (fn [old-info]
+              (let [public-info (or old-info public-info)]
+                (ensure-path-parameters path public-info)))))
+         acc))
      (linked/map)
      routes)})
 
@@ -145,8 +155,19 @@
   (for [[id freq] (frequencies seq)
         :when (> freq 1)] id))
 
+(defn all-paths [routes]
+  (reduce
+   (fn [acc [path method info]]
+     (let [public-info (get info :public {})]
+       (update-in acc [path method]
+                  (fn [old-info]
+                    (let [public-info (or old-info public-info)]
+                      (ensure-path-parameters path public-info))))))
+   (linked/map)
+   routes))
+
 (defn route-lookup-table [routes]
-  (let [entries (for [[path endpoints] (-> routes ring-swagger-paths :paths)
+  (let [entries (for [[path endpoints] (all-paths routes)
                       [method {:keys [x-name parameters]}] endpoints
                       :let [params (:path parameters)]
                       :when x-name]
@@ -166,12 +187,6 @@
 ;;
 ;; Endpoint Trasformers
 ;;
-
-(defn strip-no-doc-endpoints
-  "Endpoint transformer, strips all endpoints that have :x-no-doc true."
-  [endpoint]
-  (if-not (some-> endpoint :x-no-doc true?)
-    endpoint))
 
 (defn non-nil-routes [endpoint]
   (or endpoint {}))

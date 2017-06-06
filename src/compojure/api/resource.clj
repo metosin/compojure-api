@@ -74,7 +74,7 @@
       (routes/map->Route
         {:path "/"
          :method method
-         :info (swaggerize info)}))
+         :info {:public (swaggerize info)}}))
     (select-keys info (:methods +mappings+))))
 
 (defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
@@ -201,6 +201,6 @@
         childs (create-childs info)
         handler (create-handler info)]
     (routes/map->Route
-      {:info root-info
+      {:info {:public root-info}
        :childs childs
        :handler handler})))

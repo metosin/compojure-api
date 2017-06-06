@@ -70,8 +70,7 @@
 
     (extract-paths app)
 
-    => {"/swagger.json" {:get {:x-name :compojure.api.swagger/swagger,
-                               :x-no-doc true}}
+    => {"/swagger.json" {:get {:x-name :compojure.api.swagger/swagger}}
         "/ping" {:get {}}
         "/api/ping" {:get {}}
         "/api/bands" {:get {:x-name :bands
