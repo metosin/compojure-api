@@ -8,6 +8,9 @@
             [compojure.api.impl.logging :as log])
   (:import (java.io File)))
 
+(def string-coercion-matcher coerce/query-schema-coercion-matcher)
+(def json-coercion-matcher coerce/json-schema-coercion-matcher)
+
 (defn memoized-coercer
   "Returns a memoized version of a referentially transparent coercer fn. The
   memoized version of the function keeps a cache of the mapping from arguments
@@ -60,9 +63,6 @@
     (if (coerce-response? schema)
       (cc/coerce-request this schema value type format request)
       value)))
-
-(def string-coercion-matcher coerce/query-schema-coercion-matcher)
-(def json-coercion-matcher coerce/json-schema-coercion-matcher)
 
 (def default-options
   {:body {:default (constantly nil)

@@ -5,6 +5,10 @@
             [compojure.api.coercion.core :as cc]
             [compojure.api.impl.logging :as log]))
 
+(def string-conforming st/string-conforming)
+(def json-conforming st/json-conforming)
+(def default-conforming ::default)
+
 (defmulti coerce-response? identity :default ::default)
 (defmethod coerce-response? ::default [_] true)
 
@@ -20,7 +24,8 @@
     (let [type-options (options type)]
       (if-let [conforming (or (get (get type-options :formats) format)
                               (get type-options :default))]
-        (let [conformed (st/conform spec value conforming)]
+        (let [conforming (if-not (= conforming default-conforming) conforming)
+              conformed (st/conform spec value conforming)]
           (if (s/invalid? conformed)
             (let [problems (st/explain-data spec value conforming)]
               (cc/map->CoercionError
@@ -34,16 +39,13 @@
       (cc/coerce-request this spec value type format request)
       value)))
 
-(def string-conforming st/string-conforming)
-(def json-conforming st/json-conforming)
-
 (def default-options
-  {:body {:default nil
+  {:body {:default default-conforming
           :formats {"application/json" json-conforming
                     "application/msgpack" json-conforming
                     "application/x-yaml" json-conforming}}
    :string {:default string-conforming}
-   :response {:default nil}})
+   :response {:default default-conforming}})
 
 (defn create-coercion [options]
   (->SpecCoercion :spec options))
