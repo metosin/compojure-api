@@ -15,8 +15,10 @@
 ```
 
   * `:schema` (default) resolves to `compojure.api.coercion.schema/SchemaCoercion`
-  * `:spec` resolves to `compojure.api.coercion.spec/SpecCoercion` (if [spec-tools](https://github.com/metosin/spec-tools) is found in classpath)
+  * `:spec` resolves to `compojure.api.coercion.spec/SpecCoercion`
+    * automatically available if [spec-tools](https://github.com/metosin/spec-tools) is found in classpath
   * `nil` removes the coercion (was: `nil` or `(constantly nil)`).
+
 
 ```clj
 (require '[compojure.api.sweet :refer :all])
@@ -42,6 +44,21 @@
      :responses {200 {:schema ::pizza}}
      :post {:handler (fn [{:keys [body-params]}]
                        (ok body-params))}}))
+```
+
+* To use Clojure 1.8 & Spec, these need to be imported:
+
+```clj
+[org.clojure/clojure "1.9.0-alpha16"]
+[metosin/spec-tools "0.2.0"]
+```
+
+* To use Clojure 1.9 & Spec, these need to be imported:
+
+```clj
+[org.clojure/clojure "1.8.0"]
+[clojure-future-spec "1.9.0-alpha16"]
+[metosin/spec-tools "0.2.0"]
 ```
 
 * **BREAKING**: Clojure 1.7.0 is no longer supported (no back-port for `clojure.spec`).
