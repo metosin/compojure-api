@@ -190,7 +190,9 @@
       "    (created (path-for ::user {:id (random-int)}))))")))
 
 (defmethod restructure-param :name [_ v acc]
-  (update-in acc [:info :public] assoc :x-name v))
+  (-> acc
+      (assoc-in [:info :name] v)
+      (assoc-in [:info :public :x-name] v)))
 
 ;;
 ;; tags
@@ -502,7 +504,9 @@
       "  (ok user))")))
 
 (defmethod restructure-param :coercion [_ coercion acc]
-  (update-in acc [:middleware] conj [mw/wrap-coercion coercion]))
+  (-> acc
+      (assoc-in [:info :coercion] coercion)
+      (update-in [:middleware] conj [mw/wrap-coercion coercion])))
 
 ;;
 ;; Impl
