@@ -1,15 +1,25 @@
 ## UNRELEASED
 
+* **BREAKING**: Restructuring internal key changes in `compojure.api.meta`:
+  * `:swagger` is removed in favor of `:info`.
+  * swagger-data is pushed to [`:info :public`] instead of [`:swagger`]
+  * top-level `:info` can contain:
+    - `:static-context?` -> `true` if the `context` is internally optimized as static
+    - `:name`, route name
+    - `:coercion`, the defined coercion
+
 * **BREAKING**: Simplified pluggable coercion.
   * new namespace `compojure.api.coercion`, replacing `compojure.api.coerce`.
   * `:coercion` can be set tp `api`, `context`, endpoint macros or a `resource`. It can be either:
-     * anything satisfying `compojure.api.coercion/Coercion`
-     * `keyword` for looking up a predefined `Coercion` via `compojure.api.coercion/named-coercion` multimethod.
+     * anything satisfying `compojure.api.coercion.core/Coercion`
+     * `keyword` for looking up a predefined `Coercion` via `compojure.api.coercion.core/named-coercion` multimethod.
+  * `coercion` is stored in Route `:info`
   * signature of `Coercion`:
 
 ```clj
 (defprotocol Coercion
   (get-name [this])
+  (get-apidocs [this spec data])
   (coerce-request [this model value type format request])
   (coerce-response [this model value type format request]))
 ```
@@ -18,7 +28,6 @@
   * `:spec` resolves to `compojure.api.coercion.spec/SpecCoercion`
     * automatically available if [spec-tools](https://github.com/metosin/spec-tools) is found in classpath
   * `nil` removes the coercion (was: `nil` or `(constantly nil)`).
-
 
 ```clj
 (require '[compojure.api.sweet :refer :all])
