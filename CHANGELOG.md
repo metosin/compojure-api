@@ -1,4 +1,4 @@
-## Unreleased
+## 2.0.0-alpha1 (30.5.2017)
 
 * More descriptive error messages, fixes [#304](https://github.com/metosin/compojure-api/issues/304) and [#306](https://github.com/metosin/compojure-api/issues/306):
   * when request or response validation fails, more info is provided both to exception hanlders and via default implementations to external clients:

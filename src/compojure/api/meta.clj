@@ -11,7 +11,8 @@
             [compojure.api.coerce :as coerce]
             [compojure.api.help :as help]
             compojure.core
-            compojure.api.compojure-compat))
+            compojure.api.compojure-compat
+            [compojure.api.common :as common]))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
@@ -569,7 +570,7 @@
 (defn- merge-public-parameters
   [{:keys [responses swagger] :as parameters}]
   (cond-> parameters
-    (seq responses) (assoc :responses (apply merge responses))
+    (seq responses) (assoc :responses (common/merge-vector responses))
     swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
 
 (defn merge-parameters
@@ -611,7 +612,7 @@
         _ (assert (nil? swagger) ":swagger is deprecated with 2.0.0, use [:info :public] instead")
 
         ;; response coercion middleware, why not just code?
-        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (merge ~@responses)]) middleware)]
+        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
 
     (if context?
 
