@@ -74,7 +74,6 @@
                           {::request/coercion (:coercion options)})
                         (middleware/wrap-options
                           {:paths paths
-                           :coercer (schema-coercion/memoized-coercer)
                            :lookup lookup}))]
     (assoc partial-api-route :handler api-handler)))
 

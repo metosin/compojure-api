@@ -72,6 +72,8 @@
 
 * **BREAKING**: Clojure 1.7.0 is no longer supported (no back-port for `clojure.spec`).
 
+* use ClassLoader -scoped Schema memoization instead of api-scoped - same for anonymous map specs
+
 ## 2.0.0-alpha1 (30.5.2017)
 
 * More descriptive error messages, fixes [#304](https://github.com/metosin/compojure-api/issues/304) and [#306](https://github.com/metosin/compojure-api/issues/306):

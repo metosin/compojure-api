@@ -30,13 +30,12 @@
         :else x))
     error))
 
-(defn memoized-coercer
+(def memoized-coercer
   "Returns a memoized version of a referentially transparent coercer fn. The
   memoized version of the function keeps a cache of the mapping from arguments
   to results and, when calls with the same arguments are repeated often, has
   higher performance at the expense of higher memory use. FIFO with 10000 entries.
   Cache will be filled if anonymous coercers are used (does not match the cache)"
-  []
   (let [cache (atom (linked/map))
         cache-size 10000]
     (fn [& args]
@@ -48,9 +47,6 @@
                                (dissoc mem (-> mem first first))
                                mem))))
             coercer)))))
-
-(defn cached-coercer [request]
-  (or (-> request ::request/options :coercer) sc/coercer))
 
 ;; don't use coercion for certain types
 (defmulti coerce-response? identity :default ::default)
@@ -72,8 +68,7 @@
     (let [type-options (options type)]
       (if-let [matcher (or (get (get type-options :formats) format)
                            (get type-options :default))]
-        (let [coercer (cached-coercer request)
-              coerce (coercer schema matcher)
+        (let [coerce (memoized-coercer schema matcher)
               coerced (coerce value)]
           (if (su/error? coerced)
             (let [errors (su/error-val coerced)]
