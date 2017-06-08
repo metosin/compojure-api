@@ -9,6 +9,7 @@
     - `:coercion`, the defined coercion
 
 * **BREAKING**: Simplified pluggable coercion.
+  * injected in request under `:compojure.api.request/coercion`
   * new namespace `compojure.api.coercion`, replacing `compojure.api.coerce`.
   * `:coercion` can be set tp `api`, `context`, endpoint macros or a `resource`. It can be either:
      * anything satisfying `compojure.api.coercion.core/Coercion`
@@ -20,6 +21,7 @@
 (defprotocol Coercion
   (get-name [this])
   (get-apidocs [this spec data])
+  (encode-error [this error])
   (coerce-request [this model value type format request])
   (coerce-response [this model value type format request]))
 ```
