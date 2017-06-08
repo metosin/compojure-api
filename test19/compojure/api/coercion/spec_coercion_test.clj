@@ -20,15 +20,15 @@
 
     (fact "default coercion"
       (c! {:body-params valid-value
-           ::request/options {:coercion :spec}}) => valid-value
+           ::request/coercion :spec}) => valid-value
       (c! {:body-params invalid-value
-           ::request/options {:coercion :spec}}) => (throws)
+           ::request/coercion :spec}) => (throws)
       (try
         (c! {:body-params invalid-value
-             ::request/options {:coercion :spec}})
+             ::request/coercion :spec})
         (catch Exception e
           (ex-data e) => (just {:type :compojure.api.exception/request-validation
-                                :coercion (coercion/find-coercion :spec)
+                                :coercion (coercion/resolve-coercion :spec)
                                 :in [:request :body-params]
                                 :spec ::spec
                                 :value invalid-value
@@ -41,18 +41,18 @@
 
     (fact "format-based coercion"
       (c! {:body-params valid-value
-           ::request/options {:coercion :spec}
+           ::request/coercion :spec
            :muuntaja/request {:format "application/json"}}) => valid-value
       (c! {:body-params invalid-value
-           ::request/options {:coercion :spec}
+           ::request/coercion :spec
            :muuntaja/request {:format "application/json"}}) => valid-value)
 
     (fact "no coercion"
       (c! {:body-params valid-value
-           ::request/options {:coercion nil}
+           ::request/coercion nil
            :muuntaja/request {:format "application/json"}}) => valid-value
       (c! {:body-params invalid-value
-           ::request/options {:coercion nil}
+           ::request/coercion nil
            :muuntaja/request {:format "application/json"}}) => invalid-value)))
 
 (defn ok [body]
@@ -73,22 +73,22 @@
   (let [c! coercion/coerce-response!]
 
     (fact "default coercion"
-      (c! {::request/options {:coercion :spec}}
+      (c! {::request/coercion :spec}
           (ok valid-value)
           responses) => (ok? valid-value)
-      (c! {::request/options {:coercion :spec}}
+      (c! {::request/coercion :spec}
           (ok invalid-value)
           responses) => (throws)
       (try
-        (c! {::request/options {:coercion :spec}} (ok invalid-value) responses)
+        (c! {::request/coercion :spec} (ok invalid-value) responses)
         (catch Exception e
           (ex-data e) => (contains {:type :compojure.api.exception/response-validation
-                                    :coercion (coercion/find-coercion :spec)
+                                    :coercion (coercion/resolve-coercion :spec)
                                     :in [:response :body]
                                     :spec ::spec
                                     :value invalid-value
                                     :problems anything
-                                    :request {::request/options {:coercion :spec}}}))))
+                                    :request {::request/coercion :spec}}))))
 
     (fact "format-based custom coercion"
       (fact "request-negotiated response format"
@@ -96,15 +96,15 @@
             (ok invalid-value)
             responses) => throws
         (c! {:muuntaja/response {:format "application/json"}
-             ::request/options {:coercion custom-coercion}}
+             ::request/coercion custom-coercion}
             (ok invalid-value)
             responses) => (ok? valid-value)))
 
     (fact "no coercion"
-      (c! {::request/options {:coercion nil}}
+      (c! {::request/coercion nil}
           (ok valid-value)
           responses) => (ok? valid-value)
-      (c! {::request/options {:coercion nil}}
+      (c! {::request/coercion nil}
           (ok invalid-value)
           responses) => (ok? invalid-value))))
 

@@ -191,11 +191,11 @@
                   (GET "/ping" []
                     :query-params [x :- Long]
                     (ok [x y])))]
-        (app {:request-method :get :uri "/api/ping" :query-params {}}) => throws
-        (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => throws
+        (app {:request-method :get :uri "/api/ping" :query-params {}}) => (throws)
+        (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => (throws)
         (app {:request-method :get :uri "/api/ping" :query-params {:x "1"}}) => (contains {:body [1 0]})
         (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}) => (contains {:body [1 2]})
-        (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => throws))
+        (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => (throws)))
 
     (fact "coercion can be overridden"
       (let [app (context "/api" []
@@ -204,11 +204,11 @@
                     :coercion nil
                     :query-params [x :- Long]
                     (ok [x y])))]
-        (app {:request-method :get :uri "/api/ping" :query-params {}}) => throws
+        (app {:request-method :get :uri "/api/ping" :query-params {}}) => (throws)
         (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => (contains {:body ["abba" 0]})
         (app {:request-method :get :uri "/api/ping" :query-params {:x "1"}}) => (contains {:body ["1" 0]})
         (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}) => (contains {:body ["1" 2]})
-        (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => throws))
+        (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}}) => (throws)))
 
     (fact "context coercion is used for subroutes"
       (let [app (context "/api" []

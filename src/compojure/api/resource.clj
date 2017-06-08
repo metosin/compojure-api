@@ -1,6 +1,7 @@
 (ns compojure.api.resource
   (:require [compojure.api.routes :as routes]
             [compojure.api.coercion :as coercion]
+            [compojure.api.request :as request]
             [ring.swagger.common :as rsc]
             [schema.core :as s]
             [plumbing.core :as p]
@@ -79,7 +80,7 @@
 
 (defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
   (when-let [[raw-handler] (resolve-handler info path-info route request-method false)]
-    (let [request (assoc-in request mw/coercion-request-ks coercion)
+    (let [request (coercion/set-request-coercion request coercion)
           ks (if (contains? info request-method) [request-method] [])
           handler (middleware-chain info request-method raw-handler)]
       (-> (coerce-request request info ks)
@@ -89,7 +90,7 @@
 
 (defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
   (if-let [[raw-handler async?] (resolve-handler info path-info route request-method true)]
-    (let [request (assoc-in request mw/coercion-request-ks coercion)
+    (let [request (coercion/set-request-coercion request coercion)
           ks (if (contains? info request-method) [request-method] [])
           respond-coerced (fn [response]
                             (respond
@@ -126,7 +127,7 @@
 (defn- resolve-coercion [info]
   (if (contains? info :coercion)
     (:coercion info)
-    mw/default-coercion))
+    coercion/default-coercion))
 
 (defn- public-root-info [info]
   (-> (reduce dissoc info (:methods +mappings+))

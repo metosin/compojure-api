@@ -30,7 +30,7 @@
         (c! {:body-params invalid-value})
         (catch Exception e
           (ex-data e) => (just {:type :compojure.api.exception/request-validation
-                                :coercion (coercion/find-coercion :schema)
+                                :coercion (coercion/resolve-coercion :schema)
                                 :in [:request :body-params]
                                 :schema Schema
                                 :value invalid-value
@@ -39,9 +39,9 @@
 
     (fact ":schema coercion"
       (c! {:body-params valid-value
-           ::request/options {:coercion :schema}}) => valid-value
+           ::request/coercion :schema}) => valid-value
       (c! {:body-params invalid-value
-           ::request/options {:coercion :schema}}) => throws)
+           ::request/coercion :schema}) => throws)
 
     (fact "format-based coercion"
       (c! {:body-params valid-value
@@ -51,10 +51,10 @@
 
     (fact "no coercion"
       (c! {:body-params valid-value
-           ::request/options {:coercion nil}
+           ::request/coercion nil
            :muuntaja/request {:format "application/json"}}) => valid-value
       (c! {:body-params invalid-value
-           ::request/options {:coercion nil}
+           ::request/coercion nil
            :muuntaja/request {:format "application/json"}}) => invalid-value)))
 
 (defn ok [body]
@@ -75,13 +75,13 @@
   (let [c! coercion/coerce-response!]
 
     (fact "default coercion"
-      (c! irrelevant (ok valid-value) responses) => (ok? valid-value)
-      (c! irrelevant (ok invalid-value) responses) => throws
+      (c! ..request.. (ok valid-value) responses) => (ok? valid-value)
+      (c! ..request.. (ok invalid-value) responses) => (throws)
       (try
         (c! ..request.. (ok invalid-value) responses)
         (catch Exception e
           (ex-data e) => (contains {:type :compojure.api.exception/response-validation
-                                    :coercion (coercion/find-coercion :schema)
+                                    :coercion (coercion/resolve-coercion :schema)
                                     :in [:response :body]
                                     :schema Schema
                                     :value invalid-value
@@ -90,10 +90,10 @@
 
     (fact ":schema coercion"
       (fact "default coercion"
-        (c! {::request/options {:coercion :schema}}
+        (c! {::request/coercion :schema}
             (ok valid-value)
             responses) => (ok? valid-value)
-        (c! {::request/options {:coercion :schema}}
+        (c! {::request/coercion :schema}
             (ok invalid-value)
             responses) => throws))
 
@@ -103,15 +103,15 @@
             (ok invalid-value)
             responses) => throws
         (c! {:muuntaja/response {:format "application/json"}
-             ::request/options {:coercion custom-coercion}}
+             ::request/coercion custom-coercion}
             (ok invalid-value)
             responses) => (ok? valid-value)))
 
     (fact "no coercion"
-      (c! {::request/options {:coercion nil}}
+      (c! {::request/coercion nil}
           (ok valid-value)
           responses) => (ok? valid-value)
-      (c! {::request/options {:coercion nil}}
+      (c! {::request/coercion nil}
           (ok invalid-value)
           responses) => (ok? invalid-value))))
 

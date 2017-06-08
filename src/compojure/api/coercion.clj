@@ -1,18 +1,29 @@
 (ns compojure.api.coercion
   (:require [clojure.walk :as walk]
             muuntaja.util
-            [compojure.api.middleware :as mw]
             [compojure.api.exception :as ex]
+            [compojure.api.request :as request]
             [compojure.api.coercion.core :as cc]
             [compojure.api.coercion.schema])
-  (:import (compojure.api.coercion.core CoercionError)))
+  (:import (compojure.api.coercion.core CoercionError)
+           (clojure.lang IMapEntry)))
+
+(def default-coercion :schema)
+
+(defn set-request-coercion [request coercion]
+  (assoc request ::request/coercion coercion))
+
+(defn get-request-coercion [request]
+  (if-let [entry (find request ::request/coercion)]
+    (.val ^IMapEntry entry)
+    default-coercion))
 
 ;; enable :spec if spec-tools is present
 (muuntaja.util/when-ns
   'spec-tools.core
   (require 'compojure.api.coercion.spec))
 
-(defn find-coercion [coercion]
+(defn resolve-coercion [coercion]
   (cond
     (nil? coercion) nil
     (keyword? coercion) (cc/named-coercion coercion)
@@ -20,15 +31,15 @@
     :else (throw (ex-info (str "invalid coercion " coercion) {:coercion coercion}))))
 
 (defn get-apidocs [mayby-coercion spec info]
-  (if-let [coercion (find-coercion mayby-coercion)]
+  (if-let [coercion (resolve-coercion mayby-coercion)]
     (cc/get-apidocs coercion spec info)))
 
 (defn coerce-request! [model in type keywordize? request]
   (let [transform (if keywordize? walk/keywordize-keys identity)
         value (transform (in request))]
     (if-let [coercion (-> request
-                          (mw/coercion)
-                          (find-coercion))]
+                          (get-request-coercion)
+                          (resolve-coercion))]
       (let [format (some-> request :muuntaja/request :format)
             result (cc/coerce-request coercion model value type format request)]
         (if (instance? CoercionError result)
@@ -46,10 +57,10 @@
 
 (defn coerce-response! [request {:keys [status body] :as response} responses]
   (if-let [model (or (:schema (get responses status))
-                       (:schema (get responses :default)))]
+                     (:schema (get responses :default)))]
     (if-let [coercion (-> request
-                          (mw/coercion)
-                          (find-coercion))]
+                          (get-request-coercion)
+                          (resolve-coercion))]
       (let [format (or (-> response :muuntaja/content-type)
                        (some-> request :muuntaja/response :format))
             result (cc/coerce-response coercion model body :response format response)]

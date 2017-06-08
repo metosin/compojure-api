@@ -1,6 +1,7 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.api.exception :as ex]
+            [compojure.api.coercion :as coercion]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
             [ring.middleware.http-response]
@@ -95,6 +96,15 @@
 ;; Options
 ;;
 
+(defn wrap-inject-data
+  "Injects data into the request."
+  [handler data]
+  (fn
+    ([request]
+     (handler (merge request data)))
+    ([request respond raise]
+     (handler (merge request data) respond raise))))
+
 (defn wrap-options
   "Injects compojure-api options into the request."
   [handler options]
@@ -104,7 +114,6 @@
     ([request respond raise]
      (handler (update-in request [::request/options] merge options) respond raise))))
 
-;; TODO: move to c.a.request
 (defn get-options
   "Extracts compojure-api options from the request."
   [request]
@@ -114,22 +123,12 @@
 ;; coercion
 ;;
 
-(def default-coercion :schema)
-
-(defn coercion [request]
-  (let [options (get-options request)]
-    (if-let [entry (find options :coercion)]
-      (.val ^IMapEntry entry)
-      default-coercion)))
-
-(def coercion-request-ks [::request/options :coercion])
-
 (defn wrap-coercion [handler coercion]
   (fn
     ([request]
-     (handler (assoc-in request coercion-request-ks coercion)))
+     (handler (coercion/set-request-coercion request coercion)))
     ([request respond raise]
-     (handler (assoc-in request coercion-request-ks coercion) respond raise))))
+     (handler (coercion/set-request-coercion request coercion) respond raise))))
 
 ;;
 ;; Muuntaja
@@ -185,7 +184,7 @@
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
    :middleware nil
-   :coercion default-coercion
+   :coercion coercion/default-coercion
    :ring-swagger nil})
 
 (defn api-middleware-options [options]

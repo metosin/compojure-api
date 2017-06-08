@@ -4,6 +4,7 @@
             [compojure.api.middleware :as middleware]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
+            [compojure.api.request :as request]
             [compojure.api.coercion.schema :as schema-coercion]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]))
@@ -69,9 +70,10 @@
                         (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
                         (cond-> enable-api-middleware? (middleware/api-middleware
                                                          api-middleware-options))
+                        (middleware/wrap-inject-data
+                          {::request/coercion (:coercion options)})
                         (middleware/wrap-options
                           {:paths paths
-                           :coercion (:coercion options)
                            :coercer (schema-coercion/memoized-coercer)
                            :lookup lookup}))]
     (assoc partial-api-route :handler api-handler)))
