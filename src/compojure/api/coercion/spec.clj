@@ -66,8 +66,8 @@
   (get-apidocs [_ _ info]
     (dissoc info :parameters :responses))
 
-  (encode-errors [_ data]
-    (update data :spec (comp str s/form)))
+  (encode-error [_ error]
+    (update error :spec (comp str s/form)))
 
   (coerce-request [_ spec value type format request]
     (let [spec (memoized-specify spec)

@@ -59,8 +59,8 @@
 
   (get-apidocs [_ _ data] data)
 
-  (encode-errors [_ data]
-    (-> data
+  (encode-error [_ error]
+    (-> error
         (update :schema stringify)
         (update :errors stringify)))
 

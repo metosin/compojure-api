@@ -36,7 +36,7 @@
         (dissoc :request :response)
         (update :coercion cc/get-name)
         (assoc :value (-> data :response :body))
-        (->> (cc/encode-errors (:coercion data))))))
+        (->> (cc/encode-error (:coercion data))))))
 
 ;; TODO: coercion should handle how to publish data
 (defn request-validation-handler
@@ -54,7 +54,7 @@
     (-> data
         (dissoc :request)
         (update :coercion cc/get-name)
-        (->> (cc/encode-errors (:coercion data))))))
+        (->> (cc/encode-error (:coercion data))))))
 
 (defn schema-error-handler
   "Creates error response based on Schema error."
