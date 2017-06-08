@@ -37,7 +37,7 @@
                    (merge
                      (into {} result)
                      {:type ::ex/request-validation
-                      :coercion (cc/get-name coercion)
+                      :coercion coercion
                       :value value
                       :in [:request in]
                       :request request})))
@@ -59,7 +59,7 @@
                    (merge
                      (into {} result)
                      {:type ::ex/response-validation
-                      :coercion (cc/get-name coercion)
+                      :coercion coercion
                       :value body
                       :in [:response :body]
                       :request request

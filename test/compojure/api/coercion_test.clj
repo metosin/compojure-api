@@ -217,5 +217,3 @@
                     :query-params [x :- Long]
                     (ok x)))]
         (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}) => (contains {:body "abba"})))))
-
-(future-facts "spec coercion")

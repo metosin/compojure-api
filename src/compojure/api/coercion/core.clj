@@ -1,11 +1,9 @@
-(ns compojure.api.coercion.core
-  (:require [compojure.api.middleware :as mw]
-            [compojure.api.exception :as ex]
-            [clojure.walk :as walk]))
+(ns compojure.api.coercion.core)
 
 (defprotocol Coercion
   (get-name [this])
   (get-apidocs [this spec data])
+  (encode-errors [this data])
   (coerce-request [this model value type format request])
   (coerce-response [this model value type format request]))
 

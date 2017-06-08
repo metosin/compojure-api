@@ -2,11 +2,8 @@
   (:require [ring.util.http-response :as response]
             [clojure.walk :as walk]
             [compojure.api.impl.logging :as logging]
-            [schema.utils :as su]
-            [schema.core :as s])
-  (:import
-    (schema.core OptionalKey RequiredKey)
-    (schema.utils ValidationError NamedError)))
+            [compojure.api.coercion.core :as cc]
+            [compojure.api.coercion.schema]))
 
 ;;
 ;; Default exception handlers
@@ -22,27 +19,12 @@
   (response/internal-server-error {:type "unknown-exception"
                                    :class (.getName (.getClass e))}))
 
-(defn stringify
-  "Stringifies symbols and validation errors in Schema error, keeping the structure intact."
-  [error]
-  (walk/postwalk
-    (fn [x]
-      (cond
-        (class? x) (.getName ^Class x)
-        (instance? OptionalKey x) (pr-str (list 'opt (:k x)))
-        (instance? RequiredKey x) (pr-str (list 'req (:k x)))
-        (satisfies? s/Schema x) (try (pr-str (s/explain x)) (catch Exception _ x))
-        (instance? ValidationError x) (str (su/validation-error-explain x))
-        (instance? NamedError x) (str (su/named-error-explain x))
-        :else x))
-    error))
-
 ;; TODO: coercion should handle how to publish data
 (defn response-validation-handler
   "Creates error response based on a response error. The following keys are available:
 
     :type            type of the exception (::response-validation)
-    :validation      validation lib that was used (:schema)
+    :coercion        coercion instance used
     :in              location of the value ([:response :body])
     :schema          schema to be validated against
     :error           schema error
@@ -52,16 +34,16 @@
   (response/internal-server-error
     (-> data
         (dissoc :request :response)
+        (update :coercion cc/get-name)
         (assoc :value (-> data :response :body))
-        (update :schema stringify)
-        (update :errors stringify))))
+        (->> (cc/encode-errors (:coercion data))))))
 
 ;; TODO: coercion should handle how to publish data
 (defn request-validation-handler
   "Creates error response based on Schema error. The following keys are available:
 
     :type            type of the exception (::request-validation)
-    :validation      validation lib that was used (:schema)
+    :coercion        coercion instance used
     :value           value that was validated
     :in              location of the value (e.g. [:request :query-params])
     :schema          schema to be validated against
@@ -71,14 +53,15 @@
   (response/bad-request
     (-> data
         (dissoc :request)
-        (update :schema stringify)
-        (update :errors stringify))))
+        (update :coercion cc/get-name)
+        (->> (cc/encode-errors (:coercion data))))))
 
 (defn schema-error-handler
   "Creates error response based on Schema error."
   [e data req]
   ; FIXME: Why error is not wrapped to ErrorContainer here?
-  (response/bad-request {:errors (stringify (:error data))}))
+  (response/bad-request
+    {:errors (compojure.api.coercion.schema/stringify (:error data))}))
 
 (defn request-parsing-handler
   [^Exception ex data req]
@@ -88,7 +71,6 @@
       (merge (select-keys data [:type :format :charset])
              (if original {:original (.getMessage original)})
              {:message (.getMessage cause)}))))
-
 ;;
 ;; Logging
 ;;

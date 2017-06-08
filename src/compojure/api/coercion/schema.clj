@@ -3,13 +3,32 @@
             [schema.utils :as su]
             [linked.core :as linked]
             [ring.swagger.coerce :as coerce]
-            [compojure.api.middleware :as mw]
+            [compojure.api.request :as request]
             [compojure.api.coercion.core :as cc]
-            [compojure.api.impl.logging :as log])
-  (:import (java.io File)))
+            [compojure.api.impl.logging :as log]
+            [clojure.walk :as walk]
+            [schema.core :as s])
+  (:import (java.io File)
+           (schema.core OptionalKey RequiredKey)
+           (schema.utils ValidationError NamedError)))
 
 (def string-coercion-matcher coerce/query-schema-coercion-matcher)
 (def json-coercion-matcher coerce/json-schema-coercion-matcher)
+
+(defn stringify
+  "Stringifies Schema records recursively."
+  [error]
+  (walk/postwalk
+    (fn [x]
+      (cond
+        (class? x) (.getName ^Class x)
+        (instance? OptionalKey x) (pr-str (list 'opt (:k x)))
+        (instance? RequiredKey x) (pr-str (list 'req (:k x)))
+        (satisfies? s/Schema x) (try (pr-str (s/explain x)) (catch Exception _ x))
+        (instance? ValidationError x) (str (su/validation-error-explain x))
+        (instance? NamedError x) (str (su/named-error-explain x))
+        :else x))
+    error))
 
 (defn memoized-coercer
   "Returns a memoized version of a referentially transparent coercer fn. The
@@ -31,7 +50,7 @@
             coercer)))))
 
 (defn cached-coercer [request]
-  (or (-> request mw/get-options :coercer) sc/coercer))
+  (or (-> request ::request/options :coercer) sc/coercer))
 
 ;; don't use coercion for certain types
 (defmulti coerce-response? identity :default ::default)
@@ -43,6 +62,11 @@
   (get-name [_] name)
 
   (get-apidocs [_ _ data] data)
+
+  (encode-errors [_ data]
+    (-> data
+        (update :schema stringify)
+        (update :errors stringify)))
 
   (coerce-request [_ schema value type format request]
     (let [type-options (options type)]

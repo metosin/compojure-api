@@ -2,8 +2,11 @@
   (:require [midje.sweet :refer :all]
             [clojure.spec.alpha :as s]
             [spec-tools.spec :as spec]
-            [compojure.api.middleware :as mw]
+            [compojure.api.test-utils :refer :all]
+            [compojure.api.sweet :refer :all]
+            [compojure.api.request :as request]
             [compojure.api.coercion :as coercion]
+            [compojure.api.coercion.core :as cc]
             [compojure.api.coercion.spec :as cs]))
 
 (s/def ::kikka spec/keyword?)
@@ -15,17 +18,17 @@
 (fact "request-coercion"
   (let [c! #(coercion/coerce-request! ::spec :body-params :body false %)]
 
-    (fact ":spec coercion"
+    (fact "default coercion"
       (c! {:body-params valid-value
-           ::mw/options {:coercion :spec}}) => valid-value
+           ::request/options {:coercion :spec}}) => valid-value
       (c! {:body-params invalid-value
-           ::mw/options {:coercion :spec}}) => throws
+           ::request/options {:coercion :spec}}) => (throws)
       (try
         (c! {:body-params invalid-value
-             ::mw/options {:coercion :spec}})
+             ::request/options {:coercion :spec}})
         (catch Exception e
           (ex-data e) => (just {:type :compojure.api.exception/request-validation
-                                :coercion :spec
+                                :coercion (coercion/find-coercion :spec)
                                 :in [:request :body-params]
                                 :spec ::spec
                                 :value invalid-value
@@ -34,23 +37,22 @@
                                             :pred `keyword?
                                             :val "kukka"
                                             :via [::spec ::kikka]}]
-                                :request (contains
-                                           {:body-params {:kikka "kukka"}})}))))
+                                :request (contains {:body-params {:kikka "kukka"}})}))))
 
     (fact "format-based coercion"
       (c! {:body-params valid-value
-           ::mw/options {:coercion :spec}
+           ::request/options {:coercion :spec}
            :muuntaja/request {:format "application/json"}}) => valid-value
       (c! {:body-params invalid-value
-           ::mw/options {:coercion :spec}
+           ::request/options {:coercion :spec}
            :muuntaja/request {:format "application/json"}}) => valid-value)
 
     (fact "no coercion"
       (c! {:body-params valid-value
-           ::mw/options {:coercion nil}
+           ::request/options {:coercion nil}
            :muuntaja/request {:format "application/json"}}) => valid-value
       (c! {:body-params invalid-value
-           ::mw/options {:coercion nil}
+           ::request/options {:coercion nil}
            :muuntaja/request {:format "application/json"}}) => invalid-value)))
 
 (defn ok [body]
@@ -70,38 +72,103 @@
 (fact "response-coercion"
   (let [c! coercion/coerce-response!]
 
-    (fact ":spec coercion"
-      (c! {::mw/options {:coercion :spec}}
+    (fact "default coercion"
+      (c! {::request/options {:coercion :spec}}
           (ok valid-value)
           responses) => (ok? valid-value)
-      (c! {::mw/options {:coercion :spec}}
+      (c! {::request/options {:coercion :spec}}
           (ok invalid-value)
-          responses) => throws
+          responses) => (throws)
       (try
-        (c! {::mw/options {:coercion :spec}} (ok invalid-value) responses)
+        (c! {::request/options {:coercion :spec}} (ok invalid-value) responses)
         (catch Exception e
           (ex-data e) => (contains {:type :compojure.api.exception/response-validation
-                                    :coercion :schema
+                                    :coercion (coercion/find-coercion :spec)
                                     :in [:response :body]
                                     :spec ::spec
                                     :value invalid-value
-                                    :problems irrelevant
-                                    :request {::mw/options {:coercion :spec}}}))))
+                                    :problems anything
+                                    :request {::request/options {:coercion :spec}}}))))
 
     (fact "format-based custom coercion"
       (fact "request-negotiated response format"
-        (c! {::mw/options {:coercion :spec}}
+        (c! irrelevant
             (ok invalid-value)
             responses) => throws
         (c! {:muuntaja/response {:format "application/json"}
-             ::mw/options {:coercion custom-coercion}}
+             ::request/options {:coercion custom-coercion}}
             (ok invalid-value)
             responses) => (ok? valid-value)))
 
     (fact "no coercion"
-      (c! {::mw/options {:coercion nil}}
+      (c! {::request/options {:coercion nil}}
           (ok valid-value)
           responses) => (ok? valid-value)
-      (c! {::mw/options {:coercion nil}}
+      (c! {::request/options {:coercion nil}}
           (ok invalid-value)
           responses) => (ok? invalid-value))))
+
+(s/def ::x spec/int?)
+(s/def ::y spec/int?)
+
+(facts "apis"
+  (let [app (api
+              {:coercion :spec}
+              (GET "/query" []
+                :query [{:keys [x y]} (s/keys :req-un [::x ::y])]
+                (ok {:total (+ x y)}))
+              (POST "/body" []
+                :body [{:keys [x y]} (s/keys :req-un [::x ::y])]
+                (ok {:total (+ x y)}))
+
+              (GET "/query-params" []
+                :query-params [x :- ::x, y :- ::y]
+                (ok {:total (+ x y)}))
+              (POST "/body-params" []
+                :body-params [x :- ::x, {y :- ::y 0}]
+                (ok {:total (+ x y)}))
+
+              (GET "/response" []
+                :return (s/keys :req-un [::x ::y])
+                (ok {})))]
+
+    (fact "query"
+      (let [[status body] (get* app "/query" {:x "1", :y 2})]
+        status => 200
+        body => {:total 3})
+      (let [[status body] (get* app "/query" {:x "1", :y "kaks"})]
+        status => 400
+        body => {:coercion "spec"
+                 :in ["request" "query-params"]
+                 :problems [{:in ["y"]
+                             :path ["y"]
+                             :pred "clojure.core/int?"
+                             :val "kaks"
+                             :via ["compojure.api.coercion.spec-coercion-test/y"]}]
+                 :spec "(clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y])"
+                 :type "compojure.api.exception/request-validation"
+                 :value {:x "1", :y "kaks"}}))
+
+    (fact "body"
+      (let [[status body] (post* app "/body" (json {:x 1, :y 2}))]
+        status => 200
+        body => {:total 3}))
+
+    (fact "query-params"
+      (let [[status body] (get* app "/query-params" {:x "1", :y 2})]
+        status => 200
+        body => {:total 3})
+      (let [[status body] (get* app "/query-params" {:x "1", :y "a"})]
+        status => 400
+        body => (contains {:coercion "spec"})))
+
+    (fact "body-params"
+      (let [[status body] (post* app "/body-params" (json {:x 1, :y 2}))]
+        status => 200
+        body => {:total 3})
+      (let [[status body] (post* app "/body-params" (json {:x 1}))]
+        status => 200
+        body => {:total 1})
+      (let [[status body] (post* app "/body-params" (json {:x "1"}))]
+        status => 400
+        body => (contains {:coercion "spec"})))))

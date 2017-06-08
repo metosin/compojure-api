@@ -1,6 +1,7 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.api.exception :as ex]
+            [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
             [ring.middleware.http-response]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
@@ -99,14 +100,15 @@
   [handler options]
   (fn
     ([request]
-     (handler (update-in request [::options] merge options)))
+     (handler (update-in request [::request/options] merge options)))
     ([request respond raise]
-     (handler (update-in request [::options] merge options) respond raise))))
+     (handler (update-in request [::request/options] merge options) respond raise))))
 
+;; TODO: move to c.a.request
 (defn get-options
   "Extracts compojure-api options from the request."
   [request]
-  (::options request))
+  (::request/options request))
 
 ;;
 ;; coercion
@@ -120,7 +122,7 @@
       (.val ^IMapEntry entry)
       default-coercion)))
 
-(def coercion-request-ks [::options :coercion])
+(def coercion-request-ks [::request/options :coercion])
 
 (defn wrap-coercion [handler coercion]
   (fn
