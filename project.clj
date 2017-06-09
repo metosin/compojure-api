@@ -26,7 +26,7 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.9.0-alpha16"]
+                       :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
                                       [http-kit "2.2.0"]
                                       [reloaded.repl "0.2.3"]
                                       [com.stuartsierra/component "0.3.2"]]}
@@ -34,7 +34,7 @@
                              [lein-midje "3.2.1"]
                              [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
-                   :dependencies [[org.clojure/clojure "1.9.0-alpha16"]
+                   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
                                   [metosin/spec-tools "0.2.1-SNAPSHOT"]
                                   [org.clojure/core.async "0.3.443"]
                                   [peridot "0.4.4"]
@@ -52,8 +52,8 @@
                    :main examples.server}
              :dev18 {:plugins [[lein-midje "3.2.1"]]
                      :dependencies [[org.clojure/clojure "1.8.0"]
-                                    [clojure-future-spec "1.9.0-alpha16"]
-                                    [metosin/spec-tools "0.2.0"]
+                                    [clojure-future-spec "1.9.0-alpha17"]
+                                    [metosin/spec-tools "0.2.1-SNAPSHOT"]
                                     [org.clojure/core.async "0.3.443"]
                                     [peridot "0.4.4"]
                                     [javax.servlet/javax.servlet-api "3.1.0"]
