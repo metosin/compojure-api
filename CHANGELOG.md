@@ -57,19 +57,19 @@
                        (ok body-params))}}))
 ```
 
-* To use Clojure 1.8 & Spec, these need to be imported:
+* To use Clojure 1.9 & Spec, these need to be imported:
 
 ```clj
 [org.clojure/clojure "1.9.0-alpha17"]
 [metosin/spec-tools "0.2.1"]
 ```
 
-* To use Clojure 1.9 & Spec, these need to be imported:
+* To use Clojure 1.8 & Spec, these need to be imported:
 
 ```clj
 [org.clojure/clojure "1.8.0"]
+[metosin/spec-tools "0.2.1" :exlusions [org.clojure/spec.alpha]]
 [clojure-future-spec "1.9.0-alpha17"]
-[metosin/spec-tools "0.2.1"]
 ```
 
 * **BREAKING**: Clojure 1.7.0 is no longer supported (no back-port for `clojure.spec`).
