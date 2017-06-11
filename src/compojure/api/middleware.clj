@@ -272,8 +272,13 @@
            (cond-> {::request/coercion coercion}
                    ring-swagger (assoc ::request/ring-swagger ring-swagger)))
          (cond-> muuntaja (muuntaja.middleware/wrap-params))
+         ;; all but request-parsing exceptions (to make :body-params visible)
+         (cond-> exceptions (wrap-exceptions
+                              (update exceptions :handlers dissoc ::ex/request-parsing)))
          (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
-         (cond-> exceptions (wrap-exceptions exceptions))
+         ;; just request-parsing exceptions
+         (cond-> exceptions (wrap-exceptions
+                              (update exceptions :handlers select-keys [::ex/request-parsing])))
          (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
          (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))
 
