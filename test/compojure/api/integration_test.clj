@@ -1704,9 +1704,10 @@
               {:exceptions
                {:handlers
                 {:compojure.api.exception/default
-                 (fn [^Exception e data request]
+                 (fn [_ _ request]
                    (internal-server-error (:body-params request)))}}}
-              (POST "/error" [] (/ 1 0)))
+              (POST "/error" []
+                (throw (RuntimeException. "error"))))
         [status body] (post* app "/error" (json {:kikka 6}))]
     status => 500
     body => {:kikka 6}))
