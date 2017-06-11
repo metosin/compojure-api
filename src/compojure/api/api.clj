@@ -2,6 +2,7 @@
   (:require [compojure.api.core :as c]
             [compojure.api.swagger :as swagger]
             [compojure.api.middleware :as middleware]
+            [compojure.api.request :as request]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
             [compojure.api.request :as request]
@@ -71,10 +72,8 @@
                         (cond-> enable-api-middleware? (middleware/api-middleware
                                                          api-middleware-options))
                         (middleware/wrap-inject-data
-                          {::request/coercion (:coercion options)})
-                        (middleware/wrap-options
-                          {:paths paths
-                           :lookup lookup}))]
+                          {::request/paths paths
+                           ::request/lookup lookup}))]
     (assoc partial-api-route :handler api-handler)))
 
 (defmacro

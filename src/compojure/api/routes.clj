@@ -3,6 +3,7 @@
             [clojure.string :as string]
             [cheshire.core :as json]
             [compojure.api.middleware :as mw]
+            [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
             [compojure.api.common :as common]
             [ring.swagger.common :as rsc]
@@ -222,8 +223,7 @@
   "Extracts the lookup-table from request and finds a route by name."
   [route-name request & [params]]
   (let [[path details] (some-> request
-                               mw/get-options
-                               :lookup
+                               ::request/lookup
                                route-name
                                first)
         path-params (:params details)]

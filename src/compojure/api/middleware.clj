@@ -1,6 +1,7 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.api.exception :as ex]
+            [compojure.api.common :as common]
             [compojure.api.coercion :as coercion]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
@@ -20,7 +21,7 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [schema.coerce :as sc])
-  (:import [clojure.lang ArityException IMapEntry]
+  (:import [clojure.lang ArityException]
            [muuntaja.records Muuntaja]))
 
 ;;
@@ -101,23 +102,9 @@
   [handler data]
   (fn
     ([request]
-     (handler (merge request data)))
+     (handler (common/fast-map-merge request data)))
     ([request respond raise]
-     (handler (merge request data) respond raise))))
-
-(defn wrap-options
-  "Injects compojure-api options into the request."
-  [handler options]
-  (fn
-    ([request]
-     (handler (update-in request [::request/options] merge options)))
-    ([request respond raise]
-     (handler (update-in request [::request/options] merge options) respond raise))))
-
-(defn get-options
-  "Extracts compojure-api options from the request."
-  [request]
-  (::request/options request))
+     (handler (common/fast-map-merge request data) respond raise))))
 
 ;;
 ;; coercion
@@ -172,6 +159,31 @@
        (keep identity)
        (map middleware-fn)
        (apply comp identity)))
+
+;;
+;; swagger-data
+;;
+
+(defn set-swagger-data
+  "Add extra top-level swagger-data into a request.
+  Data can be read with get-swagger-data."
+  ([request data]
+   (update request ::request/swagger (fnil conj []) data)))
+
+(defn get-swagger-data
+  "Reads and deep-merges top-level swagger-data from request,
+  pushed in by set-swagger-data."
+  [request]
+  (apply rsc/deep-merge (::request/swagger request)))
+
+(defn wrap-swagger-data
+  "Middleware that adds top level swagger-data into request."
+  [handler data]
+  (fn
+    ([request]
+     (handler (set-swagger-data request data)))
+    ([request respond raise]
+     (handler (set-swagger-data request data) respond raise))))
 
 ;;
 ;; Api Middleware
@@ -244,7 +256,7 @@
    (api-middleware handler nil))
   ([handler options]
    (let [options (api-middleware-options options)
-         {:keys [exceptions components formats middleware]} options
+         {:keys [exceptions components formats middleware ring-swagger coercion]} options
          muuntaja (create-muuntaja formats)]
 
      ;; 1.2.0+
@@ -256,14 +268,22 @@
      (-> handler
          (cond-> middleware ((compose-middleware middleware)))
          (cond-> components (wrap-components components))
-         ring.middleware.http-response/wrap-http-response
-         (cond-> muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces])))
-         (wrap-options (select-keys options [:ring-swagger :coercion]))
+         (ring.middleware.http-response/wrap-http-response)
+         (cond-> muuntaja (wrap-swagger-data (select-keys muuntaja [:consumes :produces])))
+         (wrap-inject-data
+           (cond-> {::request/coercion coercion}
+                   ring-swagger (assoc ::request/ring-swagger ring-swagger)))
          (cond-> muuntaja (muuntaja.middleware/wrap-params))
          (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
          (cond-> exceptions (wrap-exceptions exceptions))
          (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
          (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))
+
+         ;; these are really slow middleware, 4.5µs => 9.1µs (+100%)
+
+         ;; 7.8µs => 9.1µs (+27%)
          wrap-keyword-params
+         ;; 7.1µs => 7.8µs (+23%)
          wrap-nested-params
+         ;; 4.5µs => 7.1µs (+50%)
          wrap-params))))

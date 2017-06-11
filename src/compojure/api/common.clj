@@ -41,3 +41,11 @@
   (if (get v 1)
     (apply merge v)
     (get v 0)))
+
+(defn fast-map-merge
+  [x y]
+  (reduce-kv
+    (fn [m k v]
+      (assoc m k v))
+    x
+    y))
