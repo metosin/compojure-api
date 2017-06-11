@@ -28,8 +28,6 @@
 ;; Catch exceptions
 ;;
 
-(def rethrow-exceptions? ::rethrow-exceptions?)
-
 (defn- super-classes [^Class k]
   (loop [sk (.getSuperclass k), ks []]
     (if-not (= sk Object)
@@ -61,7 +59,7 @@
   (let [default-handler (get handlers ::ex/default ex/safe-handler)
         rethrow-or-respond (fn [e request respond raise]
                              ;; FIXME: Used for validate
-                             (if (rethrow-exceptions? request)
+                             (if (::rethrow-exceptions? request)
                                (raise e)
                                (respond (call-error-handler default-handler handlers e request))))]
     (assert (fn? default-handler) "Default exception handler must be a function.")
