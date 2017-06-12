@@ -15,7 +15,7 @@
 
 (defn get-request-coercion [request]
   (if-let [entry (find request ::request/coercion)]
-    (.val ^IMapEntry entry)
+    (val entry)
     default-coercion))
 
 ;; enable :spec if spec-tools is present
@@ -90,7 +90,9 @@
     ([request]
      (coerce-response! request (handler request) responses))
     ([request respond raise]
-     (handler request
-              (fn [response]
-                (respond (coerce-response! request response responses)))
-              raise))))
+     (handler
+       request
+       (fn [response]
+         ;; TODO: should raise..
+         (respond (coerce-response! request response responses)))
+       raise))))

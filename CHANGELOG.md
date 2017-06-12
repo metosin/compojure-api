@@ -2,7 +2,7 @@
 
 * **BREAKING**: Restructuring internal key changes in `compojure.api.meta`:
   * `:swagger` is removed in favor of `:info`.
-  * swagger-data is pushed to [`:info :public`] instead of [`:swagger`]
+  * swagger-data is pushed to `[:info :public]` instead of `[:swagger]`
   * top-level `:info` can contain:
     - `:static-context?` -> `true` if the `context` is internally optimized as static
     - `:name`, route name
@@ -11,9 +11,9 @@
 * **BREAKING**: Simplified pluggable coercion.
   * injected in request under `:compojure.api.request/coercion`
   * new namespace `compojure.api.coercion`, replacing `compojure.api.coerce`.
-  * `:coercion` can be set tp `api`, `context`, endpoint macros or a `resource`. It can be either:
+  * `:coercion` can be set to `api`, `context`, endpoint macros or a `resource`. It can be either:
      * anything satisfying `compojure.api.coercion.core/Coercion`
-     * `keyword` for looking up a predefined `Coercion` via `compojure.api.coercion.core/named-coercion` multimethod.
+     * a Keyword for looking up a predefined `Coercion` via `compojure.api.coercion.core/named-coercion` multimethod.
   * `coercion` is stored in Route `:info`
   * signature of `Coercion`:
 
@@ -75,6 +75,8 @@
 * **BREAKING**: Clojure 1.7.0 is no longer supported (no back-port for `clojure.spec`).
 
 * use ClassLoader -scoped Schema memoization instead of api-scoped - same for anonymous map specs
+
+* `:body-params` is available for exception handlers, fixes [#306](https://github.com/metosin/compojure-api/issues/306) & [#313](https://github.com/metosin/compojure-api/issues/313)
 
 ## 2.0.0-alpha1 (30.5.2017)
 

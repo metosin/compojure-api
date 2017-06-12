@@ -138,7 +138,7 @@
   {:paths
    (reduce
      (fn [acc [path method info]]
-       (if-not (true? (:no-doc info))
+       (if-not (:no-doc info)
          (if-let [public-info (->> (get info :public {})
                                    (coercion/get-apidocs (:coercion info) "swagger"))]
            (update-in

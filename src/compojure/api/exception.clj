@@ -59,7 +59,6 @@
 (defn schema-error-handler
   "Creates error response based on Schema error."
   [e data req]
-  ; FIXME: Why error is not wrapped to ErrorContainer here?
   (response/bad-request
     {:errors (compojure.api.coercion.schema/stringify (:error data))}))
 

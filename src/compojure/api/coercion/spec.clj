@@ -1,13 +1,11 @@
 (ns compojure.api.coercion.spec
-  (:require [compojure.api.middleware :as mw]
-            [schema.core]
+  (:require [schema.core]
             [clojure.spec.alpha :as s]
             [spec-tools.core :as st]
-            [compojure.api.coercion.core :as cc]
-            [compojure.api.impl.logging :as log]
             [spec-tools.data-spec :as ds]
             [clojure.walk :as walk]
-            [linked.core :as linked])
+            [linked.core :as linked]
+            [compojure.api.common :as common])
   (:import (clojure.lang IPersistentMap)))
 
 (def string-conforming st/string-conforming)
@@ -38,22 +36,7 @@
   (specify [this _] this))
 
 (def memoized-specify
-  "Returns a memoized version of a referentially transparent specify. The
-  memoized version of the function keeps a cache of the mapping from arguments
-  to results and, when calls with the same arguments are repeated often, has
-  higher performance at the expense of higher memory use. FIFO with 10000 entries.
-  Cache will be filled if anonymous coercers are used (does not match the cache)"
-  (let [cache (atom (linked/map))
-        cache-size 10000]
-    (fn [spec]
-      (or (@cache spec)
-          (let [f (specify spec (gensym))]
-            (swap! cache (fn [mem]
-                           (let [mem (assoc mem spec f)]
-                             (if (>= (count mem) cache-size)
-                               (dissoc mem (-> mem first first))
-                               mem))))
-            f)))))
+  (common/fifo-memoize #(specify %1 (gensym)) 10000))
 
 (defmulti coerce-response? identity :default ::default)
 (defmethod coerce-response? ::default [_] true)

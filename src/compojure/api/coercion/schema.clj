@@ -7,7 +7,8 @@
             [compojure.api.coercion.core :as cc]
             [compojure.api.impl.logging :as log]
             [clojure.walk :as walk]
-            [schema.core :as s])
+            [schema.core :as s]
+            [compojure.api.common :as common])
   (:import (java.io File)
            (schema.core OptionalKey RequiredKey)
            (schema.utils ValidationError NamedError)))
@@ -31,22 +32,7 @@
     error))
 
 (def memoized-coercer
-  "Returns a memoized version of a referentially transparent coercer fn. The
-  memoized version of the function keeps a cache of the mapping from arguments
-  to results and, when calls with the same arguments are repeated often, has
-  higher performance at the expense of higher memory use. FIFO with 10000 entries.
-  Cache will be filled if anonymous coercers are used (does not match the cache)"
-  (let [cache (atom (linked/map))
-        cache-size 10000]
-    (fn [& args]
-      (or (@cache args)
-          (let [coercer (apply sc/coercer args)]
-            (swap! cache (fn [mem]
-                           (let [mem (assoc mem args coercer)]
-                             (if (>= (count mem) cache-size)
-                               (dissoc mem (-> mem first first))
-                               mem))))
-            coercer)))))
+  (common/fifo-memoize sc/coercer 10000))
 
 ;; don't use coercion for certain types
 (defmulti coerce-response? identity :default ::default)
