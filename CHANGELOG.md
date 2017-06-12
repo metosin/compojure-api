@@ -1,18 +1,10 @@
 ## UNRELEASED
 
-* **BREAKING**: Restructuring internal key changes in `compojure.api.meta`:
-  * `:swagger` is removed in favor of `:info`.
-  * swagger-data is pushed to `[:info :public]` instead of `[:swagger]`
-  * top-level `:info` can contain:
-    - `:static-context?` -> `true` if the `context` is internally optimized as static
-    - `:name`, route name
-    - `:coercion`, the defined coercion
-
 * **BREAKING**: Simplified pluggable coercion.
   * injected in request under `:compojure.api.request/coercion`
   * new namespace `compojure.api.coercion`, replacing `compojure.api.coerce`.
   * `:coercion` can be set to `api`, `context`, endpoint macros or a `resource`. It can be either:
-     * anything satisfying `compojure.api.coercion.core/Coercion`
+     * something satisfying `compojure.api.coercion.core/Coercion`
      * a Keyword for looking up a predefined `Coercion` via `compojure.api.coercion.core/named-coercion` multimethod.
   * `coercion` is stored in Route `:info`
   * signature of `Coercion`:
@@ -26,49 +18,75 @@
   (coerce-response [this model value type format request]))
 ```
 
-  * `:schema` (default) resolves to `compojure.api.coercion.schema/SchemaCoercion`
-  * `:spec` resolves to `compojure.api.coercion.spec/SpecCoercion`
-    * automatically available if [spec-tools](https://github.com/metosin/spec-tools) is found in classpath
-  * `nil` removes the coercion (was: `nil` or `(constantly nil)`).
+### Predefined coercions
+
+* `:schema` (default) resolves to `compojure.api.coercion.schema/SchemaCoercion`
+* `:spec` resolves to `compojure.api.coercion.spec/SpecCoercion`
+  * automatically available if [spec-tools](https://github.com/metosin/spec-tools) is found in classpath
+  * to enable runtime conforming, use [Spec Records](https://github.com/metosin/spec-tools#spec-records)
+  * works both with vanilla specs & [data-specs](https://github.com/metosin/spec-tools#data-specs)
+* `nil` removes the coercion (was: `nil` or `(constantly nil)`).
+
+#### Spec with resources
 
 ```clj
 (require '[compojure.api.sweet :refer :all])
 (require '[clojure.spec.alpha :as s])
-(require '[spec-tools.core :as st])
+(require '[spec-tools.spec :as spec])
 
-(defn enum [values]
-  (st/spec (s/and (st/spec keyword?) values)))
+(s/def ::id spec/int?)
+(s/def ::name spec/string?)
+(s/def ::description spec/string?)
+(s/def ::type spec/keyword?)
+(s/def ::new-pizza (s/keys :req-un [::name ::type] :opt-un [::description]))
+(s/def ::pizza (s/keys :req-un [::id ::name ::type] :opt-un [::description]))
 
-(s/def ::name string?)
-(s/def ::description string?)
-(s/def ::size (enum #{:L :M :S}))
-(s/def ::country (enum #{:FI :PO}))
-(s/def ::city string?)
-(s/def ::origin (s/keys :req-un [::country ::city]))
-(s/def ::pizza (s/keys :req-un [::name ::size ::origin] :opt-un [::description]))
+(resource
+  {:coercion :spec
+   :summary "a spec resource, no swagger yet"
+   :post {:parameters {:body-params ::new-pizza}
+          :responses {200 {:schema ::pizza}}
+          :handler (fn [{new-pizza :body-params}]
+                     (ok (assoc new-pizza :id 1)))}})
+```
 
-;; a spec-resource (doesn't emit swagger yet)
+#### Spec with endpoints
+
+```clj
+(require '[spec-tools.data-spec :as ds])
+
+(s/def ::id spec/int?)
+
 (context "/spec" []
-  (resource
-    {:coercion :spec
-     :parameters {:body-params ::pizza}
-     :responses {200 {:schema ::pizza}}
-     :post {:handler (fn [{:keys [body-params]}]
-                       (ok body-params))}}))
+  :coercion :spec
+
+  (POST "/pizza" []
+    :summary "a spec endpoint"
+    :return ::pizza
+    :body [new-pizza ::new-pizza]
+    (ok (assoc new-pizza :id 1)))
+
+  (POST "/math/:x" []
+    :summary "a spec endpoint"
+    :return {:total int?}
+    :path-params [x :- spec/int?]
+    :query-params [y :- spec/int?,
+                   {z :- spec/int? 0}]
+    (ok {:total (+ x y z)})))
 ```
 
 * To use Clojure 1.9 & Spec, these need to be imported:
 
 ```clj
 [org.clojure/clojure "1.9.0-alpha17"]
-[metosin/spec-tools "0.2.1"]
+[metosin/spec-tools "0.2.2"]
 ```
 
 * To use Clojure 1.8 & Spec, these need to be imported:
 
 ```clj
 [org.clojure/clojure "1.8.0"]
-[metosin/spec-tools "0.2.1" :exlusions [org.clojure/spec.alpha]]
+[metosin/spec-tools "0.2.2" :exlusions [org.clojure/spec.alpha]]
 [clojure-future-spec "1.9.0-alpha17"]
 ```
 
@@ -77,6 +95,14 @@
 * use ClassLoader -scoped Schema memoization instead of api-scoped - same for anonymous map specs
 
 * `:body-params` is available for exception handlers, fixes [#306](https://github.com/metosin/compojure-api/issues/306) & [#313](https://github.com/metosin/compojure-api/issues/313)
+
+* **BREAKING**: Restructuring internal key changes in `compojure.api.meta`:
+  * `:swagger` is removed in favor of `:info`.
+  * swagger-data is pushed to `[:info :public]` instead of `[:swagger]`
+  * top-level `:info` can contain:
+    - `:static-context?` -> `true` if the `context` is internally optimized as static
+    - `:name`, route name
+    - `:coercion`, the defined coercion
 
 ## 2.0.0-alpha1 (30.5.2017)
 
