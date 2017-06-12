@@ -156,10 +156,10 @@
                          :handler (fn [{{:keys [x y]} :query-params}]
                                     (ok {:total (+ x y)}))}
                    :post {:summary "parameters as data-specs"
-                          :parameters {:body-params {:x int? :y int?}}
+                          :parameters {:body-params {:x int? (ds/opt :y) int?}}
                           :responses {200 {:schema (s/keys :req-un [::total])}}
-                          :handler (fn [{{:keys [x y]} :query-params}]
-                                     (ok {:total (+ x y)}))}})))]
+                          :handler (fn [{{:keys [x y]} :body-params}]
+                                     (ok {:total (+ x (or y 0))}))}})))]
 
     (fact "query"
       (let [[status body] (get* app "/query" {:x "1", :y 2})]
@@ -177,7 +177,7 @@
                  :spec "(spec-tools.core/spec {:spec (clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y]), :type :map, :keys #{:y :x}})"
                  :type "compojure.api.exception/request-validation"
                  :value {:x "1", :y "kaks"}}))
-    
+
     (fact "body"
       (let [[status body] (post* app "/body" (json {:x 1, :y 2, :z 3}))]
         status => 200
@@ -219,4 +219,26 @@
       (let [[status body] (get* app "/response" {:x -1, :y -2})]
         status => 500
         body => (contains {:coercion "spec"
-                           :in ["response" "body"]})))))
+                           :in ["response" "body"]})))
+
+    (fact "resource"
+      (fact "parameters as specs"
+        (let [[status body] (get* app "/resource" {:x 1, :y 2})]
+          status => 200
+          body => {:total 3})
+        (let [[status body] (get* app "/resource" {:x -1, :y -2})]
+          status => 500
+          body => (contains {:coercion "spec"
+                             :in ["response" "body"]})))
+
+      (fact "parameters as data-specs"
+        (let [[status body] (post* app "/resource" (json {:x 1, :y 2}))]
+          status => 200
+          body => {:total 3})
+        (let [[status body] (post* app "/resource" (json {:x 1}))]
+          status => 200
+          body => {:total 1})
+        (let [[status body] (post* app "/resource" (json {:x -1, :y -2}))]
+          status => 500
+          body => (contains {:coercion "spec"
+                             :in ["response" "body"]}))))))
