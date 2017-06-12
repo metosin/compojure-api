@@ -7,7 +7,9 @@
             [compojure.api.request :as request]
             [compojure.api.coercion :as coercion]
             [compojure.api.coercion.core :as cc]
-            [compojure.api.coercion.spec :as cs]))
+            [compojure.api.coercion.spec :as cs]
+            [spec-tools.data-spec :as ds]
+            [spec-tools.core :as st]))
 
 (s/def ::kikka spec/keyword?)
 (s/def ::spec (s/keys :req-un [::kikka]))
@@ -27,17 +29,17 @@
         (c! {:body-params invalid-value
              ::request/coercion :spec})
         (catch Exception e
-          (ex-data e) => (just {:type :compojure.api.exception/request-validation
-                                :coercion (coercion/resolve-coercion :spec)
-                                :in [:request :body-params]
-                                :spec ::spec
-                                :value invalid-value
-                                :problems [{:in [:kikka]
-                                            :path [:kikka]
-                                            :pred `keyword?
-                                            :val "kukka"
-                                            :via [::spec ::kikka]}]
-                                :request (contains {:body-params {:kikka "kukka"}})}))))
+          (ex-data e) => (contains {:type :compojure.api.exception/request-validation
+                                    :coercion (coercion/resolve-coercion :spec)
+                                    :in [:request :body-params]
+                                    :spec st/spec?
+                                    :value invalid-value
+                                    :problems [{:in [:kikka]
+                                                :path [:kikka]
+                                                :pred `keyword?
+                                                :val "kukka"
+                                                :via [::spec ::kikka]}]
+                                    :request (contains {:body-params {:kikka "kukka"}})}))))
 
     (fact "format-based coercion"
       (c! {:body-params valid-value
@@ -85,7 +87,7 @@
           (ex-data e) => (contains {:type :compojure.api.exception/response-validation
                                     :coercion (coercion/resolve-coercion :spec)
                                     :in [:response :body]
-                                    :spec ::spec
+                                    :spec st/spec?
                                     :value invalid-value
                                     :problems anything
                                     :request {::request/coercion :spec}}))))
@@ -110,27 +112,54 @@
 
 (s/def ::x spec/int?)
 (s/def ::y spec/int?)
+(s/def ::total spec/pos-int?)
 
 (facts "apis"
   (let [app (api
               {:coercion :spec}
-              (GET "/query" []
-                :query [{:keys [x y]} (s/keys :req-un [::x ::y])]
-                (ok {:total (+ x y)}))
+
               (POST "/body" []
+                :summary "let & spec"
                 :body [{:keys [x y]} (s/keys :req-un [::x ::y])]
                 (ok {:total (+ x y)}))
 
+              (POST "/body-map" []
+                :summary "let & anonymous data-spec"
+                :body [{:keys [x y]} {:x int?, (ds/opt :y) ::y}]
+                (ok {:total (+ x (or y 0))}))
+
+              (GET "/query" []
+                :summary "let & spec"
+                :query [{:keys [x y]} (s/keys :req-un [::x ::y])]
+                (ok {:total (+ x y)}))
+
               (GET "/query-params" []
+                :summary "letk & named specs "
                 :query-params [x :- ::x, y :- ::y]
                 (ok {:total (+ x y)}))
+
               (POST "/body-params" []
-                :body-params [x :- ::x, {y :- ::y 0}]
+                :summary "letk & predicates & optional"
+                :body-params [x :- int?, {y :- ::y 0}]
                 (ok {:total (+ x y)}))
 
               (GET "/response" []
-                :return (s/keys :req-un [::x ::y])
-                (ok {})))]
+                :query-params [x :- ::x, y :- ::y]
+                :return (s/keys :req-un [::total])
+                (ok {:total (+ x y)}))
+
+              (context "/resource" []
+                  (resource
+                  {:get {:summary "parameters as specs"
+                         :parameters {:query-params (s/keys :req-un [::x ::y])}
+                           :responses {200 {:schema (s/keys :req-un [::total])}}
+                           :handler (fn [{{:keys [x y]} :query-params}]
+                                      (ok {:total (+ x y)}))}
+                   :post {:summary "parameters as data-specs"
+                          :parameters {:body-params {:x int? :y int?}}
+                            :responses {200 {:schema (s/keys :req-un [::total])}}
+                            :handler (fn [{{:keys [x y]} :query-params}]
+                                     (ok {:total (+ x y)}))}})))]
 
     (fact "query"
       (let [[status body] (get* app "/query" {:x "1", :y 2})]
@@ -145,14 +174,22 @@
                              :pred "clojure.core/int?"
                              :val "kaks"
                              :via ["compojure.api.coercion.spec-coercion-test/y"]}]
-                 :spec "(clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y])"
+                 :spec "(spec-tools.core/spec {:spec (clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y]), :type :map, :keys #{:y :x}})"
                  :type "compojure.api.exception/request-validation"
                  :value {:x "1", :y "kaks"}}))
 
     (fact "body"
-      (let [[status body] (post* app "/body" (json {:x 1, :y 2}))]
+      (let [[status body] (post* app "/body" (json {:x 1, :y 2, :z 3}))]
         status => 200
         body => {:total 3}))
+
+    (fact "body-map"
+        (let [[status body] (post* app "/body-map" (json {:x 1, :y 2}))]
+          status => 200
+          body => {:total 3})
+        (let [[status body] (post* app "/body-map" (json {:x 1}))]
+          status => 200
+          body => {:total 1}))
 
     (fact "query-params"
       (let [[status body] (get* app "/query-params" {:x "1", :y 2})]
@@ -160,15 +197,26 @@
         body => {:total 3})
       (let [[status body] (get* app "/query-params" {:x "1", :y "a"})]
         status => 400
-        body => (contains {:coercion "spec"})))
+        body => (contains {:coercion "spec"
+                           :in ["request" "query-params"]})))
 
     (fact "body-params"
-      (let [[status body] (post* app "/body-params" (json {:x 1, :y 2}))]
+        (let [[status body] (post* app "/body-params" (json {:x 1, :y 2}))]
+          status => 200
+          body => {:total 3})
+        (let [[status body] (post* app "/body-params" (json {:x 1}))]
+          status => 200
+          body => {:total 1})
+        (let [[status body] (post* app "/body-params" (json {:x "1"}))]
+          status => 400
+          body => (contains {:coercion "spec"
+                             :in ["request" "body-params"]})))
+
+    (fact "response"
+      (let [[status body] (get* app "/response" {:x 1, :y 2})]
         status => 200
         body => {:total 3})
-      (let [[status body] (post* app "/body-params" (json {:x 1}))]
-        status => 200
-        body => {:total 1})
-      (let [[status body] (post* app "/body-params" (json {:x "1"}))]
-        status => 400
-        body => (contains {:coercion "spec"})))))
+      (let [[status body] (get* app "/response" {:x -1, :y -2})]
+        status => 500
+        body => (contains {:coercion "spec"
+                           :in ["response" "body"]})))))

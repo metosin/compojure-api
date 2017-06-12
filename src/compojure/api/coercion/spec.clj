@@ -5,12 +5,28 @@
             [spec-tools.data-spec :as ds]
             [clojure.walk :as walk]
             [linked.core :as linked]
+            [compojure.api.coercion.core :as cc]
+            [compojure.api.impl.logging :as log]
+            [spec-tools.conform :as conform]
             [compojure.api.common :as common])
-  (:import (clojure.lang IPersistentMap)))
+  (:import (clojure.lang IPersistentMap)
+           (schema.core RequiredKey OptionalKey)
+           (spec_tools.core Spec)))
 
-(def string-conforming st/string-conforming)
-(def json-conforming st/json-conforming)
-(def default-conforming ::default)
+(def string-conforming
+  (st/type-conforming
+    (merge
+      conform/string-type-conforming
+      conform/strip-extra-keys-type-conforming)))
+
+(def json-conforming
+  (st/type-conforming
+    (merge
+      conform/json-type-conforming
+      conform/strip-extra-keys-type-conforming)))
+
+(def default-conforming
+  ::default)
 
 (defprotocol Specify
   (specify [this name]))
@@ -22,18 +38,30 @@
       (walk/postwalk
         (fn [x]
           (if (and (map? x) (not (record? x)))
-            (->> (for [[k v] x
-                       :when (keyword? v)
-                       :let [k (if-not (schema.core/required-key? k)
+            (->> (for [[k v] (dissoc x schema.core/Keyword)
+                       :let [k (cond
+                                 ;; Schema required
+                                 (instance? RequiredKey k)
+                                 (ds/req (schema.core/explicit-schema-key k))
+
+                                 ;; Schema options
+                                 (instance? OptionalKey k)
                                  (ds/opt (schema.core/explicit-schema-key k))
+
+                                 :else
                                  k)]]
                    [k v])
                  (into {}))
             x))
         this)
       (ds/spec name)))
+
+  Spec
+  (specify [this _] this)
+
   Object
-  (specify [this _] this))
+  (specify [this _]
+    (st/create-spec {:spec this})))
 
 (def memoized-specify
   (common/fifo-memoize #(specify %1 (gensym)) 10000))
