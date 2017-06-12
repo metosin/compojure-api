@@ -77,6 +77,8 @@
   (get-apidocs [_ _ info]
     (dissoc info :parameters :responses))
 
+  (make-open [_ spec] spec)
+
   (encode-error [_ error]
     (update error :spec (comp str s/form)))
 

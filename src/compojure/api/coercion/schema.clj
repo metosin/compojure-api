@@ -45,6 +45,11 @@
 
   (get-apidocs [_ _ data] data)
 
+  (make-open [_ schema]
+    (if (map? schema)
+      (assoc schema s/Keyword s/Any)
+      schema))
+
   (encode-error [_ error]
     (-> error
         (update :schema stringify)

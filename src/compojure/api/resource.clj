@@ -6,7 +6,8 @@
             [schema.core :as s]
             [plumbing.core :as p]
             [compojure.api.async]
-            [compojure.api.middleware :as mw]))
+            [compojure.api.middleware :as mw]
+            [compojure.api.coercion.core :as cc]))
 
 (def ^:private +mappings+
   {:methods #{:get :head :patch :delete :options :post :put}
@@ -27,14 +28,18 @@
           (:parameters +mappings+))
         (dissoc info :handler)))
 
+(defn- inject-coercion [request info]
+  (if (contains? info :coercion)
+    (coercion/set-request-coercion request (:coercion info))
+    request))
+
 (defn- coerce-request [request info ks]
   (reduce-kv
     (fn [request ring-key [compojure-key _ type open?]]
-      (if-let [schema (get-in info (concat ks [:parameters ring-key]))]
-        (let [schema (if open? (assoc schema s/Keyword s/Any) schema)]
-          (update request ring-key merge (coercion/coerce-request! schema compojure-key type (not= :body type) request)))
+      (if-let [model (get-in info (concat ks [:parameters ring-key]))]
+        (update request ring-key merge (coercion/coerce-request! model compojure-key type (not= :body type) open? request))
         request))
-    request
+    (inject-coercion request info)
     (:parameters +mappings+)))
 
 (defn- coerce-response [response info request ks]
@@ -78,20 +83,18 @@
          :info {:public (swaggerize info)}}))
     (select-keys info (:methods +mappings+))))
 
-(defn- handle-sync [info coercion {:keys [request-method path-info :compojure/route] :as request}]
+(defn- handle-sync [info {:keys [request-method path-info :compojure/route] :as request}]
   (when-let [[raw-handler] (resolve-handler info path-info route request-method false)]
-    (let [request (coercion/set-request-coercion request coercion)
-          ks (if (contains? info request-method) [request-method] [])
+    (let [ks (if (contains? info request-method) [request-method] [])
           handler (middleware-chain info request-method raw-handler)]
       (-> (coerce-request request info ks)
           (handler)
           (compojure.response/render request)
           (coerce-response info request ks)))))
 
-(defn- handle-async [info coercion {:keys [request-method path-info :compojure/route] :as request} respond raise]
+(defn- handle-async [info {:keys [request-method path-info :compojure/route] :as request} respond raise]
   (if-let [[raw-handler async?] (resolve-handler info path-info route request-method true)]
-    (let [request (coercion/set-request-coercion request coercion)
-          ks (if (contains? info request-method) [request-method] [])
+    (let [ks (if (contains? info request-method) [request-method] [])
           respond-coerced (fn [response]
                             (respond
                               (try (coerce-response response info request ks)
@@ -106,12 +109,12 @@
           (raise e))))
     (respond nil)))
 
-(defn- create-handler [info coercion]
+(defn- create-handler [info]
   (fn
     ([request]
-     (handle-sync info coercion request))
+     (handle-sync info request))
     ([request respond raise]
-     (handle-async info coercion request respond raise))))
+     (handle-async info request respond raise))))
 
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]
@@ -123,11 +126,6 @@
                                         (:responses method-info))]]
             method (cond-> (->> method-info (rsc/deep-merge (select-keys info [:parameters])))
                            (seq responses) (assoc :responses responses)))))))
-
-(defn- resolve-coercion [info]
-  (if (contains? info :coercion)
-    (:coercion info)
-    coercion/default-coercion))
 
 (defn- public-root-info [info]
   (-> (reduce dissoc info (:methods +mappings+))
@@ -206,7 +204,7 @@
         public-info (swaggerize (public-root-info data))
         info (merge {:public public-info} (select-keys data [:coercion]))
         childs (create-childs data)
-        handler (create-handler data (resolve-coercion data))]
+        handler (create-handler data)]
     (routes/map->Route
       {:info info
        :childs childs

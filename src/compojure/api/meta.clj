@@ -39,7 +39,7 @@
   ([schema, key, type]
     (src-coerce! schema, key, type, true))
   ([schema, key, type, keywordize?]
-    `(coercion/coerce-request! ~schema ~key ~type ~keywordize? ~+compojure-api-request+)))
+    `(coercion/coerce-request! ~schema ~key ~type ~keywordize? false ~+compojure-api-request+)))
 
 (defn- convert-return [schema]
   {200 {:schema schema

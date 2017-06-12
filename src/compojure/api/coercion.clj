@@ -34,13 +34,14 @@
   (if-let [coercion (resolve-coercion mayby-coercion)]
     (cc/get-apidocs coercion spec info)))
 
-(defn coerce-request! [model in type keywordize? request]
+(defn coerce-request! [model in type keywordize? open? request]
   (let [transform (if keywordize? walk/keywordize-keys identity)
         value (transform (in request))]
     (if-let [coercion (-> request
                           (get-request-coercion)
                           (resolve-coercion))]
-      (let [format (some-> request :muuntaja/request :format)
+      (let [model (if open? (cc/make-open coercion model) model)
+            format (some-> request :muuntaja/request :format)
             result (cc/coerce-request coercion model value type format request)]
         (if (instance? CoercionError result)
           (throw (ex-info

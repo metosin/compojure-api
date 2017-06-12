@@ -21,7 +21,7 @@
 (def invalid-value {:kikka "kukka"})
 
 (fact "request-coercion"
-  (let [c! #(coercion/coerce-request! Schema :body-params :body false %)]
+  (let [c! #(coercion/coerce-request! Schema :body-params :body false false %)]
 
     (fact "default coercion"
       (c! {:body-params valid-value}) => valid-value

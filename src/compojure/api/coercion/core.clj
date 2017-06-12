@@ -2,7 +2,8 @@
 
 (defprotocol Coercion
   (get-name [this])
-  (get-apidocs [this spec data])
+  (get-apidocs [this model data])
+  (make-open [this model])
   (encode-error [this error])
   (coerce-request [this model value type format request])
   (coerce-response [this model value type format request]))
