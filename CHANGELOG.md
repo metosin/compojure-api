@@ -1,4 +1,4 @@
-## 2.0.0-alpha2 (13.7.2017)
+## 2.0.0-alpha2 (13.6.2017)
 
 * **BREAKING**: Simplified pluggable coercion.
   * guide in wiki: https://github.com/metosin/compojure-api/wiki/Coercion
