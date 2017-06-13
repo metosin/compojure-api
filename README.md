@@ -58,12 +58,32 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 
 <sub>* requires server to be run in [async mode](https://github.com/metosin/compojure-api/wiki/Async)</sub>
 
-### Hello World, data-driven
+### Hello World, async & data-driven
 
 ```clj
 (resource
   {:get
    {:parameters {:query-params {:name String}
+    :responses {200 {:schema {:message String}}}
+    :handler (fn [{{:keys [name]} :query-params}]
+               (a/go
+                 (a/<! (a/timeout 500))
+                 (ok {:message (str "Hello, " name)})}}})
+```
+
+### Hello World, async, data-driven & clojure.spec
+
+```clj
+(require '[clojure.spec.alpha :as s])
+
+(s/def ::name string?)
+(s/def ::message string?)
+
+(resource
+  {:coercion :spec
+   :get
+   {:parameters {:query-params (s/keys :req-un [::name])}}
+    :responses {200 {:schema (s/keys :req-un [::message])}}
     :handler (fn [{{:keys [name]} :query-params}]
                (a/go
                  (a/<! (a/timeout 500))
@@ -72,7 +92,7 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 
 ### Api with Schema & Swagger-docs
 
- ```clj
+```clj
 (require '[schema.core :as s])
 
 (s/defschema Pizza
