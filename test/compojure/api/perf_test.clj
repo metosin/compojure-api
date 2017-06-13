@@ -246,3 +246,35 @@
 (comment
   (bench)
   (resource-bench))
+
+(comment
+  (let [api1 (api
+               (GET "/30" [] (ok)))
+        api2 (api
+               {:api {:disable-api-middleware? true}}
+               (GET "/30" [] (ok)))
+        app (GET "/30" [] (ok))
+
+        request {:request-method :get, :uri "/30"}
+        count 100000
+        call1 #(api1 request)
+        call2 #(api2 request)
+        call3 #(app request)]
+
+    (title "api1")
+    (time
+      (dotimes [_ count]
+        (call1)))
+    (cc/quick-bench (call1))
+
+    (title "api2")
+    (time
+      (dotimes [_ count]
+        (call2)))
+    #_(cc/quick-bench (call2))
+
+    (title "app")
+    (time
+      (dotimes [_ count]
+        (call3)))
+    #_(cc/quick-bench (call3))))

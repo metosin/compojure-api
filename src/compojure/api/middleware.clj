@@ -1,6 +1,9 @@
 (ns compojure.api.middleware
   (:require [compojure.core :refer :all]
             [compojure.api.exception :as ex]
+            [compojure.api.common :as common]
+            [compojure.api.coercion :as coercion]
+            [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
             [ring.middleware.http-response]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
@@ -25,8 +28,6 @@
 ;; Catch exceptions
 ;;
 
-(def rethrow-exceptions? ::rethrow-exceptions?)
-
 (defn- super-classes [^Class k]
   (loop [sk (.getSuperclass k), ks []]
     (if-not (= sk Object)
@@ -40,14 +41,14 @@
         error-handler (or (get handlers type)
                           (get handlers ex-class)
                           (some
-                           (partial get handlers)
-                           (super-classes ex-class))
+                            (partial get handlers)
+                            (super-classes ex-class))
                           default-handler)]
-        (try
-          (error-handler error (assoc data :type type) request)
-          (catch ArityException _
-            (logging/log! :warn "Error-handler arity has been changed.")
-            (error-handler error)))))
+    (try
+      (error-handler error (assoc data :type type) request)
+      (catch ArityException _
+        (logging/log! :warn "Error-handler arity has been changed.")
+        (error-handler error)))))
 
 (defn wrap-exceptions
   "Catches all exceptions and delegates to correct error handler according to :type of Exceptions
@@ -58,7 +59,7 @@
   (let [default-handler (get handlers ::ex/default ex/safe-handler)
         rethrow-or-respond (fn [e request respond raise]
                              ;; FIXME: Used for validate
-                             (if (rethrow-exceptions? request)
+                             (if (::rethrow-exceptions? request)
                                (raise e)
                                (respond (call-error-handler default-handler handlers e request))))]
     (assert (fn? default-handler) "Default exception handler must be a function.")
@@ -94,74 +95,25 @@
 ;; Options
 ;;
 
-(defn wrap-options
-  "Injects compojure-api options into the request."
-  [handler options]
+(defn wrap-inject-data
+  "Injects data into the request."
+  [handler data]
   (fn
     ([request]
-     (handler (update-in request [::options] merge options)))
+     (handler (common/fast-map-merge request data)))
     ([request respond raise]
-     (handler (update-in request [::options] merge options) respond raise))))
-
-(defn get-options
-  "Extracts compojure-api options from the request."
-  [request]
-  (::options request))
+     (handler (common/fast-map-merge request data) respond raise))))
 
 ;;
 ;; coercion
 ;;
 
-(def string-coercion-matcher coerce/query-schema-coercion-matcher)
-(def json-coercion-matcher coerce/json-schema-coercion-matcher)
-
-(s/defschema CoercionType (s/enum :body :string :response))
-
-(def default-coercion-options
-  {:body {:default (constantly nil)
-          :formats {"application/json" json-coercion-matcher
-                    "application/msgpack" json-coercion-matcher
-                    "application/x-yaml" json-coercion-matcher}}
-   :string string-coercion-matcher
-   :response {:default (constantly nil)
-              :formats {}}})
-
-(defn create-coercion
-  ([] (create-coercion default-coercion-options))
-  ([{{body-default :default
-      body-formats :formats} :body
-     {response-default :default
-      response-formats :formats} :response
-     string-default :string}]
-   (fn [request]
-     (let [request-format (-> request :muuntaja/request :format)]
-       (fn [type]
-         (case type
-           :body (or (get body-formats request-format) body-default)
-           :string string-default
-           :response (or (get response-formats request-format) response-default)))))))
-
-(def ^:private default-coercion (create-coercion))
-
-(def no-response-coercion
-  (create-coercion
-    (dissoc default-coercion-options :response)))
-
-(defn coercion-matchers [request]
-  (let [options (get-options request)]
-    (if (contains? options :coercion)
-      (if-let [provider (:coercion options)]
-        (provider request))
-      (default-coercion request))))
-
-(def coercion-request-ks [::options :coercion])
-
 (defn wrap-coercion [handler coercion]
   (fn
     ([request]
-     (handler (assoc-in request coercion-request-ks coercion)))
+     (handler (coercion/set-request-coercion request coercion)))
     ([request respond raise]
-     (handler (assoc-in request coercion-request-ks coercion) respond raise))))
+     (handler (coercion/set-request-coercion request coercion) respond raise))))
 
 ;;
 ;; Muuntaja
@@ -181,7 +133,7 @@
 
 (defn create-muuntaja
   ([]
-    (create-muuntaja muuntaja-options))
+   (create-muuntaja muuntaja-options))
   ([muuntaja-or-options]
    (if muuntaja-or-options
      (if (instance? Muuntaja muuntaja-or-options)
@@ -207,6 +159,31 @@
        (apply comp identity)))
 
 ;;
+;; swagger-data
+;;
+
+(defn set-swagger-data
+  "Add extra top-level swagger-data into a request.
+  Data can be read with get-swagger-data."
+  ([request data]
+   (update request ::request/swagger (fnil conj []) data)))
+
+(defn get-swagger-data
+  "Reads and deep-merges top-level swagger-data from request,
+  pushed in by set-swagger-data."
+  [request]
+  (apply rsc/deep-merge (::request/swagger request)))
+
+(defn wrap-swagger-data
+  "Middleware that adds top level swagger-data into request."
+  [handler data]
+  (fn
+    ([request]
+     (handler (set-swagger-data request data)))
+    ([request respond raise]
+     (handler (set-swagger-data request data) respond raise))))
+
+;;
 ;; Api Middleware
 ;;
 
@@ -217,8 +194,15 @@
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
    :middleware nil
-   :coercion default-coercion
+   :coercion coercion/default-coercion
    :ring-swagger nil})
+
+(defn api-middleware-options [options]
+  (-> (rsc/deep-merge api-middleware-defaults options)
+      ;; [:formats :formats] can't be deep merged, else defaults always enables all the
+      ;; formats. Figure out this or use meta-merge?
+      (assoc-in [:formats :formats] (or (:formats (:formats options))
+                                        (:formats (:formats api-middleware-defaults))))))
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
@@ -269,12 +253,8 @@
   ([handler]
    (api-middleware handler nil))
   ([handler options]
-   (let [options (-> (rsc/deep-merge api-middleware-defaults options)
-                     ;; [:formats :formats] can't be deep merged, else defaults always enables all the
-                     ;; formats
-                     (assoc-in [:formats :formats] (or (:formats (:formats options))
-                                                       (:formats (:formats api-middleware-defaults)))))
-         {:keys [exceptions components formats middleware]} options
+   (let [options (api-middleware-options options)
+         {:keys [exceptions components formats middleware ring-swagger coercion]} options
          muuntaja (create-muuntaja formats)]
 
      ;; 1.2.0+
@@ -283,17 +263,30 @@
                   "ring-middleware-format and the new formatting options for it should be under [:formats]. See "
                   "'(doc compojure.api.middleware/api-middleware)' for more details."))
 
-     (cond-> handler
-             middleware ((compose-middleware middleware))
-             components (wrap-components components)
-             true ring.middleware.http-response/wrap-http-response
-             muuntaja (rsm/wrap-swagger-data (select-keys muuntaja [:consumes :produces]))
-             true (wrap-options (select-keys options [:ring-swagger :coercion]))
-             muuntaja (muuntaja.middleware/wrap-params)
-             muuntaja (muuntaja.middleware/wrap-format-request muuntaja)
-             exceptions (wrap-exceptions exceptions)
-             muuntaja (muuntaja.middleware/wrap-format-response muuntaja)
-             muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja)
-             true wrap-keyword-params
-             true wrap-nested-params
-             true wrap-params))))
+     (-> handler
+         (cond-> middleware ((compose-middleware middleware)))
+         (cond-> components (wrap-components components))
+         (ring.middleware.http-response/wrap-http-response)
+         (cond-> muuntaja (wrap-swagger-data (select-keys muuntaja [:consumes :produces])))
+         (wrap-inject-data
+           (cond-> {::request/coercion coercion}
+                   ring-swagger (assoc ::request/ring-swagger ring-swagger)))
+         (cond-> muuntaja (muuntaja.middleware/wrap-params))
+         ;; all but request-parsing exceptions (to make :body-params visible)
+         (cond-> exceptions (wrap-exceptions
+                              (update exceptions :handlers dissoc ::ex/request-parsing)))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
+         ;; just request-parsing exceptions
+         (cond-> exceptions (wrap-exceptions
+                              (update exceptions :handlers select-keys [::ex/request-parsing])))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))
+
+         ;; these are really slow middleware, 4.5µs => 9.1µs (+100%)
+
+         ;; 7.8µs => 9.1µs (+27%)
+         wrap-keyword-params
+         ;; 7.1µs => 7.8µs (+23%)
+         wrap-nested-params
+         ;; 4.5µs => 7.1µs (+50%)
+         wrap-params))))

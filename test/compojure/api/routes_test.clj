@@ -33,7 +33,7 @@
 (facts "nested routes"
   (let [mw (fn [handler]
              (fn ([request] (handler request))
-                 ([request raise respond] (handler request raise respond))))
+               ([request raise respond] (handler request raise respond))))
         more-routes (fn [version]
                       (routes
                         (GET "/more" []
@@ -74,14 +74,21 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
-          ["/api/:version/ping" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/ping" :post {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/hello" :get {:public  {:parameters {:query {:name String, s/Keyword s/Any}
-                                                              :path {:version String, s/Keyword s/Any}}
-                                                 :responses {200 {:description "", :schema {:message String}}}
-                                                 :summary "cool ping"}}]
-          ["/api/:version/more" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
+      => [["/swagger.json" :get {:no-doc true
+                                 :coercion :schema
+                                 :name :compojure.api.swagger/swagger
+                                 :public {:x-name :compojure.api.swagger/swagger}}]
+          ["/api/:version/ping" :get {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/ping" :post {:coercion :schema
+                                       :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/hello" :get {:coercion :schema
+                                       :public {:parameters {:query {:name String, s/Keyword s/Any}
+                                                             :path {:version String, s/Keyword s/Any}}
+                                                :responses {200 {:description "", :schema {:message String}}}
+                                                :summary "cool ping"}}]
+          ["/api/:version/more" :get {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
 
     (fact "swagger-docs can be generated"
       (-> app get-spec :paths keys)
@@ -120,8 +127,12 @@
 
     (fact "routes can be extracted at runtime"
       (routes/get-routes app)
-      => [["/swagger.json" :get {:no-doc true, :public {:x-name :compojure.api.swagger/swagger}}]
-          ["/api/:version/[]" :get {:public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
+      => [["/swagger.json" :get {:no-doc true,
+                                 :coercion :schema
+                                 :name :compojure.api.swagger/swagger
+                                 :public {:x-name :compojure.api.swagger/swagger}}]
+          ["/api/:version/[]" :get {:coercion :schema
+                                    :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
 
     (fact "swagger-docs can be generated"
       (-> app get-spec :paths keys)
@@ -156,8 +167,8 @@
 (fact "dynamic context routes"
   (let [endpoint? (atom true)
         app (dynamic-context "/api" []
-              (when @endpoint?
-                (GET "/ping" [] (ok "pong"))))]
+                             (when @endpoint?
+                               (GET "/ping" [] (ok "pong"))))]
     (fact "the endpoint exists"
       (app {:request-method :get :uri "/api/ping"}) => (contains {:body "pong"}))
 

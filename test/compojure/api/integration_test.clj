@@ -153,9 +153,9 @@
 (facts "context middleware"
   (let [app (api
               (context "/middlewares" []
-                       :middleware [(fn [h] (fn mw
-                                              ([r] (ok {:middleware "hello"}))
-                                              ([r respond _] (respond (mw r)))))]
+                :middleware [(fn [h] (fn mw
+                                       ([r] (ok {:middleware "hello"}))
+                                       ([r respond _] (respond (mw r)))))]
                 (GET "/simple" req (reply-mw* req))))]
 
     (fact "is applied even if route is not matched"
@@ -1606,10 +1606,9 @@
                 :return File
                 (ok message)))]
 
-    (fact "spec is not mounted"
-      (let [[status body] (raw-get* app "/file")]
-        status => 200
-        body => message))))
+    (let [[status body] (get* app "/file")]
+      status => 200
+      body => message)))
 
 (fact "nil routes are ignored"
   (let [create-app (fn [{:keys [dev?]}]
@@ -1699,3 +1698,16 @@
         [status body] (post* app "/echo" (json {:x 1}))]
     status => 200
     body => {:x 1}))
+
+(facts "body in error handling, #306 & #313"
+  (let [app (api
+              {:exceptions
+               {:handlers
+                {:compojure.api.exception/default
+                 (fn [_ _ request]
+                   (internal-server-error (:body-params request)))}}}
+              (POST "/error" []
+                (throw (RuntimeException. "error"))))
+        [status body] (post* app "/error" (json {:kikka 6}))]
+    status => 500
+    body => {:kikka 6}))

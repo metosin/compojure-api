@@ -1,4 +1,5 @@
-(ns compojure.api.common)
+(ns compojure.api.common
+  (:require [linked.core :as linked]))
 
 (defn plain-map?
   "checks whether input is a map, but not a record"
@@ -41,3 +42,27 @@
   (if (get v 1)
     (apply merge v)
     (get v 0)))
+
+(defn fast-map-merge
+  [x y]
+  (reduce-kv
+    (fn [m k v]
+      (assoc m k v))
+    x
+    y))
+
+(defn fifo-memoize [f size]
+  "Returns a memoized version of a referentially transparent f. The
+  memoized version of the function keeps a cache of the mapping from arguments
+  to results and, when calls with the same arguments are repeated often, has
+  higher performance at the expense of higher memory use. FIFO with size entries."
+  (let [cache (atom (linked/map))]
+    (fn [& xs]
+      (or (@cache xs)
+          (let [value (apply f xs)]
+            (swap! cache (fn [mem]
+                           (let [mem (assoc mem xs value)]
+                             (if (>= (count mem) size)
+                               (dissoc mem (-> mem first first))
+                               mem))))
+            value)))))

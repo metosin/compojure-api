@@ -95,7 +95,7 @@
 
   (fact "resource without coercion"
     (let [handler (resource
-                    {:coercion (constantly nil)
+                    {:coercion nil
                      :get {:parameters {:query-params {(s/optional-key :y) Long
                                                        (s/optional-key :x) Long}}
                            :handler (fn [{{:keys [x y]} :query-params}]
@@ -250,11 +250,11 @@
 
     (fact "path-parameters work: route-params are left untoucehed, path-params are coerced"
       (call app {:request-method :get, :uri "/rest/path/12"}) => (has-body {:path-params {:id 12}
-                                                                       :route-params {:id "12"}}))
+                                                                            :route-params {:id "12"}}))
 
     (fact "top-level GET without extra path works"
       (call app {:request-method :get, :uri "/rest"}) => (has-body {:uri "/rest"
-                                                               :path-info "/"}))
+                                                                    :path-info "/"}))
 
     (fact "top-level POST without extra path works"
       (call app {:request-method :post, :uri "/rest"}) => nil)

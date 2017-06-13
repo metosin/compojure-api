@@ -8,7 +8,7 @@
             [ring.swagger.json-schema :as js]
             [schema.core :as s]
             [schema-tools.core :as st]
-            [compojure.api.coerce :as coerce]
+            [compojure.api.coercion :as coercion]
             [compojure.api.help :as help]
             compojure.core
             compojure.api.compojure-compat
@@ -36,10 +36,10 @@
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
   extracted from a key in a ring request."
-  ([schema, key, type :- mw/CoercionType]
+  ([schema, key, type]
     (src-coerce! schema, key, type, true))
-  ([schema, key, type :- mw/CoercionType, keywordize?]
-    `(coerce/coerce! ~schema ~key ~type ~keywordize? ~+compojure-api-request+)))
+  ([schema, key, type, keywordize?]
+    `(coercion/coerce-request! ~schema ~key ~type ~keywordize? false ~+compojure-api-request+)))
 
 (defn- convert-return [schema]
   {200 {:schema schema
@@ -190,7 +190,9 @@
       "    (created (path-for ::user {:id (random-int)}))))")))
 
 (defmethod restructure-param :name [_ v acc]
-  (update-in acc [:info :public] assoc :x-name v))
+  (-> acc
+      (assoc-in [:info :name] v)
+      (assoc-in [:info :public :x-name] v)))
 
 ;;
 ;; tags
@@ -502,7 +504,9 @@
       "  (ok user))")))
 
 (defmethod restructure-param :coercion [_ coercion acc]
-  (update-in acc [:middleware] conj [mw/wrap-coercion coercion]))
+  (-> acc
+      (assoc-in [:info :coercion] coercion)
+      (update-in [:middleware] conj [mw/wrap-coercion coercion])))
 
 ;;
 ;; Impl
@@ -612,7 +616,7 @@
         _ (assert (nil? swagger) ":swagger is deprecated with 2.0.0, use [:info :public] instead")
 
         ;; response coercion middleware, why not just code?
-        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
+        middleware (if (seq responses) (conj middleware `[coercion/wrap-coerce-response (common/merge-vector ~responses)]) middleware)]
 
     (if context?
 

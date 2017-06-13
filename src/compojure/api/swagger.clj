@@ -2,6 +2,7 @@
   (:require [compojure.api.core :as c]
             [compojure.api.common :as common]
             [compojure.api.middleware :as mw]
+            [compojure.api.request :as request]
             [ring.util.http-response :refer [ok]]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
@@ -37,11 +38,12 @@
     (c/GET path request
       :no-doc true
       :name ::swagger
-      (let [runtime-info (rsm/get-swagger-data request)
+      (let [runtime-info1 (rsm/get-swagger-data request)
+            runtime-info2 (mw/get-swagger-data request)
             base-path {:basePath (base-path request)}
-            options (:ring-swagger (mw/get-options request))
-            paths (:paths (mw/get-options request))
-            swagger (apply rsc/deep-merge (keep identity [base-path paths extra-info runtime-info]))
+            options (::request/ring-swagger request)
+            paths (::request/paths request)
+            swagger (apply rsc/deep-merge (keep identity [base-path paths extra-info runtime-info1 runtime-info2]))
             spec (swagger2/swagger-json swagger options)]
         (ok spec)))))
 

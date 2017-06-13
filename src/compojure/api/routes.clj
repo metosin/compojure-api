@@ -3,13 +3,15 @@
             [clojure.string :as string]
             [cheshire.core :as json]
             [compojure.api.middleware :as mw]
+            [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
             [compojure.api.common :as common]
             [ring.swagger.common :as rsc]
             [clojure.string :as str]
             [linked.core :as linked]
             [compojure.response]
-            [schema.core :as s])
+            [schema.core :as s]
+            [compojure.api.coercion :as coercion])
   (:import (clojure.lang AFn IFn Var IDeref)
            (java.io Writer)))
 
@@ -136,13 +138,15 @@
   {:paths
    (reduce
      (fn [acc [path method info]]
-       (if-not (true? (:no-doc info))
-         (let [public-info (get info :public {})]
+       (if-not (:no-doc info)
+         (if-let [public-info (->> (get info :public {})
+                                   (coercion/get-apidocs (:coercion info) "swagger"))]
            (update-in
-            acc [path method]
-            (fn [old-info]
-              (let [public-info (or old-info public-info)]
-                (ensure-path-parameters path public-info)))))
+             acc [path method]
+             (fn [old-info]
+               (let [public-info (or old-info public-info)]
+                 (ensure-path-parameters path public-info))))
+           acc)
          acc))
      (linked/map)
      routes)})
@@ -219,8 +223,7 @@
   "Extracts the lookup-table from request and finds a route by name."
   [route-name request & [params]]
   (let [[path details] (some-> request
-                               mw/get-options
-                               :lookup
+                               ::request/lookup
                                route-name
                                first)
         path-params (:params details)]

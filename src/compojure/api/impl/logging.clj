@@ -20,4 +20,4 @@
             (log level more)
             (.printStackTrace ^Throwable x))
           (log level (into [x] more))))
-      (log! :warn "clojure.tools.logging not found on classpath, logging to console."))))
+      (log! :warn "clojure.tools.logging not found on classpath, compojure.api logging to console."))))

@@ -13,7 +13,7 @@
   (when-let [uri (swagger/swagger-spec-path api)]
     (let [{status :status :as response} (api {:request-method :get
                                               :uri uri
-                                              mw/rethrow-exceptions? true})
+                                              ::mw/rethrow-exceptions? true})
           body (-> response :body slurp (cheshire/parse-string true))]
 
       (when-not (= status 200)
