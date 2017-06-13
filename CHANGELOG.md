@@ -1,3 +1,7 @@
+## 2.0.0-alpha3 (13.6.2017)
+
+* move `compojure.api.request` back to `src`.
+
 ## 2.0.0-alpha2 (13.6.2017)
 
 * **BREAKING**: Simplified pluggable coercion.
