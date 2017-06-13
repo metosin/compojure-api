@@ -40,7 +40,7 @@
                                   [peridot "0.4.4"]
                                   [javax.servlet/javax.servlet-api "3.1.0"]
                                   [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
-                                  [com.rpl/specter "1.0.1"]
+                                  [com.rpl/specter "1.0.2"]
                                   [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
@@ -58,13 +58,13 @@
                                     [peridot "0.4.4"]
                                     [javax.servlet/javax.servlet-api "3.1.0"]
                                     [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
-                                    [com.rpl/specter "1.0.1"]
+                                    [com.rpl/specter "1.0.2"]
                                     [com.stuartsierra/component "0.3.2"]
                                     [criterium "0.4.4"]]}
              :perf {:jvm-opts ^:replace ["-server"
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
-             :logging {:dependencies [[org.clojure/tools.logging "0.3.1"]
+             :logging {:dependencies [[org.clojure/tools.logging "0.4.0"]
                                       [org.slf4j/jcl-over-slf4j "1.7.25"]
                                       [org.slf4j/jul-to-slf4j "1.7.25"]
                                       [org.slf4j/log4j-over-slf4j "1.7.25"]
