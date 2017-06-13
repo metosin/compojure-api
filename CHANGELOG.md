@@ -1,6 +1,7 @@
 ## 2.0.0-alpha2 (13.7.2017)
 
 * **BREAKING**: Simplified pluggable coercion.
+  * guide in wiki: https://github.com/metosin/compojure-api/wiki/Coercion
   * injected in request under `:compojure.api.request/coercion`
   * new namespace `compojure.api.coercion`, replacing `compojure.api.coerce`.
   * `:coercion` can be set to `api`, `context`, endpoint macros or a `resource`. It can be either:
