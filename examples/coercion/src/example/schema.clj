@@ -13,7 +13,7 @@
     (POST "/plus" []
       :summary "plus with schema"
       :description "\tcurl -X POST 'http://localhost:3000/schema/plus?x=1'"
-      :query-params [x :- s/Str, {y :- s/Str 0}]
+      :query-params [x :- s/Int, {y :- s/Int 0}]
       :return Total
       (ok {:total (+ x y)}))
 
