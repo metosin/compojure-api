@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha2 (13.7.2017)
 
 * **BREAKING**: Simplified pluggable coercion.
   * injected in request under `:compojure.api.request/coercion`

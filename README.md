@@ -2,9 +2,9 @@
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
-- [Schema](https://github.com/Prismatic/schema) for input & output data coercion
+- [Schema](https://github.com/Prismatic/schema) & [clojure.spec](https://clojure.org/about/spec) (2.0.0) for input & output data coercion
 - [Swagger](http://swagger.io/) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
-- [Async](https://github.com/metosin/compojure-api/wiki/Async) with async-ring, [manifold](https://github.com/ztellman/manifold) and [core.async](https://github.com/clojure/core.async)
+- [Async](https://github.com/metosin/compojure-api/wiki/Async) with async-ring, [manifold](https://github.com/ztellman/manifold) and [core.async](https://github.com/clojure/core.async) (2.0.0)
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
 - Client negotiable formats: [JSON](http://www.json.org/), [EDN](https://github.com/edn-format/edn), [YAML](http://yaml.org/) & [Transit](https://github.com/cognitect/transit-format) (JSON & MessagePack)
 - Data-driven [resources](https://github.com/metosin/compojure-api/wiki/Resources-and-Liberator)
