@@ -13,7 +13,7 @@
                  [frankiesardo/linked "1.2.9"]
 
                  ;; api-formatters
-                 [metosin/muuntaja "0.2.1"]
+                 [metosin/muuntaja "0.2.2"]
                  [circleci/clj-yaml "0.5.5"]
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
