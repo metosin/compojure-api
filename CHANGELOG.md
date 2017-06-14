@@ -5,6 +5,7 @@
 ## 2.0.0-alpha2 (13.6.2017)
 
 * **BREAKING**: Simplified pluggable coercion.
+  * **NO SWAGGER-DOCS YET**, see https://github.com/metosin/spec-swagger
   * guide in wiki: https://github.com/metosin/compojure-api/wiki/Coercion
   * injected in request under `:compojure.api.request/coercion`
   * new namespace `compojure.api.coercion`, replacing `compojure.api.coerce`.
