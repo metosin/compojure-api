@@ -66,3 +66,15 @@
                                (dissoc mem (-> mem first first))
                                mem))))
             value)))))
+
+;; NB: when-ns eats all exceptions inside the body, including those about
+;; unresolvable symbols. Keep this in mind when debugging the definitions below.
+
+(defmacro when-ns [ns & body]
+  `(try
+     (eval
+      '(do
+         (require ~ns)
+         ~@body))
+     (catch Exception ~'_)))
+

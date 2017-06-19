@@ -1,6 +1,6 @@
 (ns compojure.api.coercion
   (:require [clojure.walk :as walk]
-            muuntaja.util
+            [compojure.api.common :as common]
             [compojure.api.exception :as ex]
             [compojure.api.request :as request]
             [compojure.api.coercion.core :as cc]
@@ -19,7 +19,7 @@
     default-coercion))
 
 ;; enable :spec if spec-tools is present
-(muuntaja.util/when-ns
+(common/when-ns
   'spec-tools.core
   (require 'compojure.api.coercion.spec))
 
