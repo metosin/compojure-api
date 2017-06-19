@@ -1,3 +1,15 @@
+## 2.0.0-alpha4 (19.6.2017)
+
+* Update to latest [Muuntaja](https://github.com/metosin/muuntaja).
+  * by defaults, allow empty input body for all foramts
+  * see [changelog](https://github.com/metosin/muuntaja/blob/master/CHANGELOG.md#030-1962017)
+
+* updated deps:
+
+```
+[metosin/muuntaja "0.3.1"] is available but we use "0.2.2"
+```
+
 ## 2.0.0-alpha3 (13.6.2017)
 
 * move `compojure.api.request` back to `src`.

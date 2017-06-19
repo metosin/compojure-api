@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha3"
+(defproject metosin/compojure-api "2.0.0-alpha4"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -13,7 +13,7 @@
                  [frankiesardo/linked "1.2.9"]
 
                  ;; api-formatters
-                 [metosin/muuntaja "0.2.2"]
+                 [metosin/muuntaja "0.3.1"]
                  [circleci/clj-yaml "0.5.5"]
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
