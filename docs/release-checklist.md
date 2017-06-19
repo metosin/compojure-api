@@ -5,6 +5,7 @@ checklist to ensure that the release is properly made. The goal is to make it
 easy for both the users and the maintainers to know what's included in the
 release.
 
+* [ ] You pulled the latest master before starting to create a release.
 * [ ] `CHANGELOG.md` contains a high-level summary of the changes in the new release.
   * [ ] Breaking changes, if any, have been highlighted.
 * [ ] A JAR has been deployed to Clojars.
