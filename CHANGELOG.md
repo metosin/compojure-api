@@ -1,7 +1,7 @@
 ## 2.0.0-alpha4 (19.6.2017)
 
 * Update to latest [Muuntaja](https://github.com/metosin/muuntaja).
-  * by defaults, allow empty input body for all foramts
+  * by default, allow empty input body for all formats
   * see [changelog](https://github.com/metosin/muuntaja/blob/master/CHANGELOG.md#030-1962017)
 
 * updated deps:
