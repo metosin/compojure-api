@@ -104,7 +104,7 @@
 
 ```clj
 [org.clojure/clojure "1.8.0"]
-[metosin/spec-tools "0.2.2" :exlusions [org.clojure/spec.alpha]]
+[metosin/spec-tools "0.2.2" :exclusions [org.clojure/spec.alpha]]
 [clojure-future-spec "1.9.0-alpha17"]
 ```
 
