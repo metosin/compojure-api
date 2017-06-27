@@ -201,11 +201,11 @@
       (fact "works with 3-arity"
         (let [respond (promise)]
           (handler {:request-method :put, :query-params {:x 1}} respond (promise))
-          (deref respond 1000 :timeout) => (has-body {:total 100}))
+          (deref respond 2000 :timeout) => (has-body {:total 100}))
         (fact "response coercion works"
           (let [raise (promise)]
             (handler {:request-method :put, :query-params {:x -1}} (promise) raise)
-            (throw (deref raise 1000 :timeout)) => response-validation-failed?)))
+            (throw (deref raise 2000 :timeout)) => response-validation-failed?)))
       (fact "fails with 1-arity"
         (handler {:request-method :put, :query-params {:x 1}}) => (throws) #_(has-body {:total 100})
         (handler {:request-method :put, :query-params {:x -1}}) => (throws) #_response-validation-failed?))))
