@@ -143,6 +143,10 @@
                 :body-params [x :- int?, {y :- ::y 0}]
                 (ok {:total (+ x y)}))
 
+              (POST "/body-string" []
+                :body [body string?]
+                (ok {:body body}))
+
               (GET "/response" []
                 :query-params [x :- ::x, y :- ::y]
                 :return (s/keys :req-un [::total])
@@ -190,6 +194,11 @@
       (let [[status body] (post* app "/body-map" (json {:x 1}))]
         status => 200
         body => {:total 1}))
+
+    (fact "body-string"
+      (let [[status body] (post* app "/body-string" (json "kikka"))]
+        status => 200
+        body => {:body "kikka"}))
 
     (fact "query-params"
       (let [[status body] (get* app "/query-params" {:x "1", :y 2})]
