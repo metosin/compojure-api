@@ -1,3 +1,8 @@
+## UNRELEASED
+
+* Schema coercion errors have the :schema as `pr-str` value.
+* 
+
 ## 2.0.0-alpha4 (19.6.2017)
 
 * Update to latest [Muuntaja](https://github.com/metosin/muuntaja).

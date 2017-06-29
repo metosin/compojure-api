@@ -19,13 +19,13 @@
 (defn stringify
   "Stringifies Schema records recursively."
   [error]
-  (walk/postwalk
+  (walk/prewalk
     (fn [x]
       (cond
         (class? x) (.getName ^Class x)
         (instance? OptionalKey x) (pr-str (list 'opt (:k x)))
         (instance? RequiredKey x) (pr-str (list 'req (:k x)))
-        (satisfies? s/Schema x) (try (pr-str (s/explain x)) (catch Exception _ x))
+        (and (satisfies? s/Schema x) (record? x)) (try (pr-str (s/explain x)) (catch Exception _ x))
         (instance? ValidationError x) (str (su/validation-error-explain x))
         (instance? NamedError x) (str (su/named-error-explain x))
         :else x))
@@ -52,7 +52,7 @@
 
   (encode-error [_ error]
     (-> error
-        (update :schema stringify)
+        (update :schema pr-str)
         (update :errors stringify)))
 
   (coerce-request [_ schema value type format request]

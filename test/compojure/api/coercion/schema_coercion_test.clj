@@ -13,7 +13,9 @@
     (cs/stringify (s/check {:foo s/Int} {:foo "foo"})) => {:foo "(not (integer? \"foo\"))"})
   (fact "NamedError"
     (class (s/check (s/named s/Int "name") "foo")) => NamedError
-    (cs/stringify (s/check (s/named s/Int "name") "foo")) => "(named (not (integer? \"foo\")) \"name\")"))
+    (cs/stringify (s/check (s/named s/Int "name") "foo")) => "(named (not (integer? \"foo\")) \"name\")")
+  (fact "Schema"
+    (cs/stringify {:total (s/constrained s/Int pos?)}) => {:total "(constrained Int pos?)"}))
 
 (s/defschema Schema {:kikka s/Keyword})
 
