@@ -1,6 +1,6 @@
 ## UNRELEASED
 
-* Spec coercion endpoints contribute now Swagger2 data
+* Spec coercion endpoints produce now Swagger2 data
   * thanks to latest [spec-tools](https://github.com/metosin/spec-tools#swagger2-integration)
 
 * To use Clojure 1.9 & Spec with Swagger, these need to be imported:
