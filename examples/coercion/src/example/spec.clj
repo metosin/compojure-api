@@ -16,8 +16,7 @@
 
     (POST "/plus" []
       :summary "plus with clojure.spec using data-specs"
-      :description "\tcurl -X POST 'http://localhost:3000/spec/plus?x=1'"
-      :query-params [x :- ::x, {y :- ::y 0}]
+      :body-params [x :- ::x, {y :- ::y 0}]
       :return ::total-map
       (ok {:total (+ x y)}))
 
@@ -25,7 +24,6 @@
       (resource
         {:get
          {:summary "data-driven plus with clojure.spec using data-specs"
-          :description "\tcurl 'http://localhost:3000/spec/plus?x=1&y=2'"
           :parameters {:query-params (s/keys :req-un [::x ::y])}
           :responses {200 {:schema ::total-map}}
           :handler (fn [{{:keys [x y]} :query-params}]
