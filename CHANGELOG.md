@@ -7,14 +7,14 @@
 
 ```clj
 [org.clojure/clojure "1.9.0-alpha17"]
-[metosin/spec-tools "0.3.0-SNAPSHOT"]
+[metosin/spec-tools "0.3.0"]
 ```
 
 * To use Clojure 1.8 & Spec with Swagger, these need to be imported:
 
 ```clj
 [org.clojure/clojure "1.8.0"]
-[metosin/spec-tools "0.3.0-SNAPSHOT" :exclusions [org.clojure/spec.alpha]]
+[metosin/spec-tools "0.3.0" :exclusions [org.clojure/spec.alpha]]
 [clojure-future-spec "1.9.0-alpha17"]
 ```
 
@@ -22,6 +22,12 @@
 
 ```
 INFO :spec swagger generation enabled in compojure.api
+```
+
+* updated deps:
+
+```
+[metosin/spec-tools "0.3.0"] is available but we use "0.2.2"
 ```
 
 * Schema coercion errors have the :schema as `pr-str` value.
