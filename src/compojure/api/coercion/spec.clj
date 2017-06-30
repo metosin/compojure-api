@@ -8,6 +8,7 @@
             [compojure.api.coercion.core :as cc]
             [compojure.api.impl.logging :as log]
             [spec-tools.conform :as conform]
+            [spec-tools.swagger.core :as swagger]
             [compojure.api.common :as common])
   (:import (clojure.lang IPersistentMap)
            (schema.core RequiredKey OptionalKey)
@@ -64,7 +65,7 @@
     (st/create-spec {:spec this})))
 
 (def memoized-specify
-  (common/fifo-memoize #(specify %1 (gensym)) 10000))
+  (common/fifo-memoize #(specify %1 (gensym "spec")) 10000))
 
 (defmulti coerce-response? identity :default ::default)
 (defmethod coerce-response? ::default [_] true)
@@ -73,9 +74,20 @@
   cc/Coercion
   (get-name [_] name)
 
-  ;; TODO: spec-swagger
-  (get-apidocs [_ _ info]
-    (dissoc info :parameters :responses))
+  (get-apidocs [_ _ {:keys [parameters responses] :as info}]
+    (cond-> (dissoc info :parameters :responses)
+            parameters (assoc
+                         ::swagger/parameters
+                         (into
+                           (empty parameters)
+                           (for [[k v] parameters]
+                             [k (memoized-specify v)])))
+            responses (assoc
+                        ::swagger/responses
+                        (into
+                          (empty responses)
+                          (for [[k response] responses]
+                            [k (update response :schema memoized-specify)])))))
 
   (make-open [_ spec] spec)
 

@@ -9,7 +9,10 @@
             [compojure.api.coercion.core :as cc]
             [compojure.api.coercion.spec :as cs]
             [spec-tools.data-spec :as ds]
-            [spec-tools.core :as st]))
+            [spec-tools.core :as st]
+            [compojure.api.validator :as validator]
+            [compojure.api.swagger :as swagger]
+            [compojure.api.routes :as routes]))
 
 (s/def ::kikka spec/keyword?)
 (s/def ::spec (s/keys :req-un [::kikka]))
@@ -112,34 +115,31 @@
 
 (s/def ::x spec/int?)
 (s/def ::y spec/int?)
+(s/def ::xy (s/keys :req-un [::x ::y]))
 (s/def ::total spec/pos-int?)
 
 (facts "apis"
   (let [app (api
-              {:coercion :spec}
+              {:swagger {:spec "/swagger.json"}
+               :coercion :spec}
 
               (POST "/body" []
-                :summary "let & spec"
-                :body [{:keys [x y]} (s/keys :req-un [::x ::y])]
+                :body [{:keys [x y]} ::xy]
                 (ok {:total (+ x y)}))
 
               (POST "/body-map" []
-                :summary "let & anonymous data-spec"
                 :body [{:keys [x y]} {:x int?, (ds/opt :y) ::y}]
                 (ok {:total (+ x (or y 0))}))
 
               (GET "/query" []
-                :summary "let & spec"
-                :query [{:keys [x y]} (s/keys :req-un [::x ::y])]
+                :query [{:keys [x y]} ::xy]
                 (ok {:total (+ x y)}))
 
               (GET "/query-params" []
-                :summary "letk & named specs "
                 :query-params [x :- ::x, y :- ::y]
                 (ok {:total (+ x y)}))
 
               (POST "/body-params" []
-                :summary "letk & predicates & optional"
                 :body-params [x :- int?, {y :- ::y 0}]
                 (ok {:total (+ x y)}))
 
@@ -154,13 +154,11 @@
 
               (context "/resource" []
                 (resource
-                  {:get {:summary "parameters as specs"
-                         :parameters {:query-params (s/keys :req-un [::x ::y])}
+                  {:get {:parameters {:query-params ::xy}
                          :responses {200 {:schema (s/keys :req-un [::total])}}
                          :handler (fn [{{:keys [x y]} :query-params}]
                                     (ok {:total (+ x y)}))}
-                   :post {:summary "parameters as data-specs"
-                          :parameters {:body-params {:x int? (ds/opt :y) int?}}
+                   :post {:parameters {:body-params {:x int? (ds/opt :y) int?}}
                           :responses {200 {:schema (s/keys :req-un [::total])}}
                           :handler (fn [{{:keys [x y]} :body-params}]
                                      (ok {:total (+ x (or y 0))}))}})))]
@@ -177,7 +175,8 @@
                              :path ["y"]
                              :pred "clojure.core/int?"
                              :val "kaks"
-                             :via ["compojure.api.coercion.spec-coercion-test/y"]}]
+                             :via ["compojure.api.coercion.spec-coercion-test/xy"
+                                   "compojure.api.coercion.spec-coercion-test/y"]}]
                  :spec "(spec-tools.core/spec {:spec (clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y]), :type :map, :keys #{:y :x}})"
                  :type "compojure.api.exception/request-validation"
                  :value {:x "1", :y "kaks"}}))
@@ -250,4 +249,137 @@
         (let [[status body] (post* app "/resource" (json {:x -1, :y -2}))]
           status => 500
           body => (contains {:coercion "spec"
-                             :in ["response" "body"]}))))))
+                             :in ["response" "body"]}))))
+
+    (fact "generates valid swagger spec"
+      (validator/validate app) =not=> (throws))
+
+    (fact "swagger spec has all things"
+      (let [total-schema {:description "",
+                          :schema {:properties
+                                   {:total {:format "int64",
+                                            :minimum 1,
+                                            :type "integer"}},
+                                   :required ["total"],
+                                   :type "object"}}]
+        (get-spec app)
+        => (contains
+             {:definitions {}
+              :paths (contains
+                       {"/body" {:post
+                                 {:parameters
+                                  [{:description ""
+                                    :in "body"
+                                    :name "compojure.api.coercion.spec-coercion-test/xy"
+                                    :required true
+                                    :schema {:properties
+                                             {:x {:format "int64"
+                                                  :type "integer"}
+                                              :y {:format "int64"
+                                                  :type "integer"}}
+                                             :required ["x" "y"]
+                                             :type "object"}}]
+                                  :responses {:default {:description ""}}}}
+                        "/body-map" {:post
+                                     {:parameters
+                                      [{:description ""
+                                        :in "body"
+                                        :name ""
+                                        :required true
+                                        :schema {:properties {:x {:format "int64"
+                                                                  :type "integer"}
+                                                              :y {:format "int64"
+                                                                  :type "integer"}}
+                                                 :required ["x"]
+                                                 :type "object"}}]
+                                      :responses {:default {:description ""}}}}
+                        "/query" {:get {:parameters
+                                        [{:description "" :format "int64"
+                                          :in "query" :name "x" :required true
+                                          :type "integer"}
+                                         {:description "" :format "int64"
+                                          :in "query" :name "y" :required true
+                                          :type "integer"}]
+                                        :responses {:default {:description ""}}}}
+                        "/query-params" {:get
+                                         {:parameters
+                                          [{:description ""
+                                            :format "int64"
+                                            :in "query"
+                                            :name "x"
+                                            :required true
+                                            :type "integer"}
+                                           {:description ""
+                                            :format "int64"
+                                            :in "query"
+                                            :name "y"
+                                            :required true
+                                            :type "integer"}]
+                                          :responses {:default {:description ""}}}}
+                        "/body-params" {:post
+                                        {:parameters
+                                         [{:description ""
+                                           :in "body"
+                                           :name ""
+                                           :required true
+                                           :schema {:properties {:x {:format "int64"
+                                                                     :type "integer"}
+                                                                 :y {:format "int64"
+                                                                     :type "integer"}}
+                                                    :required ["x"]
+                                                    :type "object"}}]
+                                         :responses {:default {:description ""}}}}
+                        "/body-string" {:post
+                                        {:parameters
+                                         [{:description ""
+                                           :in "body"
+                                           :name ""
+                                           :required true
+                                           :schema {:type "string"}}]
+                                         :responses {:default {:description ""}}}}
+                        "/response" {:get
+                                     {:parameters
+                                      [{:description ""
+                                        :format "int64"
+                                        :in "query"
+                                        :name "x"
+                                        :required true
+                                        :type "integer"}
+                                       {:description ""
+                                        :format "int64"
+                                        :in "query"
+                                        :name "y"
+                                        :required true
+                                        :type "integer"}]
+                                      :responses {:200 total-schema
+                                                  :default {:description ""}}}}
+                        "/resource" {:get
+                                     {:parameters
+                                      [{:description ""
+                                        :format "int64"
+                                        :in "query"
+                                        :name "x"
+                                        :required true
+                                        :type "integer"}
+                                       {:description ""
+                                        :format "int64"
+                                        :in "query"
+                                        :name "y"
+                                        :required true
+                                        :type "integer"}]
+                                      :responses {:200 total-schema
+                                                  :default {:description ""}}}
+                                     :post
+                                     {:parameters
+                                      [{:description ""
+                                        :in "body"
+                                        :name ""
+                                        :required true
+                                        :schema {:properties {:x {:format "int64"
+                                                                  :type "integer"}
+                                                              :y {:format "int64"
+                                                                  :type "integer"}}
+                                                 :required ["x"]
+                                                 :type "object"}}]
+                                      :responses {:200 total-schema
+                                                  :default {:description ""}}}}})})))))
