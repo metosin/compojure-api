@@ -23,7 +23,7 @@
     (context "/plus" []
       (resource
         {:get
-         {:summary "data-driven plus with clojure.spec using data-specs"
+         {:summary "data-driven plus with clojure.spec using specs"
           :parameters {:query-params (s/keys :req-un [::x ::y])}
           :responses {200 {:schema ::total-map}}
           :handler (fn [{{:keys [x y]} :query-params}]

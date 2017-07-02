@@ -86,18 +86,25 @@
                        :params params))]
     [status (parse-body body)]))
 
-(defn raw-post* [app uri & [data content-type headers]]
+(defn raw-put-or-post* [app uri method data content-type headers]
   (let [{{:keys [status body]} :response}
         (-> (p/session app)
             (p/request uri
-                       :request-method :post
+                       :request-method method
                        :headers (or headers {})
                        :content-type (or content-type "application/json")
                        :body (.getBytes data)))]
     [status (read-body body)]))
 
+(defn raw-post* [app uri & [data content-type headers]]
+  (raw-put-or-post* app uri :post data content-type headers))
+
 (defn post* [app uri & [data]]
   (let [[status body] (raw-post* app uri data)]
+    [status (parse-body body)]))
+
+(defn put* [app uri & [data]]
+  (let [[status body] (raw-put-or-post* app uri :put data nil nil)]
     [status (parse-body body)]))
 
 (defn headers-post* [app uri headers]

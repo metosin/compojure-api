@@ -31,6 +31,7 @@ INFO :spec swagger generation enabled in compojure.api
 ```
 
 * Schema coercion errors have the :schema as `pr-str` value.
+* `resource` body-params are associated over existing instead of merged. e.g. extra params are really stripped off.
 
 ## 2.0.0-alpha4 (19.6.2017)
 

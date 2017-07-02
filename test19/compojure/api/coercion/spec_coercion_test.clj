@@ -127,6 +127,10 @@
                 :body [{:keys [x y]} ::xy]
                 (ok {:total (+ x y)}))
 
+              (PUT "/body" []
+                :body [body ::xy]
+                (ok body))
+
               (POST "/body-map" []
                 :body [{:keys [x y]} {:x int?, (ds/opt :y) ::y}]
                 (ok {:total (+ x (or y 0))}))
@@ -161,7 +165,10 @@
                    :post {:parameters {:body-params {:x int? (ds/opt :y) int?}}
                           :responses {200 {:schema (s/keys :req-un [::total])}}
                           :handler (fn [{{:keys [x y]} :body-params}]
-                                     (ok {:total (+ x (or y 0))}))}})))]
+                                     (ok {:total (+ x (or y 0))}))}
+                   :put {:parameters {:body-params ::xy}
+                         :handler (fn [{body-params :body-params}]
+                                    (ok body-params))}})))]
 
     (fact "query"
       (let [[status body] (get* app "/query" {:x "1", :y 2})]
@@ -251,6 +258,16 @@
           body => (contains {:coercion "spec"
                              :in ["response" "body"]}))))
 
+    (fact "extra keys are stripped from body-params before validation"
+      (fact "for resources"
+        (let [[status body] (put* app "/resource" (json {:x 1, :y 2 ::kikka "kakka"}))]
+          status => 200
+          body => {:x 1, :y 2}))
+      (fact "for endpoints"
+        (let [[status body] (put* app "/body" (json {:x 1, :y 2 ::kikka "kakka"}))]
+          status => 200
+          body => {:x 1, :y 2})))
+
     (fact "generates valid swagger spec"
       (validator/validate app) =not=> (throws))
 
@@ -267,6 +284,20 @@
              {:definitions {}
               :paths (contains
                        {"/body" {:post
+                                 {:parameters
+                                  [{:description ""
+                                    :in "body"
+                                    :name "compojure.api.coercion.spec-coercion-test/xy"
+                                    :required true
+                                    :schema {:properties
+                                             {:x {:format "int64"
+                                                  :type "integer"}
+                                              :y {:format "int64"
+                                                  :type "integer"}}
+                                             :required ["x" "y"]
+                                             :type "object"}}]
+                                  :responses {:default {:description ""}}}
+                                 :put
                                  {:parameters
                                   [{:description ""
                                     :in "body"
@@ -382,4 +413,17 @@
                                                  :required ["x"]
                                                  :type "object"}}]
                                       :responses {:200 total-schema
-                                                  :default {:description ""}}}}})})))))
+                                                  :default {:description ""}}}
+                                     :put
+                                     {:parameters
+                                      [{:description ""
+                                        :in "body"
+                                        :name "compojure.api.coercion.spec-coercion-test/xy"
+                                        :required true
+                                        :schema {:properties {:x {:format "int64"
+                                                                  :type "integer"}
+                                                              :y {:format "int64"
+                                                                  :type "integer"}}
+                                                 :required ["x" "y"]
+                                                 :type "object"}}]
+                                      :responses {:default {:description ""}}}}})})))))

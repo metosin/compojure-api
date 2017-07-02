@@ -94,7 +94,7 @@
   (encode-error [_ error]
     (update error :spec (comp str s/form)))
 
-  (coerce-request [_ spec value type format request]
+  (coerce-request [_ spec value type format _]
     (let [spec (memoized-specify spec)
           type-options (options type)]
       (if-let [conforming (or (get (get type-options :formats) format)
