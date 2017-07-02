@@ -1,4 +1,4 @@
-## 2.0.0-alpha4 (2.7.2017)
+## 2.0.0-alpha5 (2.7.2017)
 
 * Spec coercion endpoints produce now Swagger2 data
   * thanks to latest [spec-tools](https://github.com/metosin/spec-tools#swagger2-integration)
