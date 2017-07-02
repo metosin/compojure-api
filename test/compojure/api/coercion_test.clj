@@ -43,7 +43,7 @@
                :coercion "schema",
                :in ["response" "body"],
                :value {:value 123},
-               :schema {:value "java.lang.String"},
+               :schema "{:value java.lang.String}",
                :errors {:value "(not (instance? java.lang.String 123))"}}]))
 
       (fact ":default"
@@ -175,7 +175,7 @@
                    :coercion "schema",
                    :in ["request" "query-params"],
                    :value {:i "10"}
-                   :schema {:Keyword "Any", :i "Int"},
+                   :schema "{Keyword Any, :i Int}",
                    :errors {:i "(not (integer? \"10\"))"}})]))
 
         (fact "no coercion"

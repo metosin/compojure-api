@@ -37,7 +37,11 @@
   (reduce-kv
     (fn [request ring-key [compojure-key _ type open?]]
       (if-let [model (get-in info (concat ks [:parameters ring-key]))]
-        (update request ring-key merge (coercion/coerce-request! model compojure-key type (not= :body type) open? request))
+        (let [coerced (coercion/coerce-request!
+                        model compojure-key type (not= :body type) open? request)]
+          (if open?
+            (update request ring-key merge coerced)
+            (assoc request ring-key coerced)))
         request))
     (inject-coercion request info)
     (:parameters +mappings+)))

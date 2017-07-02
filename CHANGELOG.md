@@ -1,3 +1,38 @@
+## 2.0.0-alpha4 (2.7.2017)
+
+* Spec coercion endpoints produce now Swagger2 data
+  * thanks to latest [spec-tools](https://github.com/metosin/spec-tools#swagger2-integration)
+
+* To use Clojure 1.9 & Spec with Swagger, these need to be imported:
+
+```clj
+[org.clojure/clojure "1.9.0-alpha17"]
+[metosin/spec-tools "0.3.0"]
+```
+
+* To use Clojure 1.8 & Spec with Swagger, these need to be imported:
+
+```clj
+[org.clojure/clojure "1.8.0"]
+[metosin/spec-tools "0.3.0" :exclusions [org.clojure/spec.alpha]]
+[clojure-future-spec "1.9.0-alpha17"]
+```
+
+* If the dependencies are found, the following entry should appear on log:
+
+```
+INFO :spec swagger generation enabled in compojure.api
+```
+
+* updated deps:
+
+```
+[metosin/spec-tools "0.3.0"] is available but we use "0.2.2"
+```
+
+* Schema coercion errors have the :schema as `pr-str` value.
+* `resource` body-params are associated over existing instead of merged. e.g. extra params are really stripped off.
+
 ## 2.0.0-alpha4 (19.6.2017)
 
 * Update to latest [Muuntaja](https://github.com/metosin/muuntaja).

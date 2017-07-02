@@ -12,8 +12,7 @@
 
     (POST "/plus" []
       :summary "plus with schema"
-      :description "\tcurl -X POST 'http://localhost:3000/schema/plus?x=1'"
-      :query-params [x :- s/Int, {y :- s/Int 0}]
+      :body-params [x :- s/Int, {y :- s/Int 0}]
       :return Total
       (ok {:total (+ x y)}))
 
@@ -21,7 +20,6 @@
       (resource
         {:get
          {:summary "data-driven plus with schema"
-          :description "\tcurl 'http://localhost:3000/schema/plus?x=1&y=2'"
           :parameters {:query-params {:x s/Str, :y s/Str}}
           :responses {200 {:schema Total}}
           :handler (fn [{{:keys [x y]} :query-params}]
