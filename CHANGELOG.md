@@ -1,3 +1,20 @@
+## 1.1.11 (25.7.2017)
+
+* updated deps for the 1.*
+* **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
+  - normally you would use swagger api-options or `swagger-routes` and thus be unaffected of this.
+
+* updated dependencies:
+
+```clj
+[prismatic/plumbing "0.5.4"] is available but we use "0.5.3"
+[compojure "1.6.0"] is available but we use "1.5.2"
+[prismatic/schema "1.1.6"] is available but we use "1.1.3"
+[ring-middleware-format "0.7.2"] is available but we use "0.7.0"
+[metosin/ring-http-response "0.9.0"] is available but we use "0.8.1"
+[metosin/ring-swagger "0.24.1"] is available but we use "0.22.14"
+```
+
 ## 2.0.0-alpha5 (2.7.2017)
 
 * Spec coercion endpoints produce now Swagger2 data
