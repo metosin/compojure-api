@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha6 (26.7.2017)
 
 * spec coericon also calls `s/unform` after `s/conform`, e.g. specs like `(s/or :int spec/int? :keyword spec/keyword?)` work now too.
 
