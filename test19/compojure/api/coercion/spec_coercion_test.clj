@@ -44,6 +44,14 @@
                                                 :via [::spec ::kikka]}]
                                     :request (contains {:body-params {:kikka "kukka"}})}))))
 
+    (fact "coercion also unforms"
+      (let [spec (s/or :int spec/int? :keyword spec/keyword?)
+            c! #(coercion/coerce-request! spec :body-params :body false false %)]
+        (c! {:body-params 1
+             ::request/coercion :spec}) => 1
+        (c! {:body-params :kikka
+             ::request/coercion :spec}) => :kikka))
+
     (fact "format-based coercion"
       (c! {:body-params valid-value
            ::request/coercion :spec

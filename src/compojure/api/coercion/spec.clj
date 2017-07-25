@@ -106,7 +106,7 @@
               (cc/map->CoercionError
                 {:spec spec
                  :problems (::s/problems problems)}))
-            conformed))
+            (s/unform spec conformed)))
         value)))
 
   (coerce-response [this spec value type format request]
