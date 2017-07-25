@@ -1,3 +1,14 @@
+## UNRELEASED
+
+* updated dependencies:
+
+```
+[circleci/clj-yaml "0.5.6"] is available but we use "0.5.5"
+[metosin/muuntaja "0.3.2"] is available but we use "0.3.1"
+[ring/ring-core "1.6.2"] is available but we use "1.6.1"
+[metosin/ring-swagger "0.24.1"] is available but we use "0.24.0"
+```
+
 ## 1.1.11 (25.7.2017)
 
 * updated deps for the 1.*

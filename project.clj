@@ -13,15 +13,15 @@
                  [frankiesardo/linked "1.2.9"]
 
                  ;; api-formatters
-                 [metosin/muuntaja "0.3.1"]
-                 [circleci/clj-yaml "0.5.5"]
+                 [metosin/muuntaja "0.3.2"]
+                 [circleci/clj-yaml "0.5.6"]
                  [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
 
                  ;; http
-                 [ring/ring-core "1.6.1"]
+                 [ring/ring-core "1.6.2"]
                  [compojure "1.6.0" :exclusions [commons-codec]]
                  [metosin/ring-http-response "0.9.0"]
-                 [metosin/ring-swagger "0.24.0"]
+                 [metosin/ring-swagger "0.24.1"]
                  [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
