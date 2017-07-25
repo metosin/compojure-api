@@ -1,5 +1,3 @@
-## Unreleased
-
 ## 1.1.11 (25.7.2017)
 
  * **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
@@ -9,7 +7,6 @@
 
 ```clj
 [prismatic/plumbing "0.5.4"] is available but we use "0.5.3"
-[cheshire "5.7.1"] is available but we use "5.6.3"
 [compojure "1.6.0"] is available but we use "1.5.2"
 [prismatic/schema "1.1.6"] is available but we use "1.1.3"
 [ring-middleware-format "0.7.2"] is available but we use "0.7.0"
@@ -104,7 +101,7 @@
        :data {:info {:title "Kikka"}
               :paths {"/ping" {:get {:summary "ping get"}}}}})
     (GET "/ping" [] "pong"))))
-```    
+```
 
 * unsetting `:format` option in `api-middleware` causes all format-middlewares not to mount
 * unsetting `:exceptions` option in `api-middleware` causes the exception handling to be disabled
@@ -132,7 +129,7 @@
 * fix reflection warning with logging, thanks to [Matt K](https://github.com/mtkp).
 * Empty contexts (`/`) don't accumulate to the path, see https://github.com/weavejester/compojure/issues/125
 
-* **NOTE**: update of `ring-http-response` had a [breaking change](https://github.com/metosin/ring-http-response/blob/master/CHANGELOG.md#080-2862016): 
+* **NOTE**: update of `ring-http-response` had a [breaking change](https://github.com/metosin/ring-http-response/blob/master/CHANGELOG.md#080-2862016):
   - first argument for `created` is `url`, not `body`. Has 2-arity version which takes both `url` & `body` in align to the [spec](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) & [ring](https://github.com/ring-clojure/ring/blob/master/ring-core/src/ring/util/response.clj#L37)
    - fixes [#12](https://github.com/metosin/ring-http-response/issues/12).
 

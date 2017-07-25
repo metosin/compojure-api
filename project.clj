@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "1.1.11-SNAPSHOT"
+(defproject metosin/compojure-api "1.1.11"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -7,7 +7,7 @@
             :comments "same as Clojure"}
   :dependencies [[prismatic/plumbing "0.5.4"]
                  [potemkin "0.4.3"]
-                 [cheshire "5.7.1"]
+                 [cheshire "5.6.3"]
                  [compojure "1.6.0"]
                  [prismatic/schema "1.1.6"]
                  [org.tobereplaced/lettercase "1.0.0"]
