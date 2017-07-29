@@ -4,7 +4,7 @@
 
 * updated dependencies:
 
-```
+```clj
 [circleci/clj-yaml "0.5.6"] is available but we use "0.5.5"
 [metosin/muuntaja "0.3.2"] is available but we use "0.3.1"
 [ring/ring-core "1.6.2"] is available but we use "1.6.1"
