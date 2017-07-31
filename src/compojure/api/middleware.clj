@@ -124,11 +124,9 @@
   (or (:compojure.api.meta/serializable? response)
       (coll? (:body response))))
 
-(def muuntaja-options m/default-options)
-
 (defn create-muuntaja
   ([]
-   (create-muuntaja muuntaja-options))
+   (create-muuntaja m/default-options))
   ([muuntaja-or-options]
    (if muuntaja-or-options
      (if (instance? Muuntaja muuntaja-or-options)
@@ -183,7 +181,7 @@
 ;;
 
 (def api-middleware-defaults
-  {:formats muuntaja-options
+  {:formats m/default-options
    :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
