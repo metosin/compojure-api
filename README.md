@@ -11,6 +11,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - Bundled middleware for common api behavior ([exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling), parameters & formats)
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
 - Route functions & macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
+- Requires Java 1.8
 
 [API Docs](http://metosin.github.io/compojure-api/doc/) & [Wiki](https://github.com/metosin/compojure-api/wiki)
 
