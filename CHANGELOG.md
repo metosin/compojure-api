@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha7 (31.7.2017)
 
 * drop direct support for `application/yaml` & `application/msgpack`. If you want to add them back, you need to manually add the dependencies below and configure Muuntaja to handle those:
 
