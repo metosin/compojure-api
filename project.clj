@@ -11,13 +11,7 @@
                  [prismatic/plumbing "0.5.4"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-
-                 ;; api-formatters
                  [metosin/muuntaja "0.3.2"]
-                 [circleci/clj-yaml "0.5.6"]
-                 [clojure-msgpack "1.2.0" :exclusions [org.clojure/clojure]]
-
-                 ;; http
                  [ring/ring-core "1.6.2"]
                  [compojure "1.6.0" :exclusions [commons-codec]]
                  [metosin/ring-http-response "0.9.0"]

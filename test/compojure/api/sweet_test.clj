@@ -117,16 +117,12 @@
                  :basePath "/"
                  :consumes (just
                              ["application/json"
-                              "application/x-yaml"
-                              "application/msgpack"
                               "application/edn"
                               "application/transit+json"
                               "application/transit+msgpack"]
                              :in-any-order),
                  :produces (just
                              ["application/json"
-                              "application/x-yaml"
-                              "application/msgpack"
                               "application/edn"
                               "application/transit+json"
                               "application/transit+msgpack"]

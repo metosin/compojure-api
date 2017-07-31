@@ -766,7 +766,6 @@
 
       ?content-type ?body
       "application/json" "{\"foo\":\"bar\"}"
-      "application/x-yaml" "{foo: bar}\n"
       "application/edn" "{:foo \"bar\"}"
       "application/transit+json" "[\"^ \",\"~:foo\",\"bar\"]")))
 
@@ -1556,7 +1555,7 @@
                   response => http/ok?
                   (m/decode m format (:body response)) => valid-data)))))))
 
-    (facts "application/json & application/x-yaml - coerce request, validate response"
+    (facts "application/json - coerce request, validate response"
       (let [valid-data {:int 1, :keyword "kikka"}
             valid-response-data {:int 1, :keyword :kikka}
             invalid-data {:int "1", :keyword "kikka"}
@@ -1567,7 +1566,7 @@
                     :return Schema
                     (ok *response*)))]
 
-        (doseq [format ["application/json" "application/x-yaml"]]
+        (doseq [format ["application/json"]]
           (fact {:midje/description format}
 
             (fact "fails with invalid body"
@@ -1585,11 +1584,7 @@
               (binding [*response* valid-response-data]
                 (let [response (app (ring-request m format valid-data))]
                   response => http/ok?
-                  (m/decode m format (:body response)) => valid-data)))))))
-
-    (facts "msgpack"
-      ;; TODO: implement
-      )))
+                  (m/decode m format (:body response)) => valid-data)))))))))
 
 (fact "static contexts just work"
   (let [app (context "/:a" [a]

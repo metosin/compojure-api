@@ -1,3 +1,26 @@
+## UNRELEASED
+
+* drop direct support for `application/yaml` & `application/msgpack`. If you want to add them back, you need to manually add the dependencies below and configure Muuntaja to handle those:
+
+```clj
+(require '[muuntaja.core :as muuntaja])
+(require '[muuntaja.format.yaml :as yaml-format])
+(require '[muuntaja.format.msgpack :as msgpack-format])
+
+(api
+  {:formats (-> muuntaja/default-options)
+                (yaml-format/with-yaml-format)
+                (msgpack-format/with-msgpack-format))}
+  ...)
+```
+
+* dropped dependencies:
+
+```clj
+[circleci/clj-yaml "0.5.6"]
+[clojure-msgpack "1.2.0"]
+```
+
 ## 2.0.0-alpha6 (26.7.2017)
 
 * spec coericon also calls `s/unform` after `s/conform`, e.g. specs like `(s/or :int spec/int? :keyword spec/keyword?)` work now too.
