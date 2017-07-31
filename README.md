@@ -5,7 +5,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - [Schema](https://github.com/Prismatic/schema) & [clojure.spec](https://clojure.org/about/spec) (2.0.0) for input & output data coercion
 - [Swagger](http://swagger.io/) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger) & [spec-tools](https://github.com/metosin/spec-tools)
 - [Async](https://github.com/metosin/compojure-api/wiki/Async) with async-ring, [manifold](https://github.com/ztellman/manifold) and [core.async](https://github.com/clojure/core.async) (2.0.0)
-- Client negotiable formats: [JSON](http://www.json.org/), [EDN](https://github.com/edn-format/edn) & [Transit](https://github.com/cognitect/transit-format)
+- Client negotiable formats: [JSON](http://www.json.org/), [EDN](https://github.com/edn-format/edn) & [Transit](https://github.com/cognitect/transit-format), optionally [YAML](http://yaml.org/) and [MessagePack](http://msgpack.org/)
 - Data-driven [resources](https://github.com/metosin/compojure-api/wiki/Resources-and-Liberator)
 - [Bi-directional](https://github.com/metosin/compojure-api/wiki/Routing#bi-directional-routing) routing
 - Bundled middleware for common api behavior ([exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling), parameters & formats)
