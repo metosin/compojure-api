@@ -12,8 +12,6 @@
 
             [muuntaja.middleware]
             [muuntaja.core :as m]
-            [muuntaja.format.yaml :as yaml-format]
-            [muuntaja.format.msgpack :as msgpack-format]
 
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
@@ -126,10 +124,7 @@
   (or (:compojure.api.meta/serializable? response)
       (coll? (:body response))))
 
-(def muuntaja-options
-  (-> m/default-options
-      (yaml-format/with-yaml-format)
-      (msgpack-format/with-msgpack-format)))
+(def muuntaja-options m/default-options)
 
 (defn create-muuntaja
   ([]
