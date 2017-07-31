@@ -1,6 +1,6 @@
 ## UNRELEASED
 
-* drop direct support for `application/yaml` & `application/msgpack. If you want to add them back, you need to manually add the dependencies below and configure Muuntaja to handle those:
+* drop direct support for `application/yaml` & `application/msgpack`. If you want to add them back, you need to manually add the dependencies below and configure Muuntaja to handle those:
 
 ```clj
 (require '[muuntaja.core :as muuntaja])
@@ -10,7 +10,7 @@
 (api
   {:formats (-> muuntaja/default-options)
                 (yaml-format/with-yaml-format)
-                (msgpack-format/with-msgpack-format)}
+                (msgpack-format/with-msgpack-format))}
   ...)
 ```
 
