@@ -2,5 +2,5 @@
   "Internal JSON formatting"
   (:require [muuntaja.core :as m]))
 
-(def instance
+(def muuntaja
   (m/create))

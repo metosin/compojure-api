@@ -4,9 +4,10 @@
             [clojure.java.io :as io]
             [muuntaja.core :as m]
             [compojure.api.routes :as routes]
-            [compojure.api.impl.json :as json]
             [compojure.api.middleware :as mw])
   (:import (java.io InputStream)))
+
+(def muuntaja (m/create))
 
 (defn read-body [body]
   (if (instance? InputStream body)
@@ -16,7 +17,7 @@
 (defn parse-body [body]
   (let [body (read-body body)
         body (if (instance? String body)
-               (m/decode json/instance "application/json" body)
+               (m/decode muuntaja "application/json" body)
                body)]
     body))
 
@@ -27,21 +28,13 @@
   (let [schema-name (keyword (extract-schema-name ref))]
     (get-in spec [:definitions schema-name])))
 
-;;
-;; integration tests
-;;
-
-;;
-;; common
-;;
-
 (defn json-stream [x]
-  (m/encode json/instance "application/json" x))
+  (m/encode muuntaja "application/json" x))
 
 (def json-string (comp slurp json-stream))
 
 (defn parse [x]
-  (m/decode json/instance "application/json" x))
+  (m/decode muuntaja "application/json" x))
 
 (defn follow-redirect [state]
   (if (some-> state :response :headers (get "Location"))
@@ -126,6 +119,7 @@
    :body (m/encode m format data)
    :headers {"content-type" format
              "accept" format}})
+
 ;;
 ;; get-spec
 ;;

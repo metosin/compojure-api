@@ -3,7 +3,6 @@
             [compojure.api.sweet :refer :all]
             [compojure.api.core :refer [route-middleware]]
             [compojure.api.routes :as routes]
-            [compojure.api.impl.json :as json]
             [ring.util.http-response :refer :all]
             [ring.util.http-predicates :refer :all]
             [compojure.api.test-utils :refer :all]
@@ -15,15 +14,15 @@
 (facts "path-string"
 
   (fact "missing path parameter"
-    (#'routes/path-string json/instance "/api/:kikka" {})
+    (#'routes/path-string muuntaja "/api/:kikka" {})
     => (throws IllegalArgumentException))
 
   (fact "missing serialization"
-    (#'routes/path-string json/instance "/api/:kikka" {:kikka (SecureRandom.)})
+    (#'routes/path-string muuntaja "/api/:kikka" {:kikka (SecureRandom.)})
     => (throws ExceptionInfo #"Malformed application/json"))
 
   (fact "happy path"
-    (#'routes/path-string json/instance "/a/:b/:c/d/:e/f" {:b (LocalDate/parse "2015-05-22")
+    (#'routes/path-string muuntaja "/a/:b/:c/d/:e/f" {:b (LocalDate/parse "2015-05-22")
                                                            :c 12345
                                                            :e :kikka})
     => "/a/2015-05-22/12345/d/kikka/f"))

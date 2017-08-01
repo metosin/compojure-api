@@ -3,7 +3,6 @@
             [schema.core :as s]
             [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
-            [compojure.api.impl.json :as json]
             [compojure.api.request :as request]
             [compojure.api.coercion :as coercion]
             [compojure.api.validator :as validator]
