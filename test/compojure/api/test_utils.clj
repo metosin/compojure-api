@@ -1,10 +1,11 @@
 (ns compojure.api.test-utils
-  (:require [cheshire.core :as cheshire]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
             [peridot.core :as p]
             [clojure.java.io :as io]
+            [muuntaja.core :as m]
             [compojure.api.routes :as routes]
-            [muuntaja.core :as muuntaja])
+            [compojure.api.impl.json :as json]
+            [compojure.api.middleware :as middleware])
   (:import (java.io InputStream)))
 
 (defn read-body [body]
@@ -15,7 +16,7 @@
 (defn parse-body [body]
   (let [body (read-body body)
         body (if (instance? String body)
-               (cheshire/parse-string body true)
+               (json/parse-string body)
                body)]
     body))
 
@@ -34,9 +35,8 @@
 ;; common
 ;;
 
-(defn json [x] (cheshire/generate-string x))
-
-(defn json-stream [x] (io/input-stream (.getBytes (json x))))
+(def json-string json/generate-string)
+(defn json-stream [x] (io/input-stream (.getBytes (json/generate-string x))))
 
 (defn follow-redirect [state]
   (if (some-> state :response :headers (get "Location"))
@@ -118,7 +118,7 @@
 (defn ring-request [m format data]
   {:uri "/echo"
    :request-method :post
-   :body (muuntaja/encode m format data)
+   :body (m/encode m format data)
    :headers {"content-type" format
              "accept" format}})
 ;;

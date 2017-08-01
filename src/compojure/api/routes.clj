@@ -1,11 +1,12 @@
 (ns compojure.api.routes
   (:require [compojure.core :refer :all]
             [clojure.string :as string]
-            [cheshire.core :as json]
             [compojure.api.middleware :as mw]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
+            [compojure.api.impl.json :as json]
             [compojure.api.common :as common]
+            [muuntaja.core :as m]
             [ring.swagger.common :as rsc]
             [clojure.string :as str]
             [linked.core :as linked]
@@ -202,7 +203,7 @@
 (defn- un-quote [s]
   (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
 
-(defn- path-string [s params]
+(defn- path-string [m s params]
   (-> s
       (str/replace #":([^/]+)" " :$1 ")
       (str/split #" ")
@@ -212,7 +213,7 @@
                  (let [key (keyword (subs token 1))
                        value (key params)]
                    (if value
-                     (un-quote (json/generate-string value))
+                     (un-quote (slurp (m/encode m "application/json" value)))
                      (throw
                        (IllegalArgumentException.
                          (str "Missing path-parameter " key " for path " s)))))
@@ -222,13 +223,14 @@
 (defn path-for*
   "Extracts the lookup-table from request and finds a route by name."
   [route-name request & [params]]
-  (let [[path details] (some-> request
+  (let [m json/instance
+        [path details] (some-> request
                                ::request/lookup
                                route-name
                                first)
         path-params (:params details)]
     (if (seq path-params)
-      (path-string path params)
+      (path-string m path params)
       path)))
 
 (defmacro path-for

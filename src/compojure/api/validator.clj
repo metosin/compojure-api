@@ -1,6 +1,6 @@
 (ns compojure.api.validator
   (:require [compojure.api.swagger :as swagger]
-            [cheshire.core :as cheshire]
+            [compojure.api.impl.json :as json]
             [ring.swagger.validator :as rsv]
             [compojure.api.middleware :as mw]))
 
@@ -14,7 +14,7 @@
     (let [{status :status :as response} (api {:request-method :get
                                               :uri uri
                                               ::mw/rethrow-exceptions? true})
-          body (-> response :body slurp (cheshire/parse-string true))]
+          body (-> response :body slurp json/parse-string)]
 
       (when-not (= status 200)
         (throw (ex-info (str "Coudn't read swagger spec from " uri)
