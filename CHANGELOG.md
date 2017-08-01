@@ -1,8 +1,16 @@
 ## UNRELEASED
 
 * Use Muuntaja for all JSON transformations, drop direct dependency to Cheshire.
-* Muuntaja `api` instance (if defined) is injected into `::request/muuntaja` for endpoints to use.
-  * **BREAKING**: `path-for` and `path-for*` now use this to encode path-parameters.
+* Muuntaja `api` instance (if defined) is injected into `:compojure.api.request/muuntaja` for endpoints to use.
+  * `path-for` and `path-for*` now use this to encode path-parameters.
+
+```clj
+(require '[compojure.api.request :as request])
+
+(api
+  (GET "/ping" {:keys [::request/muuntaja]}
+    (ok {:json-string (slurp (m/encode muuntaja "application/json" [:this "is" 'JSON]))})))
+```
 
 * dropped dependencies:
 
