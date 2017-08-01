@@ -13,6 +13,7 @@
             [compojure.api.middleware :as mw]
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
+            [compojure.api.request :as request]
             [compojure.api.routes :as routes]
             [clojure.java.io :as io]
             [muuntaja.core :as m]
@@ -1475,6 +1476,15 @@
       => (contains
            {:produces (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)
             :consumes (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)}))))
+
+(facts "muuntaja is bound in request"
+  (let [app (api
+              (GET "/ping" {:keys [::request/muuntaja]}
+                (ok {:pong (slurp (m/encode muuntaja "application/json" {:is "json"}))})))]
+
+    (let [[status body] (get* app "/ping")]
+      status => 200
+      body => {:pong "{\"is\":\"json\"}"})))
 
 (facts ":body doesn't keywordize keys"
   (let [m (m/create)

@@ -263,6 +263,7 @@
          (cond-> muuntaja (wrap-swagger-data (select-keys muuntaja [:consumes :produces])))
          (wrap-inject-data
            (cond-> {::request/coercion coercion}
+                   muuntaja (assoc ::request/muuntaja muuntaja)
                    ring-swagger (assoc ::request/ring-swagger ring-swagger)))
          (cond-> muuntaja (muuntaja.middleware/wrap-params))
          ;; all but request-parsing exceptions (to make :body-params visible)

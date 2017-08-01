@@ -1,6 +1,8 @@
 ## UNRELEASED
 
 * Use Muuntaja for all JSON transformations, drop direct dependency to Cheshire.
+* Muuntaja `api` instance (if defined) is injected into `::request/muuntaja` for endpoints to use.
+  * **BREAKING**: `path-for` and `path-for*` now use this to encode path-parameters.
 
 * dropped dependencies:
 

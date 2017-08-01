@@ -223,7 +223,7 @@
 (defn path-for*
   "Extracts the lookup-table from request and finds a route by name."
   [route-name request & [params]]
-  (let [m json/instance
+  (let [m (or (::request/muuntaja request) json/instance)
         [path details] (some-> request
                                ::request/lookup
                                route-name
