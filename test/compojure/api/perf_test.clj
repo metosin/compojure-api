@@ -4,9 +4,7 @@
             [criterium.core :as cc]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [clojure.java.io :as io]
-            [cheshire.core :as json]
-            [cheshire.core :as cheshire])
+            [clojure.java.io :as io])
   (:import (java.io ByteArrayInputStream)))
 
 ;;
@@ -41,8 +39,6 @@
     :body
     slurp))
 
-(defn parse [s] (json/parse-string s true))
-
 (s/defschema Order {:id s/Str
                     :name s/Str
                     (s/optional-key :description) s/Str
@@ -76,11 +72,11 @@
                 :return {:result s/Int}
                 :body-params [x :- s/Int, y :- s/Int]
                 (ok {:result (+ x y)})))
-        data (h/json {:x 10, :y 20})
+        data (h/json-string {:x 10, :y 20})
         call #(post* app "/plus" data)]
 
     (title "JSON POST with 2-way coercion")
-    (assert (= {:result 30} (parse (call))))
+    (assert (= {:result 30} (h/parse (call))))
     (cc/bench (call)))
 
   ;; 85µs
@@ -95,11 +91,11 @@
                       :return {:result s/Int}
                       :body-params [x :- s/Int, y :- s/Int]
                       (ok {:result (+ x y)}))))))
-        data (h/json {:x 10, :y 20})
+        data (h/json-string {:x 10, :y 20})
         call #(post* app "/a/b/c/plus" data)]
 
     (title "JSON POST with 2-way coercion + contexts")
-    (assert (= {:result 30} (parse (call))))
+    (assert (= {:result 30} (h/parse (call))))
     (cc/bench (call)))
 
   ;; 266µs
@@ -111,7 +107,7 @@
                 :return Order
                 :body [order Order]
                 (ok order)))
-        data (h/json {:id "123"
+        data (h/json-string {:id "123"
                       :name "Tommi's order"
                       :description "Totally great order"
                       :address {:street "Randomstreet 123"
@@ -125,7 +121,7 @@
         call #(post* app "/echo" data)]
 
     (title "JSON POST with nested data")
-    (s/validate Order (parse (call)))
+    (s/validate Order (h/parse (call)))
     (cc/bench (call))))
 
 (defn resource-bench []
@@ -141,11 +137,11 @@
           app (api
                 (context "/plus" []
                   my-resource))
-          data (h/json {:x 10, :y 20})
+          data (h/json-string {:x 10, :y 20})
           call #(post* app "/plus" data)]
 
       (title "JSON POST to pre-defined resource with 2-way coercion")
-      (assert (= {:result 30} (parse (call))))
+      (assert (= {:result 30} (h/parse (call))))
       (cc/bench (call)))
 
     ;; 68µs
@@ -153,11 +149,11 @@
     (let [app (api
                 (context "/plus" []
                   (resource resource-map)))
-          data (h/json {:x 10, :y 20})
+          data (h/json-string {:x 10, :y 20})
           call #(post* app "/plus" data)]
 
       (title "JSON POST to inlined resource with 2-way coercion")
-      (assert (= {:result 30} (parse (call))))
+      (assert (= {:result 30} (h/parse (call))))
       (cc/bench (call)))
 
     ;; 26µs
@@ -197,7 +193,7 @@
                         :request-method :post
                         :headers {"content-type" "application/json"
                                   "accept" "application/json"}
-                        :body (cheshire/generate-string data)})
+                        :body (h/json-string data)})
         request-stream (fn [request]
                          (let [b (.getBytes ^String (:body request))]
                            (fn []
@@ -211,7 +207,7 @@
                   "dev-resources/json/json1k.json"
                   "dev-resources/json/json10k.json"
                   "dev-resources/json/json100k.json"]
-            :let [data (cheshire/parse-string (slurp file))
+            :let [data (h/parse (slurp file))
                   request (json-request data)
                   request! (request-stream request)]]
 

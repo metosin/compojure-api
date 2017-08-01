@@ -1,3 +1,15 @@
+## UNRELEASED
+
+* Use Muuntaja for all JSON transformations, drop direct dependency to Cheshire.
+* Muuntaja `api` instance (if defined) is injected into `::request/muuntaja` for endpoints to use.
+  * **BREAKING**: `path-for` and `path-for*` now use this to encode path-parameters.
+
+* dropped dependencies:
+
+```clj
+[cheshire "5.7.1"]
+```
+
 ## 2.0.0-alpha7 (31.7.2017)
 
 * drop direct support for `application/yaml` & `application/msgpack`. If you want to add them back, you need to manually add the dependencies below and configure Muuntaja to handle those:

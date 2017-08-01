@@ -9,22 +9,22 @@
             [schema.core :as s])
   (:import (java.security SecureRandom)
            (org.joda.time LocalDate)
-           (com.fasterxml.jackson.core JsonGenerationException)))
+           (clojure.lang ExceptionInfo)))
 
 (facts "path-string"
 
   (fact "missing path parameter"
-    (#'routes/path-string "/api/:kikka" {})
+    (#'routes/path-string muuntaja "/api/:kikka" {})
     => (throws IllegalArgumentException))
 
   (fact "missing serialization"
-    (#'routes/path-string "/api/:kikka" {:kikka (SecureRandom.)})
-    => (throws JsonGenerationException))
+    (#'routes/path-string muuntaja "/api/:kikka" {:kikka (SecureRandom.)})
+    => (throws ExceptionInfo #"Malformed application/json"))
 
   (fact "happy path"
-    (#'routes/path-string "/a/:b/:c/d/:e/f" {:b (LocalDate/parse "2015-05-22")
-                                             :c 12345
-                                             :e :kikka})
+    (#'routes/path-string muuntaja "/a/:b/:c/d/:e/f" {:b (LocalDate/parse "2015-05-22")
+                                                           :c 12345
+                                                           :e :kikka})
     => "/a/2015-05-22/12345/d/kikka/f"))
 
 (fact "string-path-parameters"

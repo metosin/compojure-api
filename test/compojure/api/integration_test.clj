@@ -13,15 +13,11 @@
             [compojure.api.middleware :as mw]
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
+            [compojure.api.request :as request]
             [compojure.api.routes :as routes]
-            [muuntaja.core :as muuntaja]
-            [muuntaja.core :as formats]
-            [cheshire.core :as json]
             [clojure.java.io :as io]
-            [muuntaja.core :as muuntaja]
             [muuntaja.core :as m]
-            [compojure.api.core :as c]
-            [compojure.api.middleware :as middleware])
+            [compojure.api.core :as c])
   (:import (java.sql SQLException SQLWarning)
            (java.io File)))
 
@@ -242,22 +238,22 @@
         body => pertti))
 
     (fact "POST with smart destructuring"
-      (let [[status body] (post* app "/models/user" (json pertti))]
+      (let [[status body] (post* app "/models/user" (json-string pertti))]
         status => 200
         body => pertti))
 
     (fact "POST with smart destructuring - lists"
-      (let [[status body] (post* app "/models/user_list" (json [pertti]))]
+      (let [[status body] (post* app "/models/user_list" (json-string [pertti]))]
         status => 200
         body => [pertti]))
 
     (fact "POST with smart destructuring - sets"
-      (let [[status body] (post* app "/models/user_set" (json #{pertti}))]
+      (let [[status body] (post* app "/models/user_set" (json-string #{pertti}))]
         status => 200
         body => [pertti]))
 
     (fact "POST with compojure destructuring"
-      (let [[status body] (post* app "/models/user_legacy" (json pertti))]
+      (let [[status body] (post* app "/models/user_legacy" (json-string pertti))]
         status => 200
         body => pertti))
 
@@ -409,12 +405,12 @@
         body => {:total 2}))
 
     (fact "body-parameters"
-      (let [[status body] (post* app "/smart/minus" (json {:x 2 :y 3}))]
+      (let [[status body] (post* app "/smart/minus" (json-string {:x 2 :y 3}))]
         status => 200
         body => {:total -1}))
 
     (fact "default parameters"
-      (let [[status body] (post* app "/smart/minus" (json {:x 2}))]
+      (let [[status body] (post* app "/smart/minus" (json-string {:x 2}))]
         status => 200
         body => {:total 1}))))
 
@@ -451,7 +447,7 @@
         body => "\"kikka\""))
 
     (fact "primitive arrays work"
-      (let [[status body] (raw-post* app "/primitives/arrays" (json/generate-string [1 2 3]))]
+      (let [[status body] (raw-post* app "/primitives/arrays" (json-string [1 2 3]))]
         status => 200
         body => "[1,2,3]"))
 
@@ -520,8 +516,8 @@
 
 (fact "swagger-docs"
   (let [app (api
-              {:formats (muuntaja/select-formats
-                          muuntaja/default-options
+              {:formats (m/select-formats
+                          m/default-options
                           ["application/json" "application/edn"])}
               (swagger-routes)
               (GET "/user" []
@@ -797,13 +793,13 @@
 
     (fact "direct route with nested named schema works when called"
       (let [pizza {:toppings [{:name "cheese"}]}
-            [status body] (post* app "/pizza" (json pizza))]
+            [status body] (post* app "/pizza" (json-string pizza))]
         status => 200
         body => pizza))
 
     (fact "defroute*'d route with nested named schema works when called"
       (let [burger {:ingredients [{:name "beef"}, {:name "egg"}]}
-            [status body] (post* app "/burger" (json burger))]
+            [status body] (post* app "/burger" (json-string burger))]
         status => 200
         body => burger))
 
@@ -1458,9 +1454,9 @@
                        :encoder [muuntaja.format.json/make-json-encoder]}
         app (api
               {:swagger {:spec "/swagger.json"}
-               :formats (-> muuntaja/default-options
+               :formats (-> m/default-options
                             (update :formats assoc custom-type custom-format)
-                            (muuntaja/select-formats ["application/json" custom-type]))}
+                            (m/select-formats ["application/json" custom-type]))}
               (POST "/echo" []
                 :body [data {:kikka s/Str}]
                 (ok data)))]
@@ -1472,7 +1468,7 @@
                            :headers {"content-type" "application/vnd.vendor.v1+json"
                                      "accept" "application/vnd.vendor.v1+json"}})]
 
-        (-> response :body slurp) => (json {:kikka "kukka"})
+        (-> response :body slurp) => (json-string {:kikka "kukka"})
         (-> response :headers) => (contains {"Content-Type" "application/vnd.vendor.v1+json; charset=utf-8"})))
 
     (fact "spec is correct"
@@ -1481,8 +1477,17 @@
            {:produces (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)
             :consumes (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)}))))
 
+(facts "muuntaja is bound in request"
+  (let [app (api
+              (GET "/ping" {:keys [::request/muuntaja]}
+                (ok {:pong (slurp (m/encode muuntaja "application/json" {:is "json"}))})))]
+
+    (let [[status body] (get* app "/ping")]
+      status => 200
+      body => {:pong "{\"is\":\"json\"}"})))
+
 (facts ":body doesn't keywordize keys"
-  (let [m (muuntaja/create)
+  (let [m (m/create)
         data {:items {"kikka" 42}}
         body* (atom nil)
         app (api
@@ -1499,7 +1504,7 @@
     (facts ":body-params keywordizes params"
       (app {:uri "/echo"
             :request-method :post
-            :body (muuntaja/encode m "application/transit+json" data)
+            :body (m/encode m "application/transit+json" data)
             :headers {"content-type" "application/transit+json"
                       "accept" "application/transit+json"}}) => http/ok?
       @body* => {:items {:kikka 42}})
@@ -1507,7 +1512,7 @@
     (facts ":body does not keywordizes params"
       (app {:uri "/echo2"
             :request-method :post
-            :body (muuntaja/encode m "application/transit+json" data)
+            :body (m/encode m "application/transit+json" data)
             :headers {"content-type" "application/transit+json"
                       "accept" "application/transit+json"}}) => http/ok?
       @body* => {:items {"kikka" 42}})
@@ -1527,7 +1532,7 @@
 (def ^:dynamic *response* nil)
 
 (facts "format-based body & response coercion"
-  (let [m (middleware/create-muuntaja)]
+  (let [m (mw/create-muuntaja)]
 
     (facts "application/transit & application/edn validate request & response (no coercion)"
       (let [valid-data {:items {"kikka" :kukka}}
@@ -1643,14 +1648,14 @@
                   (ok {:ok true})))
           response (app {:uri "/a"
                          :request-method :get})]
-      (-> response :body slurp) => (json {:ok true})
+      (-> response :body slurp) => (json-string {:ok true})
       (fact "middleware is called"
         @called? => truthy)
 
       (reset! called? false)
       (let [response (app {:uri "/b"
                            :request-method :get})]
-        (-> response :body slurp) => (json {:ok true})
+        (-> response :body slurp) => (json-string {:ok true})
         @called? => falsey)))
 
   (fact "middleware with args"
@@ -1668,14 +1673,14 @@
                   (ok {:ok true})))
           response (app {:uri "/a"
                          :request-method :get})]
-      (-> response :body slurp) => (json {:ok true})
+      (-> response :body slurp) => (json-string {:ok true})
       (fact "middleware is called"
         @mw-value => :foo-bar)
 
       (reset! mw-value nil)
       (let [response (app {:uri "/b"
                            :request-method :get})]
-        (-> response :body slurp) => (json {:ok true})
+        (-> response :body slurp) => (json-string {:ok true})
         @mw-value => nil))))
 
 (facts "ring-handler"
@@ -1690,7 +1695,7 @@
 
 (fact ":body-params are set to :params"
   (let [app (api (POST "/echo" [x] (ok {:x x})))
-        [status body] (post* app "/echo" (json {:x 1}))]
+        [status body] (post* app "/echo" (json-string {:x 1}))]
     status => 200
     body => {:x 1}))
 
@@ -1703,6 +1708,6 @@
                    (internal-server-error (:body-params request)))}}}
               (POST "/error" []
                 (throw (RuntimeException. "error"))))
-        [status body] (post* app "/error" (json {:kikka 6}))]
+        [status body] (post* app "/error" (json-string {:kikka 6}))]
     status => 500
     body => {:kikka 6}))

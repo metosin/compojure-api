@@ -19,3 +19,7 @@
 (def lookup
   "Reverse routing tree"
   ::lookup)
+
+(def muuntaja
+  "Muuntaja instance"
+  ::muuntaja)

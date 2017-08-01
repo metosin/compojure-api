@@ -1,11 +1,13 @@
 (ns compojure.api.test-utils
-  (:require [cheshire.core :as cheshire]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
             [peridot.core :as p]
             [clojure.java.io :as io]
+            [muuntaja.core :as m]
             [compojure.api.routes :as routes]
-            [muuntaja.core :as muuntaja])
+            [compojure.api.middleware :as mw])
   (:import (java.io InputStream)))
+
+(def muuntaja (m/create))
 
 (defn read-body [body]
   (if (instance? InputStream body)
@@ -15,7 +17,7 @@
 (defn parse-body [body]
   (let [body (read-body body)
         body (if (instance? String body)
-               (cheshire/parse-string body true)
+               (m/decode muuntaja "application/json" body)
                body)]
     body))
 
@@ -26,17 +28,13 @@
   (let [schema-name (keyword (extract-schema-name ref))]
     (get-in spec [:definitions schema-name])))
 
-;;
-;; integration tests
-;;
+(defn json-stream [x]
+  (m/encode muuntaja "application/json" x))
 
-;;
-;; common
-;;
+(def json-string (comp slurp json-stream))
 
-(defn json [x] (cheshire/generate-string x))
-
-(defn json-stream [x] (io/input-stream (.getBytes (json x))))
+(defn parse [x]
+  (m/decode muuntaja "application/json" x))
 
 (defn follow-redirect [state]
   (if (some-> state :response :headers (get "Location"))
@@ -118,9 +116,10 @@
 (defn ring-request [m format data]
   {:uri "/echo"
    :request-method :post
-   :body (muuntaja/encode m format data)
+   :body (m/encode m format data)
    :headers {"content-type" format
              "accept" format}})
+
 ;;
 ;; get-spec
 ;;

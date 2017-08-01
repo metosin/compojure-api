@@ -185,20 +185,20 @@
                  :value {:x "1", :y "kaks"}}))
 
     (fact "body"
-      (let [[status body] (post* app "/body" (json {:x 1, :y 2, #_#_:z 3}))]
+      (let [[status body] (post* app "/body" (json-string {:x 1, :y 2, #_#_:z 3}))]
         status => 200
         body => {:total 3}))
 
     (fact "body-map"
-      (let [[status body] (post* app "/body-map" (json {:x 1, :y 2}))]
+      (let [[status body] (post* app "/body-map" (json-string {:x 1, :y 2}))]
         status => 200
         body => {:total 3})
-      (let [[status body] (post* app "/body-map" (json {:x 1}))]
+      (let [[status body] (post* app "/body-map" (json-string {:x 1}))]
         status => 200
         body => {:total 1}))
 
     (fact "body-string"
-      (let [[status body] (post* app "/body-string" (json "kikka"))]
+      (let [[status body] (post* app "/body-string" (json-string "kikka"))]
         status => 200
         body => {:body "kikka"}))
 
@@ -212,13 +212,13 @@
                            :in ["request" "query-params"]})))
 
     (fact "body-params"
-      (let [[status body] (post* app "/body-params" (json {:x 1, :y 2}))]
+      (let [[status body] (post* app "/body-params" (json-string {:x 1, :y 2}))]
         status => 200
         body => {:total 3})
-      (let [[status body] (post* app "/body-params" (json {:x 1}))]
+      (let [[status body] (post* app "/body-params" (json-string {:x 1}))]
         status => 200
         body => {:total 1})
-      (let [[status body] (post* app "/body-params" (json {:x "1"}))]
+      (let [[status body] (post* app "/body-params" (json-string {:x "1"}))]
         status => 400
         body => (contains {:coercion "schema"
                            :in ["request" "body-params"]})))
@@ -243,13 +243,13 @@
                              :in ["response" "body"]})))
 
       (fact "parameters as data-specs"
-        (let [[status body] (post* app "/resource" (json {:x 1, :y 2}))]
+        (let [[status body] (post* app "/resource" (json-string {:x 1, :y 2}))]
           status => 200
           body => {:total 3})
-        (let [[status body] (post* app "/resource" (json {:x 1}))]
+        (let [[status body] (post* app "/resource" (json-string {:x 1}))]
           status => 200
           body => {:total 1})
-        (let [[status body] (post* app "/resource" (json {:x -1, :y -2}))]
+        (let [[status body] (post* app "/resource" (json-string {:x -1, :y -2}))]
           status => 500
           body => (contains {:coercion "schema"
                              :in ["response" "body"]}))))
