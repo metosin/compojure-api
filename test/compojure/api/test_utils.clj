@@ -5,7 +5,7 @@
             [muuntaja.core :as m]
             [compojure.api.routes :as routes]
             [compojure.api.impl.json :as json]
-            [compojure.api.middleware :as middleware])
+            [compojure.api.middleware :as mw])
   (:import (java.io InputStream)))
 
 (defn read-body [body]

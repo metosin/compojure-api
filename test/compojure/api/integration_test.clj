@@ -16,8 +16,7 @@
             [compojure.api.routes :as routes]
             [clojure.java.io :as io]
             [muuntaja.core :as m]
-            [compojure.api.core :as c]
-            [compojure.api.middleware :as middleware])
+            [compojure.api.core :as c])
   (:import (java.sql SQLException SQLWarning)
            (java.io File)))
 
@@ -1523,7 +1522,7 @@
 (def ^:dynamic *response* nil)
 
 (facts "format-based body & response coercion"
-  (let [m (middleware/create-muuntaja)]
+  (let [m (mw/create-muuntaja)]
 
     (facts "application/transit & application/edn validate request & response (no coercion)"
       (let [valid-data {:items {"kikka" :kukka}}

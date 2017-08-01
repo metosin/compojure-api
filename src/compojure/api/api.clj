@@ -1,7 +1,7 @@
 (ns compojure.api.api
   (:require [compojure.api.core :as c]
             [compojure.api.swagger :as swagger]
-            [compojure.api.middleware :as middleware]
+            [compojure.api.middleware :as mw]
             [compojure.api.request :as request]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
@@ -12,7 +12,7 @@
 
 (def api-defaults
   (merge
-    middleware/api-middleware-defaults
+    mw/api-middleware-defaults
     {:api {:invalid-routes-fn routes/log-invalid-child-routes
            :disable-api-middleware? false}
      :swagger {:ui nil, :spec nil}}))
@@ -66,12 +66,12 @@
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
         enable-api-middleware? (not (get-in options [:api :disable-api-middleware?]))
-        api-middleware-options (middleware/api-middleware-options (dissoc options :api :swagger))
+        api-middleware-options (mw/api-middleware-options (dissoc options :api :swagger))
         api-handler (-> handler
                         (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
-                        (cond-> enable-api-middleware? (middleware/api-middleware
+                        (cond-> enable-api-middleware? (mw/api-middleware
                                                          api-middleware-options))
-                        (middleware/wrap-inject-data
+                        (mw/wrap-inject-data
                           {::request/paths paths
                            ::request/lookup lookup}))]
     (assoc partial-api-route :handler api-handler)))
