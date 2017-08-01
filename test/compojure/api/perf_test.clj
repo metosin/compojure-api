@@ -1,6 +1,5 @@
 (ns compojure.api.perf-test
   (:require [compojure.api.sweet :refer :all]
-            [compojure.api.impl.json :as json]
             [compojure.api.test-utils :as h]
             [criterium.core :as cc]
             [ring.util.http-response :refer :all]
@@ -77,7 +76,7 @@
         call #(post* app "/plus" data)]
 
     (title "JSON POST with 2-way coercion")
-    (assert (= {:result 30} (json/parse-string (call))))
+    (assert (= {:result 30} (h/parse (call))))
     (cc/bench (call)))
 
   ;; 85µs
@@ -96,7 +95,7 @@
         call #(post* app "/a/b/c/plus" data)]
 
     (title "JSON POST with 2-way coercion + contexts")
-    (assert (= {:result 30} (json/parse-string (call))))
+    (assert (= {:result 30} (h/parse (call))))
     (cc/bench (call)))
 
   ;; 266µs
@@ -122,7 +121,7 @@
         call #(post* app "/echo" data)]
 
     (title "JSON POST with nested data")
-    (s/validate Order (json/parse-string (call)))
+    (s/validate Order (h/parse (call)))
     (cc/bench (call))))
 
 (defn resource-bench []
@@ -142,7 +141,7 @@
           call #(post* app "/plus" data)]
 
       (title "JSON POST to pre-defined resource with 2-way coercion")
-      (assert (= {:result 30} (json/parse-string (call))))
+      (assert (= {:result 30} (h/parse (call))))
       (cc/bench (call)))
 
     ;; 68µs
@@ -154,7 +153,7 @@
           call #(post* app "/plus" data)]
 
       (title "JSON POST to inlined resource with 2-way coercion")
-      (assert (= {:result 30} (json/parse-string (call))))
+      (assert (= {:result 30} (h/parse (call))))
       (cc/bench (call)))
 
     ;; 26µs
@@ -208,7 +207,7 @@
                   "dev-resources/json/json1k.json"
                   "dev-resources/json/json10k.json"
                   "dev-resources/json/json100k.json"]
-            :let [data (json/parse-string (slurp file))
+            :let [data (h/parse (slurp file))
                   request (json-request data)
                   request! (request-stream request)]]
 

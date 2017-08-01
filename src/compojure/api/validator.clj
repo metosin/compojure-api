@@ -2,6 +2,7 @@
   (:require [compojure.api.swagger :as swagger]
             [compojure.api.impl.json :as json]
             [ring.swagger.validator :as rsv]
+            [muuntaja.core :as m]
             [compojure.api.middleware :as mw]))
 
 (defn validate
@@ -14,7 +15,7 @@
     (let [{status :status :as response} (api {:request-method :get
                                               :uri uri
                                               ::mw/rethrow-exceptions? true})
-          body (-> response :body slurp json/parse-string)]
+          body (->> response :body slurp (m/decode json/instance "application/json"))]
 
       (when-not (= status 200)
         (throw (ex-info (str "Coudn't read swagger spec from " uri)

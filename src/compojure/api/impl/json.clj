@@ -4,9 +4,3 @@
 
 (def instance
   (m/create))
-
-(defn generate-string [x]
-  (slurp (m/encode instance "application/json" x)))
-
-(defn parse-string [x]
-  (m/decode instance "application/json" x))

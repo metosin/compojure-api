@@ -16,7 +16,7 @@
 (defn parse-body [body]
   (let [body (read-body body)
         body (if (instance? String body)
-               (json/parse-string body)
+               (m/decode json/instance "application/json" body)
                body)]
     body))
 
@@ -35,8 +35,13 @@
 ;; common
 ;;
 
-(def json-string json/generate-string)
-(defn json-stream [x] (io/input-stream (.getBytes (json/generate-string x))))
+(defn json-stream [x]
+  (m/encode json/instance "application/json" x))
+
+(def json-string (comp slurp json-stream))
+
+(defn parse [x]
+  (m/decode json/instance "application/json" x))
 
 (defn follow-redirect [state]
   (if (some-> state :response :headers (get "Location"))
