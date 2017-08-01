@@ -15,7 +15,7 @@
     (let [{status :status :as response} (api {:request-method :get
                                               :uri uri
                                               ::mw/rethrow-exceptions? true})
-          body (->> response :body slurp (m/decode json/instance "application/json"))]
+          body (->> response :body (m/decode json/instance "application/json"))]
 
       (when-not (= status 200)
         (throw (ex-info (str "Coudn't read swagger spec from " uri)
