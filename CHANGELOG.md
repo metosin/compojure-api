@@ -16,6 +16,7 @@
 
 ```clj
 [cheshire "5.7.1"]
+[org.tobereplaced/lettercase "1.0.0"]
 ```
 
 ## 2.0.0-alpha7 (31.7.2017)

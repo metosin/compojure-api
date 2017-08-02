@@ -8,7 +8,6 @@
   :dependencies [[potemkin "0.4.3"]
                  [prismatic/schema "1.1.6"]
                  [prismatic/plumbing "0.5.4"]
-                 [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
                  [metosin/muuntaja "0.3.2"]
                  [ring/ring-core "1.6.2"]
