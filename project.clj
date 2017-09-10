@@ -1,11 +1,11 @@
-(defproject metosin/compojure-api "2.0.0-alpha7"
+(defproject metosin/compojure-api "2.0.0-alpha8"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[potemkin "0.4.3"]
+  :dependencies [[potemkin "0.4.4"]
                  [prismatic/schema "1.1.6"]
                  [prismatic/plumbing "0.5.4"]
                  [frankiesardo/linked "1.2.9"]
@@ -13,7 +13,7 @@
                  [ring/ring-core "1.6.2"]
                  [compojure "1.6.0" :exclusions [commons-codec]]
                  [metosin/ring-http-response "0.9.0"]
-                 [metosin/ring-swagger "0.24.1"]
+                 [metosin/ring-swagger "0.24.2"]
                  [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -24,15 +24,15 @@
                                       [com.stuartsierra/component "0.3.2"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.12.0"]
+                             [lein-ring "0.12.1"]
                              [funcool/codeina "0.5.0"]]
-                   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
-                                  [metosin/spec-tools "0.3.2"]
+                   :dependencies [[org.clojure/clojure "1.9.0-alpha19"]
+                                  [metosin/spec-tools "0.4.0-20170910.061347-1"]
                                   [org.clojure/core.async "0.3.443"]
                                   [peridot "0.4.4"]
                                   [javax.servlet/javax.servlet-api "3.1.0"]
                                   [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
-                                  [com.rpl/specter "1.0.2"]
+                                  [com.rpl/specter "1.0.3"]
                                   [com.stuartsierra/component "0.3.2"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
@@ -45,12 +45,12 @@
              :dev18 {:plugins [[lein-midje "3.2.1"]]
                      :dependencies [[org.clojure/clojure "1.8.0"]
                                     [clojure-future-spec "1.9.0-alpha16"]
-                                    [metosin/spec-tools "0.3.2" :exlusions [org.clojure/spec.alpha]]
+                                    [metosin/spec-tools "0.4.0-20170910.061347-1" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.3.443"]
                                     [peridot "0.4.4"]
                                     [javax.servlet/javax.servlet-api "3.1.0"]
                                     [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
-                                    [com.rpl/specter "1.0.2"]
+                                    [com.rpl/specter "1.0.3"]
                                     [com.stuartsierra/component "0.3.2"]
                                     [criterium "0.4.4"]]}
              :perf {:jvm-opts ^:replace ["-server"

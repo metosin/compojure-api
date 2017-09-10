@@ -19,6 +19,14 @@
 [org.tobereplaced/lettercase "1.0.0"]
 ```
 
+* updated dependencies:
+
+```clj
+[potemkin "0.4.4"] is available but we use "0.4.3"
+[metosin/ring-swagger "0.24.2"] is available but we use "0.24.1"
+[metosin/spec-tools "0.4.0-20170910.061347-1"] is available but we use "0.3.2"
+```
+
 ## 2.0.0-alpha7 (31.7.2017)
 
 * drop direct support for `application/yaml` & `application/msgpack`. If you want to add them back, you need to manually add the dependencies below and configure Muuntaja to handle those:

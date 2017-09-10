@@ -17,17 +17,15 @@
 (s/def ::to-year spec/int?)
 (s/def ::to-month spec/int?)
 
-(s/def ::input-settings (s/and
-                          (st/spec
-                            (s/keys :req-un [::endpoint
-                                             ::customer-id
-                                             ::requestor-id]
-                                    :opt-un [::from-year
-                                             ::from-month
-                                             ::to-year
-                                             ::to-month
-                                             ::requestor-email
-                                             ::requestor-name]))))
+(s/def ::input-settings (s/and (s/keys :req-un [::endpoint
+                                                ::customer-id
+                                                ::requestor-id]
+                                       :opt-un [::from-year
+                                                ::from-month
+                                                ::to-year
+                                                ::to-month
+                                                ::requestor-email
+                                                ::requestor-name])))
 
 (def app
   (api
