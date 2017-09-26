@@ -5,7 +5,6 @@
             [compojure.api.coercion :as coercion]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
-            [ring.middleware.http-response]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
@@ -182,7 +181,8 @@
 
 (def api-middleware-defaults
   {:formats m/default-options
-   :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
+   :exceptions {:handlers {:ring.util.http-response/response ex/http-response-handler
+                           ::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
                            ::ex/response-validation ex/response-validation-handler
                            ::ex/default ex/safe-handler}}
@@ -259,7 +259,6 @@
      (-> handler
          (cond-> middleware ((compose-middleware middleware)))
          (cond-> components (wrap-components components))
-         (ring.middleware.http-response/wrap-http-response)
          (cond-> muuntaja (wrap-swagger-data (select-keys muuntaja [:consumes :produces])))
          (wrap-inject-data
            (cond-> {::request/coercion coercion}

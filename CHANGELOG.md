@@ -1,5 +1,6 @@
 ## UNRELEASED
 
+* Support `ring.middleware.http-response` exceptions directly.
 * Use Muuntaja for all JSON transformations, drop direct dependency to Cheshire.
 * Muuntaja `api` instance (if defined) is injected into `:compojure.api.request/muuntaja` for endpoints to use.
   * `path-for` and `path-for*` now use this to encode path-parameters.
