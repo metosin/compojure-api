@@ -34,6 +34,7 @@
                                   [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
                                   [com.rpl/specter "1.0.3"]
                                   [com.stuartsierra/component "0.3.2"]
+                                  [metosin/jsonista "0.1.0-SNAPSHOT"]
                                   [reloaded.repl "0.2.3"]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]

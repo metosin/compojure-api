@@ -4,6 +4,8 @@
             [criterium.core :as cc]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
+            [muuntaja.core :as m]
+            [muuntaja.format.jsonista :as jsonista-format]
             [clojure.java.io :as io])
   (:import (java.io ByteArrayInputStream)))
 
@@ -199,6 +201,10 @@
                            (fn []
                              (assoc request :body (ByteArrayInputStream. b)))))
         app (api
+              {:formats (assoc-in
+                          m/default-options
+                          [:formats "application/json"]
+                          jsonista-format/json-format)}
               (POST "/echo" []
                 :body [body s/Any]
                 (ok body)))]
@@ -214,25 +220,31 @@
       "10b"
       ;; 42µs
       ;; 24µs (muuntaja), -43%
+      ;; 18µs (muuntaja+jsonista), -43%
 
       "100b"
       ;; 79µs
       ;; 39µs (muuntaja), -50%
+      ;; 23µs (muuntaja+jsonista), -43%
 
       "1k"
       ;; 367µs
       ;;  92µs (muuntaja), -75%
+      ;;  35µs (muuntaja+jsonista), -43%
 
       "10k"
       ;; 2870µs
       ;; 837µs (muuntaja), -70%
+      ;; 235µs (muuntaja+jsonista), -43%
 
       "100k"
       ;; 10800µs
       ;;  8050µs (muuuntaja), -25%
+      ;;  1853µs (muuntaja+jsonista), -43%
 
       (title file)
-      (cc/bench (-> (request!) app :body slurp)))))
+      (println (-> (request!) app :body slurp))
+      (cc/quick-bench (-> (request!) app :body slurp)))))
 
 (comment
   (bench)
