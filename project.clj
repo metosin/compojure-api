@@ -43,7 +43,9 @@
                           :reload-paths ["src" "examples/thingie/src"]}
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
                    :main examples.server}
-             :perf {:jvm-opts ^:replace []}
+             :perf {:jvm-opts ^:replace ["-server"
+                                         "-Xmx4096m"
+                                         "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.4.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0"]]}}
   :eastwood {:namespaces [:source-paths]
