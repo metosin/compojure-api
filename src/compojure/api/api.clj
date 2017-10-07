@@ -53,10 +53,7 @@
   api
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
-        options (-> (rsc/deep-merge api-defaults options)
-                    ;; [:formats :formats] can't be deep merged :(
-                    (assoc-in [:formats :formats] (or (:formats (:formats options))
-                                                      (:formats (:formats api-defaults)))))
+        options (rsc/deep-merge api-defaults options)
         handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
         partial-api-route (routes/map->Route
                             {:childs [handler]

@@ -127,12 +127,21 @@
   ([]
    (create-muuntaja m/default-options))
   ([muuntaja-or-options]
-   (if muuntaja-or-options
-     (if (instance? Muuntaja muuntaja-or-options)
-       (assoc muuntaja-or-options :encode-response-body? encode?)
-       (m/create
-         (-> muuntaja-or-options
-             (assoc-in [:http :encode-response-body?] encode?)))))))
+   (cond
+
+     (= ::default muuntaja-or-options)
+     (m/create
+       (assoc-in m/default-options [:http :encode-response-body?] encode?))
+
+     (instance? Muuntaja muuntaja-or-options)
+     (assoc muuntaja-or-options :encode-response-body? encode?)
+
+     (map? muuntaja-or-options)
+     (m/create
+       (assoc-in muuntaja-or-options [:http :encode-response-body?] encode?))
+
+     :else
+     (throw (ex-info (str "Invalid :formats - " muuntaja-or-options) {:options muuntaja-or-options})))))
 
 ;;
 ;; middleware
@@ -180,7 +189,7 @@
 ;;
 
 (def api-middleware-defaults
-  {:formats m/default-options
+  {:formats ::default
    :exceptions {:handlers {:ring.util.http-response/response ex/http-response-handler
                            ::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
@@ -191,11 +200,7 @@
    :ring-swagger nil})
 
 (defn api-middleware-options [options]
-  (-> (rsc/deep-merge api-middleware-defaults options)
-      ;; [:formats :formats] can't be deep merged, else defaults always enables all the
-      ;; formats. Figure out this or use meta-merge?
-      (assoc-in [:formats :formats] (or (:formats (:formats options))
-                                        (:formats (:formats api-middleware-defaults))))))
+  (rsc/deep-merge api-middleware-defaults options))
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
