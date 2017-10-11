@@ -192,7 +192,7 @@
                              :val "kaks"
                              :via ["compojure.api.coercion.spec-coercion-test/xy"
                                    "compojure.api.coercion.spec-coercion-test/y"]}]
-                 :spec "(spec-tools.core/spec {:spec (clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y]), :type :map, :keys #{:y :x}})"
+                 :spec "(spec-tools.core/spec {:spec (clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y]), :type :map, :keys #{:y :x}, :keys/req #{:y :x}})"
                  :type "compojure.api.exception/request-validation"
                  :value {:x "1", :y "kaks"}}))
 

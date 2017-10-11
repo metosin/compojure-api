@@ -1,16 +1,54 @@
 ## UNRELEASED
 
-* Support `ring.middleware.http-response` exceptions directly.
+* Aligned with the latest spec-tools: `[metosin/spec-tools "0.4.0"]`
+
+* Support `ring.middleware.http-response` exception handling directly:
+
+```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[ring.util.http-response :as http])
+
+(api
+  {:exceptions {:handlers {::http/response handle-thrown-http-exceptions-here}}
+  (GET "/throws" []
+    (http/bad-request! {:message "thrown response"})))
+```
+
 * Use Muuntaja for all JSON transformations, drop direct dependency to Cheshire.
-* Muuntaja `api` instance (if defined) is injected into `:compojure.api.request/muuntaja` for endpoints to use.
+* Muuntaja `api` instance (if not undefined, e.g. `nil`) is injected into `:compojure.api.request/muuntaja` for endpoints to use.
   * `path-for` and `path-for*` now use this to encode path-parameters.
 
 ```clj
+(require '[compojure.api.sweet :refer :all])
 (require '[compojure.api.request :as request])
+(require '[muuntaja.core :as m])
 
 (api
   (GET "/ping" {:keys [::request/muuntaja]}
     (ok {:json-string (slurp (m/encode muuntaja "application/json" [:this "is" 'JSON]))})))
+```
+
+* **FIXED**: separate `Muuntaja`-instance optins are merged correctly.
+
+```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[ring.util.http-response :refer [ok]])
+(require '[metosin.transit.dates :as transit-dates])
+(require '[muuntaja.core :as m])
+
+(def muuntaja
+  (m/create
+    (-> muuntaja/default-options
+        (update-in 
+          [:formats "application/transit+json"] 
+          merge 
+          {:decoder-opts {:handlers transit-dates/readers}
+           :encoder-opts {:handlers transit-dates/writers}}))))
+
+(api
+  {:formats muuntaja}
+  (GET "/pizza" []
+    (ok {:now (org.joda.time.DateTime/now)})))
 ```
 
 * dropped dependencies:
@@ -25,7 +63,7 @@
 ```clj
 [potemkin "0.4.4"] is available but we use "0.4.3"
 [metosin/ring-swagger "0.24.2"] is available but we use "0.24.1"
-[metosin/spec-tools "0.4.0-20170910.061347-1"] is available but we use "0.3.2"
+[metosin/spec-tools "0.4.0"] is available but we use "0.3.2"
 ```
 
 ## 2.0.0-alpha7 (31.7.2017)
