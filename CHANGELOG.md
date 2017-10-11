@@ -2,6 +2,13 @@
 
 * Aligned with the latest spec-tools: `[metosin/spec-tools "0.4.0"]`
 
+* To use Clojure 1.9 & Spec with Swagger, these need to be imported:
+
+```clj
+[org.clojure/clojure "1.9.0-beta2"]
+[metosin/spec-tools "0.4.0"]
+```
+
 * Support `ring.middleware.http-response` exception handling directly:
 
 ```clj
