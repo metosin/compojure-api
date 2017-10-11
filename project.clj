@@ -49,6 +49,7 @@
                                     [metosin/spec-tools "0.4.0" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.3.443"]
                                     [peridot "0.5.0"]
+                                    [metosin/jsonista "0.1.0-SNAPSHOT"]
                                     [javax.servlet/javax.servlet-api "3.1.0"]
                                     [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
                                     [com.rpl/specter "1.0.3"]
