@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha8 (11.10.2017)
 
 * Aligned with the latest spec-tools: `[metosin/spec-tools "0.4.0"]`
 
