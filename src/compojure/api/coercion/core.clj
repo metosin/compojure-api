@@ -11,5 +11,12 @@
 (defrecord CoercionError [])
 
 (defmulti named-coercion identity :default ::default)
+
 (defmethod named-coercion ::default [x]
-  (throw (ex-info (str "cant find named-coercion for " x) {:name x})))
+  (let [message (if (= :spec x)
+                  (str "spec-coercion is not enabled. "
+                       "you most likely are missing the "
+                       "required deps: org.clojure/clojure 1.9+ "
+                       "and metosin/spec-tools.")
+                  (str "cant find named-coercion for " x))]
+    (throw (ex-info message {:name x}))))
