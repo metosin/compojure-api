@@ -67,6 +67,11 @@
 (def memoized-specify
   (common/fifo-memoize #(specify %1 (gensym "spec")) 10000))
 
+(defn maybe-memoized-specify [spec]
+  (if (keyword? spec)
+    (specify spec nil)
+    (memoized-specify spec)))
+
 (defmulti coerce-response? identity :default ::default)
 (defmethod coerce-response? ::default [_] true)
 
@@ -81,13 +86,13 @@
                          (into
                            (empty parameters)
                            (for [[k v] parameters]
-                             [k (memoized-specify v)])))
+                             [k (maybe-memoized-specify v)])))
             responses (assoc
                         ::swagger/responses
                         (into
                           (empty responses)
                           (for [[k response] responses]
-                            [k (update response :schema memoized-specify)])))))
+                            [k (update response :schema maybe-memoized-specify)])))))
 
   (make-open [_ spec] spec)
 
@@ -97,9 +102,7 @@
         (update :problems (partial mapv #(update % :pred str)))))
 
   (coerce-request [_ spec value type format _]
-    (let [spec (if (keyword? spec)
-                 (specify spec nil)
-                 (memoized-specify spec))
+    (let [spec (maybe-memoized-specify spec)
           type-options (options type)]
       (if-let [conforming (or (get (get type-options :formats) format)
                               (get type-options :default))]
