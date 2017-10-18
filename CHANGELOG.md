@@ -1,3 +1,9 @@
+## 2.0.0-alpha9 (18.10.2017)
+
+* Stringify `:pred` under Spec `:problems`, fixes [#345](https://github.com/metosin/compojure-api/issues/345)
+* Better error message if `:spec` coercion is tried without required dependencies
+* Don't memoize keyword-specs for now - allow easier redefining
+
 ## 2.0.0-alpha8 (11.10.2017)
 
 * Aligned with the latest spec-tools: `[metosin/spec-tools "0.4.0"]`
@@ -46,9 +52,9 @@
 (def muuntaja
   (m/create
     (-> muuntaja/default-options
-        (update-in 
-          [:formats "application/transit+json"] 
-          merge 
+        (update-in
+          [:formats "application/transit+json"]
+          merge
           {:decoder-opts {:handlers transit-dates/readers}
            :encoder-opts {:handlers transit-dates/writers}}))))
 
