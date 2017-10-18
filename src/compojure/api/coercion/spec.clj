@@ -92,7 +92,9 @@
   (make-open [_ spec] spec)
 
   (encode-error [_ error]
-    (update error :spec (comp str s/form)))
+    (-> error
+        (update :spec (comp str s/form))
+        (update :problems (partial mapv #(update % :pred str)))))
 
   (coerce-request [_ spec value type format _]
     (let [spec (if (keyword? spec)

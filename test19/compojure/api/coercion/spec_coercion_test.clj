@@ -12,10 +12,35 @@
             [spec-tools.core :as st]
             [compojure.api.validator :as validator]
             [compojure.api.swagger :as swagger]
-            [compojure.api.routes :as routes]))
+            [compojure.api.routes :as routes]
+            [spec-tools.conform :as conform])
+  (:import (org.joda.time DateTime)))
 
 (s/def ::kikka spec/keyword?)
 (s/def ::spec (s/keys :req-un [::kikka]))
+
+(s/def ::date (st/spec
+                {:spec (partial instance? DateTime)
+                 :type :date-time
+                 :reason "FAIL"
+                 :json-schema/default "2017-10-12T05:04:57.585Z"}))
+
+(defn str->date-time [_ value]
+  (try
+    (DateTime. value)
+    (catch Exception _
+      ::s/invalid)))
+
+(def custom-coercion
+  (-> compojure.api.coercion.spec/default-options
+      (assoc-in
+        [:body :formats "application/json"]
+        (st/type-conforming
+          (merge
+            conform/json-type-conforming
+            {:date-time str->date-time}
+            conform/strip-extra-keys-type-conforming)))
+      compojure.api.coercion.spec/create-coercion))
 
 (def valid-value {:kikka :kukka})
 (def invalid-value {:kikka "kukka"})
@@ -164,6 +189,17 @@
                 :return (s/keys :req-un [::total])
                 (ok {:total (+ x y)}))
 
+              (context "/date" []
+                :coercion custom-coercion
+
+                (GET "/pass" []
+                  :return {:date ::date}
+                  (ok {:date (DateTime.)}))
+
+                (GET "/fail" []
+                  :return {:date ::date}
+                  (ok {:date "fail"})))
+
               (context "/resource" []
                 (resource
                   {:get {:parameters {:query-params ::xy}
@@ -244,6 +280,13 @@
         body => (contains {:coercion "spec"
                            :in ["response" "body"]})))
 
+    (fact "customer coercion & custom predicate"
+      (let [[status body] (get* app "/date/pass")]
+        status => 200)
+      (let [[status body] (get* app "/date/fail")]
+        status => 500
+        body => (contains {:coercion "custom"
+                           :in ["response" "body"]})))
     (fact "resource"
       (fact "parameters as specs"
         (let [[status body] (get* app "/resource" {:x 1, :y 2})]
