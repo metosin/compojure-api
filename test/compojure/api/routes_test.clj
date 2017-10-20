@@ -31,89 +31,89 @@
   (#'routes/string-path-parameters "/:foo.json") => {:foo String})
 
 (facts "nested routes"
-       (let [mw (fn [handler]
-                  (fn ([request] (handler request))
-                    ([request raise respond] (handler request raise respond))))
-             more-routes (fn [version]
-                           (routes
-                            (GET "/more" []
-                              (ok {:message version}))))
-             routes (context "/api/:version" []
-                      :path-params [version :- String]
-                      (GET "/ping" []
-                        (ok {:message (str "pong - " version)}))
-                      (POST "/ping" []
-                        (ok {:message (str "pong - " version)}))
-                      (ANY "/foo" []
-                        (ok {:message (str "bar - " version)}))
-                      (route-middleware [mw]
-                        (GET "/hello" []
-                          :return {:message String}
-                          :summary "cool ping"
-                          :query-params [name :- String]
-                          (ok {:message (str "Hello, " name)}))
-                        (more-routes version)))
-             app (api
-                  (swagger-routes)
-                  routes)]
+  (let [mw (fn [handler]
+             (fn ([request] (handler request))
+               ([request raise respond] (handler request raise respond))))
+        more-routes (fn [version]
+                      (routes
+                        (GET "/more" []
+                          (ok {:message version}))))
+        routes (context "/api/:version" []
+                 :path-params [version :- String]
+                 (GET "/ping" []
+                   (ok {:message (str "pong - " version)}))
+                 (POST "/ping" []
+                   (ok {:message (str "pong - " version)}))
+                 (ANY "/foo" []
+                   (ok {:message (str "bar - " version)}))
+                 (route-middleware [mw]
+                   (GET "/hello" []
+                     :return {:message String}
+                     :summary "cool ping"
+                     :query-params [name :- String]
+                     (ok {:message (str "Hello, " name)}))
+                   (more-routes version)))
+        app (api
+              (swagger-routes)
+              routes)]
 
-         (fact "all routes can be invoked"
-               (let [[status body] (get* app "/api/v1/hello" {:name "Tommi"})]
-                 status = 200
-                 body => {:message "Hello, Tommi"})
+    (fact "all routes can be invoked"
+      (let [[status body] (get* app "/api/v1/hello" {:name "Tommi"})]
+        status = 200
+        body => {:message "Hello, Tommi"})
 
-               (let [[status body] (get* app "/api/v1/ping")]
-                 status = 200
-                 body => {:message "pong - v1"})
+      (let [[status body] (get* app "/api/v1/ping")]
+        status = 200
+        body => {:message "pong - v1"})
 
-               (let [[status body] (get* app "/api/v2/ping")]
-                 status = 200
-                 body => {:message "pong - v2"})
+      (let [[status body] (get* app "/api/v2/ping")]
+        status = 200
+        body => {:message "pong - v2"})
 
-               (let [[status body] (get* app "/api/v3/more")]
-                 status => 200
-                 body => {:message "v3"}))
+      (let [[status body] (get* app "/api/v3/more")]
+        status => 200
+        body => {:message "v3"}))
 
-         (fact "routes can be extracted at runtime"
-               (routes/get-routes app)
-               => [["/swagger.json" :get {:no-doc true
-                                          :coercion :schema
-                                          :name :compojure.api.swagger/swagger
-                                          :public {:x-name :compojure.api.swagger/swagger}}]
-                   ["/api/:version/ping" :get {:coercion :schema
-                                               :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ["/api/:version/ping" :post {:coercion :schema
-                                                :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ;; 'ANY' expansion
-                   ["/api/:version/foo" :get {:coercion :schema
-                                              :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ["/api/:version/foo" :patch {:coercion :schema
-                                                :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ["/api/:version/foo" :delete {:coercion :schema
-                                                 :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ["/api/:version/foo" :head {:coercion :schema
-                                               :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ["/api/:version/foo" :post {:coercion :schema
-                                               :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ["/api/:version/foo" :options {:coercion :schema
-                                                  :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ["/api/:version/foo" :put {:coercion :schema
-                                              :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-                   ;;
-                   ["/api/:version/hello" :get {:coercion :schema
-                                                :public {:parameters {:query {:name String, s/Keyword s/Any}
-                                                                      :path {:version String, s/Keyword s/Any}}
-                                                         :responses {200 {:description "", :schema {:message String}}}
-                                                         :summary "cool ping"}}]
-                   ["/api/:version/more" :get {:coercion :schema
-                                               :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
+    (fact "routes can be extracted at runtime"
+      (routes/get-routes app)
+      => [["/swagger.json" :get {:no-doc true
+                                 :coercion :schema
+                                 :name :compojure.api.swagger/swagger
+                                 :public {:x-name :compojure.api.swagger/swagger}}]
+          ["/api/:version/ping" :get {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/ping" :post {:coercion :schema
+                                       :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ;; 'ANY' expansion
+          ["/api/:version/foo" :get {:coercion :schema
+                                     :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :patch {:coercion :schema
+                                       :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :delete {:coercion :schema
+                                        :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :head {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :post {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :options {:coercion :schema
+                                         :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :put {:coercion :schema
+                                     :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ;;
+          ["/api/:version/hello" :get {:coercion :schema
+                                       :public {:parameters {:query {:name String, s/Keyword s/Any}
+                                                             :path {:version String, s/Keyword s/Any}}
+                                                :responses {200 {:description "", :schema {:message String}}}
+                                                :summary "cool ping"}}]
+          ["/api/:version/more" :get {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
 
-         (fact "swagger-docs can be generated"
-               (-> app get-spec :paths keys)
-               => ["/api/{version}/ping"
-                   "/api/{version}/foo"
-                   "/api/{version}/hello"
-                   "/api/{version}/more"])))
+    (fact "swagger-docs can be generated"
+      (-> app get-spec :paths keys)
+      => ["/api/{version}/ping"
+          "/api/{version}/foo"
+          "/api/{version}/hello"
+          "/api/{version}/more"])))
 
 (def more-routes
   (routes
