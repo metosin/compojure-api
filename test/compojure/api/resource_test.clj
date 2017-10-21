@@ -263,27 +263,38 @@
       (call app {:request-method :get, :uri "/rest/in-peaces"}) => nil)))
 
 (fact "swagger-integration"
-  (let [app (api
-              (swagger-routes)
-              (context "/rest" []
-                (resource
-                  {:parameters {:query-params {:x Long}}
-                   :responses {400 {:schema (s/schema-with-name {:code s/Str} "Error")}}
-                   :get {:parameters {:query-params {:y Long}}
-                         :responses {200 {:schema (s/schema-with-name {:total Long} "Total")}}}
-                   :post {}
-                   :handler (constantly (ok {:total 1}))})))
-        spec (get-spec app)]
+  (fact "explicitely defined methods produce api-docs"
+    (let [app (api
+                (swagger-routes)
+                (context "/rest" []
+                  (resource
+                    {:parameters {:query-params {:x Long}}
+                     :responses {400 {:schema (s/schema-with-name {:code s/Str} "Error")}}
+                     :get {:parameters {:query-params {:y Long}}
+                           :responses {200 {:schema (s/schema-with-name {:total Long} "Total")}}}
+                     :post {}
+                     :handler (constantly (ok {:total 1}))})))
+          spec (get-spec app)]
 
-    spec => (contains
-              {:definitions (just
-                              {:Error irrelevant
-                               :Total irrelevant})
-               :paths (just
-                        {"/rest" (just
-                                   {:get (just
-                                           {:parameters (two-of irrelevant)
-                                            :responses (just {:200 irrelevant, :400 irrelevant})})
-                                    :post (just
-                                            {:parameters (one-of irrelevant)
-                                             :responses (just {:400 irrelevant})})})})})))
+      spec => (contains
+                {:definitions (just
+                                {:Error irrelevant
+                                 :Total irrelevant})
+                 :paths (just
+                          {"/rest" (just
+                                     {:get (just
+                                             {:parameters (two-of irrelevant)
+                                              :responses (just {:200 irrelevant, :400 irrelevant})})
+                                      :post (just
+                                              {:parameters (one-of irrelevant)
+                                               :responses (just {:400 irrelevant})})})})})))
+  (fact "top-level handler doesn't contribute to docs"
+    (let [app (api
+                (swagger-routes)
+                (context "/rest" []
+                  (resource
+                    {:handler (constantly (ok {:total 1}))})))
+          spec (get-spec app)]
+
+      spec => (contains
+                {:paths {}}))))
