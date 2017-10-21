@@ -2,6 +2,7 @@
   (:require [compojure.api.routes :as routes]
             [compojure.api.coercion :as coercion]
             [compojure.api.request :as request]
+            [compojure.api.methods :as methods]
             [ring.swagger.common :as rsc]
             [schema.core :as s]
             [plumbing.core :as p]
@@ -10,7 +11,7 @@
             [compojure.api.coercion.core :as cc]))
 
 (def ^:private +mappings+
-  {:methods #{:get :head :patch :delete :options :post :put}
+  {:methods methods/all-methods
    :parameters {:query-params [:query-params :query :string true]
                 :body-params [:body-params :body :body false]
                 :form-params [:form-params :formData :string true]

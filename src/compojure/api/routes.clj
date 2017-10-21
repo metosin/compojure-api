@@ -1,6 +1,7 @@
 (ns compojure.api.routes
   (:require [compojure.core :refer :all]
             [clojure.string :as string]
+            [compojure.api.methods :as methods]
             [compojure.api.middleware :as mw]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
@@ -68,12 +69,15 @@
   Routing
   (-get-routes [this options]
     (let [this (-> this realize-childs)
-          valid-childs (filter-routes this options)]
+          valid-childs (filter-routes this options)
+          make-method-path-fn (fn [m] [path m info])]
       (if (-> this filter-childs :childs seq)
         (vec
-          (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
-            [(->paths path p) m (rsc/deep-merge info i)]))
-        (into [] (if path [[path method info]])))))
+         (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
+           [(->paths path p) m (rsc/deep-merge info i)]))
+        (into [] (cond
+                   (and path method) [(make-method-path-fn method)]
+                   path (mapv make-method-path-fn methods/all-methods))))))
 
   compojure.response/Renderable
   (render [_ request]

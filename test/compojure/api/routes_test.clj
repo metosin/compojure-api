@@ -44,6 +44,8 @@
                    (ok {:message (str "pong - " version)}))
                  (POST "/ping" []
                    (ok {:message (str "pong - " version)}))
+                 (ANY "/foo" []
+                   (ok {:message (str "bar - " version)}))
                  (route-middleware [mw]
                    (GET "/hello" []
                      :return {:message String}
@@ -82,6 +84,22 @@
                                       :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
           ["/api/:version/ping" :post {:coercion :schema
                                        :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ;; 'ANY' expansion
+          ["/api/:version/foo" :get {:coercion :schema
+                                     :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :patch {:coercion :schema
+                                       :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :delete {:coercion :schema
+                                        :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :head {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :post {:coercion :schema
+                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :options {:coercion :schema
+                                         :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ["/api/:version/foo" :put {:coercion :schema
+                                     :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+          ;;
           ["/api/:version/hello" :get {:coercion :schema
                                        :public {:parameters {:query {:name String, s/Keyword s/Any}
                                                              :path {:version String, s/Keyword s/Any}}
@@ -93,6 +111,7 @@
     (fact "swagger-docs can be generated"
       (-> app get-spec :paths keys)
       => ["/api/{version}/ping"
+          "/api/{version}/foo"
           "/api/{version}/hello"
           "/api/{version}/more"])))
 
