@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha9"
+(defproject metosin/compojure-api "2.0.0-alpha10"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -20,22 +20,22 @@
                        :source-paths ["examples/thingie/src"]
                        :dependencies [[org.clojure/clojure "1.9.0-beta2"]
                                       [http-kit "2.2.0"]
-                                      [reloaded.repl "0.2.3"]
+                                      [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.3.2"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
                              [lein-ring "0.12.1"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0-beta2"]
-                                  [metosin/spec-tools "0.4.0"]
+                                  [metosin/spec-tools "0.5.0"]
                                   [org.clojure/core.async "0.3.443"]
                                   [javax.servlet/javax.servlet-api "3.1.0"]
                                   [peridot "0.5.0"]
                                   [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
-                                  [com.rpl/specter "1.0.3"]
+                                  [com.rpl/specter "1.0.4"]
                                   [com.stuartsierra/component "0.3.2"]
                                   [metosin/jsonista "0.1.0-SNAPSHOT"]
-                                  [reloaded.repl "0.2.3"]
+                                  [reloaded.repl "0.2.4"]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]
                    :test-paths ["test19"]
@@ -46,13 +46,13 @@
              :dev18 {:plugins [[lein-midje "3.2.1"]]
                      :dependencies [[org.clojure/clojure "1.8.0"]
                                     [clojure-future-spec "1.9.0-alpha16"]
-                                    [metosin/spec-tools "0.4.0" :exlusions [org.clojure/spec.alpha]]
+                                    [metosin/spec-tools "0.5.0" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.3.443"]
                                     [peridot "0.5.0"]
                                     [metosin/jsonista "0.1.0-SNAPSHOT"]
                                     [javax.servlet/javax.servlet-api "3.1.0"]
                                     [midje "1.9.0-alpha6" :exclusions [com.rpl/specter]]
-                                    [com.rpl/specter "1.0.3"]
+                                    [com.rpl/specter "1.0.4"]
                                     [com.stuartsierra/component "0.3.2"]
                                     [criterium "0.4.4"]]}
              :perf {:jvm-opts ^:replace ["-server"

@@ -1,3 +1,13 @@
+## 2.0.0-alpha10 (21.10.2017)
+
+* `ANY` produces swagger-docs for all methods, thanks to [Anthony](https://github.com/acron0)
+
+* Updated deps:
+
+```clj
+[metosin/spec-tools "0.5.0"] is available but we use "0.4.0"
+```
+
 ## 2.0.0-alpha9 (18.10.2017)
 
 * Stringify `:pred` under Spec `:problems`, fixes [#345](https://github.com/metosin/compojure-api/issues/345)
