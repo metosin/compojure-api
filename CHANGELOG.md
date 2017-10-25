@@ -22,6 +22,7 @@
 ;      (GET "/ping" [] (ok "pong")))
 ;
 ; (context "/dynamic" []
+;   :dynamic true
 ;   (if (= 0 (random-int 2))
 ;      ;; mounted for 50% of requests
 ;      (GET "/ping" [] (ok "pong")))
