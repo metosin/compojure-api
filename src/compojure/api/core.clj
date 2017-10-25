@@ -16,7 +16,7 @@
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
-  (let [handlers (seq (keep identity handlers))]
+  (let [handlers (seq (keep identity (flatten handlers)))]
     (routes/map->Route
       {:childs (vec handlers)
        :handler (meta/routing handlers)})))
@@ -56,7 +56,6 @@
        :handler x-handler})))
 
 (defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true}))
-(defmacro dynamic-context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :dynamic? true}))
 
 (defmacro GET {:style/indent 2} [& args] (meta/restructure :get args nil))
 (defmacro ANY {:style/indent 2} [& args] (meta/restructure nil args nil))

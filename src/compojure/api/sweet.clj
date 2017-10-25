@@ -17,7 +17,6 @@
    undocumented
 
    context
-   dynamic-context
 
    GET
    ANY

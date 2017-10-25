@@ -1711,3 +1711,33 @@
         [status body] (post* app "/error" (json-string {:kikka 6}))]
     status => 500
     body => {:kikka 6}))
+
+(fact "sequential routes"
+
+  (fact "context"
+    (let [app (context "/api" []
+                (for [path ["/ping" "/pong"]]
+                  (GET path [] (ok {:path path}))))]
+
+      (fact "all routes can be invoked"
+        (let [[status body] (get* app "/api/ping")]
+          status => 200
+          body => {:path "/ping"})
+
+        (let [[status body] (get* app "/api/pong")]
+          status => 200
+          body => {:path "/pong"}))))
+
+  (fact "routes"
+    (let [app (routes
+                (for [path ["/ping" "/pong"]]
+                  (GET path [] (ok {:path path}))))]
+
+      (fact "all routes can be invoked"
+        (let [[status body] (get* app "/ping")]
+          status => 200
+          body => {:path "/ping"})
+
+        (let [[status body] (get* app "/pong")]
+          status => 200
+          body => {:path "/pong"})))))

@@ -1,3 +1,47 @@
+## UNRELEASED
+
+* `dynamic-context` is removed in favor of `:dynamic true` meta-data for contexts:
+
+```clj
+(require '[compojure.api.help :as help])
+
+(help/help :meta :dynamic)
+; :dynamic
+;
+; If set to to `true`, makes a `context` dynamic,
+; e.g. body is evaluated on each request. NOTE:
+; Vanilla Compojure has this enabled by default
+; while compojure-api default to `false`, being
+; much faster. For details, see:
+;
+; https://github.com/weavejester/compojure/issues/148
+;
+; (context "/static" []
+;   (if (= 0 (random-int 2))
+;      ;; mounting decided once
+;      (GET "/ping" [] (ok "pong")))
+;
+; (context "/dynamic" []
+;   :dynamic true
+;   (if (= 0 (random-int 2))
+;      ;; mounted for 50% of requests
+;      (GET "/ping" [] (ok "pong")))
+```
+
+* You can now include sequences of routes in `routes` and `context`:
+
+```clj
+(context "/api" []
+  (for [path ["/ping" "/pong"]]
+    (GET path [] (ok {:path path}))))
+```
+
+* updated deps:
+
+```clj
+[metosin/ring-swagger "0.24.3"] is available but we use "0.24.2"
+```
+
 ## 2.0.0-alpha10 (21.10.2017)
 
 * `ANY` produces swagger-docs for all methods, thanks to [Anthony](https://github.com/acron0)
