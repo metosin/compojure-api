@@ -8,6 +8,12 @@
     (GET path [] (ok {:path path}))))
 ```
 
+* updated deps:
+
+```clj
+[metosin/ring-swagger "0.24.3"] is available but we use "0.24.2"
+```
+
 ## 2.0.0-alpha10 (21.10.2017)
 
 * `ANY` produces swagger-docs for all methods, thanks to [Anthony](https://github.com/acron0)
