@@ -635,7 +635,7 @@
                           :body body}
                          options)
 
-        static? (not (or (-> info :public :dynamic boolean)
+        static? (not (or (-> info :public :dynamic)
                          (route-args? route-arg) (seq lets) (seq letks)))
 
         static-context? (and static? context?)

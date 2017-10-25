@@ -28,7 +28,7 @@
 ;      (GET "/ping" [] (ok "pong")))
 ```
 
-* `routes` and `context` flatten `sequential?` routes:
+* You can now include sequences of routes in `routes` and `context`:
 
 ```clj
 (context "/api" []
