@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha11 (25.10.2017)
 
 * `dynamic-context` is removed in favor of `:dynamic true` meta-data for contexts:
 
