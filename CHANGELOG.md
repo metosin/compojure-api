@@ -1,3 +1,13 @@
+## UNRELEASED
+
+* `routes` and `context` flatten `sequential?` routes:
+
+```clj
+(context "/api" []
+  (for [path ["/ping" "/pong"]]
+    (GET path [] (ok {:path path}))))
+```
+
 ## 2.0.0-alpha10 (21.10.2017)
 
 * `ANY` produces swagger-docs for all methods, thanks to [Anthony](https://github.com/acron0)

@@ -542,7 +542,7 @@
      (constantly ~route)))
 
 (defn routing [handlers]
-  (if-let [handlers (seq (keep identity handlers))]
+  (if-let [handlers (seq (keep identity (flatten handlers)))]
     (apply compojure.core/routes handlers)
     (fn ([_] nil) ([_ respond _] (respond nil)))))
 

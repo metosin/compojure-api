@@ -16,7 +16,7 @@
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
-  (let [handlers (seq (keep identity handlers))]
+  (let [handlers (seq (keep identity (flatten handlers)))]
     (routes/map->Route
       {:childs (vec handlers)
        :handler (meta/routing handlers)})))
