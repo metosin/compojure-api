@@ -1,5 +1,32 @@
 ## UNRELEASED
 
+* `dynamic-context` is removed in favor of `:dynamic true` meta-data for contexts:
+
+```clj
+(require '[compojure.api.help :as help])
+
+(help/help :meta :dynamic)
+; :dynamic
+;
+; If set to to `true`, makes a `context` dynamic,
+; e.g. body is evaluated on each request. NOTE:
+; Vanilla Compojure has this enabled by default
+; while compojure-api default to `false`, being
+; much faster. For details, see:
+;
+; https://github.com/weavejester/compojure/issues/148
+;
+; (context "/static" []
+;   (if (= 0 (random-int 2))
+;      ;; mounting decided once
+;      (GET "/ping" [] (ok "pong")))
+;
+; (context "/dynamic" []
+;   (if (= 0 (random-int 2))
+;      ;; mounted for 50% of requests
+;      (GET "/ping" [] (ok "pong")))
+```
+
 * `routes` and `context` flatten `sequential?` routes:
 
 ```clj

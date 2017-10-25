@@ -56,7 +56,6 @@
        :handler x-handler})))
 
 (defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true}))
-(defmacro dynamic-context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :dynamic? true}))
 
 (defmacro GET {:style/indent 2} [& args] (meta/restructure :get args nil))
 (defmacro ANY {:style/indent 2} [& args] (meta/restructure nil args nil))

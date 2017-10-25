@@ -23,8 +23,8 @@
 
   (fact "happy path"
     (#'routes/path-string muuntaja "/a/:b/:c/d/:e/f" {:b (LocalDate/parse "2015-05-22")
-                                                           :c 12345
-                                                           :e :kikka})
+                                                      :c 12345
+                                                      :e :kikka})
     => "/a/2015-05-22/12345/d/kikka/f"))
 
 (fact "string-path-parameters"
@@ -185,9 +185,10 @@
 
 (fact "dynamic context routes"
   (let [endpoint? (atom true)
-        app (dynamic-context "/api" []
-                             (when @endpoint?
-                               (GET "/ping" [] (ok "pong"))))]
+        app (context "/api" []
+              :dynamic true
+              (when @endpoint?
+                (GET "/ping" [] (ok "pong"))))]
     (fact "the endpoint exists"
       (app {:request-method :get :uri "/api/ping"}) => (contains {:body "pong"}))
 

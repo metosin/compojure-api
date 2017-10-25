@@ -55,6 +55,33 @@
   (fn [k v acc] k))
 
 ;;
+;; dynamic
+;;
+
+(defmethod help/help-for [:meta :dynamic] [_ _]
+  (help/text
+    "If set to to `true`, makes a `context` dynamic,"
+    "e.g. body is evaluated on each request. NOTE:"
+    "Vanilla Compojure has this enabled by default"
+    "while compojure-api default to `false`, being"
+    "much faster. For details, see:\n"
+    "https://github.com/weavejester/compojure/issues/148\n"
+
+    (help/code
+      "(context \"/static\" []"
+      "  (if (= 0 (random-int 2))"
+      "     ;; mounting decided once"
+      "     (GET \"/ping\" [] (ok \"pong\")))"
+      ""
+      "(context \"/dynamic\" []"
+      "  (if (= 0 (random-int 2))"
+      "     ;; mounted for 50% of requests"
+      "     (GET \"/ping\" [] (ok \"pong\")))")))
+
+(defmethod restructure-param :dynamic [k v acc]
+  (update-in acc [:info :public] assoc k v))
+
+;;
 ;; summary
 ;;
 
@@ -586,7 +613,7 @@
 (defn- route-args? [arg]
   (not= arg []))
 
-(defn restructure [method [path route-arg & args] {:keys [context? dynamic?]}]
+(defn restructure [method [path route-arg & args] {:keys [context?]}]
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
 
@@ -607,7 +634,8 @@
                           :body body}
                          options)
 
-        static? (not (or dynamic? (route-args? route-arg) (seq lets) (seq letks)))
+        static? (not (or (-> info :public :dynamic boolean)
+                         (route-args? route-arg) (seq lets) (seq letks)))
 
         static-context? (and static? context?)
         info (cond-> info
