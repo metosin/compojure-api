@@ -664,7 +664,7 @@
                          form (if (seq lets) `(dummy-let ~lets ~form) form)
                          form `(compojure.core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
                          form `(fn [~'+compojure-api-request+] ~form)
-                         form `(delay (~form {}))]
+                         form `(delay (flatten (~form {})))]
                      form)]
 
         `(routes/map->Route

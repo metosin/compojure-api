@@ -1715,9 +1715,10 @@
 (fact "sequential routes"
 
   (fact "context"
-    (let [app (context "/api" []
-                (for [path ["/ping" "/pong"]]
-                  (GET path [] (ok {:path path}))))]
+    (let [app (api
+                (context "/api" []
+                  (for [path ["/ping" "/pong"]]
+                    (GET path [] (ok {:path path})))))]
 
       (fact "all routes can be invoked"
         (let [[status body] (get* app "/api/ping")]
@@ -1729,9 +1730,10 @@
           body => {:path "/pong"}))))
 
   (fact "routes"
-    (let [app (routes
-                (for [path ["/ping" "/pong"]]
-                  (GET path [] (ok {:path path}))))]
+    (let [app (api
+                (routes
+                  (for [path ["/ping" "/pong"]]
+                    (GET path [] (ok {:path path})))))]
 
       (fact "all routes can be invoked"
         (let [[status body] (get* app "/ping")]

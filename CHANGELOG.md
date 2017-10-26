@@ -1,3 +1,7 @@
+## 2.0.0-alpha12 (26.10.2017)
+
+* route sequences also produce swagger docs.
+
 ## 2.0.0-alpha11 (25.10.2017)
 
 * `dynamic-context` is removed in favor of `:dynamic true` meta-data for contexts:
