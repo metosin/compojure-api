@@ -635,6 +635,8 @@
                           :body body}
                          options)
 
+        coercion (:coercion info)
+
         static? (not (or (-> info :public :dynamic)
                          (route-args? route-arg) (seq lets) (seq letks)))
 
@@ -653,6 +655,12 @@
       (let [form `(routing [~@body])
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
+            ;; coercion is set via middleware. for contexts, middleware is applied after let & letk -bindings
+            ;; to make coercion visible to the lets & letks, we apply it before any let & letk -bindings
+            form (if (and coercion (not static-context?))
+                   `(let [~+compojure-api-request+ (coercion/set-request-coercion ~+compojure-api-request+ ~coercion)]
+                      ~form)
+                   form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
             form (if static?
                    `(static-context ~path ~form)
