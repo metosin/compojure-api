@@ -72,6 +72,11 @@
     (specify spec nil)
     (memoized-specify spec)))
 
+(defn stringify-pred [pred]
+  (str (if (instance? clojure.lang.LazySeq pred)
+         (seq pred)
+         pred)))
+
 (defmulti coerce-response? identity :default ::default)
 (defmethod coerce-response? ::default [_] true)
 
@@ -99,7 +104,7 @@
   (encode-error [_ error]
     (-> error
         (update :spec (comp str s/form))
-        (update :problems (partial mapv #(update % :pred str)))))
+        (update :problems (partial mapv #(update % :pred stringify-pred)))))
 
   (coerce-request [_ spec value type format _]
     (let [spec (maybe-memoized-specify spec)
