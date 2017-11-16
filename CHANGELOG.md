@@ -1,3 +1,13 @@
+## 2.0.0-SNAPSHOT
+
+* `:coercion` applies for `context` parameters too (not just childs)
+
+* updated deps:
+
+```clj
+[metosin/muuntaja "0.3.3"] is available but we use "0.3.2"
+```
+
 ## 2.0.0-alpha12 (26.10.2017)
 
 * route sequences also produce swagger docs.
