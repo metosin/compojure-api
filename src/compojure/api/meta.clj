@@ -534,7 +534,7 @@
 (defmethod restructure-param :coercion [_ coercion acc]
   (-> acc
       (assoc-in [:info :coercion] coercion)
-      (update-in [:middleware] conj [mw/wrap-coercion coercion])))
+      (update-in [:middleware] conj [`mw/wrap-coercion coercion])))
 
 ;;
 ;; Impl
@@ -602,14 +602,14 @@
 (defn- merge-public-parameters
   [{:keys [responses swagger] :as parameters}]
   (cond-> parameters
-    (seq responses) (assoc :responses (common/merge-vector responses))
-    swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
+          (seq responses) (assoc :responses (common/merge-vector responses))
+          swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
 
 (defn merge-parameters
   "Merge parameters at runtime to allow usage of runtime-paramers with route-macros."
   [info]
   (cond-> info
-    (contains? info :public) (update :public merge-public-parameters)))
+          (contains? info :public) (update :public merge-public-parameters)))
 
 (defn- route-args? [arg]
   (not= arg []))
@@ -640,7 +640,7 @@
 
         static-context? (and static? context?)
         info (cond-> info
-               static-context? (assoc :static-context? static-context?))
+                     static-context? (assoc :static-context? static-context?))
 
         _ (assert (nil? swagger) ":swagger is deprecated with 2.0.0, use [:info :public] instead")
 
