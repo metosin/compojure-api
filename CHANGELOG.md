@@ -1,5 +1,6 @@
-## 2.0.0-SNAPSHOT
+## 2.0.0-alpha13 (18.11.2017)
 
+* Better error messages for bad `letk` syntax by [Erik Assum](https://github.com/slipset), fixes [#354](https://github.com/metosin/compojure-api/issues/354)
 * `:coercion` applies for `context` parameters too (not just childs)
 
 * updated deps:

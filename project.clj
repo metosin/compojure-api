@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-SNAPSHOT"
+(defproject metosin/compojure-api "2.0.0-alpha13"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -18,7 +18,7 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.9.0-beta2"]
+                       :dependencies [[org.clojure/clojure "1.9.0-RC1"]
                                       [http-kit "2.2.0"]
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.3.2"]]}
