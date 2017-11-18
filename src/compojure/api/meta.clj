@@ -26,12 +26,18 @@
   (dissoc schema 'schema.core/Keyword))
 
 (defn fnk-schema [bind]
-  (->>
-    (:input-schema
+  (try
+    (->>
+     (:input-schema
       (fnk-impl/letk-input-schema-and-body-form
-        nil (with-meta bind {:schema s/Any}) [] nil))
-    reverse
-    (into {})))
+       nil (with-meta bind {:schema s/Any}) [] nil))
+     reverse
+     (into {}))
+    (catch Exception _
+        (throw (IllegalArgumentException.
+                (str "Binding " bind " is not valid, please refer to "
+                     "https://github.com/plumatic/plumbing/tree/master/src/plumbing/fnk#fnk-syntax\n"
+                     " for more information."))))))
 
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,

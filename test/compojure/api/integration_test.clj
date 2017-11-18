@@ -1089,7 +1089,19 @@
                   (GET "/api/ping" []
                     :name :pong
                     identity))]
-      (eval app') => (throws RuntimeException))))
+      (eval app') => (throws RuntimeException)))
+
+  (fact "bindings with wrong syntax should fail"
+    (let [app' `(api
+                 (GET "/api/:id/pong" []
+                  :path-params [id ::id]
+                  :name :pong
+                  identity))]
+      (eval app') => (throws java.lang.IllegalArgumentException
+                             (str  "Binding [compojure.api.integration-test/id :compojure.api.integration-test/id] "
+                                   "is not valid, please refer to "
+                                   "https://github.com/plumatic/plumbing/tree/master/src/plumbing/fnk#fnk-syntax")))))
+
 
 
 (fact "swagger-spec-path"
