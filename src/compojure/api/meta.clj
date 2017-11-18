@@ -28,16 +28,24 @@
 (defn fnk-schema [bind]
   (try
     (->>
-     (:input-schema
-      (fnk-impl/letk-input-schema-and-body-form
-       nil (with-meta bind {:schema s/Any}) [] nil))
-     reverse
-     (into {}))
+      (:input-schema
+        (fnk-impl/letk-input-schema-and-body-form
+          nil (with-meta bind {:schema s/Any}) [] nil))
+      reverse
+      (into {}))
     (catch Exception _
+      (let [hint (cond
+                   ;; [a ::a]
+                   (and (= 2 (count bind)) (keyword? (second bind)))
+                   (str "[" (first bind) " :- " (second bind) "]")
+
+                   :else nil)]
         (throw (IllegalArgumentException.
-                (str "Binding " bind " is not valid, please refer to "
-                     "https://github.com/plumatic/plumbing/tree/master/src/plumbing/fnk#fnk-syntax\n"
-                     " for more information."))))))
+                 (str "Binding is not valid, please refer to "
+                      "https://github.com/plumatic/plumbing/tree/master/src/plumbing/fnk#fnk-syntax\n"
+                      " for more information.\n\n"
+                      "      binding: " bind "\n\n"
+                      (if hint (str " did you mean: " hint "\n\n")))))))))
 
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
