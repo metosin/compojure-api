@@ -478,3 +478,16 @@
                                                  :required ["x" "y"]
                                                  :type "object"}}]
                                       :responses {:default {:description ""}}}}})})))))
+
+(s/def ::id spec/pos-int?)
+
+(fact "spec coercion in context"
+  (let [app (context "/product/:id" []
+              :coercion :spec
+              :path-params [id :- ::id]
+              (GET "/foo" []
+                :return ::id
+                (ok id)))
+        [status body] (get* app "/product/1/foo")]
+    status => 200
+    body => 1))
