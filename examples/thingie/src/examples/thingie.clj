@@ -103,7 +103,7 @@
       (GET "/" []
         :query-params [return :- (s/enum :200 :403 :404)]
         :responses {403 {:schema {:code s/Str}, :description "spiders?"}
-                    404 {:schema {:reson s/Str}, :description "lost?"}}
+                    404 {:schema {:reason s/Str}, :description "lost?"}}
         :return Total
         :summary "multiple returns models"
         (case return
