@@ -59,6 +59,19 @@
   {200 {:schema schema
         :description (or (js/json-schema-meta schema) "")}})
 
+(defn value-and-schema [[value schema ?schema :as binding]]
+  (cond
+    ;; [body :- {:a s/Int}]
+    (and ?schema (= :- schema))
+    [value ?schema]
+
+    ;; [body {:a s/Int}]
+    (not ?schema)
+    [value schema]
+
+    :else
+    (throw (ex-info (str "bad let-binding syntax: " binding) {}))))
+
 ;;
 ;; Extension point
 ;;
@@ -305,12 +318,17 @@
     (help/code
       "(POST \"/echo\" []"
       "  :body [body User]"
+      "  (ok body))"
+      ""
+      "(POST \"/echo\" []"
+      "  :body [body :- User]"
       "  (ok body))")))
 
-(defmethod restructure-param :body [_ [value schema] acc]
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :body-params :body false)])
-      (assoc-in [:info :public :parameters :body] schema)))
+(defmethod restructure-param :body [_ binding acc]
+  (let [[value schema] (value-and-schema binding)]
+    (-> acc
+        (update-in [:lets] into [value (src-coerce! schema :body-params :body false)])
+        (assoc-in [:info :public :parameters :body] schema))))
 
 ;;
 ;; query
@@ -323,12 +341,17 @@
     (help/code
       "(GET \"/search\" []"
       "  :query [params {:q s/Str, :max s/Int}]"
+      "  (ok params))"
+      ""
+      "(GET \"/search\" []"
+      "  :query [params :- {:q s/Str, :max s/Int}]"
       "  (ok params))")))
 
-(defmethod restructure-param :query [_ [value schema] acc]
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
-      (assoc-in [:info :public :parameters :query] schema)))
+(defmethod restructure-param :query [_ binding acc]
+  (let [[value schema] (value-and-schema binding)]
+    (-> acc
+        (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
+        (assoc-in [:info :public :parameters :query] schema))))
 
 ;;
 ;; headers
@@ -341,12 +364,17 @@
     (help/code
       "(GET \"/headers\" []"
       "  :headers [headers HeaderSchema]"
+      "  (ok headers))"
+      ""
+      "(GET \"/headers\" []"
+      "  :headers [headers :- HeaderSchema]"
       "  (ok headers))")))
 
-(defmethod restructure-param :headers [_ [value schema] acc]
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :headers :string)])
-      (assoc-in [:info :public :parameters :header] schema)))
+(defmethod restructure-param :headers [_ binding acc]
+  (let [[value schema] (value-and-schema binding)]
+    (-> acc
+        (update-in [:lets] into [value (src-coerce! schema :headers :string)])
+        (assoc-in [:info :public :parameters :header] schema))))
 
 ;;
 ;; body-params

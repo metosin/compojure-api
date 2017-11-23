@@ -202,12 +202,20 @@
                   :return User
                   :query [user User]
                   (ok user))
+                (GET "/user2" []
+                  :return User
+                  :query [user :- User]
+                  (ok user))
                 (GET "/invalid-user" []
                   :return User
                   (ok invalid-user))
                 (GET "/not-validated" []
                   (ok invalid-user))
                 (POST "/user" []
+                  :return User
+                  :body [user User]
+                  (ok user))
+                (POST "/user2" []
                   :return User
                   :body [user User]
                   (ok user))
@@ -223,6 +231,10 @@
                   :return User
                   :headers [user UserHeaders]
                   (ok (select-keys user [:id :name])))
+                (POST "/user_headers2" []
+                  :return User
+                  :headers [user :- UserHeaders]
+                  (ok (select-keys user [:id :name])))
                 (POST "/user_legacy" {user :body-params}
                   :return User
                   (ok user))))]
@@ -237,8 +249,18 @@
         status => 200
         body => pertti))
 
+    (fact "GET with smart destructuring & :-"
+      (let [[status body] (get* app "/models/user2" pertti)]
+        status => 200
+        body => pertti))
+
     (fact "POST with smart destructuring"
       (let [[status body] (post* app "/models/user" (json-string pertti))]
+        status => 200
+        body => pertti))
+
+    (fact "POST with smart destructuring & :-"
+      (let [[status body] (post* app "/models/user2" (json-string pertti))]
         status => 200
         body => pertti))
 
@@ -259,6 +281,11 @@
 
     (fact "POST with smart destructuring - headers"
       (let [[status body] (headers-post* app "/models/user_headers" pertti)]
+        status => 200
+        body => pertti))
+
+    (fact "POST with smart destructuring - headers & :-"
+      (let [[status body] (headers-post* app "/models/user_headers2" pertti)]
         status => 200
         body => pertti))
 

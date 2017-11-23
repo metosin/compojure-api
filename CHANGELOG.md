@@ -1,3 +1,19 @@
+## UNRELEASED
+
+Support `:-` in the `:query`, `:body` and `:headers`, e.g. the following are equivalent:
+
+```clj
+(POST "/user" []
+  :return User
+  :body [user User]
+  (ok user))
+
+(POST "/user" []
+  :return User
+  :body [user :- User]
+  (ok user))
+```
+
 ## 2.0.0-alpha15
 
 * updated deps:
