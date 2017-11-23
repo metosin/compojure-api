@@ -1,3 +1,11 @@
+## 2.0.0-alpha15
+
+* updated deps:
+
+```clj
+[metosin/muuntaja "0.4.1"] is available but we use "0.4.0"
+```
+
 ## 2.0.0-alpha14
 
 * Fixes Muuntaja-bug of randomly failing on `:body` parameters with some server setups.
