@@ -1,3 +1,16 @@
+## 2.0.0-alpha14
+
+* Fixes Muuntaja-bug of randomly failing on `:body` parameters with some server setups.
+
+* updated deps:
+
+```clj
+[prismatic/plumbing "0.5.5"] is available but we use "0.5.4"
+[metosin/muuntaja "0.4.0"] is available but we use "0.3.3"
+[ring/ring-core "1.6.3"] is available but we use "1.6.2"
+[metosin/spec-tools "0.5.1"] is available but we use "0.5.0"
+```
+
 ## 2.0.0-alpha13 (18.11.2017)
 
 * Better error messages for bad `letk` syntax by [Erik Assum](https://github.com/slipset), fixes [#354](https://github.com/metosin/compojure-api/issues/354)
