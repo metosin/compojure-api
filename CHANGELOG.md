@@ -1,3 +1,11 @@
+## 2.0.0-alpha16
+
+* Rolled back the latest swagger-ui, which fails in `config not found`. There is an [issue in ring-swagger](https://github.com/metosin/ring-swagger/pull/123).
+
+```clj
+[metosin/ring-swagger-ui "2.2.10"] is available but we use "3.0.17"
+```
+
 ## 2.0.0-alpha15
 
 * updated deps:
