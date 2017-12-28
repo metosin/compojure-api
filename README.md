@@ -67,17 +67,22 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 ```clj
 (require '[compojure.api.sweet :refer :all])
 (require '[clojure.core.async :as a])
+(require '[schema.core :as s])
 
 (context "/hello-async" []
   (resource
     {:get
      {:parameters {:query-params {:name String}}
-      :responses  {200 {:schema {:message String}}}
+      :responses  {200 {:schema {:message String}}
+                   404 {}
+                   500 {:schema s/Any}}
       :handler    (fn [{{:keys [name]} :query-params}]
                     (a/go
                       (a/<! (a/timeout 500))
                       (ok {:message (str "Hello, " name)})))}}))
 ```
+
+<sub>* Note that empty body responses can be specified with `{}` or `{:schema s/Any}`
 
 ### Hello World, async, data-driven & clojure.spec
 
