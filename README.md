@@ -47,6 +47,22 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
     (ok {:message (str "Hello, " name)})))
 ```
 
+### Validating an API
+
+```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[compojure.api.validator :as v])
+(require '[midje.sweet :refer :all])
+(require '[ring.util.http-response :refer :all])
+
+(fact
+  (v/validate (defapi app
+                      (GET "/hello" []
+                           :query-params [name :- String]
+                           (ok {:message (str "Hello, " name)}))))
+  =not=> (throws))
+```
+
 ### Hello World, async
 
 ```clj
