@@ -121,11 +121,13 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 (def app
   (api
     {:swagger
-     {:ui "/api-docs"
+     {:ui   "/api-docs"
       :spec "/swagger.json"
-      :data {:info {:title "Sample API"
-                    :description "Compojure Api example"}
-             :tags [{:name "api", :description "some apis"}]}}}
+      :data {:info     {:title       "Sample API"
+                        :description "Compojure Api example"}
+             :tags     [{:name "api", :description "some apis"}]
+             :consumes ["application/json"]
+             :produces ["application/json"]}}}
 
     (context "/api" []
       :tags ["api"]
