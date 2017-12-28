@@ -50,6 +50,7 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 ### Hello World, async
 
 ```clj
+(require '[compojure.api.sweet :refer :all])
 (require '[clojure.core.async :as a])
 
 (GET "/hello-async" []
@@ -64,6 +65,9 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 ### Hello World, async & data-driven
 
 ```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[clojure.core.async :as a])
+
 (context "/hello-async" []
   (resource
     {:get
@@ -78,6 +82,8 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 ### Hello World, async, data-driven & clojure.spec
 
 ```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[clojure.core.async :as a])
 (require '[clojure.spec.alpha :as s])
 
 (s/def ::name string?)
@@ -97,6 +103,7 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 ### Api with Schema & Swagger-docs
 
 ```clj
+(require '[compojure.api.sweet :refer :all])
 (require '[schema.core :as s])
 
 (s/defschema Pizza
