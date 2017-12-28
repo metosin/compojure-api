@@ -64,14 +64,15 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 ### Hello World, async & data-driven
 
 ```clj
-(resource
-  {:get
-   {:parameters {:query-params {:name String}}
-    :responses {200 {:schema {:message String}}}
-    :handler (fn [{{:keys [name]} :query-params}]
-               (a/go
-                 (a/<! (a/timeout 500))
-                 (ok {:message (str "Hello, " name)})))}})
+(context "/hello-async" []
+  (resource
+    {:get
+     {:parameters {:query-params {:name String}}
+      :responses  {200 {:schema {:message String}}}
+      :handler    (fn [{{:keys [name]} :query-params}]
+                    (a/go
+                      (a/<! (a/timeout 500))
+                      (ok {:message (str "Hello, " name)})))}}))
 ```
 
 ### Hello World, async, data-driven & clojure.spec
@@ -82,15 +83,15 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 (s/def ::name string?)
 (s/def ::message string?)
 
-(resource
-  {:coercion :spec
-   :get
-   {:parameters {:query-params (s/keys :req-un [::name])}
-    :responses {200 {:schema (s/keys :req-un [::message])}}
-    :handler (fn [{{:keys [name]} :query-params}]
-               (a/go
-                 (a/<! (a/timeout 500))
-                 (ok {:message (str "Hello, " name)})))}})
+(context "/hello-async" []
+  (resource
+    {:coercion :spec
+     :get      {:parameters {:query-params (s/keys :req-un [::name])}
+                :responses  {200 {:schema (s/keys :req-un [::message])}}
+                :handler    (fn [{{:keys [name]} :query-params}]
+                              (a/go
+                                (a/<! (a/timeout 500))
+                                (ok {:message (str "Hello, " name)})))}}))
 ```
 
 ### Api with Schema & Swagger-docs
