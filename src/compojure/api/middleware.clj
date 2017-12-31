@@ -249,7 +249,7 @@
                                    you might want to take look at using wrap-components
                                    middleware manually.). Defaults to nil (middleware not mounted)."
   ([handler]
-   (api-middleware handler nil))
+   (api-middleware handler api-middleware-defaults))
   ([handler options]
    (let [options (api-middleware-options options)
          {:keys [exceptions components formats middleware ring-swagger coercion]} options
