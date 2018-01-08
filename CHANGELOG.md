@@ -1,3 +1,10 @@
+## UNRELEASED
+
+```clj
+[metosin/ring-swagger "0.24.4"] is available but we use "0.24.3"
+[metosin/ring-swagger-ui "3.9.0"] is available but we use "2.2.10"
+```
+
 ## 2.0.0-alpha16
 
 * Rolled back the latest swagger-ui, which fails in `config not found`. There is an [issue in ring-swagger](https://github.com/metosin/ring-swagger/pull/123).
