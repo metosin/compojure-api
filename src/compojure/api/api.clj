@@ -49,6 +49,8 @@
 
   ### api-middleware options
 
+  See `compojure.api.middleware/api-middleware` for more available options.
+
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   api
   [& body]
