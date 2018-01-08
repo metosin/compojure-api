@@ -29,8 +29,7 @@
 
   [compojure.api.api
 
-   api
-   defapi]
+   api]
 
   [compojure.api.resource
 
