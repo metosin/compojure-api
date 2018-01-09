@@ -9,11 +9,11 @@
                  [prismatic/schema "1.1.7"]
                  [prismatic/plumbing "0.5.5"]
                  [frankiesardo/linked "1.2.9"]
-                 [metosin/muuntaja "0.4.1"]
-                 [ring/ring-core "1.6.3"]
-                 [compojure "1.6.0" :exclusions [commons-codec]]
+                 [metosin/muuntaja "0.4.2"]
+                 [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
+                 [compojure "1.6.0"]
                  [metosin/ring-http-response "0.9.0"]
-                 [metosin/ring-swagger "0.24.4"]
+                 [metosin/ring-swagger "0.24.5"]
                  [metosin/ring-swagger-ui "3.9.0"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -27,15 +27,19 @@
                              [lein-ring "0.12.3"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
-                                  [metosin/spec-tools "0.5.1"]
+                                  [org.clojure/tools.namespace "0.2.11"]
+                                  [metosin/spec-tools "0.5.1" :exlusions [org.clojure/spec.alpha]]
                                   [org.clojure/core.async "0.4.474"]
                                   [javax.servlet/javax.servlet-api "4.0.0"]
-                                  [peridot "0.5.0"]
-                                  [midje "1.9.1" :exclusions [com.rpl/specter]]
+                                  [peridot "0.5.0" :exclusions [clj-time commons-codec]]
+                                  [midje "1.9.1" :exclusions [org.clojure/tools.namespace
+                                                              com.rpl/specter
+                                                              commons-codec
+                                                              clj-time]]
                                   [com.rpl/specter "1.1.0"]
                                   [com.stuartsierra/component "0.3.2"]
-                                  [metosin/jsonista "0.1.0" :exclusions [org.clojure/tools.namespace]]
-                                  [reloaded.repl "0.2.4"]
+                                  [metosin/jsonista "0.1.0"]
+                                  [reloaded.repl "0.2.4" :exclusions [org.clojure/tools.namespace]]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]
                    :test-paths ["test19"]
@@ -45,13 +49,17 @@
                    :main examples.server}
              :dev18 {:plugins [[lein-midje "3.2.1"]]
                      :dependencies [[org.clojure/clojure "1.8.0"]
+                                    [org.clojure/tools.namespace "0.2.11"]
                                     [clojure-future-spec "1.9.0-alpha16"]
                                     [metosin/spec-tools "0.5.1" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.4.474"]
-                                    [peridot "0.5.0"]
+                                    [peridot "0.5.0" :exclusions [clj-time commons-codec]]
                                     [metosin/jsonista "0.1.0"]
                                     [javax.servlet/javax.servlet-api "4.0.0"]
-                                    [midje "1.9.1" :exclusions [com.rpl/specter clj-time]]
+                                    [midje "1.9.1" :exclusions [org.clojure/tools.namespace
+                                                                com.rpl/specter
+                                                                commons-codec
+                                                                clj-time]]
                                     [com.rpl/specter "1.1.0"]
                                     [com.stuartsierra/component "0.3.2"]
                                     [criterium "0.4.4"]]}

@@ -3,7 +3,7 @@
 * **BREAKING**: drop `defapi`. `def` + `api` should be used instead.
 
 ```clj
-[metosin/ring-swagger "0.24.4"] is available but we use "0.24.3"
+[metosin/ring-swagger "0.24.5"] is available but we use "0.24.3"
 [metosin/ring-swagger-ui "3.9.0"] is available but we use "2.2.10"
 ```
 
