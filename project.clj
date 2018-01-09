@@ -13,7 +13,7 @@
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.0"]
                  [metosin/ring-http-response "0.9.0"]
-                 [metosin/ring-swagger "0.24.5"]
+                 [metosin/ring-swagger "0.25.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -38,7 +38,7 @@
                                                               clj-time]]
                                   [com.rpl/specter "1.1.0"]
                                   [com.stuartsierra/component "0.3.2"]
-                                  [metosin/jsonista "0.1.0"]
+                                  [metosin/jsonista "0.1.1"]
                                   [reloaded.repl "0.2.4" :exclusions [org.clojure/tools.namespace]]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]
