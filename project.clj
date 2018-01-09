@@ -27,19 +27,17 @@
                              [lein-ring "0.12.3"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
-                                  [org.clojure/tools.namespace "0.2.11"]
                                   [metosin/spec-tools "0.5.1" :exlusions [org.clojure/spec.alpha]]
                                   [org.clojure/core.async "0.4.474"]
                                   [javax.servlet/javax.servlet-api "4.0.0"]
                                   [peridot "0.5.0" :exclusions [clj-time commons-codec]]
-                                  [midje "1.9.1" :exclusions [org.clojure/tools.namespace
-                                                              com.rpl/specter
+                                  [midje "1.9.1" :exclusions [com.rpl/specter
                                                               commons-codec
                                                               clj-time]]
                                   [com.rpl/specter "1.1.0"]
                                   [com.stuartsierra/component "0.3.2"]
                                   [metosin/jsonista "0.1.1"]
-                                  [reloaded.repl "0.2.4" :exclusions [org.clojure/tools.namespace]]
+                                  [reloaded.repl "0.2.4"]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]
                    :test-paths ["test19"]
@@ -49,15 +47,13 @@
                    :main examples.server}
              :dev18 {:plugins [[lein-midje "3.2.1"]]
                      :dependencies [[org.clojure/clojure "1.8.0"]
-                                    [org.clojure/tools.namespace "0.2.11"]
                                     [clojure-future-spec "1.9.0-alpha16"]
                                     [metosin/spec-tools "0.5.1" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.4.474"]
                                     [peridot "0.5.0" :exclusions [clj-time commons-codec]]
                                     [metosin/jsonista "0.1.0"]
                                     [javax.servlet/javax.servlet-api "4.0.0"]
-                                    [midje "1.9.1" :exclusions [org.clojure/tools.namespace
-                                                                com.rpl/specter
+                                    [midje "1.9.1" :exclusions [com.rpl/specter
                                                                 commons-codec
                                                                 clj-time]]
                                     [com.rpl/specter "1.1.0"]

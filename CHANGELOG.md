@@ -1,9 +1,11 @@
 ## UNRELEASED
 
 * **BREAKING**: drop `defapi`. `def` + `api` should be used instead.
+* Cleanup conflicting transitive dependencies
 * Supports both old (2.*) and new (3.*) swagger-uis.
 
 ```clj
+[metosin/muuntaja "0.4.2"] is available but we use "0.4.1"
 [metosin/ring-swagger "0.25.0"] is available but we use "0.24.3"
 ```
 
