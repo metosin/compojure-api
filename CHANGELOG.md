@@ -1,10 +1,10 @@
 ## UNRELEASED
 
 * **BREAKING**: drop `defapi`. `def` + `api` should be used instead.
+* Supports both old (2.*) and new (3.*) swagger-uis.
 
 ```clj
 [metosin/ring-swagger "0.24.5"] is available but we use "0.24.3"
-[metosin/ring-swagger-ui "3.9.0"] is available but we use "2.2.10"
 ```
 
 ## 2.0.0-alpha16
