@@ -1,3 +1,14 @@
+## 2.0.0-alpha17
+
+* **BREAKING**: drop `defapi`. `def` + `api` should be used instead.
+* Cleanup conflicting transitive dependencies
+* Supports both old (2.*) and new (3.*) swagger-uis.
+
+```clj
+[metosin/muuntaja "0.4.2"] is available but we use "0.4.1"
+[metosin/ring-swagger "0.25.0"] is available but we use "0.24.3"
+```
+
 ## 2.0.0-alpha16
 
 * Rolled back the latest swagger-ui, which fails in `config not found`. There is an [issue in ring-swagger](https://github.com/metosin/ring-swagger/pull/123).

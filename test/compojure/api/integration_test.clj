@@ -1287,24 +1287,6 @@
                                    "/runtime" irrelevant})})))
 
 
-(s/defschema Foo {:a [s/Keyword]})
-
-(defapi with-defapi
-  (swagger-routes)
-  (GET "/foo" []
-    :return Foo
-    (ok {:a "foo"})))
-
-(defn with-api []
-  (api
-    (swagger-routes)
-    (GET "/foo" []
-      :return Foo
-      (ok {:a "foo"}))))
-
-(fact "defapi & api define same results, #159"
-  (get-spec with-defapi) => (get-spec (with-api)))
-
 (fact "handling invalid routes with api"
   (let [invalid-routes (routes (constantly nil))]
 

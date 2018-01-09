@@ -49,6 +49,8 @@
 
   ### api-middleware options
 
+  See `compojure.api.middleware/api-middleware` for more available options.
+
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   api
   [& body]
@@ -72,15 +74,3 @@
                           {::request/paths paths
                            ::request/lookup lookup}))]
     (assoc partial-api-route :handler api-handler)))
-
-(defmacro
-  ^{:doc (str
-  "Defines an api.
-
-  API middleware options:
-
-  " (:doc (meta #'compojure.api.middleware/api-middleware)))}
-  defapi
-  {:style/indent 1}
-  [name & body]
-  `(def ~name (api ~@body)))
