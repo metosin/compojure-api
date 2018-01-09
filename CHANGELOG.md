@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha17
 
 * **BREAKING**: drop `defapi`. `def` + `api` should be used instead.
 * Cleanup conflicting transitive dependencies
