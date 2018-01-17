@@ -38,6 +38,7 @@
                                   [com.stuartsierra/component "0.3.2"]
                                   [metosin/jsonista "0.1.1"]
                                   [reloaded.repl "0.2.4"]
+                                  [org.immutant/immutant "2.1.9" :exclusions [org.slf4j/slf4j-api]]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]
                    :test-paths ["test19"]
