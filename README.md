@@ -102,7 +102,8 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
            :handler (fn [{{:keys [name]} :query-params}]
                       (a/go
                         (a/<! (a/timeout 500))
-                        (ok {:message (str "Hello, " name)})))}}))```
+                        (ok {:message (str "Hello, " name)})))}}))
+```
 
 ### Api with Schema & Swagger-docs
 
