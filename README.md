@@ -47,22 +47,6 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
     (ok {:message (str "Hello, " name)})))
 ```
 
-### Validating an API
-
-```clj
-(require '[compojure.api.sweet :refer :all])
-(require '[compojure.api.validator :as v])
-(require '[midje.sweet :refer :all])
-(require '[ring.util.http-response :refer :all])
-
-(fact
-  (v/validate (defapi app
-                      (GET "/hello" []
-                           :query-params [name :- String]
-                           (ok {:message (str "Hello, " name)}))))
-  =not=> (throws))
-```
-
 ### Hello World, async
 
 ```clj
@@ -89,13 +73,13 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
   (resource
     {:get
      {:parameters {:query-params {:name String}}
-      :responses  {200 {:schema {:message String}}
-                   404 {}
-                   500 {:schema s/Any}}
-      :handler    (fn [{{:keys [name]} :query-params}]
-                    (a/go
-                      (a/<! (a/timeout 500))
-                      (ok {:message (str "Hello, " name)})))}}))
+      :responses {200 {:schema {:message String}}
+                  404 {}
+                  500 {:schema s/Any}}
+      :handler (fn [{{:keys [name]} :query-params}]
+                 (a/go
+                   (a/<! (a/timeout 500))
+                   (ok {:message (str "Hello, " name)})))}}))
 ```
 
 <sub>* Note that empty body responses can be specified with `{}` or `{:schema s/Any}`
@@ -113,13 +97,12 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 (context "/hello-async" []
   (resource
     {:coercion :spec
-     :get      {:parameters {:query-params (s/keys :req-un [::name])}
-                :responses  {200 {:schema (s/keys :req-un [::message])}}
-                :handler    (fn [{{:keys [name]} :query-params}]
-                              (a/go
-                                (a/<! (a/timeout 500))
-                                (ok {:message (str "Hello, " name)})))}}))
-```
+     :get {:parameters {:query-params (s/keys :req-un [::name])}
+           :responses {200 {:schema (s/keys :req-un [::message])}}
+           :handler (fn [{{:keys [name]} :query-params}]
+                      (a/go
+                        (a/<! (a/timeout 500))
+                        (ok {:message (str "Hello, " name)})))}}))```
 
 ### Api with Schema & Swagger-docs
 
@@ -137,11 +120,11 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 (def app
   (api
     {:swagger
-     {:ui   "/api-docs"
+     {:ui "/api-docs"
       :spec "/swagger.json"
-      :data {:info     {:title       "Sample API"
-                        :description "Compojure Api example"}
-             :tags     [{:name "api", :description "some apis"}]
+      :data {:info {:title "Sample API"
+                    :description "Compojure Api example"}
+             :tags [{:name "api", :description "some apis"}]
              :consumes ["application/json"]
              :produces ["application/json"]}}}
 
