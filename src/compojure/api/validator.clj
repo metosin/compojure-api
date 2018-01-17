@@ -6,7 +6,7 @@
             [compojure.api.middleware :as mw]))
 
 (defn validate
-  "Validates a api. If the api is Swagger-enabled, the swagger-spec
+  "Validates an api. If the api is Swagger-enabled, the swagger-spec
   is requested and validated against the JSON Schema. Returns either
   the (valid) api or throws an exception. Requires lazily the
   ring.swagger.validator -namespace allowing it to be excluded, #227"
