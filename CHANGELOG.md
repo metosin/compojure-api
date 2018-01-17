@@ -1,3 +1,11 @@
+## 2.0.0-alpha18 (18.1.2018)
+
+* updated deps:
+
+```clj
+[metosin/muuntaja "0.5.0"] is available but we use "0.4.1"
+```
+
 ## 2.0.0-alpha17 (10.1.2018)
 
 * **BREAKING**: drop `defapi`. `def` + `api` should be used instead.

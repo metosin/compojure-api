@@ -13,13 +13,8 @@
             [muuntaja.core :as m]
 
             [ring.swagger.common :as rsc]
-            [ring.swagger.middleware :as rsm]
-            [ring.swagger.coerce :as coerce]
-            [ring.util.http-response :refer :all]
-            [schema.core :as s]
-            [schema.coerce :as sc])
-  (:import [clojure.lang ArityException]
-           [muuntaja.records Muuntaja]))
+            [ring.util.http-response :refer :all])
+  (:import [clojure.lang ArityException]))
 
 ;;
 ;; Catch exceptions
@@ -127,21 +122,23 @@
   ([]
    (create-muuntaja m/default-options))
   ([muuntaja-or-options]
-   (cond
+   (let [opts #(assoc-in % [:http :encode-response-body?] encode?)]
+     (cond
 
-     (= ::default muuntaja-or-options)
-     (m/create
-       (assoc-in m/default-options [:http :encode-response-body?] encode?))
+       (= ::default muuntaja-or-options)
+       (m/create (opts m/default-options))
 
-     (instance? Muuntaja muuntaja-or-options)
-     (assoc muuntaja-or-options :encode-response-body? encode?)
+       (m/muuntaja? muuntaja-or-options)
+       (-> muuntaja-or-options (m/options) (opts) (m/create))
 
-     (map? muuntaja-or-options)
-     (m/create
-       (assoc-in muuntaja-or-options [:http :encode-response-body?] encode?))
+       (map? muuntaja-or-options)
+       (m/create (opts muuntaja-or-options))
 
-     :else
-     (throw (ex-info (str "Invalid :formats - " muuntaja-or-options) {:options muuntaja-or-options})))))
+       :else
+       (throw
+         (ex-info
+           (str "Invalid :formats - " muuntaja-or-options)
+           {:options muuntaja-or-options}))))))
 
 ;;
 ;; middleware
@@ -264,7 +261,8 @@
      (-> handler
          (cond-> middleware ((compose-middleware middleware)))
          (cond-> components (wrap-components components))
-         (cond-> muuntaja (wrap-swagger-data (select-keys muuntaja [:consumes :produces])))
+         (cond-> muuntaja (wrap-swagger-data {:consumes (m/decodes muuntaja)
+                                              :produces (m/encodes muuntaja)}))
          (wrap-inject-data
            (cond-> {::request/coercion coercion}
                    muuntaja (assoc ::request/muuntaja muuntaja)
