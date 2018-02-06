@@ -21,3 +21,8 @@
     (common/extract-parameters [:a 1] false) => [{:a 1} nil]
     (common/extract-parameters [{:a 1} {:b 2}] false) => [{:a 1} [{:b 2}]]
     (common/extract-parameters [:a 1 {:b 2}] false) => [{:a 1} [{:b 2}]]))
+
+(fact "merge-vector"
+  (common/merge-vector nil) => nil
+  (common/merge-vector [{:a 1}]) => {:a 1}
+  (common/merge-vector [{:a 1} {:b 2}]) => {:a 1 :b 2})

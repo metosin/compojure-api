@@ -1,5 +1,5 @@
 (ns compojure.api.meta
-  (:require [compojure.api.common :refer [extract-parameters]]
+  (:require [compojure.api.common :as common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
             [plumbing.core :as p]
@@ -268,7 +268,7 @@
   "Merge parameters at runtime to allow usage of runtime-paramers with route-macros."
   [{:keys [responses swagger] :as parameters}]
   (cond-> parameters
-          (seq responses) (assoc :responses (apply merge responses))
+          (seq responses) (assoc :responses (common/merge-vector responses))
           swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
 
 (defn restructure [method [path arg & args] {:keys [context?]}]
@@ -298,7 +298,7 @@
         _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
 
         ;; response coercion middleware, why not just code?
-        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (merge ~@responses)]) middleware)]
+        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
 
     (if context?
 
