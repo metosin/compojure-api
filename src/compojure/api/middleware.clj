@@ -54,7 +54,7 @@
                              (if (::rethrow-exceptions? request)
                                (raise e)
                                (respond (call-error-handler default-handler handlers e request))))]
-    (assert (fn? default-handler) "Default exception handler must be a function.")
+    (assert (ifn? default-handler) "Default exception handler must be a function.")
     (fn
       ([request]
        (try
