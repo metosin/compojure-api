@@ -34,3 +34,10 @@
   [pred coll]
   [(seq (filter pred coll))
    (seq (remove pred coll))])
+
+(defn merge-vector
+  "Merges vector elements, optimized for 1 arity (x10 faster than merge)."
+  [v]
+  (if (get v 1)
+    (apply merge v)
+    (get v 0)))
