@@ -1,3 +1,11 @@
+## 1.1.12 (27.2.2018)
+
+Maintenance release, adding several patches from 2.0 branch.
+
+- Backport: Fix context child resolution with compojure-bindings [#370](https://github.com/metosin/compojure-api/issues/370)
+- Backport: merge-vector [#311](https://github.com/metosin/compojure-api/issues/311)
+- Backport: Fix metadata position on defmacro to activate CIDER indent style [#261](https://github.com/metosin/compojure-api/issues/261)
+
 ## 1.1.11 (25.7.2017)
 
  * **BREAKING**: in `compojure.api.swagger`, the `swagger-ui` and `swagger-docs` now take options map with `path` key instead of separate optional path & vararg opts.
