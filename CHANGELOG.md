@@ -1,4 +1,4 @@
-## 1.1.12 (27.2.2018)
+## 1.1.12 (2018-02-27)
 
 Maintenance 1.1 release, adding several patches from 2.0 branch.
 
@@ -6,7 +6,7 @@ Maintenance 1.1 release, adding several patches from 2.0 branch.
 - Backport: merge-vector [#311](https://github.com/metosin/compojure-api/issues/311)
 - Backport: Fix metadata position on defmacro to activate CIDER indent style [#261](https://github.com/metosin/compojure-api/issues/261)
 
-## 2.0.0-alpha18 (18.1.2018)
+## 2.0.0-alpha18 (2018-01-18)
 
 * updated deps:
 
@@ -14,7 +14,7 @@ Maintenance 1.1 release, adding several patches from 2.0 branch.
 [metosin/muuntaja "0.5.0"] is available but we use "0.4.1"
 ```
 
-## 2.0.0-alpha17 (10.1.2018)
+## 2.0.0-alpha17 (2018-01-10)
 
 * **BREAKING**: drop `defapi`. `def` + `api` should be used instead.
 * Cleanup conflicting transitive dependencies
@@ -54,7 +54,7 @@ Maintenance 1.1 release, adding several patches from 2.0 branch.
 [metosin/spec-tools "0.5.1"] is available but we use "0.5.0"
 ```
 
-## 2.0.0-alpha13 (18.11.2017)
+## 2.0.0-alpha13 (2017-11-18)
 
 * Better error messages for bad `letk` syntax by [Erik Assum](https://github.com/slipset), fixes [#354](https://github.com/metosin/compojure-api/issues/354)
 * `:coercion` applies for `context` parameters too (not just childs)
@@ -65,11 +65,11 @@ Maintenance 1.1 release, adding several patches from 2.0 branch.
 [metosin/muuntaja "0.3.3"] is available but we use "0.3.2"
 ```
 
-## 2.0.0-alpha12 (26.10.2017)
+## 2.0.0-alpha12 (2017-10-26)
 
 * route sequences also produce swagger docs.
 
-## 2.0.0-alpha11 (25.10.2017)
+## 2.0.0-alpha11 (2017-10-25)
 
 * `dynamic-context` is removed in favor of `:dynamic true` meta-data for contexts:
 
