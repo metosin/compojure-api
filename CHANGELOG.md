@@ -1,3 +1,11 @@
+## 1.1.12 (27.2.2018)
+
+Maintenance 1.1 release, adding several patches from 2.0 branch.
+
+- Backport: Fix context child resolution with compojure-bindings [#370](https://github.com/metosin/compojure-api/issues/370)
+- Backport: merge-vector [#311](https://github.com/metosin/compojure-api/issues/311)
+- Backport: Fix metadata position on defmacro to activate CIDER indent style [#261](https://github.com/metosin/compojure-api/issues/261)
+
 ## 2.0.0-alpha18 (18.1.2018)
 
 * updated deps:
