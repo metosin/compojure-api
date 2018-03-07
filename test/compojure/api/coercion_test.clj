@@ -3,6 +3,7 @@
             [compojure.api.test-utils :refer :all]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
+            [clojure.core.async :as a]
             [schema.core :as s]
             [compojure.api.coercion.schema :as cs]
             [compojure.api.middleware :as mw]))
@@ -80,7 +81,20 @@
                         ping-route)]
               (let [[status body] (get* app "/ping")]
                 status => 200
-                body => {:pong 123}))))))
+                body => {:pong 123}))))
+
+        (fact "coercion for async handlers"
+          (binding [*async?* true]
+            (fact "successful"
+              (let [app (api (GET "/async" []
+                               :return s/Str
+                               (a/go (ok "abc"))))]
+                (get* app "/async") => (has-body "abc")))
+            (fact "failing"
+              (let [app (api (GET "/async" []
+                               :return s/Int
+                               (a/go (ok "foo"))))]
+                (get* app "/async") => (fails-with 500)))))))
 
     (fact "body coersion"
       (let [beer-route (POST "/beer" []
