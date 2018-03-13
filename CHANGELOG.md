@@ -1,4 +1,4 @@
-## 2.0.0-SNAPSHOT
+## 2.0.0-alpha19 (2018-03-13)
 
 * Deal with coercion exceptions in async handlers, fixes [#371](https://github.com/metosin/compojure-api/issues/371), by [Benjamin Teuber](https://github.com/bsteuber)
 * updated deps:
