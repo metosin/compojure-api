@@ -94,6 +94,8 @@
      (handler
        request
        (fn [response]
-         ;; TODO: should raise..
-         (respond (coerce-response! request response responses)))
+         (try
+           (respond (coerce-response! request response responses))
+           (catch Exception e
+             (raise e))))
        raise))))
