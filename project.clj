@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha18"
+(defproject metosin/compojure-api "2.0.0-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -13,7 +13,7 @@
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.0"]
                  [metosin/ring-http-response "0.9.0"]
-                 [metosin/ring-swagger "0.25.0"]
+                 [metosin/ring-swagger "0.26.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -27,7 +27,7 @@
                              [lein-ring "0.12.3"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
-                                  [metosin/spec-tools "0.5.1" :exlusions [org.clojure/spec.alpha]]
+                                  [metosin/spec-tools "0.6.1" :exlusions [org.clojure/spec.alpha]]
                                   [org.clojure/core.async "0.4.474"]
                                   [javax.servlet/javax.servlet-api "4.0.0"]
                                   [peridot "0.5.0" :exclusions [clj-time commons-codec]]
@@ -38,7 +38,7 @@
                                   [com.stuartsierra/component "0.3.2"]
                                   [metosin/jsonista "0.1.1"]
                                   [reloaded.repl "0.2.4"]
-                                  [org.immutant/immutant "2.1.9" :exclusions [org.slf4j/slf4j-api]]
+                                  [org.immutant/immutant "2.1.10" :exclusions [org.slf4j/slf4j-api]]
                                   [http-kit "2.2.0"]
                                   [criterium "0.4.4"]]
                    :test-paths ["test19"]
@@ -49,7 +49,7 @@
              :dev18 {:plugins [[lein-midje "3.2.1"]]
                      :dependencies [[org.clojure/clojure "1.8.0"]
                                     [clojure-future-spec "1.9.0-alpha16"]
-                                    [metosin/spec-tools "0.5.1" :exlusions [org.clojure/spec.alpha]]
+                                    [metosin/spec-tools "0.6.1" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.4.474"]
                                     [peridot "0.5.0" :exclusions [clj-time commons-codec]]
                                     [metosin/jsonista "0.1.1"]

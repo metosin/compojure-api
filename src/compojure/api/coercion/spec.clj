@@ -4,7 +4,6 @@
             [spec-tools.core :as st]
             [spec-tools.data-spec :as ds]
             [clojure.walk :as walk]
-            [linked.core :as linked]
             [compojure.api.coercion.core :as cc]
             [compojure.api.impl.logging :as log]
             [spec-tools.conform :as conform]
@@ -65,7 +64,7 @@
     (st/create-spec {:spec this})))
 
 (def memoized-specify
-  (common/fifo-memoize #(specify %1 (gensym "spec")) 10000))
+  (common/fifo-memoize #(specify %1 (keyword "" (name (gensym "spec")))) 1000))
 
 (defn maybe-memoized-specify [spec]
   (if (keyword? spec)

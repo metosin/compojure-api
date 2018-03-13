@@ -1,3 +1,12 @@
+## 2.0.0-SNAPSHOT
+
+* updated deps:
+
+```clj
+[metosin/ring-swagger "0.26.0"] is available but we use "0.25.0"
+[metosin/spec-tools "0.6.1"] is available but we use "0.5.1"
+```
+
 ## 1.1.12 (2018-02-27)
 
 Maintenance 1.1 release, adding several patches from 2.0 branch.

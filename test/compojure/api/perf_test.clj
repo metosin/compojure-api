@@ -236,14 +236,16 @@
       ;; 2870µs
       ;; 837µs (muuntaja), -70%
       ;; 235µs (muuntaja+jsonista), -43%
+      ;; 190µs (muuntaja+jsonista 0.5.0) -20%
 
       "100k"
       ;; 10800µs
       ;;  8050µs (muuuntaja), -25%
       ;;  1853µs (muuntaja+jsonista), -43%
+      ;;  1670µs (muuntaja+jsonista 0.5.0) -10%
 
       (title file)
-      (println (-> (request!) app :body slurp))
+      ;;(println (-> (request!) app :body slurp))
       (cc/quick-bench (-> (request!) app :body slurp)))))
 
 (comment

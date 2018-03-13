@@ -73,8 +73,8 @@
 (defmacro when-ns [ns & body]
   `(try
      (eval
-      '(do
-         (require ~ns)
-         ~@body))
+       '(do
+          (require ~ns)
+          ~@body))
      (catch Exception ~'_)))
 
