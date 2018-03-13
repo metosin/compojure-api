@@ -1,5 +1,6 @@
 ## 2.0.0-SNAPSHOT
 
+* Deal with coercion exceptions in async handlers, fixes [#371](https://github.com/metosin/compojure-api/issues/371), by [Benjamin Teuber](https://github.com/bsteuber)
 * updated deps:
 
 ```clj
