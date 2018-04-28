@@ -214,7 +214,7 @@
             (io/input-stream)
             (ok)
             (header "Content-Type" "image/png")
-            (muuntaja/disable-response-encoding)))
+            (muuntaja/disable-response-encoding))))
 
     (context "/component" []
       :tags ["component"]
