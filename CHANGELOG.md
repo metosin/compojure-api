@@ -1,3 +1,16 @@
+## 2.0.0-alpha20
+
+* update deps:
+
+```clj
+[potemkin "0.4.5"] is available but we use "0.4.4"
+[prismatic/schema "1.1.9"] is available but we use "1.1.7"
+[frankiesardo/linked "1.3.0"] is available but we use "1.2.9"
+[compojure "1.6.1"] is available but we use "1.6.0"
+[metosin/spec-tools "0.7.0"] is available but we use "0.6.1"
+[metosin/jsonista "0.2.0"] is available but we use "0.1.1"
+```
+
 ## 2.0.0-alpha19 (2018-03-13)
 
 * Deal with coercion exceptions in async handlers, fixes [#371](https://github.com/metosin/compojure-api/issues/371), by [Benjamin Teuber](https://github.com/bsteuber)

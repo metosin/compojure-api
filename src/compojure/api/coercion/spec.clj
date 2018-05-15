@@ -6,27 +6,33 @@
             [clojure.walk :as walk]
             [compojure.api.coercion.core :as cc]
             [compojure.api.impl.logging :as log]
-            [spec-tools.conform :as conform]
+            [spec-tools.transform :as stt]
             [spec-tools.swagger.core :as swagger]
             [compojure.api.common :as common])
   (:import (clojure.lang IPersistentMap)
            (schema.core RequiredKey OptionalKey)
            (spec_tools.core Spec)))
 
-(def string-conforming
-  (st/type-conforming
-    (merge
-      conform/string-type-conforming
-      conform/strip-extra-keys-type-conforming)))
+(def string-transformer
+  (st/type-transformer
+    {:name :string
+     :decoders (merge
+                 stt/string-type-decoders
+                 stt/strip-extra-keys-type-decoders)
+     :encoders stt/string-type-encoders
+     :default-encoder stt/any->any}))
 
-(def json-conforming
-  (st/type-conforming
-    (merge
-      conform/json-type-conforming
-      conform/strip-extra-keys-type-conforming)))
+(def json-transformer
+  (st/type-transformer
+    {:name :json
+     :decoders (merge
+                 stt/json-type-decoders
+                 stt/strip-extra-keys-type-decoders)
+     :encoders stt/json-type-encoders
+     :default-encoder stt/any->any}))
 
-(def default-conforming
-  ::default)
+(def default-transformer
+  (st/type-transformer {}))
 
 (defprotocol Specify
   (specify [this name]))
@@ -110,8 +116,7 @@
           type-options (options type)]
       (if-let [conforming (or (get (get type-options :formats) format)
                               (get type-options :default))]
-        (let [conforming (if-not (= conforming default-conforming) conforming)
-              conformed (st/conform spec value conforming)]
+        (let [conformed (st/conform spec value conforming)]
           (if (s/invalid? conformed)
             (let [problems (st/explain-data spec value conforming)]
               (cc/map->CoercionError
@@ -126,12 +131,12 @@
       value)))
 
 (def default-options
-  {:body {:default default-conforming
-          :formats {"application/json" json-conforming
-                    "application/msgpack" json-conforming
-                    "application/x-yaml" json-conforming}}
-   :string {:default string-conforming}
-   :response {:default default-conforming}})
+  {:body {:default default-transformer
+          :formats {"application/json" json-transformer
+                    "application/msgpack" json-transformer
+                    "application/x-yaml" json-transformer}}
+   :string {:default string-transformer}
+   :response {:default default-transformer}})
 
 (defn create-coercion [options]
   (->SpecCoercion :spec options))

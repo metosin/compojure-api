@@ -6,14 +6,11 @@
             [compojure.api.sweet :refer :all]
             [compojure.api.request :as request]
             [compojure.api.coercion :as coercion]
-            [compojure.api.coercion.core :as cc]
             [compojure.api.coercion.spec :as cs]
             [spec-tools.data-spec :as ds]
             [spec-tools.core :as st]
             [compojure.api.validator :as validator]
-            [compojure.api.swagger :as swagger]
-            [compojure.api.routes :as routes]
-            [spec-tools.conform :as conform])
+            [spec-tools.transform :as stt])
   (:import (org.joda.time DateTime)))
 
 (s/def ::kikka spec/keyword?)
@@ -35,11 +32,11 @@
   (-> compojure.api.coercion.spec/default-options
       (assoc-in
         [:body :formats "application/json"]
-        (st/type-conforming
-          (merge
-            conform/json-type-conforming
-            {:date-time str->date-time}
-            conform/strip-extra-keys-type-conforming)))
+        (st/type-transformer
+          {:decoders (merge
+                       stt/json-type-decoders
+                       {:date-time str->date-time}
+                       stt/strip-extra-keys-type-decoders)}))
       compojure.api.coercion.spec/create-coercion))
 
 (def valid-value {:kikka :kukka})
@@ -105,7 +102,7 @@
   (cs/->SpecCoercion
     :custom
     (-> cs/default-options
-        (assoc-in [:response :formats "application/json"] cs/json-conforming))))
+        (assoc-in [:response :formats "application/json"] cs/json-transformer))))
 
 (fact "response-coercion"
   (let [c! coercion/coerce-response!]
