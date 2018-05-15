@@ -1,4 +1,6 @@
-## 2.0.0-alpha20
+## 2.0.0-alpha20 (2018-05-15)
+
+* welcome [spec transformers!](http://testi.metosin.fi/blog/spec-transformers/)! might break custom `coercion` implementations
 
 * update deps:
 
