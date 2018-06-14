@@ -125,6 +125,9 @@
    (let [opts #(assoc-in % [:http :encode-response-body?] encode?)]
      (cond
 
+       (nil? muuntaja-or-options)
+       nil
+
        (= ::default muuntaja-or-options)
        (m/create (opts m/default-options))
 
@@ -286,3 +289,27 @@
          wrap-nested-params
          ;; 4.5µs => 7.1µs (+50%)
          wrap-params))))
+
+(defn wrap-format
+  "Muuntaja format middleware. Can be safely mounted on
+
+  - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
+                                   a Muuntaja instance or nil (to unmount it). See
+                                   https://github.com/metosin/muuntaja/wiki/Configuration for details."
+  ([handler]
+   (wrap-format handler {:formats ::default}))
+  ([handler options]
+   (let [options (rsc/deep-merge {:formats ::default} options)
+         muuntaja (create-muuntaja (:formats options))]
+
+     (-> handler
+         (cond-> muuntaja (wrap-swagger-data {:consumes (m/decodes muuntaja)
+                                              :produces (m/encodes muuntaja)}))
+         (wrap-inject-data
+           (if muuntaja {::request/muuntaja muuntaja}))
+         (cond-> muuntaja (muuntaja.middleware/wrap-params))
+         ;; all but request-parsing exceptions (to make :body-params visible)
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
+         ;; just request-parsing exceptions
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))))))

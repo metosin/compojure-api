@@ -6,7 +6,6 @@
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
             [compojure.api.request :as request]
-            [compojure.api.coercion.schema :as schema-coercion]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]))
 
@@ -25,8 +24,7 @@
   options map as the first parameter:
 
       (api
-        {:formats [:json-kw :edn :transit-msgpack :transit-json]
-         :exceptions {:handlers {:compojure.api.exception/default my-logging-handler}}
+        {:exceptions {:handlers {:compojure.api.exception/default my-logging-handler}}
          :api {:invalid-routes-fn (constantly nil)}
          :swagger {:spec \"/swagger.json\"
                    :ui \"/api-docs\"
