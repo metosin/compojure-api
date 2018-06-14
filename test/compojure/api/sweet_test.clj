@@ -209,3 +209,19 @@
 
       (fact "spec is valid"
         (v/validate spec) => nil))))
+
+(fact "produces & consumes"
+  (let [app (api
+              {:swagger {:spec "/swagger.json"
+                         :data {:produces ["application/json" "application/edn"]
+                                :consumes ["application/json" "application/edn"]}}}
+              ping-route)]
+    (get-spec app) => (contains
+                        {:consumes (just
+                                     ["application/json"
+                                      "application/edn"]
+                                     :in-any-order)
+                         :produces (just
+                                     ["application/json"
+                                      "application/edn"]
+                                     :in-any-order)})))

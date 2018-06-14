@@ -47,8 +47,8 @@
     (c/GET path request
       :no-doc true
       :name ::swagger
-      (let [runtime-info1 (rsm/get-swagger-data request)
-            runtime-info2 (mw/get-swagger-data request)
+      (let [runtime-info1 (mw/get-swagger-data request)
+            runtime-info2 (rsm/get-swagger-data request)
             base-path {:basePath (base-path request)}
             options (::request/ring-swagger request)
             paths (::request/paths request)
