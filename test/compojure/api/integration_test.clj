@@ -15,7 +15,6 @@
             [compojure.api.validator :as validator]
             [compojure.api.request :as request]
             [compojure.api.routes :as routes]
-            [clojure.java.io :as io]
             [muuntaja.core :as m]
             [compojure.api.core :as c])
   (:import (java.sql SQLException SQLWarning)
@@ -1732,3 +1731,93 @@
         (let [[status body] (get* app "/pong")]
           status => 200
           body => {:path "/pong"})))))
+
+(fact "wrap-format, #374"
+  (let [data {:war "hammer"}]
+
+    (fact "first api consumes the body"
+      (let [app (routes
+                  (api
+                    (POST "/echo1" []
+                      :body [body s/Any]
+                      (ok body)))
+                  (api
+                    (POST "/echo2" []
+                      :body [body s/Any]
+                      (ok body))))]
+
+        (fact "first api sees the body"
+          (let [[status body] (post* app "/echo1" (json-string data))]
+            status => 200
+            body => data))
+
+        (fact "second api fails"
+          (let [[status body] (post* app "/echo2" (json-string data))]
+            status => 200
+            body => nil)))
+
+      (fact "wrap-format with defaults"
+        (let [app (-> (routes
+                        (api
+                          (POST "/echo1" []
+                            :body [body s/Any]
+                            (ok body)))
+                        (api
+
+                          (POST "/echo2" []
+                            :body [body s/Any]
+                            (ok body))))
+                      (mw/wrap-format))]
+
+          (fact "first api sees the body"
+            (let [[status body] (post* app "/echo1" (json-string data))]
+              status => 200
+              body => data))
+
+          (fact "second api sees it too!"
+            (let [[status body] (post* app "/echo2" (json-string data))]
+              status => 200
+              body => data))))
+
+      (fact "wrap-format with configuration"
+        (let [muuntaja (m/create
+                         (m/select-formats
+                           m/default-options
+                           ["application/json"]))
+              app (-> (routes
+                        (api
+                          {:formats nil
+                           :swagger {:spec "/swagger1.json"}}
+                          (POST "/echo1" []
+                            :body [body s/Any]
+                            (ok body)))
+                        (api
+                          {:formats nil
+                           :swagger {:spec "/swagger2.json"}}
+                          (POST "/echo2" []
+                            :body [body s/Any]
+                            (ok body))))
+                      (mw/wrap-format
+                        {:formats muuntaja}))]
+
+          (fact "first api sees the body"
+            (let [[status body] (post* app "/echo1" (json-string data))]
+              status => 200
+              body => data))
+
+          (fact "second api sees it too!"
+            (let [[status body] (post* app "/echo2" (json-string data))]
+              status => 200
+              body => data))
+
+          (fact "top-level muuntaja effect both"
+            (let [[status body] (get* app "/swagger1.json")]
+              status => 200
+              body => (contains
+                        {:produces ["application/json"]
+                         :consumes ["application/json"]}))
+            (let [[status body] (get* app "/swagger2.json")]
+              status => 200
+              body => (contains
+                        {:produces ["application/json"]
+                         :consumes ["application/json"]}))))))))

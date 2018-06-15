@@ -1,3 +1,25 @@
+## UNRELEASED
+
+* add `compojure.api.middleware/wrap-format` to support multiple apis (or api + external static routes)in a project, fixes [#374](https://github.com/metosin/compojure-api/issues/374)
+
+```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[ring.util.http-response :refer [ok]])
+(require '[compojurea.api.middeware :as middleware])
+
+(-> (routes
+      (api
+        (POST "/echo1" []
+          :body [body s/Any]
+          (ok body)))
+      (api
+
+        (POST "/echo2" []
+          :body [body s/Any]
+          (ok body))))
+    (middleware/wrap-format))
+```
+
 ## 2.0.0-alpha20 (2018-05-15)
 
 * welcome [spec transformers!](http://testi.metosin.fi/blog/spec-transformers/)! might break custom `coercion` implementations
