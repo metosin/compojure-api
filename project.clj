@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha20"
+(defproject metosin/compojure-api "2.0.0-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -13,8 +13,8 @@
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.1"]
                  [metosin/ring-http-response "0.9.0"]
-                 [metosin/ring-swagger "0.26.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]
+                 [metosin/ring-swagger "0.26.1"]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
@@ -24,7 +24,7 @@
                                       [com.stuartsierra/component "0.3.2"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.12.3"]
+                             [lein-ring "0.12.4"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
                                   [metosin/spec-tools "0.7.0" :exlusions [org.clojure/spec.alpha]]
@@ -36,7 +36,7 @@
                                                               clj-time]]
                                   [com.rpl/specter "1.1.1"]
                                   [com.stuartsierra/component "0.3.2"]
-                                  [metosin/jsonista "0.2.0"]
+                                  [metosin/jsonista "0.2.1"]
                                   [reloaded.repl "0.2.4"]
                                   [org.immutant/immutant "2.1.10" :exclusions [org.slf4j/slf4j-api]]
                                   [http-kit "2.3.0"]
@@ -52,7 +52,7 @@
                                     [metosin/spec-tools "0.7.0" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.4.474"]
                                     [peridot "0.5.1" :exclusions [clj-time commons-codec]]
-                                    [metosin/jsonista "0.2.0"]
+                                    [metosin/jsonista "0.2.1"]
                                     [javax.servlet/javax.servlet-api "4.0.1"]
                                     [midje "1.9.1" :exclusions [com.rpl/specter
                                                                 commons-codec
@@ -69,7 +69,7 @@
                                       [org.slf4j/log4j-over-slf4j "1.7.25"]
                                       [ch.qos.logback/logback-classic "1.2.3" :exclusions [org.slf4j/slf4j-api]]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
-                     :dependencies [[manifold "0.1.6" :exclusions [org.clojure/tools.logging]]]}}
+                     :dependencies [[manifold "0.1.8" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]

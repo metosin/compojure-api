@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-SNAPSHOT
 
 * add `compojure.api.middleware/wrap-format` to support multiple apis (or api + external static routes)in a project, fixes [#374](https://github.com/metosin/compojure-api/issues/374)
 
@@ -18,6 +18,12 @@
           :body [body s/Any]
           (ok body))))
     (middleware/wrap-format))
+```
+
+* update deps:
+
+```clj
+[metosin/ring-swagger "0.26.1"] is available but we use "0.26.0"
 ```
 
 ## 2.0.0-alpha20 (2018-05-15)
