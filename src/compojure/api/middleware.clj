@@ -291,7 +291,7 @@
          wrap-params))))
 
 (defn wrap-format
-  "Muuntaja format middleware. Can be safely mounted on
+  "Muuntaja format middleware. Can be safely mounted on top of multiple api
 
   - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
                                    a Muuntaja instance or nil (to unmount it). See
@@ -302,14 +302,9 @@
    (let [options (rsc/deep-merge {:formats ::default} options)
          muuntaja (create-muuntaja (:formats options))]
 
-     (-> handler
-         (cond-> muuntaja (wrap-swagger-data {:consumes (m/decodes muuntaja)
-                                              :produces (m/encodes muuntaja)}))
-         (wrap-inject-data
-           (if muuntaja {::request/muuntaja muuntaja}))
-         (cond-> muuntaja (muuntaja.middleware/wrap-params))
-         ;; all but request-parsing exceptions (to make :body-params visible)
-         (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
-         ;; just request-parsing exceptions
-         (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
-         (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))))))
+     (cond-> handler
+             muuntaja (-> (wrap-swagger-data {:consumes (m/decodes muuntaja)
+                                              :produces (m/encodes muuntaja)})
+                          (muuntaja.middleware/wrap-format-request muuntaja)
+                          (muuntaja.middleware/wrap-format-response muuntaja)
+                          (muuntaja.middleware/wrap-format-negotiate muuntaja))))))
