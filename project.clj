@@ -13,8 +13,8 @@
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.1"]
                  [metosin/ring-http-response "0.9.0"]
-                 [metosin/ring-swagger-ui "2.2.10"]]
-                 [metosin/ring-swagger "0.26.1"]
+                 [metosin/ring-swagger-ui "2.2.10"]
+                 [metosin/ring-swagger "0.26.1"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
