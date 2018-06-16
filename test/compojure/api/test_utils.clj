@@ -1,24 +1,22 @@
 (ns compojure.api.test-utils
   (:require [clojure.string :as str]
             [peridot.core :as p]
-            [clojure.java.io :as io]
             [muuntaja.core :as m]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw])
-  (:import (java.io InputStream)))
+  (:import (java.io InputStream)
+           (muuntaja.protocols ByteResponse)))
 
-(def muuntaja (m/create))
+(def muuntaja (mw/create-muuntaja))
 
 (defn read-body [body]
-  (if (instance? InputStream body)
+  (if (or (instance? ByteResponse body) (instance? InputStream body))
     (slurp body)
     body))
 
 (defn parse-body [body]
-  (let [body (read-body body)
-        body (if (instance? String body)
-               (m/decode muuntaja "application/json" body)
-               body)]
+  (if (or (string? body) (instance? ByteResponse body) (instance? InputStream body))
+    (m/decode muuntaja "application/json" (read-body body))
     body))
 
 (defn extract-schema-name [ref-str]

@@ -5,7 +5,6 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [muuntaja.core :as m]
-            [muuntaja.format.jsonista :as jsonista-format]
             [clojure.java.io :as io])
   (:import (java.io ByteArrayInputStream)))
 
@@ -50,25 +49,29 @@
                               :price s/Any
                               :shipping s/Bool}]})
 
+;; slurps also the body, which is not needed in real life!
 (defn bench []
 
   ; 27µs
   ; 27µs (-0%)
   ; 25µs (1.0.0)
   ; 25µs (muuntaja)
+  ; 32µs (jsonista)
   (let [app (api
               (GET "/30" []
                 (ok {:result 30})))
         call #(h/get* app "/30")]
 
     (title "GET JSON")
+    (println (call))
     (assert (= {:result 30} (second (call))))
-    (cc/bench (call)))
+    (cc/quick-bench (call)))
 
   ;; 73µs
   ;; 53µs (-27%)
   ;; 50µs (1.0.0)
   ;; 38µs (muuntaja), -24%
+  ;; 34µs (muuntaja), -11%
   (let [app (api
               (POST "/plus" []
                 :return {:result s/Int}
@@ -79,12 +82,13 @@
 
     (title "JSON POST with 2-way coercion")
     (assert (= {:result 30} (h/parse (call))))
-    (cc/bench (call)))
+    (cc/quick-bench (call)))
 
   ;; 85µs
   ;; 67µs (-21%)
   ;; 66µs (1.0.0)
   ;; 56µs (muuntaja), -15%
+  ;; 49µs (jsonista), -13%
   (let [app (api
               (context "/a" []
                 (context "/b" []
@@ -98,12 +102,13 @@
 
     (title "JSON POST with 2-way coercion + contexts")
     (assert (= {:result 30} (h/parse (call))))
-    (cc/bench (call)))
+    (cc/quick-bench (call)))
 
   ;; 266µs
   ;; 156µs (-41%)
   ;; 146µs (1.0.0)
   ;;  74µs (muuntaja), -49%
+  ;;  51µs (jsonista), -30%
   (let [app (api
               (POST "/echo" []
                 :return Order
@@ -124,7 +129,7 @@
 
     (title "JSON POST with nested data")
     (s/validate Order (h/parse (call)))
-    (cc/bench (call))))
+    (cc/quick-bench (call))))
 
 (defn resource-bench []
 
@@ -144,7 +149,7 @@
 
       (title "JSON POST to pre-defined resource with 2-way coercion")
       (assert (= {:result 30} (h/parse (call))))
-      (cc/bench (call)))
+      (cc/quick-bench (call)))
 
     ;; 68µs
     ;; 52µs (muuntaja)
@@ -156,7 +161,7 @@
 
       (title "JSON POST to inlined resource with 2-way coercion")
       (assert (= {:result 30} (h/parse (call))))
-      (cc/bench (call)))
+      (cc/quick-bench (call)))
 
     ;; 26µs
     (let [my-resource (resource resource-map)
@@ -166,7 +171,7 @@
 
       (title "direct POST to pre-defined resource with 2-way coercion")
       (assert (= {:result 30} (:body (call))))
-      (cc/bench (call)))
+      (cc/quick-bench (call)))
 
     ;; 30µs
     (let [my-resource (resource resource-map)
@@ -177,7 +182,7 @@
 
       (title "POST to pre-defined resource with 2-way coercion")
       (assert (= {:result 30} (:body (call))))
-      (cc/bench (call)))
+      (cc/quick-bench (call)))
 
     ;; 40µs
     (let [app (context "/plus" []
@@ -187,7 +192,7 @@
 
       (title "POST to inlined resource with 2-way coercion")
       (assert (= {:result 30} (:body (call))))
-      (cc/bench (call)))))
+      (cc/quick-bench (call)))))
 
 (defn e2e-json-comparison-different-payloads []
   (let [json-request (fn [data]
@@ -201,10 +206,6 @@
                            (fn []
                              (assoc request :body (ByteArrayInputStream. b)))))
         app (api
-              {:formats (assoc-in
-                          m/default-options
-                          [:formats "application/json"]
-                          jsonista-format/json-format)}
               (POST "/echo" []
                 :body [body s/Any]
                 (ok body)))]
@@ -225,24 +226,22 @@
       "100b"
       ;; 79µs
       ;; 39µs (muuntaja), -50%
-      ;; 23µs (muuntaja+jsonista), -43%
+      ;; 22µs (muuntaja+jsonista), -44%
 
       "1k"
       ;; 367µs
       ;;  92µs (muuntaja), -75%
-      ;;  35µs (muuntaja+jsonista), -43%
+      ;;  32µs (muuntaja+jsonista), -65%
 
       "10k"
       ;; 2870µs
       ;; 837µs (muuntaja), -70%
-      ;; 235µs (muuntaja+jsonista), -43%
-      ;; 190µs (muuntaja+jsonista 0.5.0) -20%
+      ;; 156µs (muuntaja+jsonista) -81%
 
       "100k"
       ;; 10800µs
       ;;  8050µs (muuuntaja), -25%
-      ;;  1853µs (muuntaja+jsonista), -43%
-      ;;  1670µs (muuntaja+jsonista 0.5.0) -10%
+      ;;  1290µs (muuntaja+jsonista 0.5.0) -84%
 
       (title file)
       ;;(println (-> (request!) app :body slurp))

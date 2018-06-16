@@ -1,5 +1,13 @@
 ## 2.0.0-SNAPSHOT
 
+* **BREAKING**: Change default JSON Serializer from [Cheshire]() to [Jsonista]()
+  * Both [Joda Time](http://www.joda.org/joda-time/) and [java.time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) are supported out-of-the-box
+  * up to [6x faster encoding](https://github.com/metosin/jsonista#performance)
+  * different [configuration params](https://cljdoc.xyz/d/metosin/jsonista/0.2.1/api/jsonista.core#object-mapper), guarded by migration assertion
+  * **BREAKING**: by default Jackson tries to encode everything, 
+     * e.g. `java.security.SecureRandom` can be serialized, via reflection
+  * **BREAKING**: decoding doesn't try to keep the field order for small maps
+
 * add `compojure.api.middleware/wrap-format` to support multiple apis (or api + external static routes)in a project, fixes [#374](https://github.com/metosin/compojure-api/issues/374)
 
 ```clj
@@ -24,6 +32,7 @@
 
 ```clj
 [metosin/ring-swagger "0.26.1"] is available but we use "0.26.0"
+[metosin/muuntaja "0.6.0-SNAPSHOT"] is available but we use "0.5.0"
 ```
 
 ## 2.0.0-alpha20 (2018-05-15)

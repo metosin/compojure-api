@@ -6,9 +6,9 @@
             [ring.util.http-response :refer :all]
             [ring.util.http-predicates :refer :all]
             [compojure.api.test-utils :refer :all]
-            [schema.core :as s])
-  (:import (java.security SecureRandom)
-           (org.joda.time LocalDate)
+            [schema.core :as s]
+            [jsonista.core :as j])
+  (:import (org.joda.time LocalDate)
            (clojure.lang ExceptionInfo)))
 
 (facts "path-string"
@@ -18,7 +18,7 @@
     => (throws IllegalArgumentException))
 
   (fact "missing serialization"
-    (#'routes/path-string muuntaja "/api/:kikka" {:kikka (SecureRandom.)})
+    (#'routes/path-string muuntaja "/api/:kikka" {:kikka (reify Comparable)})
     => (throws ExceptionInfo #"Malformed application/json"))
 
   (fact "happy path"
@@ -110,10 +110,12 @@
 
     (fact "swagger-docs can be generated"
       (-> app get-spec :paths keys)
-      => ["/api/{version}/ping"
-          "/api/{version}/foo"
-          "/api/{version}/hello"
-          "/api/{version}/more"])))
+      => (just
+           ["/api/{version}/ping"
+            "/api/{version}/foo"
+            "/api/{version}/hello"
+            "/api/{version}/more"]
+           :in-any-order))))
 
 (def more-routes
   (routes
