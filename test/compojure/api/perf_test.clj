@@ -206,6 +206,7 @@
                            (fn []
                              (assoc request :body (ByteArrayInputStream. b)))))
         app (api
+              {:format (assoc m/default-options :decode-into :byte-array)}
               (POST "/echo" []
                 :body [body s/Any]
                 (ok body)))]
@@ -247,10 +248,60 @@
       ;;(println (-> (request!) app :body slurp))
       (cc/quick-bench (-> (request!) app :body slurp)))))
 
+(defn e2e-json-comparison-different-payloads-no-slurp []
+  (let [json-request (fn [data]
+                       {:uri "/echo"
+                        :request-method :post
+                        :headers {"content-type" "application/json"
+                                  "accept" "application/json"}
+                        :body (h/json-string data)})
+        request-stream (fn [request]
+                         (let [b (.getBytes ^String (:body request))]
+                           (fn []
+                             (assoc request :body (ByteArrayInputStream. b)))))
+        app (api
+              {:formats (assoc m/default-options :decode-into :byte-array)}
+              (POST "/echo" []
+                :body [body s/Any]
+                (ok body)))]
+    (doseq [file ["dev-resources/json/json10b.json"
+                  "dev-resources/json/json100b.json"
+                  "dev-resources/json/json1k.json"
+                  "dev-resources/json/json10k.json"
+                  "dev-resources/json/json100k.json"]
+            :let [data (h/parse (slurp file))
+                  request (json-request data)
+                  request! (request-stream request)]]
+
+      "10b"
+      ;; 38µs (1.x)
+      ;; 14µs (2.0.0-alpha21)
+
+      "100b"
+      ;; 74µs (1.x)
+      ;; 16µs (2.0.0-alpha21)
+
+      "1k"
+      ;; 322µs (1.x)
+      ;;  24µs (2.0.0-alpha21)
+
+      "10k"
+      ;; 3300µs (1.x)
+      ;;  120µs (2.0.0-alpha21)
+
+      "100k"
+      ;; 10600µs (1.x)
+      ;;  1000µs (2.0.0-alpha21)
+
+      (title file)
+      ;;(println (-> (request!) app :body slurp))
+      (cc/quick-bench (app (request!))))))
+
 (comment
   (bench)
   (resource-bench)
-  (e2e-json-comparison-different-payloads))
+  (e2e-json-comparison-different-payloads)
+  (e2e-json-comparison-different-payloads-no-slurp))
 
 (comment
   (bench)

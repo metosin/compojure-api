@@ -9,14 +9,14 @@
 
 (def muuntaja (mw/create-muuntaja))
 
-(defn read-body [body]
-  (if (or (instance? ByteResponse body) (instance? InputStream body))
-    (slurp body)
+(defn slurp-body [body]
+  (if (satisfies? muuntaja.protocols/IntoInputStream body)
+    (m/slurp body)
     body))
 
 (defn parse-body [body]
   (if (or (string? body) (instance? ByteResponse body) (instance? InputStream body))
-    (m/decode muuntaja "application/json" (read-body body))
+    (m/decode muuntaja "application/json" (slurp-body body))
     body))
 
 (defn extract-schema-name [ref-str]
@@ -67,7 +67,7 @@
                        :params (or params {})
                        :headers (or headers {}))
             follow-redirect)]
-    [status (read-body body) headers]))
+    [status (slurp-body body) headers]))
 
 (defn get* [app uri & [params headers]]
   (let [[status body headers]
@@ -90,7 +90,7 @@
                        :headers (or headers {})
                        :content-type (or content-type "application/json")
                        :body (.getBytes data)))]
-    [status (read-body body)]))
+    [status (slurp-body body)]))
 
 (defn raw-post* [app uri & [data content-type headers]]
   (raw-put-or-post* app uri :post data content-type headers))
