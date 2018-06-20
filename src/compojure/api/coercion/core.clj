@@ -6,6 +6,7 @@
   (make-open [this model])
   (encode-error [this error])
   (coerce-request [this model value type format request])
+  (accept-response? [this model])
   (coerce-response [this model value type format request]))
 
 (defrecord CoercionError [])

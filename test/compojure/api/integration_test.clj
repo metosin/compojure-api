@@ -16,7 +16,8 @@
             [compojure.api.request :as request]
             [compojure.api.routes :as routes]
             [muuntaja.core :as m]
-            [compojure.api.core :as c])
+            [compojure.api.core :as c]
+            [clojure.java.io :as io])
   (:import (java.sql SQLException SQLWarning)
            (java.io File)))
 
@@ -1587,16 +1588,14 @@
     (app {:request-method :get, :uri "/b/c"}) => (contains {:body ["b" "c"]})))
 
 (facts "file responses don't get coerced"
-  (let [message "aja hiljaa sillalla"
-        app (api
+  (let [app (api
               (swagger-routes)
               (GET "/file" []
                 :return File
-                (ok message)))]
-
+                (ok (io/file (io/resource "json/json1k.json")))))]
     (let [[status body] (get* app "/file")]
       status => 200
-      body => message)))
+      body => (partial instance? File))))
 
 (fact "nil routes are ignored"
   (let [create-app (fn [{:keys [dev?]}]

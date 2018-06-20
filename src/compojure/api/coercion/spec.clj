@@ -125,10 +125,11 @@
             (s/unform spec conformed)))
         value)))
 
+  (accept-response? [_ spec]
+    (boolean (coerce-response? spec)))
+
   (coerce-response [this spec value type format request]
-    (if (coerce-response? spec)
-      (cc/coerce-request this spec value type format request)
-      value)))
+    (cc/coerce-request this spec value type format request)))
 
 (def default-options
   {:body {:default default-transformer

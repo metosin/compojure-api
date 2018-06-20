@@ -69,10 +69,11 @@
             coerced))
         value)))
 
+  (accept-response? [_ model]
+    (coerce-response? model))
+
   (coerce-response [this schema value type format request]
-    (if (coerce-response? schema)
-      (cc/coerce-request this schema value type format request)
-      value)))
+    (cc/coerce-request this schema value type format request)))
 
 (def default-options
   {:body {:default (constantly nil)

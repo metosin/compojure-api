@@ -64,21 +64,24 @@
                           (resolve-coercion))]
       (let [format (or (-> response :muuntaja/content-type)
                        (some-> request :muuntaja/response :format))
-            result (cc/coerce-response coercion model body :response format response)]
-        (if (instance? CoercionError result)
-          (throw (ex-info
-                   (str "Response validation failed: " (pr-str result))
-                   (merge
-                     (into {} result)
-                     {:type ::ex/response-validation
-                      :coercion coercion
-                      :value body
-                      :in [:response :body]
-                      :request request
-                      :response response})))
-          (assoc response
-            :compojure.api.meta/serializable? true
-            :body result)))
+            accept? (cc/accept-response? coercion model)]
+        (if accept?
+          (let [result (cc/coerce-response coercion model body :response format response)]
+            (if (instance? CoercionError result)
+              (throw (ex-info
+                       (str "Response validation failed: " (pr-str result))
+                       (merge
+                         (into {} result)
+                         {:type ::ex/response-validation
+                          :coercion coercion
+                          :value body
+                          :in [:response :body]
+                          :request request
+                          :response response})))
+              (assoc response
+                :compojure.api.meta/serializable? true
+                :body result)))
+          response))
       response)
     response))
 
