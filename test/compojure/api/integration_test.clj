@@ -1820,3 +1820,7 @@
               body => (contains
                         {:produces ["application/json"]
                          :consumes ["application/json"]}))))))))
+
+(fact "2.0.0 will fail fast with :format"
+  (let [app' `(api {:format (m/create)})]
+    (eval app') => (throws AssertionError)))

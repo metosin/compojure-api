@@ -256,10 +256,11 @@
          muuntaja (create-muuntaja formats)]
 
      ;; 1.2.0+
-     (assert (not (map? (:format options)))
-             (str "ERROR: Option [:format] is not used with 1.2.0 or later. Compojure-api uses now Muuntaja insted of"
-                  "ring-middleware-format and the new formatting options for it should be under [:formats]. See "
-                  "'(doc compojure.api.middleware/api-middleware)' for more details."))
+     (assert (not (contains? options :format))
+             (str "ERROR: Option [:format] is not used with 2.* version .\n"
+                  "Compojure-api uses now Muuntaja insted of ring-middleware-format,\n"
+                  "the new formatting options for it should be under [:formats]. See\n"
+                  "[[api-middleware]] documentation for more details.\n"))
 
      (-> handler
          (cond-> middleware ((compose-middleware middleware)))
