@@ -4,8 +4,7 @@
             [muuntaja.core :as m]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw])
-  (:import (java.io InputStream)
-           (muuntaja.protocols ByteResponse)))
+  (:import (java.io InputStream)))
 
 (def muuntaja (mw/create-muuntaja))
 
@@ -15,7 +14,7 @@
     body))
 
 (defn parse-body [body]
-  (if (or (string? body) (instance? ByteResponse body) (instance? InputStream body))
+  (if (or (string? body) (instance? InputStream body))
     (m/decode muuntaja "application/json" (slurp-body body))
     body))
 

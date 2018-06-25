@@ -206,7 +206,7 @@
                            (fn []
                              (assoc request :body (ByteArrayInputStream. b)))))
         app (api
-              {:format (assoc m/default-options :decode-into :byte-array)}
+              {:formats (assoc m/default-options :return :bytes)}
               (POST "/echo" []
                 :body [body s/Any]
                 (ok body)))]
@@ -227,25 +227,24 @@
       "100b"
       ;; 79µs
       ;; 39µs (muuntaja), -50%
-      ;; 22µs (muuntaja+jsonista), -44%
+      ;; 20µs (muuntaja+jsonista), -44%
 
       "1k"
       ;; 367µs
       ;;  92µs (muuntaja), -75%
-      ;;  32µs (muuntaja+jsonista), -65%
+      ;;  29µs (muuntaja+jsonista), -65%
 
       "10k"
       ;; 2870µs
       ;; 837µs (muuntaja), -70%
-      ;; 156µs (muuntaja+jsonista) -81%
+      ;; 147µs (muuntaja+jsonista) -81%
 
       "100k"
       ;; 10800µs
       ;;  8050µs (muuuntaja), -25%
-      ;;  1290µs (muuntaja+jsonista 0.5.0) -84%
+      ;;  1260µs (muuntaja+jsonista 0.5.0) -84%
 
       (title file)
-      ;;(println (-> (request!) app :body slurp))
       (cc/quick-bench (-> (request!) app :body slurp)))))
 
 (defn e2e-json-comparison-different-payloads-no-slurp []
@@ -260,7 +259,7 @@
                            (fn []
                              (assoc request :body (ByteArrayInputStream. b)))))
         app (api
-              {:formats (assoc m/default-options :decode-into :byte-array)}
+              {:formats (assoc m/default-options :return :bytes)}
               (POST "/echo" []
                 :body [body s/Any]
                 (ok body)))]
