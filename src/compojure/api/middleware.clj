@@ -264,7 +264,7 @@
 
      ;; 1.2.0+
      (assert (not (contains? options :format))
-             (str "ERROR: Option [:format] is not used with 2.* version .\n"
+             (str "ERROR: Option [:format] is not used with 2.* version.\n"
                   "Compojure-api uses now Muuntaja insted of ring-middleware-format,\n"
                   "the new formatting options for it should be under [:formats]. See\n"
                   "[[api-middleware]] documentation for more details.\n"))

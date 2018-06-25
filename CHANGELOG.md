@@ -1,12 +1,38 @@
 ## 2.0.0-SNAPSHOT
 
-* **BREAKING**: Change default JSON Serializer from [Cheshire]() to [Jsonista]()
-  * Both [Joda Time](http://www.joda.org/joda-time/) and [java.time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) are supported out-of-the-box
-  * up to [6x faster encoding](https://github.com/metosin/jsonista#performance)
-  * different [configuration params](https://cljdoc.xyz/d/metosin/jsonista/0.2.1/api/jsonista.core#object-mapper), guarded by migration assertion
-  * **BREAKING**: by default Jackson tries to encode everything, 
-     * e.g. `java.security.SecureRandom` can be serialized, via reflection
-  * **BREAKING**: decoding doesn't try to keep the field order for small maps
+* **BREAKING**: Use Muuntaja 0.6.0
+  * See all changes in the [Muuntaja CHANGELOG](https://github.com/metosin/muuntaja/blob/master/CHANGELOG.md)
+  * Highlights:
+    * Change default JSON Serializer from [Cheshire]() to [Jsonista]()
+    * Both [Joda Time](http://www.joda.org/joda-time/) and [java.time](https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html) are supported out-of-the-box
+    * up to [6x faster encoding](https://github.com/metosin/jsonista#performance)
+    * different [configuration params](https://cljdoc.xyz/d/metosin/jsonista/0.2.1/api/jsonista.core#object-mapper), guarded by migration assertion
+    * **BREAKING**: by default Jackson tries to encode everything, 
+       * e.g. `java.security.SecureRandom` can be serialized, via reflection
+    * **BREAKING**: decoding doesn't try to keep the field order for small maps
+  * `muuntaja.core/install` helper to add new formats:
+  
+```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[ring.util.http-response :refer :all])
+
+(require '[muuntaja.core :as m])
+(require '[muuntaja.format.msgpack]) ;; [metosin/muuntaja-msgpack]
+(require '[muuntaja.format.yaml])    ;; [metosin/muuntaja-yaml]
+
+(def formats 
+  (m/create
+    (-> m/default-options
+        (m/install muuntaja.format.msgpack/format)
+        (m/install muuntaja.format.yaml/format)
+        ;; return byte[] for NIO servers
+        (assoc :return :bytes))))
+
+(api
+  {:formats formats}
+  (POST "/ping" []
+    (ok {:ping "pong"})))
+```  
 
 * add `compojure.api.middleware/wrap-format` to support multiple apis (or api + external static routes)in a project, fixes [#374](https://github.com/metosin/compojure-api/issues/374)
 

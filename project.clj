@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-SNAPSHOT"
+(defproject metosin/compojure-api "2.0.0-SNAPSHOŒT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -39,6 +39,8 @@
                                   [com.stuartsierra/component "0.3.2"]
                                   [metosin/jsonista "0.2.1"]
                                   [reloaded.repl "0.2.4"]
+                                  [metosin/muuntaja-msgpack "0.6.0-SNAPSHOT"]
+                                  [metosin/muuntaja-yaml "0.6.0-SNAPSHOT"]
                                   [org.immutant/immutant "2.1.10" :exclusions [org.slf4j/slf4j-api]]
                                   [http-kit "2.3.0"]
                                   [criterium "0.4.4"]]
