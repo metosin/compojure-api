@@ -57,6 +57,8 @@
                                     [peridot "0.5.1" :exclusions [clj-time commons-codec]]
                                     [metosin/jsonista "0.2.1"]
                                     [javax.servlet/javax.servlet-api "4.0.1"]
+                                    [metosin/muuntaja-msgpack "0.6.0-alpha1"]
+                                    [metosin/muuntaja-yaml "0.6.0-alpha1"]
                                     [midje "1.9.1" :exclusions [com.rpl/specter
                                                                 commons-codec
                                                                 clj-time]]
