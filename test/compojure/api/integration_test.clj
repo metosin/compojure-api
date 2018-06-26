@@ -1594,7 +1594,7 @@
               (swagger-routes)
               (GET "/file" []
                 :return File
-                (ok (io/file (io/resource "json/json1k.json")))))]
+                (ok (io/file "project.clj"))))]
     (let [{:keys [status body]} (app {:uri "/file", :request-method :get})]
       status => 200
       body => (partial instance? File))))
