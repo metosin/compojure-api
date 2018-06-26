@@ -1,6 +1,6 @@
-## 2.0.0-SNAPSHOT
+## 2.0.0-alpha21 (2018-06-26)
 
-* **BREAKING**: Use Muuntaja 0.6.0
+* **BREAKING**: Use Muuntaja 0.6.0-alpha1
   * See all changes in the [Muuntaja CHANGELOG](https://github.com/metosin/muuntaja/blob/master/CHANGELOG.md)
   * Highlights:
     * Change default JSON Serializer from [Cheshire]() to [Jsonista]()
@@ -57,8 +57,10 @@
 * update deps:
 
 ```clj
+[ikitommi/linked "1.3.1-alpha1"] ;; waiting for original to update
 [metosin/ring-swagger "0.26.1"] is available but we use "0.26.0"
-[metosin/muuntaja "0.6.0-SNAPSHOT"] is available but we use "0.5.0"
+[metosin/muuntaja "0.6.0-alpha1"] is available but we use "0.5.0"
+[com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.6"] is available but we use 2.9.5"
 ```
 
 ## 2.0.0-alpha20 (2018-05-15)

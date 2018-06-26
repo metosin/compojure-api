@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-SNAPSHOŒT"
+(defproject metosin/compojure-api "2.0.0-alpha21"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -8,9 +8,9 @@
   :dependencies [[potemkin "0.4.5"]
                  [prismatic/schema "1.1.9"]
                  [prismatic/plumbing "0.5.5"]
-                 [frankiesardo/linked "1.3.0"]
-                 [metosin/muuntaja "0.6.0-SNAPSHOT"]
-                 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.5"]
+                 [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
+                 [metosin/muuntaja "0.6.0-alpha1"]
+                 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.6"]
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.1"]
                  [metosin/ring-http-response "0.9.0"]
@@ -28,7 +28,7 @@
                              [lein-ring "0.12.4"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
-                                  [metosin/spec-tools "0.7.0" :exlusions [org.clojure/spec.alpha]]
+                                  [metosin/spec-tools "0.7.1" :exlusions [org.clojure/spec.alpha]]
                                   [org.clojure/core.async "0.4.474"]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
                                   [peridot "0.5.1" :exclusions [clj-time commons-codec]]
@@ -52,7 +52,7 @@
              :dev18 {:plugins [[lein-midje "3.2.1"]]
                      :dependencies [[org.clojure/clojure "1.8.0"]
                                     [clojure-future-spec "1.9.0-alpha16"]
-                                    [metosin/spec-tools "0.7.0" :exlusions [org.clojure/spec.alpha]]
+                                    [metosin/spec-tools "0.7.1" :exlusions [org.clojure/spec.alpha]]
                                     [org.clojure/core.async "0.4.474"]
                                     [peridot "0.5.1" :exclusions [clj-time commons-codec]]
                                     [metosin/jsonista "0.2.1"]
@@ -86,4 +86,4 @@
             "test-ancient" ["midje"]
             "perf" ["with-profile" "default,dev,perf"]
             "deploy!" ^{:doc "Recompile sources, then deploy if tests succeed."}
-                      ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
+["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
