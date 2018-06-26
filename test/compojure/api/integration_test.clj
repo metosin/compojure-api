@@ -1595,7 +1595,7 @@
               (GET "/file" []
                 :return File
                 (ok (io/file (io/resource "json/json1k.json")))))]
-    (let [[status body] (get* app "/file")]
+    (let [{:keys [status body]} (app {:uri "/file", :request-method :get})]
       status => 200
       body => (partial instance? File))))
 
