@@ -14,7 +14,8 @@
 
             [ring.swagger.common :as rsc]
             [ring.util.http-response :refer :all])
-  (:import [clojure.lang ArityException]))
+  (:import [clojure.lang ArityException]
+           [com.fasterxml.jackson.datatype.joda JodaModule]))
 
 ;;
 ;; Catch exceptions
@@ -118,9 +119,15 @@
   (or (:compojure.api.meta/serializable? response)
       (coll? (:body response))))
 
+(def default-muuntaja-options
+  (assoc-in
+    m/default-options
+    [:formats "application/json" :opts :modules]
+    [(JodaModule.)]))
+
 (defn create-muuntaja
   ([]
-   (create-muuntaja m/default-options))
+   (create-muuntaja default-muuntaja-options))
   ([muuntaja-or-options]
    (let [opts #(assoc-in % [:http :encode-response-body?] encode?)]
      (cond
@@ -129,7 +136,7 @@
        nil
 
        (= ::default muuntaja-or-options)
-       (m/create (opts m/default-options))
+       (m/create (opts default-muuntaja-options))
 
        (m/muuntaja? muuntaja-or-options)
        (-> muuntaja-or-options (m/options) (opts) (m/create))
@@ -257,7 +264,7 @@
 
      ;; 1.2.0+
      (assert (not (contains? options :format))
-             (str "ERROR: Option [:format] is not used with 2.* version .\n"
+             (str "ERROR: Option [:format] is not used with 2.* version.\n"
                   "Compojure-api uses now Muuntaja insted of ring-middleware-format,\n"
                   "the new formatting options for it should be under [:formats]. See\n"
                   "[[api-middleware]] documentation for more details.\n"))

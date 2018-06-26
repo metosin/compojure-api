@@ -1,24 +1,21 @@
 (ns compojure.api.test-utils
   (:require [clojure.string :as str]
             [peridot.core :as p]
-            [clojure.java.io :as io]
             [muuntaja.core :as m]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw])
   (:import (java.io InputStream)))
 
-(def muuntaja (m/create))
+(def muuntaja (mw/create-muuntaja))
 
-(defn read-body [body]
-  (if (instance? InputStream body)
-    (slurp body)
+(defn slurp-body [body]
+  (if (satisfies? muuntaja.protocols/IntoInputStream body)
+    (m/slurp body)
     body))
 
 (defn parse-body [body]
-  (let [body (read-body body)
-        body (if (instance? String body)
-               (m/decode muuntaja "application/json" body)
-               body)]
+  (if (or (string? body) (instance? InputStream body))
+    (m/decode muuntaja "application/json" (slurp-body body))
     body))
 
 (defn extract-schema-name [ref-str]
@@ -69,7 +66,7 @@
                        :params (or params {})
                        :headers (or headers {}))
             follow-redirect)]
-    [status (read-body body) headers]))
+    [status (slurp-body body) headers]))
 
 (defn get* [app uri & [params headers]]
   (let [[status body headers]
@@ -92,7 +89,7 @@
                        :headers (or headers {})
                        :content-type (or content-type "application/json")
                        :body (.getBytes data)))]
-    [status (read-body body)]))
+    [status (slurp-body body)]))
 
 (defn raw-post* [app uri & [data content-type headers]]
   (raw-put-or-post* app uri :post data content-type headers))

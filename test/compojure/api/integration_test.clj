@@ -17,9 +17,12 @@
             [compojure.api.routes :as routes]
             [muuntaja.core :as m]
             [compojure.api.core :as c]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [muuntaja.format.msgpack]
+            [muuntaja.format.yaml])
   (:import (java.sql SQLException SQLWarning)
-           (java.io File)))
+           (muuntaja.protocols StreamableResponse)
+           (java.io File ByteArrayInputStream)))
 
 ;;
 ;; Data
@@ -488,7 +491,8 @@
                 (GET "/symbol" req
                   (ok {:a (-> req :params :a)
                        :b (-> +compojure-api-request+ :params :b)}))
-                (GET "/integrated" [a] :query-params [b]
+                (GET "/integrated" [a]
+                  :query-params [b]
                   (ok {:a a
                        :b b}))))]
 
@@ -739,7 +743,7 @@
 
     (fact "swagger-docs have trailing slashes removed"
       (->> app get-spec :paths keys)
-      => ["/" "/a" "/b/b1" "/b" "/b/b2"])))
+      => (just ["/" "/a" "/b/b1" "/b" "/b/b2"] :in-any-order))))
 
 (fact "formats supported by ring-middleware-format"
   (let [app (api
@@ -1439,12 +1443,10 @@
 
 (facts "custom formats contribute to Swagger :consumes & :produces"
   (let [custom-type "application/vnd.vendor.v1+json"
-        custom-format {:decoder [muuntaja.format.json/make-json-decoder {:key-fn true}]
-                       :encoder [muuntaja.format.json/make-json-encoder]}
         app (api
               {:swagger {:spec "/swagger.json"}
                :formats (-> m/default-options
-                            (update :formats assoc custom-type custom-format)
+                            (m/install muuntaja.format.json/format custom-type)
                             (m/select-formats ["application/json" custom-type]))}
               (POST "/echo" []
                 :body [data {:kikka s/Str}]
@@ -1592,8 +1594,8 @@
               (swagger-routes)
               (GET "/file" []
                 :return File
-                (ok (io/file (io/resource "json/json1k.json")))))]
-    (let [[status body] (get* app "/file")]
+                (ok (io/file "project.clj"))))]
+    (let [{:keys [status body]} (app {:uri "/file", :request-method :get})]
       status => 200
       body => (partial instance? File))))
 
@@ -1751,9 +1753,8 @@
             body => data))
 
         (fact "second api fails"
-          (let [[status body] (post* app "/echo2" (json-string data))]
-            status => 200
-            body => nil)))
+          (let [[status] (post* app "/echo2" (json-string data))]
+            status => 400)))
 
       (fact "wrap-format with defaults"
         (let [app (-> (routes
@@ -1821,6 +1822,42 @@
                         {:produces ["application/json"]
                          :consumes ["application/json"]}))))))))
 
-(fact "2.0.0 will fail fast with :format"
+(fact "2.* will fail fast with :format"
   (let [app' `(api {:format (m/create)})]
     (eval app') => (throws AssertionError)))
+
+(fact "Muuntaja 0.6.0 options"
+  (fact "new formats"
+    (let [muuntaja (m/create
+                     (-> m/default-options
+                         (m/install muuntaja.format.msgpack/format)
+                         (m/install muuntaja.format.yaml/format)))
+          data {:it "works!"}
+          app (api
+                {:formats muuntaja}
+                (POST "/echo" []
+                  :body [body s/Any]
+                  (ok body)))]
+      (doseq [format ["application/json"
+                      "application/edn"
+                      "application/msgpack"
+                      "application/x-yaml"
+                      "application/transit+json"
+                      "application/transit+msgpack"]]
+        (fact {:midje/description (str "format " (pr-str format))}
+          (let [{:keys [status body]} (app (ring-request muuntaja format data))]
+            status => 200
+            (m/decode muuntaja format body) => data)))))
+
+  (fact "return types"
+    (doseq [[return type] {:input-stream ByteArrayInputStream
+                           :bytes (class (make-array Byte/TYPE 0))
+                           :output-stream StreamableResponse}]
+      (let [app (api
+                  {:formats (assoc m/default-options :return return)}
+                  (GET "/" []
+                    (ok {:kikka "kukka"})))]
+        (fact {:midje/description (str "return " (pr-str return))}
+          (let [{:keys [status body]} (app {:uri "/", :request-method :get})]
+            status => 200
+            body => (partial instance? type)))))))
