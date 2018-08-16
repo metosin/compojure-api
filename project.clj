@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha21"
+(defproject metosin/compojure-api "2.0.0-alpha22"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -9,7 +9,7 @@
                  [prismatic/schema "1.1.9"]
                  [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
-                 [metosin/muuntaja "0.6.0-alpha1"]
+                 [metosin/muuntaja "0.6.0-alpha2"]
                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.6"]
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.1"]
@@ -32,7 +32,7 @@
                                   [org.clojure/core.async "0.4.474"]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
                                   [peridot "0.5.1" :exclusions [clj-time commons-codec]]
-                                  [midje "1.9.1" :exclusions [com.rpl/specter
+                                  [midje "1.9.2" :exclusions [com.rpl/specter
                                                               commons-codec
                                                               clj-time]]
                                   [com.rpl/specter "1.1.1"]
@@ -59,7 +59,7 @@
                                     [javax.servlet/javax.servlet-api "4.0.1"]
                                     [metosin/muuntaja-msgpack "0.6.0-alpha1"]
                                     [metosin/muuntaja-yaml "0.6.0-alpha1"]
-                                    [midje "1.9.1" :exclusions [com.rpl/specter
+                                    [midje "1.9.2" :exclusions [com.rpl/specter
                                                                 commons-codec
                                                                 clj-time]]
                                     [com.rpl/specter "1.1.1"]
