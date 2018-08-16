@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha22"
+(defproject metosin/compojure-api "2.0.0-alpha23"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -9,7 +9,7 @@
                  [prismatic/schema "1.1.9"]
                  [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
-                 [metosin/muuntaja "0.6.0-alpha2"]
+                 [metosin/muuntaja "0.6.0-alpha3"]
                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.6"]
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.1"]

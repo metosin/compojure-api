@@ -1,4 +1,4 @@
-## 2.0.0-alpha22 (2018-08-16)
+## 2.0.0-alpha23 (2018-08-16)
 
 * **BREAKING**: Don't encode response `:body` if `Content-Type` header is set.
 
