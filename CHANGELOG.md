@@ -1,3 +1,11 @@
+## 2.0.0-alpha24 (2018-09-01)
+
+* update deps:
+
+```clj
+[metosin/muuntaja "0.6.0-alpha4"] is available but we use "0.6.0-alpha3"
+```
+
 ## 2.0.0-alpha23 (2018-08-16)
 
 * **BREAKING**: Don't encode response `:body` if `Content-Type` header is set.
