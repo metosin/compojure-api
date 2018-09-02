@@ -8,6 +8,7 @@
             [examples.pizza :refer [pizza-routes Pizza]]
             [examples.ordered :refer [ordered-routes]]
             [examples.dates :refer [date-routes]]
+	    [muuntaja.core :as muuntaja]
             [clojure.java.io :as io])
   (:import (org.joda.time DateTime)
            (java.io File)))
@@ -212,7 +213,8 @@
         (-> (io/resource "screenshot.png")
             (io/input-stream)
             (ok)
-            (header "Content-Type" "image/png"))))
+            (header "Content-Type" "image/png")
+            (muuntaja/disable-response-encoding))))
 
     (context "/component" []
       :tags ["component"]
