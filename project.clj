@@ -9,7 +9,7 @@
                  [prismatic/schema "1.1.9"]
                  [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
-                 [metosin/muuntaja "0.6.0-alpha4"]
+                 [metosin/muuntaja "0.6.0"]
                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.6"]
                  [ring/ring-core "1.6.3" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.1"]
@@ -39,8 +39,8 @@
                                   [com.stuartsierra/component "0.3.2"]
                                   [metosin/jsonista "0.2.1"]
                                   [reloaded.repl "0.2.4"]
-                                  [metosin/muuntaja-msgpack "0.6.0-alpha4"]
-                                  [metosin/muuntaja-yaml "0.6.0-alpha4"]
+                                  [metosin/muuntaja-msgpack "0.6.0"]
+                                  [metosin/muuntaja-yaml "0.6.0"]
                                   [org.immutant/immutant "2.1.10" :exclusions [org.slf4j/slf4j-api]]
                                   [http-kit "2.3.0"]
                                   [criterium "0.4.4"]]
@@ -57,8 +57,8 @@
                                     [peridot "0.5.1" :exclusions [clj-time commons-codec]]
                                     [metosin/jsonista "0.2.1"]
                                     [javax.servlet/javax.servlet-api "4.0.1"]
-                                    [metosin/muuntaja-msgpack "0.6.0-alpha4"]
-                                    [metosin/muuntaja-yaml "0.6.0-alpha4"]
+                                    [metosin/muuntaja-msgpack "0.6.0"]
+                                    [metosin/muuntaja-yaml "0.6.0"]
                                     [midje "1.9.2" :exclusions [com.rpl/specter
                                                                 commons-codec
                                                                 clj-time]]
