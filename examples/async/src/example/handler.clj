@@ -37,25 +37,15 @@
        :return {:result Long}
        :query-params [x :- Long, y :- Long]
        :summary "multiply two numbers together"
-       (let [d (d/deferred)]
-         (future
-           (d/success! d (ok {:result (* x y)})))
-         d))
+       (d/success-deferred 
+         (ok {:result (* x y)})))
 
      (GET "/divide" []
        :return {:result Float}
        :query-params [x :- Long, y :- Long]
        :summary "divide two numbers together"
-       (let [chan (async/chan)]
-         (future
-           (async/go
-             (try
-               (async/>! chan (ok {:result (float (/ x y))}))
-               (catch Throwable e
-                 (async/>! chan e))
-               (finally
-                 (async/close! chan)))))
-         chan)))
+       (async/go (ok {:result (float (/ x y))}))))
+
    (context "/resource" []
      (resource
       {:responses {200 {:schema {:total Long}}}
