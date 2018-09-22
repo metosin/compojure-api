@@ -1,3 +1,13 @@
+## 2.0.0-alpha26 (2018-09-22)
+
+* update deps:
+
+```clj
+[com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.7"] is available but we use "2.9.6"
+[ring/ring-core "1.7.0"] is available but we use "1.6.3"
+[metosin/jsonista "0.2.2"] is available but we use "0.2.1"
+```
+
 ## 2.0.0-alpha25 (2018-09-03)
 
 * update deps:
