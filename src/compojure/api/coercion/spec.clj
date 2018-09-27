@@ -5,7 +5,6 @@
             [spec-tools.data-spec :as ds]
             [clojure.walk :as walk]
             [compojure.api.coercion.core :as cc]
-            [compojure.api.impl.logging :as log]
             [spec-tools.transform :as stt]
             [spec-tools.swagger.core :as swagger]
             [compojure.api.common :as common])
@@ -145,5 +144,3 @@
 (def default-coercion (create-coercion default-options))
 
 (defmethod cc/named-coercion :spec [_] default-coercion)
-
-(log/log! :info ":spec coercion enabled in compojure.api")

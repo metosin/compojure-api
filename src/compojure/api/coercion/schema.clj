@@ -5,7 +5,6 @@
             [ring.swagger.coerce :as coerce]
             [compojure.api.request :as request]
             [compojure.api.coercion.core :as cc]
-            [compojure.api.impl.logging :as log]
             [clojure.walk :as walk]
             [schema.core :as s]
             [compojure.api.common :as common])
@@ -89,5 +88,3 @@
 (def default-coercion (create-coercion default-options))
 
 (defmethod cc/named-coercion :schema [_] default-coercion)
-
-(log/log! :info ":schema coercion enabled in compojure.api")
