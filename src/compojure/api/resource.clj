@@ -86,7 +86,13 @@
         {:path "/"
          :method method
          :info {:public (swaggerize info)}}))
-    (select-keys info (:methods +mappings+))))
+    (select-keys
+      ;; top-level handler maps all http-methods
+      (merge
+        (if (:handler info)
+          (zipmap methods/all-methods (repeat {})))
+        info)
+      (:methods +mappings+))))
 
 (defn- handle-sync [info {:keys [request-method path-info :compojure/route] :as request}]
   (when-let [[raw-handler] (resolve-handler info path-info route request-method false)]
