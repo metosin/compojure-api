@@ -10,7 +10,8 @@
             [compojure.api.common :as common])
   (:import (clojure.lang IPersistentMap)
            (schema.core RequiredKey OptionalKey)
-           (spec_tools.core Spec)))
+           (spec_tools.core Spec)
+           (spec_tools.data_spec Maybe)))
 
 (def string-transformer
   (st/type-transformer
@@ -39,27 +40,32 @@
 (extend-protocol Specify
   IPersistentMap
   (specify [this name]
-    (->>
-      (walk/postwalk
-        (fn [x]
-          (if (and (map? x) (not (record? x)))
-            (->> (for [[k v] (dissoc x schema.core/Keyword)
-                       :let [k (cond
-                                 ;; Schema required
-                                 (instance? RequiredKey k)
-                                 (ds/req (schema.core/explicit-schema-key k))
+    (-> (->>
+          (walk/postwalk
+            (fn [x]
+              (if (and (map? x) (not (record? x)))
+                (->> (for [[k v] (dissoc x schema.core/Keyword)
+                           :let [k (cond
+                                     ;; Schema required
+                                     (instance? RequiredKey k)
+                                     (ds/req (schema.core/explicit-schema-key k))
 
-                                 ;; Schema options
-                                 (instance? OptionalKey k)
-                                 (ds/opt (schema.core/explicit-schema-key k))
+                                     ;; Schema options
+                                     (instance? OptionalKey k)
+                                     (ds/opt (schema.core/explicit-schema-key k))
 
-                                 :else
-                                 k)]]
-                   [k v])
-                 (into {}))
-            x))
-        this)
-      (ds/spec name)))
+                                     :else
+                                     k)]]
+                       [k v])
+                     (into {}))
+                x))
+            this)
+          (ds/spec name))
+        (dissoc :name)))
+
+  Maybe
+  (into-spec [this name]
+    (ds/spec name this))
 
   Spec
   (specify [this _] this)
@@ -69,7 +75,7 @@
     (st/create-spec {:spec this})))
 
 (def memoized-specify
-  (common/fifo-memoize #(specify %1 (keyword "" (name (gensym "spec")))) 1000))
+  (common/fifo-memoize #(specify %1 (keyword "spec" (name (gensym "")))) 1000))
 
 (defn maybe-memoized-specify [spec]
   (if (keyword? spec)
@@ -113,15 +119,18 @@
   (coerce-request [_ spec value type format _]
     (let [spec (maybe-memoized-specify spec)
           type-options (options type)]
-      (if-let [conforming (or (get (get type-options :formats) format)
-                              (get type-options :default))]
-        (let [conformed (st/conform spec value conforming)]
-          (if (s/invalid? conformed)
-            (let [problems (st/explain-data spec value conforming)]
-              (cc/map->CoercionError
-                {:spec spec
-                 :problems (::s/problems problems)}))
-            (s/unform spec conformed)))
+      (if-let [transformer (or (get (get type-options :formats) format)
+                               (get type-options :default))]
+        (let [coerced (st/coerce spec value transformer)]
+          (if (s/valid? spec coerced)
+            coerced
+            (let [conformed (st/conform spec value transformer)]
+              (if (s/invalid? conformed)
+                (let [problems (st/explain-data spec value transformer)]
+                  (cc/map->CoercionError
+                    {:spec spec
+                     :problems (::s/problems problems)}))
+                (s/unform spec conformed)))))
         value)))
 
   (accept-response? [_ spec]

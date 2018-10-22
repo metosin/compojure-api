@@ -1,3 +1,16 @@
+## 2.0.0-alpha27 (2018-10-22)
+
+* **BREAKING**: dropped support for Clojure 1.8.0
+* Latest features from spec-tools
+  * Swagger enchancements
+  * Better spec coercion via st/coerce using spec walking & inference: many simple specs (core predicates, `spec-tools.core/spec`, `s/and`, `s/or`, `s/coll-of`, `s/keys`, `s/map-of`, `s/nillable` and `s/every`) can be transformed without needing spec to be wrapped. Fallbacks to old conformed based approach.
+
+* new deps:
+
+```clj
+[metosin/spec-tools "0.8.0"]
+```
+
 ## 2.0.0-alpha26 (2018-09-22)
 
 * update deps:

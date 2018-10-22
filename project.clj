@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha26"
+(defproject metosin/compojure-api "2.0.0-alpha27"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -12,10 +12,11 @@
                  [metosin/muuntaja "0.6.1"]
                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.7"]
                  [ring/ring-core "1.7.0" :exclusions [clj-time commons-codec]]
-                 [compojure "1.6.1"]
-                 [metosin/ring-http-response "0.9.0"]
+                 [compojure "1.6.1" :exclusions [joda-time]]
+                 [metosin/spec-tools "0.8.0"]
+                 [metosin/ring-http-response "0.9.0" :exclusions [joda-time]]
                  [metosin/ring-swagger-ui "2.2.10"]
-                 [metosin/ring-swagger "0.26.1"]]
+                 [metosin/ring-swagger "0.26.1" :exclusions [joda-time]]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
@@ -28,20 +29,17 @@
                              [lein-ring "0.12.4"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
-                                  [metosin/spec-tools "0.7.1" :exlusions [org.clojure/spec.alpha]]
-                                  [org.clojure/core.async "0.4.474"]
+                                  [org.clojure/core.async "0.4.474" :exclusions [org.clojure/tools.reader]]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
                                   [peridot "0.5.1" :exclusions [clj-time commons-codec]]
-                                  [midje "1.9.2" :exclusions [com.rpl/specter
-                                                              commons-codec
-                                                              clj-time]]
+                                  [midje "1.9.4" :exclusions [org.clojure/tools.namespace com.rpl/specter commons-codec clj-time]]
                                   [com.rpl/specter "1.1.1"]
                                   [com.stuartsierra/component "0.3.2"]
                                   [metosin/jsonista "0.2.2"]
                                   [reloaded.repl "0.2.4"]
                                   [metosin/muuntaja-msgpack "0.6.1"]
                                   [metosin/muuntaja-yaml "0.6.1"]
-                                  [org.immutant/immutant "2.1.10" :exclusions [org.slf4j/slf4j-api]]
+                                  [org.immutant/immutant "2.1.10" :exclusions [joda-time org.slf4j/slf4j-api]]
                                   [http-kit "2.3.0"]
                                   [criterium "0.4.4"]]
                    :test-paths ["test19"]
@@ -49,22 +47,6 @@
                           :reload-paths ["src" "examples/thingie/src"]}
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
                    :main examples.server}
-             :dev18 {:plugins [[lein-midje "3.2.1"]]
-                     :dependencies [[org.clojure/clojure "1.8.0"]
-                                    [clojure-future-spec "1.9.0-alpha16"]
-                                    [metosin/spec-tools "0.7.1" :exlusions [org.clojure/spec.alpha]]
-                                    [org.clojure/core.async "0.4.474"]
-                                    [peridot "0.5.1" :exclusions [clj-time commons-codec]]
-                                    [metosin/jsonista "0.2.2"]
-                                    [javax.servlet/javax.servlet-api "4.0.1"]
-                                    [metosin/muuntaja-msgpack "0.6.1"]
-                                    [metosin/muuntaja-yaml "0.6.1"]
-                                    [midje "1.9.2" :exclusions [com.rpl/specter
-                                                                commons-codec
-                                                                clj-time]]
-                                    [com.rpl/specter "1.1.1"]
-                                    [com.stuartsierra/component "0.3.2"]
-                                    [criterium "0.4.4"]]}
              :perf {:jvm-opts ^:replace ["-server"
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
@@ -82,7 +64,7 @@
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
   :deploy-repositories [["releases" :clojars]]
-  :aliases {"all" ["with-profile" "dev:dev18:dev,async"]
+  :aliases {"all" ["with-profile" "dev:dev,async"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]

@@ -13,7 +13,7 @@
             [spec-tools.transform :as stt])
   (:import (org.joda.time DateTime)))
 
-(s/def ::kikka spec/keyword?)
+(s/def ::kikka keyword?)
 (s/def ::spec (s/keys :req-un [::kikka]))
 
 (s/def ::date (st/spec
@@ -67,7 +67,7 @@
                                     :request (contains {:body-params {:kikka "kukka"}})}))))
 
     (fact "coercion also unforms"
-      (let [spec (s/or :int spec/int? :keyword spec/keyword?)
+      (let [spec (s/or :int int? :keyword keyword?)
             c! #(coercion/coerce-request! spec :body-params :body false false %)]
         (c! {:body-params 1
              ::request/coercion :spec}) => 1
@@ -143,10 +143,10 @@
           (ok invalid-value)
           responses) => (ok? invalid-value))))
 
-(s/def ::x spec/int?)
-(s/def ::y spec/int?)
+(s/def ::x int?)
+(s/def ::y int?)
 (s/def ::xy (s/keys :req-un [::x ::y]))
-(s/def ::total spec/pos-int?)
+(s/def ::total pos-int?)
 
 (facts "apis"
   (let [app (api
@@ -217,17 +217,13 @@
         body => {:total 3})
       (let [[status body] (get* app "/query" {:x "1", :y "kaks"})]
         status => 400
-        body => {:coercion "spec"
-                 :in ["request" "query-params"]
-                 :problems [{:in ["y"]
-                             :path ["y"]
-                             :pred "clojure.core/int?"
-                             :val "kaks"
-                             :via ["compojure.api.coercion.spec-coercion-test/xy"
-                                   "compojure.api.coercion.spec-coercion-test/y"]}]
-                 :spec "(spec-tools.core/spec {:spec (clojure.spec.alpha/keys :req-un [:compojure.api.coercion.spec-coercion-test/x :compojure.api.coercion.spec-coercion-test/y]), :type :map, :keys #{:y :x}, :keys/req #{:y :x}})"
-                 :type "compojure.api.exception/request-validation"
-                 :value {:x "1", :y "kaks"}}))
+        body => (contains
+                  {:coercion "spec"
+                   :in ["request" "query-params"]
+                   :problems (two-of anything)
+                   :spec string?
+                   :type "compojure.api.exception/request-validation"
+                   :value {:x "1", :y "kaks"}})))
 
     (fact "body"
       (let [[status body] (post* app "/body" (json-string {:x 1, :y 2, :z 3}))]
@@ -329,154 +325,175 @@
                                    :type "object"}}]
         (get-spec app)
         => (contains
-             {:definitions {}
-              :paths (contains
-                       {"/body" {:post
-                                 {:parameters
-                                  [{:description ""
-                                    :in "body"
-                                    :name "compojure.api.coercion.spec-coercion-test/xy"
-                                    :required true
-                                    :schema {:properties
-                                             {:x {:format "int64"
-                                                  :type "integer"}
-                                              :y {:format "int64"
-                                                  :type "integer"}}
-                                             :required ["x" "y"]
-                                             :type "object"}}]
-                                  :responses {:default {:description ""}}}
-                                 :put
-                                 {:parameters
-                                  [{:description ""
-                                    :in "body"
-                                    :name "compojure.api.coercion.spec-coercion-test/xy"
-                                    :required true
-                                    :schema {:properties
-                                             {:x {:format "int64"
-                                                  :type "integer"}
-                                              :y {:format "int64"
-                                                  :type "integer"}}
-                                             :required ["x" "y"]
-                                             :type "object"}}]
-                                  :responses {:default {:description ""}}}}
-                        "/body-map" {:post
-                                     {:parameters
-                                      [{:description ""
-                                        :in "body"
-                                        :name ""
-                                        :required true
-                                        :schema {:properties {:x {:format "int64"
-                                                                  :type "integer"}
-                                                              :y {:format "int64"
-                                                                  :type "integer"}}
-                                                 :required ["x"]
-                                                 :type "object"}}]
-                                      :responses {:default {:description ""}}}}
-                        "/query" {:get {:parameters
-                                        [{:description "" :format "int64"
-                                          :in "query" :name "x" :required true
-                                          :type "integer"}
-                                         {:description "" :format "int64"
-                                          :in "query" :name "y" :required true
-                                          :type "integer"}]
-                                        :responses {:default {:description ""}}}}
-                        "/query-params" {:get
-                                         {:parameters
-                                          [{:description ""
-                                            :format "int64"
-                                            :in "query"
-                                            :name "x"
-                                            :required true
-                                            :type "integer"}
-                                           {:description ""
-                                            :format "int64"
-                                            :in "query"
-                                            :name "y"
-                                            :required true
-                                            :type "integer"}]
+             {:basePath "/"
+              :consumes ["application/json"
+                         "application/transit+msgpack"
+                         "application/transit+json"
+                         "application/edn"]
+              :definitions {}
+              :info {:title "Swagger API" :version "0.0.1"}
+              :paths {"/body" {:post {:parameters [{:description ""
+                                                    :in "body"
+                                                    :name "compojure.api.coercion.spec-coercion-test/xy"
+                                                    :required true
+                                                    :schema {:properties {:x {:format "int64"
+                                                                              :type "integer"}
+                                                                          :y {:format "int64"
+                                                                              :type "integer"}}
+                                                             :required ["x" "y"]
+                                                             :title "compojure.api.coercion.spec-coercion-test/xy"
+                                                             :type "object"}}]
+                                      :responses {:default {:description ""}}}
+                               :put {:parameters [{:description ""
+                                                   :in "body"
+                                                   :name "compojure.api.coercion.spec-coercion-test/xy"
+                                                   :required true
+                                                   :schema {:properties {:x {:format "int64"
+                                                                             :type "integer"}
+                                                                         :y {:format "int64"
+                                                                             :type "integer"}}
+                                                            :required ["x" "y"]
+                                                            :title "compojure.api.coercion.spec-coercion-test/xy"
+                                                            :type "object"}}]
+                                     :responses {:default {:description ""}}}}
+                      "/body-map" {:post {:parameters [{:description ""
+                                                        :in "body"
+                                                        :name ""
+                                                        :required true
+                                                        :schema {:properties {:x {:format "int64"
+                                                                                  :type "integer"}
+                                                                              :y {:format "int64"
+                                                                                  :type "integer"}}
+                                                                 :required ["x"]
+                                                                 :type "object"}}]
                                           :responses {:default {:description ""}}}}
-                        "/body-params" {:post
-                                        {:parameters
-                                         [{:description ""
-                                           :in "body"
-                                           :name ""
-                                           :required true
-                                           :schema {:properties {:x {:format "int64"
-                                                                     :type "integer"}
-                                                                 :y {:format "int64"
-                                                                     :type "integer"}}
-                                                    :required ["x"]
-                                                    :type "object"}}]
+                      "/body-params" {:post {:parameters [{:description ""
+                                                           :in "body"
+                                                           :name ""
+                                                           :required true
+                                                           :schema {:properties {:x {:format "int64"
+                                                                                     :type "integer"}
+                                                                                 :y {:format "int64"
+                                                                                     :type "integer"}}
+                                                                    :required ["x"]
+                                                                    :type "object"}}]
+                                             :responses {:default {:description ""}}}}
+                      "/body-string" {:post {:parameters [{:description ""
+                                                           :in "body"
+                                                           :name ""
+                                                           :required true
+                                                           :schema {:type "string"}}]
+                                             :responses {:default {:description ""}}}}
+                      "/date/fail" {:get {:responses {:200 {:description ""
+                                                            :schema {:properties {:date {:default "2017-10-12T05:04:57.585Z"}}
+                                                                     :required ["date"]
+                                                                     :type "object"}}
+                                                      :default {:description ""}}}}
+                      "/date/pass" {:get {:responses {:200 {:description ""
+                                                            :schema {:properties {:date {:default "2017-10-12T05:04:57.585Z"}}
+                                                                     :required ["date"]
+                                                                     :type "object"}}
+                                                      :default {:description ""}}}}
+                      "/query" {:get {:parameters [{:description ""
+                                                    :format "int64"
+                                                    :in "query"
+                                                    :name "x"
+                                                    :required true
+                                                    :type "integer"}
+                                                   {:description ""
+                                                    :format "int64"
+                                                    :in "query"
+                                                    :name "y"
+                                                    :required true
+                                                    :type "integer"}]
+                                      :responses {:default {:description ""}}}}
+                      "/query-params" {:get {:parameters [{:description ""
+                                                           :format "int64"
+                                                           :in "query"
+                                                           :name "x"
+                                                           :required true
+                                                           :type "integer"}
+                                                          {:description ""
+                                                           :format "int64"
+                                                           :in "query"
+                                                           :name "y"
+                                                           :required true
+                                                           :type "integer"}]
+                                             :responses {:default {:description ""}}}}
+                      "/resource" {:get {:parameters [{:description ""
+                                                       :format "int64"
+                                                       :in "query"
+                                                       :name "x"
+                                                       :required true
+                                                       :type "integer"}
+                                                      {:description ""
+                                                       :format "int64"
+                                                       :in "query"
+                                                       :name "y"
+                                                       :required true
+                                                       :type "integer"}]
+                                         :responses {:200 {:description ""
+                                                           :schema {:properties {:total {:format "int64"
+                                                                                         :minimum 1
+                                                                                         :type "integer"}}
+                                                                    :required ["total"]
+                                                                    :type "object"}}
+                                                     :default {:description ""}}}
+                                   :post {:parameters [{:description ""
+                                                        :in "body"
+                                                        :name ""
+                                                        :required true
+                                                        :schema {:properties {:x {:format "int64"
+                                                                                  :type "integer"}
+                                                                              :y {:format "int64"
+                                                                                  :type "integer"}}
+                                                                 :required ["x"]
+                                                                 :type "object"}}]
+                                          :responses {:200 {:description ""
+                                                            :schema {:properties {:total {:format "int64"
+                                                                                          :minimum 1
+                                                                                          :type "integer"}}
+                                                                     :required ["total"]
+                                                                     :type "object"}}
+                                                      :default {:description ""}}}
+                                   :put {:parameters [{:description ""
+                                                       :in "body"
+                                                       :name "compojure.api.coercion.spec-coercion-test/xy"
+                                                       :required true
+                                                       :schema {:properties {:x {:format "int64"
+                                                                                 :type "integer"}
+                                                                             :y {:format "int64"
+                                                                                 :type "integer"}}
+                                                                :required ["x" "y"]
+                                                                :title "compojure.api.coercion.spec-coercion-test/xy"
+                                                                :type "object"}}]
                                          :responses {:default {:description ""}}}}
-                        "/body-string" {:post
-                                        {:parameters
-                                         [{:description ""
-                                           :in "body"
-                                           :name ""
-                                           :required true
-                                           :schema {:type "string"}}]
-                                         :responses {:default {:description ""}}}}
-                        "/response" {:get
-                                     {:parameters
-                                      [{:description ""
-                                        :format "int64"
-                                        :in "query"
-                                        :name "x"
-                                        :required true
-                                        :type "integer"}
-                                       {:description ""
-                                        :format "int64"
-                                        :in "query"
-                                        :name "y"
-                                        :required true
-                                        :type "integer"}]
-                                      :responses {:200 total-schema
-                                                  :default {:description ""}}}}
-                        "/resource" {:get
-                                     {:parameters
-                                      [{:description ""
-                                        :format "int64"
-                                        :in "query"
-                                        :name "x"
-                                        :required true
-                                        :type "integer"}
-                                       {:description ""
-                                        :format "int64"
-                                        :in "query"
-                                        :name "y"
-                                        :required true
-                                        :type "integer"}]
-                                      :responses {:200 total-schema
-                                                  :default {:description ""}}}
-                                     :post
-                                     {:parameters
-                                      [{:description ""
-                                        :in "body"
-                                        :name ""
-                                        :required true
-                                        :schema {:properties {:x {:format "int64"
-                                                                  :type "integer"}
-                                                              :y {:format "int64"
-                                                                  :type "integer"}}
-                                                 :required ["x"]
-                                                 :type "object"}}]
-                                      :responses {:200 total-schema
-                                                  :default {:description ""}}}
-                                     :put
-                                     {:parameters
-                                      [{:description ""
-                                        :in "body"
-                                        :name "compojure.api.coercion.spec-coercion-test/xy"
-                                        :required true
-                                        :schema {:properties {:x {:format "int64"
-                                                                  :type "integer"}
-                                                              :y {:format "int64"
-                                                                  :type "integer"}}
-                                                 :required ["x" "y"]
-                                                 :type "object"}}]
-                                      :responses {:default {:description ""}}}}})})))))
+                      "/response" {:get {:parameters [{:description ""
+                                                       :format "int64"
+                                                       :in "query"
+                                                       :name "x"
+                                                       :required true
+                                                       :type "integer"}
+                                                      {:description ""
+                                                       :format "int64"
+                                                       :in "query"
+                                                       :name "y"
+                                                       :required true
+                                                       :type "integer"}]
+                                         :responses {:200 {:description ""
+                                                           :schema {:properties {:total {:format "int64"
+                                                                                         :minimum 1
+                                                                                         :type "integer"}}
+                                                                    :required ["total"]
+                                                                    :type "object"}}
+                                                     :default {:description ""}}}}}
+              :produces ["application/json"
+                         "application/transit+msgpack"
+                         "application/transit+json"
+                         "application/edn"]
+              :swagger "2.0"})))))
 
-(s/def ::id spec/pos-int?)
+(s/def ::id pos-int?)
 
 (fact "spec coercion in context"
   (let [app (context "/product/:id" []

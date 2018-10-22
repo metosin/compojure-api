@@ -10,7 +10,7 @@
             [ring.swagger.swagger-ui :as swagger-ui]
             [ring.swagger.swagger2 :as swagger2]
             [compojure.api.routes :as routes]
-            [compojure.api.impl.logging :as log]))
+            [spec-tools.swagger.core]))
 
 (defn base-path [request]
   (let [context (swagger/context request)]
@@ -27,14 +27,6 @@
 
 (defn transform-operations [swagger]
   (swagger2/transform-operations routes/non-nil-routes swagger))
-
-(def post-process-swagger-spec identity)
-
-(common/when-ns
-  'spec-tools.swagger.core
-  (require '[spec-tools.swagger.core])
-  (log/log! :info ":spec swagger generation enabled in compojure.api")
-  (def post-process-swagger-spec spec-tools.swagger.core/swagger-spec))
 
 (defn swagger-ui [options]
   (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-ui takes just one map as argument, with `:path` for the path.")
@@ -53,7 +45,7 @@
             options (::request/ring-swagger request)
             paths (::request/paths request)
             swagger (apply rsc/deep-merge (keep identity [base-path paths extra-info runtime-info1 runtime-info2]))
-            spec (post-process-swagger-spec (swagger2/swagger-json swagger options))]
+            spec (spec-tools.swagger.core/swagger-spec (swagger2/swagger-json swagger options))]
         (ok spec)))))
 
 ;;
