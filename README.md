@@ -150,18 +150,19 @@ See [CHANGELOG](https://github.com/metosin/compojure-api/blob/master/CHANGELOG.m
 
 ## More samples
 
-https://github.com/metosin/compojure-api/tree/master/examples
-
-Nice full app: https://github.com/yogthos/memory-hole
+* official samples: https://github.com/metosin/compojure-api/tree/master/examples
+* great full app: https://github.com/yogthos/memory-hole
+* 2.0.0 sample: https://github.com/metosin/c2
+* RESTful CRUD APIs Using Compojure-API and Toucan: https://www.demystifyfp.com/clojure/blog/restful-crud-apis-using-compojure-api-and-toucan-part-1/
+* clojurice, An opinionated starter app for full-stack web applications in Clojure: https://github.com/jarcane/clojurice
+* Web Development with Clojure, Second Edition: https://pragprog.com/book/dswdcloj2/web-development-with-clojure-second-edition
 
 To try it yourself, clone this repository and do either:
 
 1. `lein run`
 2. `lein repl` & `(go)`
 
-## Quick start for  new project
-
-Clone the [examples-repository](https://github.com/metosin/compojure-api-examples).
+## Quick start for a new project
 
 Use a Leiningen template, with or without tests:
 
