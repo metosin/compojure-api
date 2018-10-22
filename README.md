@@ -1,4 +1,4 @@
-# Compojure-api [![Build Status](https://api.travis-ci.org/metosin/compojure-api.svg?branch=master)](https://travis-ci.org/metosin/compojure-api) [![Downloads](https://jarkeeper.com/metosin/compojure-api/downloads.svg)](https://jarkeeper.com/metosin/compojure-api)
+# Compojure-api [![Build Status](https://api.travis-ci.org/metosin/compojure-api.svg?branch=master)](https://travis-ci.org/metosin/compojure-api)
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
@@ -11,7 +11,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 - Bundled middleware for common api behavior ([exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling), parameters & formats)
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
 - Route functions & macros for putting things together, including the [Swagger-UI](https://github.com/wordnik/swagger-ui) via [ring-swagger-ui](https://github.com/metosin/ring-swagger-ui)
-- Requires Java 1.8
+- Requires Clojure 1.9.0 & Java 1.8
 
 [API Docs](http://metosin.github.io/compojure-api/doc/) & [Wiki](https://github.com/metosin/compojure-api/wiki)
 
@@ -173,6 +173,6 @@ lein new compojure-api my-api +clojure-test
 
 ## License
 
-Copyright © 2014-2017 [Metosin Oy](http://www.metosin.fi)
+Copyright © 2014-2018 [Metosin Oy](http://www.metosin.fi)
 
 Distributed under the Eclipse Public License, the same as Clojure.
