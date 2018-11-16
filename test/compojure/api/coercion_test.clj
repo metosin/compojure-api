@@ -5,8 +5,7 @@
             [ring.util.http-response :refer :all]
             [clojure.core.async :as a]
             [schema.core :as s]
-            [compojure.api.coercion.schema :as cs]
-            [compojure.api.middleware :as mw]))
+            [compojure.api.coercion.schema :as cs]))
 
 (defn has-body [expected]
   (fn [value]

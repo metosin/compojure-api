@@ -6,8 +6,7 @@
             [ring.util.http-response :refer :all]
             [clojure.core.async :as a]
             [schema.core :as s]
-            [compojure.api.test-utils :refer [call]]
-            [jsonista.core :as j])
+            [compojure.api.test-utils :refer [call]])
   (:import (clojure.lang ExceptionInfo)))
 
 (defn has-body [expected]
@@ -299,5 +298,3 @@
 
       spec => (contains
                 {:paths {}}))))
-
-(j/object-mapper)

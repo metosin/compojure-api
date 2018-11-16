@@ -10,7 +10,8 @@
             [spec-tools.data-spec :as ds]
             [spec-tools.core :as st]
             [compojure.api.validator :as validator]
-            [spec-tools.transform :as stt])
+            [spec-tools.transform :as stt]
+            [compojure.api.exception :as ex])
   (:import (org.joda.time DateTime)))
 
 (s/def ::kikka keyword?)
@@ -54,17 +55,20 @@
         (c! {:body-params invalid-value
              ::request/coercion :spec})
         (catch Exception e
-          (ex-data e) => (contains {:type :compojure.api.exception/request-validation
-                                    :coercion (coercion/resolve-coercion :spec)
-                                    :in [:request :body-params]
-                                    :spec st/spec?
-                                    :value invalid-value
-                                    :problems [{:in [:kikka]
-                                                :path [:kikka]
-                                                :pred `keyword?
-                                                :val "kukka"
-                                                :via [::spec ::kikka]}]
-                                    :request (contains {:body-params {:kikka "kukka"}})}))))
+          (ex-data e) => (contains
+                           {:type :compojure.api.exception/request-validation
+                            :coercion (coercion/resolve-coercion :spec)
+                            :in [:request :body-params]
+                            :spec st/spec?
+                            :value invalid-value
+                            :problems (just {::s/problems [{:in [:kikka]
+                                                            :path [:kikka]
+                                                            :pred `keyword?
+                                                            :val "kukka"
+                                                            :via [::spec ::kikka]}]
+                                             ::s/spec st/spec?
+                                             ::s/value invalid-value})
+                            :request (contains {:body-params {:kikka "kukka"}})}))))
 
     (fact "coercion also unforms"
       (let [spec (s/or :int int? :keyword keyword?)
@@ -505,3 +509,36 @@
         [status body] (get* app "/product/1/foo")]
     status => 200
     body => 1))
+
+(comment
+  (require '[expound.alpha])
+
+  (facts "custom spec printer"
+    (let [printer (expound.alpha/custom-printer {:theme :figwheel-theme, :print-specs? false})
+          app (api
+                {:coercion :spec
+                 :exceptions {:handlers
+                              {::ex/request-validation
+                               (fn [e data request]
+                                 (printer (:problems data))
+                                 (ex/request-validation-handler e data request))
+                               ::ex/response-validation
+                               (fn [e data request]
+                                 (printer (:problems data))
+                                 (ex/response-validation-handler e data request))}}}
+                (POST "/math" []
+                  :body-params [x :- int?, y :- int?]
+                  :return {:total pos-int?}
+                  (ok {:total (+ x y)})))]
+      (fact "success"
+        (let [[status body] (post* app "/math" (json-string {:x 1, :y 2}))]
+          status => 200
+          body => {:total 3}))
+
+      (fact "request failure"
+        (let [[status] (post* app "/math" (json-string {:x 1, :y "2"}))]
+          status => 400))
+
+      (fact "response failure"
+        (let [[status] (post* app "/math" (json-string {:x 1, :y -2}))]
+          status => 500)))))

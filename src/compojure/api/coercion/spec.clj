@@ -112,9 +112,10 @@
   (make-open [_ spec] spec)
 
   (encode-error [_ error]
-    (-> error
-        (update :spec (comp str s/form))
-        (update :problems (partial mapv #(update % :pred stringify-pred)))))
+    (let [problems (-> error :problems ::s/problems)]
+      (-> error
+          (update :spec (comp str s/form))
+          (assoc :problems (mapv #(update % :pred stringify-pred) problems)))))
 
   (coerce-request [_ spec value type format _]
     (let [spec (maybe-memoized-specify spec)
@@ -129,7 +130,7 @@
                 (let [problems (st/explain-data spec value transformer)]
                   (cc/map->CoercionError
                     {:spec spec
-                     :problems (::s/problems problems)}))
+                     :problems problems}))
                 (s/unform spec conformed)))))
         value)))
 
