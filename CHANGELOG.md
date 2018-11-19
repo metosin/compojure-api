@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha28 (2018-11-19)
 
 * Expose full `clojure.spec` problems for exception handlers, to use pretty-printers like [expound](https://github.com/bhb/expound):
 
