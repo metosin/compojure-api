@@ -1,3 +1,45 @@
+## UNRELEASED
+
+* Expose full `clojure.spec` problems for exception handlers, to use pretty-printers like [expound](https://github.com/bhb/expound):
+
+```clj
+(require '[compojure.api.sweet :refer :all])
+(require '[ring.util.http-response :refer :all])
+(require '[compojure.api.exception :as ex])
+(require '[expound.alpha :as expound])
+
+(def printer
+  (expound/custom-printer
+    {:theme :figwheel-theme, :print-specs? false}))
+
+(def app
+  (api
+    {:coercion :spec
+     :exceptions
+     {:handlers
+      {::ex/request-validation
+       (fn [e data request]
+         (printer (:problems data))
+         (ex/request-validation-handler e data request))
+       ::ex/response-validation
+       (fn [e data request]
+         (printer (:problems data))
+         (ex/response-validation-handler e data request))}}}
+
+    (GET "/math" []
+      :query-params [x :- int?, y :- int?]
+      :return {:total pos-int?}
+      (ok {:total (+ x y)}))))
+```
+
+* updated deps:
+
+```clj
+[ring/ring-core "1.7.1"] is available but we use "1.7.0"
+[metosin/spec-tools "0.8.2"] is available but we use "0.8.0"
+[metosin/ring-http-response "0.9.1"] is available but we use "0.9.0"
+```
+
 ## 2.0.0-alpha27 (2018-10-22)
 
 * **BREAKING**: dropped support for Clojure 1.8.0
