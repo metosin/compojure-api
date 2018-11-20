@@ -40,7 +40,7 @@
                                   [reloaded.repl "0.2.4"]
                                   [metosin/muuntaja-msgpack "0.6.1"]
                                   [metosin/muuntaja-yaml "0.6.1"]
-                                  [org.immutant/immutant "2.1.10" :exclusions [joda-time org.slf4j/slf4j-api]]
+                                  [org.immutant/web "2.1.10" :exclusions [joda-time org.slf4j/slf4j-api]]
                                   [http-kit "2.3.0"]
                                   [criterium "0.4.4"]]
                    :test-paths ["test19"]
