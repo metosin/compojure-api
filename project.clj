@@ -41,7 +41,7 @@
                                   [metosin/muuntaja-msgpack "0.6.1"]
                                   ;; FIXME: https://github.com/amalloy/ordered/pull/37
                                   [metosin/muuntaja-yaml "0.6.1" :exclusions [org.flatland/ordered]]
-                                  [metosin.forks/ordered "1.5.7"]
+                                  [org.flatland/ordered "1.5.7"]
                                   [org.immutant/web "2.1.10" :exclusions [joda-time org.slf4j/slf4j-api]]
                                   [http-kit "2.3.0"]
                                   [criterium "0.4.4"]]
