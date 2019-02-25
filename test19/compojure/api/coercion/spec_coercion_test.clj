@@ -224,7 +224,7 @@
         body => (contains
                   {:coercion "spec"
                    :in ["request" "query-params"]
-                   :problems (two-of anything)
+                   :problems (one-of anything)
                    :spec string?
                    :type "compojure.api.exception/request-validation"
                    :value {:x "1", :y "kaks"}})))
