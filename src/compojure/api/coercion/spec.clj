@@ -5,7 +5,6 @@
             [spec-tools.data-spec :as ds]
             [clojure.walk :as walk]
             [compojure.api.coercion.core :as cc]
-            [spec-tools.transform :as stt]
             [spec-tools.swagger.core :as swagger]
             [compojure.api.common :as common])
   (:import (clojure.lang IPersistentMap)
@@ -15,24 +14,18 @@
 
 (def string-transformer
   (st/type-transformer
-    {:name :string
-     :decoders (merge
-                 stt/string-type-decoders
-                 stt/strip-extra-keys-type-decoders)
-     :encoders stt/string-type-encoders
-     :default-encoder stt/any->any}))
+    st/string-transformer
+    st/strip-extra-keys-transformer
+    {:name :strict-string}))
 
 (def json-transformer
   (st/type-transformer
-    {:name :json
-     :decoders (merge
-                 stt/json-type-decoders
-                 stt/strip-extra-keys-type-decoders)
-     :encoders stt/json-type-encoders
-     :default-encoder stt/any->any}))
+    st/json-transformer
+    st/strip-extra-keys-transformer
+    {:name :strict-json}))
 
 (def default-transformer
-  (st/type-transformer {}))
+  (st/type-transformer))
 
 (defprotocol Specify
   (specify [this name]))

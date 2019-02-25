@@ -1,7 +1,6 @@
 (ns compojure.api.resource
   (:require [compojure.api.routes :as routes]
             [compojure.api.coercion :as coercion]
-            [compojure.api.request :as request]
             [compojure.api.methods :as methods]
             [ring.swagger.common :as rsc]
             [schema.core :as s]

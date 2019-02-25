@@ -1,7 +1,6 @@
 (ns compojure.api.coercion.spec-coercion-test
   (:require [midje.sweet :refer :all]
             [clojure.spec.alpha :as s]
-            [spec-tools.spec :as spec]
             [compojure.api.test-utils :refer :all]
             [compojure.api.sweet :refer :all]
             [compojure.api.request :as request]

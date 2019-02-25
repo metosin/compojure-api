@@ -1,6 +1,5 @@
 (ns compojure.api.swagger
   (:require [compojure.api.core :as c]
-            [compojure.api.common :as common]
             [compojure.api.middleware :as mw]
             [compojure.api.request :as request]
             [ring.util.http-response :refer [ok]]

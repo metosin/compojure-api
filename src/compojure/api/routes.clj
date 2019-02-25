@@ -2,7 +2,6 @@
   (:require [compojure.core :refer :all]
             [clojure.string :as string]
             [compojure.api.methods :as methods]
-            [compojure.api.middleware :as mw]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
             [compojure.api.impl.json :as json]
@@ -73,8 +72,8 @@
           make-method-path-fn (fn [m] [path m info])]
       (if (-> this filter-childs :childs seq)
         (vec
-         (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
-           [(->paths path p) m (rsc/deep-merge info i)]))
+          (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
+            [(->paths path p) m (rsc/deep-merge info i)]))
         (into [] (cond
                    (and path method) [(make-method-path-fn method)]
                    path (mapv make-method-path-fn methods/all-methods))))))
@@ -166,14 +165,14 @@
 
 (defn all-paths [routes]
   (reduce
-   (fn [acc [path method info]]
-     (let [public-info (get info :public {})]
-       (update-in acc [path method]
-                  (fn [old-info]
-                    (let [public-info (or old-info public-info)]
-                      (ensure-path-parameters path public-info))))))
-   (linked/map)
-   routes))
+    (fn [acc [path method info]]
+      (let [public-info (get info :public {})]
+        (update-in acc [path method]
+                   (fn [old-info]
+                     (let [public-info (or old-info public-info)]
+                       (ensure-path-parameters path public-info))))))
+    (linked/map)
+    routes))
 
 (defn route-lookup-table [routes]
   (let [entries (for [[path endpoints] (all-paths routes)

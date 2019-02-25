@@ -1,9 +1,7 @@
 (ns compojure.api.coercion.schema
   (:require [schema.coerce :as sc]
             [schema.utils :as su]
-            [linked.core :as linked]
             [ring.swagger.coerce :as coerce]
-            [compojure.api.request :as request]
             [compojure.api.coercion.core :as cc]
             [clojure.walk :as walk]
             [schema.core :as s]
@@ -31,7 +29,7 @@
     error))
 
 (def memoized-coercer
-  (common/fifo-memoize sc/coercer 10000))
+  (common/fifo-memoize sc/coercer 1000))
 
 ;; don't use coercion for certain types
 (defmulti coerce-response? identity :default ::default)
