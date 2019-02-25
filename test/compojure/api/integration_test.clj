@@ -1101,7 +1101,7 @@
                     :path-params [id ::id]
                     :name :pong
                     identity))]
-      (eval app') => (throws #"did you mean"))))
+      (eval app') => (throws RuntimeException))))
 
 (fact "swagger-spec-path"
   (fact "defaults to /swagger.json"
