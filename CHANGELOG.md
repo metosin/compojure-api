@@ -1,4 +1,4 @@
-## UNRELEASED
+## 2.0.0-alpha29 (2018-02-26)
 
 * Spec Coercion enchancements
   * See [spec-tools 0.9.0 changelog](https://github.com/metosin/spec-tools/blob/master/CHANGELOG.md) 
@@ -10,7 +10,7 @@
 [prismatic/schema "1.1.10"] is available but we use "1.1.9"
 [metosin/muuntaja "0.6.3"] is available but we use "0.6.1"
 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.8"] is available but we use "2.9.7"
-[metosin/spec-tools "0.9.0-SNAPSHOT"] is available but we use "0.8.2"
+[metosin/spec-tools "0.9.0"] is available but we use "0.8.2"
 ```
 
 ## 2.0.0-alpha28 (2018-11-19)

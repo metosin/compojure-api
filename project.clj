@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha28"
+(defproject metosin/compojure-api "2.0.0-alpha29"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -13,7 +13,7 @@
                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.9.8"]
                  [ring/ring-core "1.7.1" :exclusions [clj-time commons-codec]]
                  [compojure "1.6.1" :exclusions [joda-time]]
-                 [metosin/spec-tools "0.9.0-SNAPSHOT"]
+                 [metosin/spec-tools "0.9.0"]
                  [metosin/ring-http-response "0.9.1" :exclusions [joda-time]]
                  [metosin/ring-swagger-ui "2.2.10"]
                  [metosin/ring-swagger "0.26.1" :exclusions [joda-time]]]
