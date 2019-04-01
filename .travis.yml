@@ -1,6 +1,6 @@
 sudo: false
 language: clojure
-lein: 2.8.1
+lein: 2.9.1
 script: lein do clean, all midje, all check
 jdk:
 #  - openjdk7
