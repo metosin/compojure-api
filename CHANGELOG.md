@@ -1,3 +1,14 @@
+## 2.0.0-alpha30 (2019-04-01)
+
+* Correct names for `:json` & `:string` coercion type transformers
+* Update dependencies:
+
+```clj
+[metosin/spec-tools "0.9.1"] is available but we use "0.9.0"
+[metosin/muuntaja "0.6.4"] is available but we use "0.6.3"
+[metosin/ring-swagger "0.26.2"] is available but we use "0.26.1"
+```
+
 ## 2.0.0-alpha29 (2018-02-26)
 
 * Spec Coercion enchancements
