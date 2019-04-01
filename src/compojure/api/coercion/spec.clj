@@ -16,16 +16,17 @@
   (st/type-transformer
     st/string-transformer
     st/strip-extra-keys-transformer
-    {:name :strict-string}))
+    {:name :string}))
 
 (def json-transformer
   (st/type-transformer
     st/json-transformer
     st/strip-extra-keys-transformer
-    {:name :strict-json}))
+    {:name :json}))
 
-(def default-transformer
-  (st/type-transformer))
+(defn default-transformer
+  ([] (default-transformer :default))
+  ([name] (st/type-transformer {:name name})))
 
 (defprotocol Specify
   (specify [this name]))
@@ -134,12 +135,15 @@
     (cc/coerce-request this spec value type format request)))
 
 (def default-options
-  {:body {:default default-transformer
+  {:body {:default (default-transformer)
           :formats {"application/json" json-transformer
                     "application/msgpack" json-transformer
                     "application/x-yaml" json-transformer}}
    :string {:default string-transformer}
-   :response {:default default-transformer}})
+   :response {:default (default-transformer)
+              :formats {"application/json" (default-transformer :json)
+                        "application/msgpack" (default-transformer :json)
+                        "application/x-yaml" (default-transformer :json)}}})
 
 (defn create-coercion [options]
   (->SpecCoercion :spec options))
