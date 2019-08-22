@@ -10,7 +10,7 @@
      {:ui "/"
       :spec "/swagger.json"
       :data {:info {:title "Compojure-api demo"
-                    :description "Demontrating 2.0.0 (alpha) coersion"}
+                    :description "Demonstrating 2.0.0 (alpha) coercion"}
              :tags [{:name "schema", :description "math with schema coercion"}
                     {:name "spec", :description "math with clojure.spec coercion"}
                     {:name "data-spec", :description "math with data-specs coercion"}]}}}
