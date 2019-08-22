@@ -9,7 +9,7 @@
 [metosin/ring-swagger "0.26.2"] is available but we use "0.26.1"
 ```
 
-## 2.0.0-alpha29 (2018-02-26)
+## 2.0.0-alpha29 (2019-02-26)
 
 * Spec Coercion enchancements
   * See [spec-tools 0.9.0 changelog](https://github.com/metosin/spec-tools/blob/master/CHANGELOG.md) 
