@@ -101,7 +101,7 @@
                         (into
                           (empty responses)
                           (for [[k response] responses]
-                            [k (update response :schema maybe-memoized-specify)])))))
+                            [k (update response :schema #(some-> % maybe-memoized-specify))])))))
 
   (make-open [_ spec] spec)
 

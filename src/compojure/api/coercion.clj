@@ -24,8 +24,8 @@
     (satisfies? cc/Coercion coercion) coercion
     :else (throw (ex-info (str "invalid coercion " coercion) {:coercion coercion}))))
 
-(defn get-apidocs [mayby-coercion spec info]
-  (if-let [coercion (resolve-coercion mayby-coercion)]
+(defn get-apidocs [maybe-coercion spec info]
+  (if-let [coercion (resolve-coercion maybe-coercion)]
     (cc/get-apidocs coercion spec info)))
 
 (defn coerce-request! [model in type keywordize? open? request]
