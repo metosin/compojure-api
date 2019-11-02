@@ -1,4 +1,4 @@
-## Unreleased
+## 1.1.13 (2019-11-02)
 
 * **BREAKING**: Drop support for Java 6, Java 7.
 * Support Java 13.
