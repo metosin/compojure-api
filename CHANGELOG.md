@@ -1,5 +1,9 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
+## Unreleased
+
+* Update dependencies.
+
 ## 2.0.0-alpha30 (2019-04-01)
 
 * Correct names for `:json` & `:string` coercion type transformers
