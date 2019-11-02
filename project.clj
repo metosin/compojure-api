@@ -12,7 +12,7 @@
                  [prismatic/schema "1.1.6"]
                  [org.tobereplaced/lettercase "1.0.0"]
                  [frankiesardo/linked "1.2.9"]
-                 [ring-middleware-format "0.7.2"]
+                 [ring-middleware-format "0.7.4"]
                  [metosin/ring-http-response "0.9.0"]
                  [metosin/ring-swagger "0.24.1"]
                  [metosin/ring-swagger-ui "2.2.8"]]
