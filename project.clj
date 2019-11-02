@@ -20,7 +20,8 @@
 
                  ;; Fix dependency conflicts
                  [clj-time "0.15.2"]
-                 [joda-time "2.10.5"]]
+                 [joda-time "2.10.5"]
+                 [riddley "0.2.0"]]
   :pedantic? :abort
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
