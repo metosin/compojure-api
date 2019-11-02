@@ -1325,19 +1325,25 @@
 (defmethod compojure.api.meta/restructure-param ::deprecated-parameters-test [_ _ acc]
   (assoc-in acc [:parameters :parameters :query] {:a String}))
 
+(defn msg-or-cause-msg [msg-re]
+  (fn [e]
+    ;; In Clojure 1.10+, macroexpansion exceptions get wrapped in another exception.
+    ;; In that case we will look at the cause.
+    (boolean (or (re-find msg-re (.getMessage e))
+                 (re-find msg-re (.getMessage (.getCause e)))))))
+
 (fact "old middlewares restructuring"
 
   (fact ":middlewares"
     (eval '(GET "/foo" []
              ::deprecated-middlewares-test true
              (ok)))
-    => (throws AssertionError #":middlewares is deprecated with 1.0.0, use :middleware instead."))
-
+    => (throws (msg-or-cause-msg #":middlewares is deprecated with 1.0.0, use :middleware instead.")))
   (fact ":parameters"
     (eval '(GET "/foo" []
              ::deprecated-parameters-test true
              (ok)))
-    => (throws AssertionError #":parameters is deprecated with 1.0.0, use :swagger instead.")))
+    => (throws (msg-or-cause-msg #":parameters is deprecated with 1.0.0, use :swagger instead."))))
 
 (fact "using local symbols for restructuring params"
   (let [responses {400 {:schema {:fail s/Str}}}

@@ -1,7 +1,7 @@
 ## Unreleased
 
 * **BREAKING**: Drop support for Java 6, Java 7.
-* Update dependencies to work with more modern versions of Java.
+* Support Java 13.
 
 ## 1.1.12 (27.2.2018)
 
