@@ -1,3 +1,8 @@
+## Unreleased
+
+* **BREAKING**: Drop support for Java 6, Java 7.
+* Support Java 13.
+
 ## 1.1.12 (27.2.2018)
 
 Maintenance release, adding several patches from 2.0 branch.
