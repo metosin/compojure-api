@@ -1,5 +1,7 @@
 # Compojure-api [![Build Status](https://api.travis-ci.org/metosin/compojure-api.svg?branch=master)](https://travis-ci.org/metosin/compojure-api)
 
+**Psst!** If you're starting a new project, why not try out [reitit](https://github.com/metosin/reitit)?
+
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
 - [Schema](https://github.com/Prismatic/schema) & [clojure.spec](https://clojure.org/about/spec) (2.0.0) for input & output data coercion
