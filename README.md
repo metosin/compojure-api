@@ -176,4 +176,4 @@ lein new compojure-api my-api +clojure-test
 
 Copyright © 2014-2019 [Metosin Oy](http://www.metosin.fi) and contributors.
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the Eclipse Public License, see `LICENSE`.
