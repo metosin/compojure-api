@@ -15,7 +15,7 @@
                  [compojure "1.6.1" ]
                  [metosin/spec-tools "0.10.0"]
                  [metosin/ring-http-response "0.9.1"]
-                 [metosin/ring-swagger-ui "2.2.10"]
+                 [metosin/ring-swagger-ui "3.24.3"]
                  [metosin/ring-swagger "0.26.2"]
 
                  ;; Fix dependency conflicts
