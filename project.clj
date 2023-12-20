@@ -56,7 +56,23 @@
             :target "gh-pages/doc"
             :src-uri "http://github.com/metosin/compojure-api/blob/master/"
             :src-uri-prefix "#L"}
-  :deploy-repositories [["releases" :clojars]]
+  :deploy-repositories [["snapshot" {:url "https://clojars.org/repo"
+                                     :username [:gpg :env/clojars_user]
+                                     :password [:gpg :env/clojars_token]
+                                     :sign-releases false}]
+                        ["releases" {:url "https://clojars.org/repo"
+                                     :username [:gpg :env/clojars_user]
+                                     :password [:gpg :env/clojars_token]
+                                     :sign-releases false}]]
+  :release-tasks [["clean"]
+                  ["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag" "--no-sign"]
+                  ["deploy" "release"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]]
   :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.10"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]

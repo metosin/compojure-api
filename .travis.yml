@@ -1,9 +1,0 @@
-sudo: false
-language: clojure
-script: lein do clean, all midje, all check
-jdk:
-  - openjdk8
-  - openjdk13
-cache:
-  directories:
-  - $HOME/.m2
