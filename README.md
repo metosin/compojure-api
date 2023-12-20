@@ -1,9 +1,7 @@
 # Compojure-api 
 
-[![Build Status](https://github.com/metosin/compojure-api/actions/workflows/build.yml/badge.svg)](https://github.com/metosin/compojure-api/actions)
-[![cljdoc badge](https://cljdoc.org/badge/metosin/compojure-api)](https://cljdoc.org/d/metosin/compojure-api/)
+[cljdoc 1.1.13](https://cljdoc.org/d/metosin/compojure-api/1.1.13/doc/readme)
 [Clojars 1.1.13](https://clojars.org/metosin/compojure-api/versions/1.1.13)
-[![Clojars Project](https://img.shields.io/clojars/v/metosin/compojure-api.svg)](https://clojars.org/metosin/compojure-api)
 [![Slack](https://img.shields.io/badge/clojurians-ring_swagger-blue.svg?logo=slack)](https://clojurians.slack.com/messages/ring-swagger/)
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
