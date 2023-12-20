@@ -1,0 +1,91 @@
+---
+name: Run tests
+
+on:
+  push:
+    branches: [master, "1.1.x"]
+  pull_request:
+    branches: [master, "1.1.x"]
+
+env:
+  ACTIONS_CACHE_VERSION: 0
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        jdk: [8, 11, 17, 21]
+
+    name: Java ${{ matrix.jdk }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Java ${{ matrix.jdk }}
+        uses: actions/setup-java@v3.11.0
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.jdk }}
+      - name: Maven Cache
+        id: maven-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+          key: m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-${{ hashFiles('project.clj') }}-${{ matrix.jdk }}
+          restore-keys: |
+            m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-${{ hashFiles('project.clj') }}-
+            m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          lein: latest
+      - name: Run tests
+        run: lein do clean, all midje, all check
+  deploy:
+    concurrency: deploy
+    needs: test
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/1.1.x') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Maven Cache
+        id: maven-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+          key: m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-${{ hashFiles('project.clj') }}-${{ matrix.jdk }}
+          restore-keys: |
+            m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-${{ hashFiles('project.clj') }}-
+            m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-
+      - name: Prepare java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - name: deploy
+        env: 
+          CLOJARS_USER: ${{ secrets.CLOJARS_USER }}
+          CLOJARS_TOKEN: ${{ secrets.CLOJARS_TOKEN }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          if [[ "$COMMIT_MSG" == "Release :major" ]]; then
+            lein release :major
+          elif [[ "$COMMIT_MSG" == "Release :minor" ]]; then
+            lein release :minor
+          elif [[ "$COMMIT_MSG" == "Release :patch" ]]; then
+            lein release :patch
+          elif [[ "$COMMIT_MSG" == "Release :alpha" ]]; then
+            lein release :alpha
+          elif [[ "$COMMIT_MSG" == "Release :beta" ]]; then
+            lein release :beta
+          elif [[ "$COMMIT_MSG" == "Release :rc" ]]; then
+            lein release :rc
+          else
+            lein deploy snapshot
+          fi
