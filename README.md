@@ -1,4 +1,9 @@
-# Compojure-api [![Build Status](https://api.travis-ci.org/metosin/compojure-api.svg?branch=master)](https://travis-ci.org/metosin/compojure-api) [![Downloads](https://jarkeeper.com/metosin/compojure-api/downloads.svg)](https://jarkeeper.com/metosin/compojure-api) [![Dependencies Status](https://jarkeeper.com/metosin/compojure-api/status.svg)](https://jarkeeper.com/metosin/compojure-api)
+# Compojure-api 
+
+[![Build Status](https://github.com/metosin/compojure-api/actions/workflows/build.yml/badge.svg)](https://github.com/metosin/compojure-api/actions)
+[![cljdoc badge](https://cljdoc.org/badge/metosin/compojure-api)](https://cljdoc.org/d/metosin/compojure-api/)
+[![Clojars Project](https://img.shields.io/clojars/v/metosin/compojure-api.svg)](https://clojars.org/metosin/compojure-api)
+[![Slack](https://img.shields.io/badge/clojurians-ring-swagger-blue.svg?logo=slack)](https://clojurians.slack.com/messages/ring-swagger/)
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
