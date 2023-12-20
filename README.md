@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/metosin/compojure-api/actions/workflows/build.yml/badge.svg)](https://github.com/metosin/compojure-api/actions)
 [![cljdoc badge](https://cljdoc.org/badge/metosin/compojure-api)](https://cljdoc.org/d/metosin/compojure-api/)
-[![Clojars Project](https://img.shields.io/badge/%5Bmetosin%2Fcompojure-api%20%221.1.13%22%5D)](https://clojars.org/metosin/compojure-api/versions/1.1.13)
+[Clojars 1.1.13](https://clojars.org/metosin/compojure-api/versions/1.1.13)
 [![Clojars Project](https://img.shields.io/clojars/v/metosin/compojure-api.svg)](https://clojars.org/metosin/compojure-api)
 [![Slack](https://img.shields.io/badge/clojurians-ring_swagger-blue.svg?logo=slack)](https://clojurians.slack.com/messages/ring-swagger/)
 
