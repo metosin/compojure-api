@@ -7,9 +7,9 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 - [API Docs](https://cljdoc.org/d/metosin/compojure-api/1.1.13/doc/readme) & [Wiki](https://github.com/metosin/compojure-api/wiki)
 - [Schema](https://github.com/Prismatic/schema) for input & output data coercion
-- [Swagger](http://swagger.io/) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
+- [Swagger](https://swagger.io/) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
-- Client negotiable formats: [JSON](http://www.json.org/), [EDN](https://github.com/edn-format/edn), [YAML](http://yaml.org/) & [Transit](https://github.com/cognitect/transit-format) (JSON & MessagePack)
+- Client negotiable formats: [JSON](https://www.json.org/), [EDN](https://github.com/edn-format/edn), [YAML](https://yaml.org/) & [Transit](https://github.com/cognitect/transit-format) (JSON & MessagePack)
 - Data-driven [resources](https://github.com/metosin/compojure-api/wiki/Resources-and-Liberator)
 - [Bi-directional](https://github.com/metosin/compojure-api/wiki/Routing#bi-directional-routing) routing
 - Bundled middleware for common api behavior ([exception handling](https://github.com/metosin/compojure-api/wiki/Exception-handling), parameters & formats)
@@ -23,7 +23,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 ### [Check wiki for documentation](https://github.com/metosin/compojure-api/wiki)
 
-[Clojurians slack](https://clojurians.slack.com/) ([join](http://clojurians.net/)) has a channel [#ring-swagger](https://clojurians.slack.com/messages/ring-swagger/) for talk about any libraries using Ring-swagger. You can also ask questions about Compojure-api and Ring-swagger on other channels at Clojurians Slack or at #clojure on Freenode IRC (mention `compojure-api` or `ring-swagger` to highlight us).
+[Clojurians slack](https://clojurians.slack.com/) ([join](https://clojurians.net/)) has a channel [#ring-swagger](https://clojurians.slack.com/messages/ring-swagger/) for talk about any libraries using Ring-swagger. You can also ask questions about Compojure-api and Ring-swagger on other channels at Clojurians Slack or at #clojure on Freenode IRC (mention `compojure-api` or `ring-swagger` to highlight us).
 
 ## Examples
 
@@ -101,6 +101,6 @@ lein new compojure-api my-api +clojure-test
 
 ## License
 
-Copyright © 2014-2016 [Metosin Oy](http://www.metosin.fi)
+Copyright © 2014-2016 [Metosin Oy](https://www.metosin.fi)
 
 Distributed under the Eclipse Public License, the same as Clojure.
