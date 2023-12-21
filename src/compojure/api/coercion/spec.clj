@@ -119,7 +119,7 @@
         (let [coerced (st/coerce spec value transformer)]
           (if (s/valid? spec coerced)
             coerced
-            (let [conformed (st/conform spec coerced transformer)]
+            (let [conformed (st/conform spec value transformer)]
               (if (s/invalid? conformed)
                 (let [problems (st/explain-data spec coerced transformer)]
                   (cc/map->CoercionError
