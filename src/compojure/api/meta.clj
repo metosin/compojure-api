@@ -948,15 +948,22 @@
                             bindings?))
                   "A context cannot be :static and also provide bindings. Either push bindings into endpoints or remove :static.")
 
-        configured-dynamic? (-> info :public :dynamic)
+        configured-dynamic? (or (-> info :public :dynamic)
+                                (true? (get-in (meta *ns*) [:metosin/compojure-api :dynamic-contexts]))
+                                (contains?
+                                  (some-> (System/getProperty "compojure.api.meta.dynamic-context-namespaces")
+                                          edn/read-string
+                                          set)
+                                  (ns-name *ns*)))
 
         configured-static? (or (-> info :public :static)
                                (when-not configured-dynamic?
-                                 (contains?
-                                   (some-> (System/getProperty "compojure.api.meta.static-context-namespaces")
-                                           edn/read-string
-                                           set)
-                                   (ns-name *ns*))))
+                                 (or (true? (get-in (meta *ns*) [:metosin/compojure-api :static-contexts]))
+                                     (contains?
+                                       (some-> (System/getProperty "compojure.api.meta.static-context-namespaces")
+                                               edn/read-string
+                                               set)
+                                       (ns-name *ns*)))))
 
         static? (or configured-static?
                     (and (not configured-dynamic?)
