@@ -667,17 +667,21 @@
                          'compojure.api.sweet/resource
                          'compojure.api.resource/resource))
 
-(defn- static-endpoint? [&env body]
-  (and (seq? body)
+(def routes-vars #{'compojure.api.sweet/routes
+                   'compojure.api.resource/routes})
+
+(declare static-body?)
+
+(defn- static-endpoint? [&env form]
+  (and (seq? form)
        (boolean
-         (let [sym (first body)]
+         (let [sym (first form)]
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (endpoint-vars
-                   (symbol v)))))))))
-
-(declare static-body?)
+                 (or (endpoint-vars (symbol v))
+                     (and (routes-vars (symbol v))
+                          (static-body? &env (next form)))))))))))
 
 (def context-vars (into #{}
                         (mapcat (fn [n]
@@ -789,6 +793,8 @@
 (defn- static-body? [&env body]
   (every? #(or (static-endpoint? &env %)
                (contains? &env %) ;;local
+               (when (symbol? %)
+                 (var? (resolve &env %))) ;;var deref
                ((some-fn keyword? number? boolean?) %)
                (static-cond? &env %)
                (static-context? &env %)
