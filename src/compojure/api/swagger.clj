@@ -28,12 +28,12 @@
   (swagger2/transform-operations routes/non-nil-routes swagger))
 
 (defn swagger-ui [options]
-  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-ui takes just one map as argument, with `:path` for the path.")
+  (assert (map? options) "Since 1.1.11, compojure.api.swagger/swagger-ui takes just one map as argument, with `:path` for the path.")
   (c/undocumented
     (swagger-ui/swagger-ui options)))
 
 (defn swagger-docs [{:keys [path] :or {path "/swagger.json"} :as options}]
-  (assert (map? options) "Since 1.2.0, compojure.api.swagger/swagger-docs takes just one map as argument, with `:path` for the path.")
+  (assert (map? options) "Since 1.1.11, compojure.api.swagger/swagger-docs takes just one map as argument, with `:path` for the path.")
   (let [extra-info (dissoc options :path)]
     (c/GET path request
       :no-doc true
