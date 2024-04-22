@@ -30,14 +30,13 @@
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.4.0"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
-                             [lein-midje "3.2.1"]
                              [lein-ring "0.12.5"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.10.1"]
+                                  [metosin/testit "0.4.1"]
                                   [org.clojure/core.async "0.6.532"]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
                                   [peridot "0.5.2"]
-                                  [midje "1.9.9"]
                                   [com.rpl/specter "1.1.3"]
                                   [com.stuartsierra/component "0.4.0"]
                                   [expound "0.8.2"]
@@ -90,7 +89,7 @@
   :aliases {"all" ["with-profile" "dev:dev,async"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
-            "test-ancient" ["midje"]
+            "test-ancient" ["test"]
             "perf" ["with-profile" "default,dev,perf"]
             "deploy!" ^{:doc "Recompile sources, then deploy if tests succeed."}
-            ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
+            ["do" ["clean"] ["test"] ["deploy" "clojars"]]})

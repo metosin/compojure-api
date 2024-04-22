@@ -1,7 +1,8 @@
 (ns compojure.api.sweet-test
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
-            [midje.sweet :refer :all]
+            [testit.core :refer :all]
+            [clojure.test :refer [deftest]]
             [ring.mock.request :refer :all]
             [schema.core :as s]
             [ring.swagger.validator :as v]))
@@ -65,7 +66,7 @@
         :return [String]
         identity))))
 
-(facts "api documentation"
+(deftest api-documentation-test
   (fact "details are generated"
 
     (extract-paths app)
@@ -210,7 +211,7 @@
       (fact "spec is valid"
         (v/validate spec) => nil))))
 
-(fact "produces & consumes"
+(deftest produces-and-consumes-test
   (let [app (api
               {:swagger {:spec "/swagger.json"
                          :data {:produces ["application/json" "application/edn"]

@@ -1,6 +1,6 @@
 (ns compojure.api.coercion.schema-coercion-test
-  (:require [midje.sweet :refer :all]
-            [schema.core :as s]
+  (:require [schema.core :as s]
+            [clojure.test :refer [deftest is testing]]
             [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [compojure.api.request :as request]
@@ -10,66 +10,69 @@
             [compojure.api.coercion.core :as cc])
   (:import (schema.utils ValidationError NamedError)))
 
-(fact "stringify-error"
-  (fact "ValidationError"
-    (class (s/check s/Int "foo")) => ValidationError
-    (cs/stringify (s/check s/Int "foo")) => "(not (integer? \"foo\"))"
-    (cs/stringify (s/check {:foo s/Int} {:foo "foo"})) => {:foo "(not (integer? \"foo\"))"})
-  (fact "NamedError"
-    (class (s/check (s/named s/Int "name") "foo")) => NamedError
-    (cs/stringify (s/check (s/named s/Int "name") "foo")) => "(named (not (integer? \"foo\")) \"name\")")
-  (fact "Schema"
-    (cs/stringify {:total (s/constrained s/Int pos?)}) => {:total "(constrained Int pos?)"}))
+(deftest stringify-error-test
+  (testing "ValidationError"
+    (is (= ValidationError (class (s/check s/Int "foo"))))
+    (is (= "(not (integer? \"foo\"))" (cs/stringify (s/check s/Int "foo"))))
+    (is (= {:foo "(not (integer? \"foo\"))"} (cs/stringify (s/check {:foo s/Int} {:foo "foo"})))))
+  (testing "NamedError"
+    (is (= NamedError (class (s/check (s/named s/Int "name") "foo"))))
+    (is (= "(named (not (integer? \"foo\")) \"name\")" (cs/stringify (s/check (s/named s/Int "name") "foo")))))
+  (testing "Schema"
+    (is (= {:total "(constrained Int pos?)"} (cs/stringify {:total (s/constrained s/Int pos?)})))))
 
-(s/defschema Schema {:kikka s/Keyword})
+(s/defschema Schema2 {:kikka s/Keyword})
 
 (def valid-value {:kikka :kukka})
 (def invalid-value {:kikka "kukka"})
 
-(fact "request-coercion"
-  (let [c! #(coercion/coerce-request! Schema :body-params :body false false %)]
+(deftest request-coercion-test
+  (let [c! #(coercion/coerce-request! Schema2 :body-params :body false false %)]
 
-    (fact "default coercion"
-      (c! {:body-params valid-value}) => valid-value
-      (c! {:body-params invalid-value}) => throws
+    (testing "default coercion"
+      (is (= valid-value (c! {:body-params valid-value})))
+      (is (thrown? Exception (c! {:body-params invalid-value})))
       (try
         (c! {:body-params invalid-value})
         (catch Exception e
-          (ex-data e) => (just {:type :compojure.api.exception/request-validation
-                                :coercion (coercion/resolve-coercion :schema)
-                                :in [:request :body-params]
-                                :schema Schema
-                                :value invalid-value
-                                :errors anything
-                                :request {:body-params {:kikka "kukka"}}}))))
+          (is (contains? (ex-data e) :errors))
+          (is (= {:type :compojure.api.exception/request-validation
+                  :coercion (coercion/resolve-coercion :schema)
+                  :in [:request :body-params]
+                  :schema Schema2
+                  :value invalid-value
+                  :request {:body-params {:kikka "kukka"}}}
+                 (select-keys (ex-data e)
+                              [:type :coercion :in :schema :value :request]))))))
 
-    (fact ":schema coercion"
-      (c! {:body-params valid-value
-           ::request/coercion :schema}) => valid-value
-      (c! {:body-params invalid-value
-           ::request/coercion :schema}) => throws)
+    (testing ":schema coercion"
+      (is (= valid-value (c! {:body-params valid-value
+                              ::request/coercion :schema})))
+      (is (thrown? Exception (c! {:body-params invalid-value
+                                  ::request/coercion :schema}))))
 
-    (fact "format-based coercion"
-      (c! {:body-params valid-value
-           :muuntaja/request {:format "application/json"}}) => valid-value
-      (c! {:body-params invalid-value
-           :muuntaja/request {:format "application/json"}}) => valid-value)
+    (testing "format-based coercion"
+      (is (= valid-value
+             (c! {:body-params valid-value
+                  :muuntaja/request {:format "application/json"}})))
+      (is (= valid-value
+             (c! {:body-params invalid-value
+                  :muuntaja/request {:format "application/json"}}))))
 
-    (fact "no coercion"
-      (c! {:body-params valid-value
-           ::request/coercion nil
-           :muuntaja/request {:format "application/json"}}) => valid-value
-      (c! {:body-params invalid-value
-           ::request/coercion nil
-           :muuntaja/request {:format "application/json"}}) => invalid-value)))
+    (testing "no coercion"
+      (is (= valid-value
+             (c! {:body-params valid-value
+                  ::request/coercion nil
+                  :muuntaja/request {:format "application/json"}})))
+      (is (= invalid-value
+             (c! {:body-params invalid-value
+                  ::request/coercion nil
+                  :muuntaja/request {:format "application/json"}}))))))
 
 (defn ok [body]
   {:status 200, :body body})
 
-(defn ok? [body]
-  (contains (ok body)))
-
-(def responses {200 {:schema Schema}})
+(def responses {200 {:schema Schema2}})
 
 (def custom-coercion
   (cs/->SchemaCoercion
@@ -77,62 +80,81 @@
     (-> cs/default-options
         (assoc-in [:response :formats "application/json"] cs/json-coercion-matcher))))
 
-(fact "response-coercion"
-  (let [c! coercion/coerce-response!]
+(deftest response-coercion-test
+  (let [c! coercion/coerce-response!
+        request {}]
 
-    (fact "default coercion"
-      (c! ..request.. (ok valid-value) responses) => (ok? valid-value)
-      (c! ..request.. (ok invalid-value) responses) => (throws)
+    (testing "default coercion"
+      (is (= (ok valid-value)
+             (select-keys (c! request (ok valid-value) responses)
+                          [:status :body])))
+      (is (thrown? Exception (c! request (ok invalid-value) responses)))
       (try
-        (c! ..request.. (ok invalid-value) responses)
+        (c! request (ok invalid-value) responses)
         (catch Exception e
-          (ex-data e) => (contains {:type :compojure.api.exception/response-validation
-                                    :coercion (coercion/resolve-coercion :schema)
-                                    :in [:response :body]
-                                    :schema Schema
-                                    :value invalid-value
-                                    :errors anything
-                                    :request ..request..}))))
+          (is (contains? (ex-data e) :errors))
+          (is (= {:type :compojure.api.exception/response-validation
+                  :coercion (coercion/resolve-coercion :schema)
+                  :in [:response :body]
+                  :schema Schema2
+                  :value invalid-value
+                  :request request}
+                 (select-keys (ex-data e)
+                              [:type :coercion :in :schema :value :request]))))))
 
-    (fact ":schema coercion"
-      (fact "default coercion"
-        (c! {::request/coercion :schema}
-            (ok valid-value)
-            responses) => (ok? valid-value)
-        (c! {::request/coercion :schema}
-            (ok invalid-value)
-            responses) => throws))
+    (testing ":schema coercion"
+      (testing "default coercion"
+        (is (= (ok valid-value)
+               (select-keys
+                 (c! {::request/coercion :schema}
+                     (ok valid-value)
+                     responses)
+                 [:status :body])))
+        (is (thrown? Exception
+                     (c! {::request/coercion :schema}
+                         (ok invalid-value)
+                         responses)))))
 
-    (fact "format-based custom coercion"
-      (fact "request-negotiated response format"
-        (c! irrelevant
-            (ok invalid-value)
-            responses) => throws
-        (c! {:muuntaja/response {:format "application/json"}
-             ::request/coercion custom-coercion}
-            (ok invalid-value)
-            responses) => (ok? valid-value)))
+    (testing "format-based custom coercion"
+      (testing "request-negotiated response format"
+        (is (thrown? Exception
+                     (c! {}
+                         (ok invalid-value)
+                         responses)))
+        (is (= (ok valid-value)
+               (select-keys
+                 (c! {:muuntaja/response {:format "application/json"}
+                      ::request/coercion custom-coercion}
+                     (ok invalid-value)
+                     responses)
+                 [:status :body])))))
 
-    (fact "no coercion"
-      (c! {::request/coercion nil}
-          (ok valid-value)
-          responses) => (ok? valid-value)
-      (c! {::request/coercion nil}
-          (ok invalid-value)
-          responses) => (ok? invalid-value))))
+    (testing "no coercion"
+      (is (= (ok valid-value)
+             (select-keys
+               (c! {::request/coercion nil}
+                   (ok valid-value)
+                   responses)
+               [:status :body])))
+      (is (= (ok invalid-value)
+             (select-keys
+               (c! {::request/coercion nil}
+                   (ok invalid-value)
+                   responses)
+               [:status :body]))))))
 
 (s/defschema X s/Int)
 (s/defschema Y s/Int)
 (s/defschema Total (s/constrained s/Int pos? 'positive-int))
-(s/defschema Schema {:x X, :y Y})
+(s/defschema Schema1 {:x X, :y Y})
 
-(facts "apis"
+(deftest apis-test
   (let [app (api
               {:swagger {:spec "/swagger.json"}
                :coercion :schema}
 
               (POST "/body" []
-                :body [{:keys [x y]} Schema]
+                :body [{:keys [x y]} Schema1]
                 (ok {:total (+ x y)}))
 
               (POST "/body-map" []
@@ -140,7 +162,7 @@
                 (ok {:total (+ x (or y 0))}))
 
               (GET "/query" []
-                :query [{:keys [x y]} Schema]
+                :query [{:keys [x y]} Schema1]
                 (ok {:total (+ x y)}))
 
               (GET "/query-params" []
@@ -162,7 +184,7 @@
 
               (context "/resource" []
                 (resource
-                  {:get {:parameters {:query-params Schema}
+                  {:get {:parameters {:query-params Schema1}
                          :responses {200 {:schema {:total Total}}}
                          :handler (fn [{{:keys [x y]} :query-params}]
                                     (ok {:total (+ x y)}))}
@@ -171,88 +193,94 @@
                           :handler (fn [{{:keys [x y]} :body-params}]
                                      (ok {:total (+ x (or y 0))}))}})))]
 
-    (fact "query"
+    (testing "query"
       (let [[status body] (get* app "/query" {:x "1", :y 2})]
-        status => 200
-        body => {:total 3})
+        (is (= 200 status))
+        (is (= {:total 3} body)))
       (let [[status body] (get* app "/query" {:x "1", :y "kaks"})]
-        status => 400
-        body => {:coercion "schema"
-                 :in ["request" "query-params"]
-                 :errors {:y "(not (integer? \"kaks\"))"}
-                 :schema "{:x Int, :y Int}"
-                 :type "compojure.api.exception/request-validation"
-                 :value {:x "1", :y "kaks"}}))
+        (is (= 400 status))
+        (is (= {:coercion "schema"
+                :in ["request" "query-params"]
+                :errors {:y "(not (integer? \"kaks\"))"}
+                :schema "{:x Int, :y Int}"
+                :type "compojure.api.exception/request-validation"
+                :value {:x "1", :y "kaks"}}
+               body))))
 
-    (fact "body"
+    (testing "body"
       (let [[status body] (post* app "/body" (json-string {:x 1, :y 2, #_#_:z 3}))]
-        status => 200
-        body => {:total 3}))
+        (is (= 200 status))
+        (is (= {:total 3} body))))
 
-    (fact "body-map"
+    (testing "body-map"
       (let [[status body] (post* app "/body-map" (json-string {:x 1, :y 2}))]
-        status => 200
-        body => {:total 3})
+        (is (= 200 status))
+        (is (= {:total 3} body)))
       (let [[status body] (post* app "/body-map" (json-string {:x 1}))]
-        status => 200
-        body => {:total 1}))
+        (is (= 200 status))
+        (is (= {:total 1} body))))
 
-    (fact "body-string"
+    (testing "body-string"
       (let [[status body] (post* app "/body-string" (json-string "kikka"))]
-        status => 200
-        body => {:body "kikka"}))
+        (is (= 200 status))
+        (is (= {:body "kikka"} body))))
 
-    (fact "query-params"
+    (testing "query-params"
       (let [[status body] (get* app "/query-params" {:x "1", :y 2})]
-        status => 200
-        body => {:total 3})
+        (is (= 200 status))
+        (is (= {:total 3} body)))
       (let [[status body] (get* app "/query-params" {:x "1", :y "a"})]
-        status => 400
-        body => (contains {:coercion "schema"
-                           :in ["request" "query-params"]})))
+        (is (= 400 status))
+        (is (= {:coercion "schema"
+                :in ["request" "query-params"]}
+               (select-keys body [:coercion :in])))))
 
-    (fact "body-params"
+    (testing "body-params"
       (let [[status body] (post* app "/body-params" (json-string {:x 1, :y 2}))]
-        status => 200
-        body => {:total 3})
+        (is (= 200 status))
+        (is (= {:total 3} body)))
       (let [[status body] (post* app "/body-params" (json-string {:x 1}))]
-        status => 200
-        body => {:total 1})
+        (is (= 200 status))
+        (is (= {:total 1} body)))
       (let [[status body] (post* app "/body-params" (json-string {:x "1"}))]
-        status => 400
-        body => (contains {:coercion "schema"
-                           :in ["request" "body-params"]})))
+        (is (= 400 status))
+        (is (= {:coercion "schema"
+                :in ["request" "body-params"]}
+               (select-keys body [:coercion :in])))))
 
-    (fact "response"
+    (testing "response"
       (let [[status body] (get* app "/response" {:x 1, :y 2})]
-        status => 200
-        body => {:total 3})
+        (is (= 200 status))
+        (is (= {:total 3} body)))
       (let [[status body] (get* app "/response" {:x -1, :y -2})]
-        status => 500
-        body => (contains {:coercion "schema"
-                           :in ["response" "body"]})))
+        (is (= 500 status))
+        (is (= {:coercion "schema"
+                :in ["response" "body"]}
+               (select-keys body [:coercion :in])))))
 
-    (fact "resource"
-      (fact "parameters as specs"
+    (testing "resource"
+      (testing "parameters as specs"
         (let [[status body] (get* app "/resource" {:x 1, :y 2})]
-          status => 200
-          body => {:total 3})
+          (is (= 200 status))
+          (is (= {:total 3} body)))
         (let [[status body] (get* app "/resource" {:x -1, :y -2})]
-          status => 500
-          body => (contains {:coercion "schema"
-                             :in ["response" "body"]})))
+          (is (= 500 status))
+          (is (= {:coercion "schema"
+                  :in ["response" "body"]}
+                 (select-keys body [:coercion :in])))))
 
-      (fact "parameters as data-specs"
+      (testing "parameters as data-specs"
         (let [[status body] (post* app "/resource" (json-string {:x 1, :y 2}))]
-          status => 200
-          body => {:total 3})
+          (is (= 200 status))
+          (is (= {:total 3} body)))
         (let [[status body] (post* app "/resource" (json-string {:x 1}))]
-          status => 200
-          body => {:total 1})
+          (is (= 200 status))
+          (is (= {:total 1} body)))
         (let [[status body] (post* app "/resource" (json-string {:x -1, :y -2}))]
-          status => 500
-          body => (contains {:coercion "schema"
-                             :in ["response" "body"]}))))
+          (is (= 500 status))
+          (is (= {:coercion "schema"
+                  :in ["response" "body"]}
+                 (select-keys body [:coercion :in]))))))
 
-    (fact "generates valid swagger spec"
-      (validator/validate app) =not=> (throws))))
+    (testing "generates valid swagger spec"
+      (is (validator/validate app)))))

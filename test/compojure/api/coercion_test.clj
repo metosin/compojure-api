@@ -1,7 +1,8 @@
 (ns compojure.api.coercion-test
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
-            [midje.sweet :refer :all]
+            [clojure.test :refer [deftest]]
+            [testit.core :refer :all]
             [ring.util.http-response :refer :all]
             [clojure.core.async :as a]
             [schema.core :as s]
@@ -16,7 +17,7 @@
     (and (= status expected-status)
          (every? (partial contains? body) [:type :coercion :in :value :schema :errors]))))
 
-(facts "schema coercion"
+(deftest schema-coercion-test
   (fact "response schemas"
     (let [r-200 (GET "/" []
                   :query-params [{value :- s/Int nil}]

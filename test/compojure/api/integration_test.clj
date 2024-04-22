@@ -1,9 +1,11 @@
 (ns compojure.api.integration-test
   (:require [compojure.api.sweet :refer :all]
+            [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]
+            [compojure.api.test-domain :refer [Pizza burger-routes]]
             [compojure.api.test-utils :refer :all]
             [compojure.api.exception :as ex]
             [compojure.api.swagger :as swagger]
-            [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [ring.util.http-predicates :as http]
             [schema.core :as s]
@@ -44,6 +46,9 @@
 ;;
 
 (def mw* "mw")
+
+(defn is-200-status [status]
+  (is (= 200 status)))
 
 (defn middleware*
   "This middleware appends given value or 1 to a header in request and response."
@@ -101,26 +106,26 @@
 ;; Facts
 ;;
 
-(facts "core routes"
+(deftest core-routes-test
 
-  (fact "keyword options"
+  (testing "keyword options"
     (let [route (GET "/ping" []
                   :return String
                   (ok "kikka"))]
-      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"})))
+      (is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))))
 
-  (fact "map options"
+  (testing "map options"
     (let [route (GET "/ping" []
                   {:return String}
                   (ok "kikka"))]
-      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"})))
+      (is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))))
 
-  (fact "map return"
+  (testing "map return"
     (let [route (GET "/ping" []
                   {:body "kikka"})]
-      (route {:request-method :get :uri "/ping"}) => (contains {:body "kikka"}))))
+      (is (= "kikka" (:body (route {:request-method :get :uri "/ping"})))))))
 
-(facts "middleware ordering"
+(deftest middleware-ordering-test
   (let [app (api
               {:middleware [[middleware* 0]]}
               (route-middleware [[middleware* "a"] [middleware* "b"]]
@@ -133,22 +138,22 @@
                       :middleware [(fn [handler] (middleware* handler "e")) [middleware* "f"]]
                       (reply-mw* req))))))]
 
-    (fact "are applied left-to-right"
+    (testing "are applied left-to-right"
       (let [[status _ headers] (get* app "/middlewares/simple" {})]
-        status => 200
-        (get headers mw*) => "012ab/ba210"))
+        (is (= 200 status))
+        (is (= "012ab/ba210" (get headers mw*)))))
 
-    (fact "are applied left-to-right closest one first"
+    (testing "are applied left-to-right closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested" {})]
-        status => 200
-        (get headers mw*) => "012abcd/dcba210"))
+        (is (= 200 status))
+        (is (= "012abcd/dcba210" (get headers mw*)))))
 
-    (fact "are applied left-to-right for both nested & declared closest one first"
+    (testing "are applied left-to-right for both nested & declared closest one first"
       (let [[status _ headers] (get* app "/middlewares/nested-declared" {})]
-        status => 200
-        (get headers mw*) => "012abcdef/fedcba210"))))
+        (is (= 200 status))
+        (is (= "012abcdef/fedcba210" (get headers mw*)))))))
 
-(facts "context middleware"
+(deftest context-middleware-test
   (let [app (api
               (context "/middlewares" []
                 :middleware [(fn [h] (fn mw
@@ -156,12 +161,12 @@
                                        ([r respond _] (respond (mw r)))))]
                 (GET "/simple" req (reply-mw* req))))]
 
-    (fact "is applied even if route is not matched"
+    (testing "is applied even if route is not matched"
       (let [[status body] (get* app "/middlewares/non-existing" {})]
-        status => 200
-        body => {:middleware "hello"}))))
+        (is (= 200 status))
+        (is (= {:middleware "hello"} body))))))
 
-(facts "middleware - multiple routes"
+(deftest middleware-multiple-routes-test
   (let [app (api
               (GET "/first" []
                 (ok {:value "first"}))
@@ -170,31 +175,31 @@
                 (ok {:value "second"}))
               (GET "/third" []
                 (ok {:value "third"})))]
-    (fact "first returns first"
+    (testing "first returns first"
       (let [[status body] (get* app "/first" {})]
-        status => 200
-        body => {:value "first"}))
-    (fact "second returns foo"
+        (is (= 200 status))
+        (is (= {:value "first"} body))))
+    (testing "second returns foo"
       (let [[status body] (get* app "/second" {})]
-        status => 200
-        body => {:value "foo"}))
-    (fact "third returns third"
+        (is-200-status status)
+        (is (= {:value "foo"} body))))
+    (testing "third returns third"
       (let [[status body] (get* app "/third" {})]
-        status => 200
-        body => {:value "third"}))))
+        (is-200-status status)
+        (is (= {:value "third"} body))))))
 
-(facts "middleware - editing request"
+(deftest middleware-editing-request-test
   (let [app (api
               (GET "/first" []
                 :query-params [x :- Long]
                 :middleware [middleware-x]
                 (ok {:value x})))]
-    (fact "middleware edits the parameter before route body"
+    (testing "middleware edits the parameter before route body"
       (let [[status body] (get* app "/first?x=5" {})]
-        status => 200
-        body => {:value 10}))))
+        (is-200-status status)
+        (is (= {:value 10} body))))))
 
-(fact ":body, :query, :headers and :return"
+(deftest body-query-headers-and-return-test
   (let [app (api
               (context "/models" []
                 (GET "/pertti" []
@@ -229,60 +234,59 @@
                   :return User
                   (ok user))))]
 
-    (fact "GET"
+    (testing "GET"
       (let [[status body] (get* app "/models/pertti")]
-        status => 200
-        body => pertti))
+        (is-200-status status)
+        (is (= pertti body))))
 
-    (fact "GET with smart destructuring"
+    (testing "GET with smart destructuring"
       (let [[status body] (get* app "/models/user" pertti)]
-        status => 200
-        body => pertti))
+        (is-200-status status)
+        (is (= pertti body))))
 
-    (fact "POST with smart destructuring"
+    (testing "POST with smart destructuring"
       (let [[status body] (post* app "/models/user" (json-string pertti))]
-        status => 200
-        body => pertti))
+        (is-200-status status)
+        (is (= pertti body))))
 
-    (fact "POST with smart destructuring - lists"
+    (testing "POST with smart destructuring - lists"
       (let [[status body] (post* app "/models/user_list" (json-string [pertti]))]
-        status => 200
-        body => [pertti]))
+        (is-200-status status)
+        (is (= [pertti] body))))
 
-    (fact "POST with smart destructuring - sets"
+    (testing "POST with smart destructuring - sets"
       (let [[status body] (post* app "/models/user_set" (json-string #{pertti}))]
-        status => 200
-        body => [pertti]))
+        (is-200-status status)
+        (is (= [pertti] body))))
 
-    (fact "POST with compojure destructuring"
+    (testing "POST with compojure destructuring"
       (let [[status body] (post* app "/models/user_legacy" (json-string pertti))]
-        status => 200
-        body => pertti))
+        (is-200-status status)
+        (is (= pertti body))))
 
-    (fact "POST with smart destructuring - headers"
+    (testing "POST with smart destructuring - headers"
       (let [[status body] (headers-post* app "/models/user_headers" pertti)]
-        status => 200
-        body => pertti))
+        (is-200-status status)
+        (is (= pertti body))))
 
-    (fact "Validation of returned data"
+    (testing "Validation of returned data"
       (let [[status] (get* app "/models/invalid-user")]
-        status => 500))
+        (is (= 500 status))))
 
-    (fact "Routes without a :return parameter aren't validated"
+    (testing "Routes without a :return parameter aren't validated"
       (let [[status body] (get* app "/models/not-validated")]
-        status => 200
-        body => invalid-user))
+        (is-200-status status)
+        (is (= invalid-user body))))
 
-    (fact "Invalid json in body causes 400 with error message in json"
+    (testing "Invalid json in body causes 400 with error message in json"
       (let [[status body] (post* app "/models/user" "{INVALID}")]
-        status => 400
-        body => (contains
-                  {:type "compojure.api.exception/request-parsing"
-                   :message (contains "Malformed application/json")
-                   :original (contains "Unexpected character")})))))
+        (is (= 400 status))
+        (is (= "compojure.api.exception/request-parsing" (:type body)))
+        (is (str/starts-with? (:message body) "Malformed application/json"))
+        (is (str/starts-with? (:original body) "Unexpected character"))))))
 
-(fact ":responses"
-  (fact "normal cases"
+(deftest responses-test
+  (testing "normal cases"
     (let [app (api
                 (swagger-routes)
                 (GET "/lotto/:x" []
@@ -297,35 +301,35 @@
                     4 (forbidden [1])
                     (not-found {:message "not-found"}))))]
 
-      (fact "return case"
+      (testing "return case"
         (let [[status body] (get* app "/lotto/1")]
-          status => 200
-          body => [1]))
+          (is-200-status status)
+          (is (= [1] body))))
 
-      (fact "return case, non-matching model"
+      (testing "return case, non-matching model"
         (let [[status body] (get* app "/lotto/2")]
-          status => 500
-          body => (contains {:errors vector?})))
+          (is (= 500 status))
+          (is (vector? (:errors body)))))
 
-      (fact "error case"
+      (testing "error case"
         (let [[status body] (get* app "/lotto/3")]
-          status => 403
-          body => ["error"]))
+          (is (= 403 status))
+          (is (= ["error"] body))))
 
-      (fact "error case, non-matching model"
+      (testing "error case, non-matching model"
         (let [[status body] (get* app "/lotto/4")]
-          status => 500
-          body => (contains {:errors vector?})))
+          (is (= 500 status))
+          (is (-> body :errors vector?))))
 
-      (fact "returning non-predefined http-status code works"
+      (testing "returning non-predefined http-status code works"
         (let [[status body] (get* app "/lotto/5")]
-          body => {:message "not-found"}
-          status => 404))
+          (is (= {:message "not-found"} body))
+          (is (= 404 status))))
 
-      (fact "swagger-docs for multiple returns"
+      (testing "swagger-docs for multiple returns"
         (-> app get-spec :paths vals first :get :responses keys set))))
 
-  (fact ":responses 200 and :return"
+  (testing ":responses 200 and :return"
     (let [app (api
                 (GET "/lotto/:x" []
                   :path-params [x :- Long]
@@ -335,18 +339,19 @@
                     1 (ok {:return "ok"})
                     2 (ok {:value "ok"}))))]
 
-      (fact "return case"
+      (testing "return case"
         (let [[status body] (get* app "/lotto/1")]
-          status => 500
-          body => (contains {:errors {:return "disallowed-key"
-                                      :value "missing-required-key"}})))
+          (is (= 500 status))
+          (is (= {:return "disallowed-key"
+                  :value "missing-required-key"}
+                 (:errors body)))))
 
-      (fact "return case"
+      (testing "return case"
         (let [[status body] (get* app "/lotto/2")]
-          status => 200
-          body => {:value "ok"}))))
+          (is-200-status status)
+          (is (= {:value "ok"} body))))))
 
-  (fact ":responses 200 and :return - other way around"
+  (testing ":responses 200 and :return - other way around"
     (let [app (api
                 (GET "/lotto/:x" []
                   :path-params [x :- Long]
@@ -356,18 +361,19 @@
                     1 (ok {:return "ok"})
                     2 (ok {:value "ok"}))))]
 
-      (fact "return case"
+      (testing "return case"
         (let [[status body] (get* app "/lotto/1")]
-          status => 200
-          body => {:return "ok"}))
+          (is-200-status status)
+          (is (= {:return "ok"} body))))
 
-      (fact "return case"
+      (testing "return case"
         (let [[status body] (get* app "/lotto/2")]
-          status => 500
-          body => (contains {:errors {:return "missing-required-key"
-                                      :value "disallowed-key"}}))))))
+          (is (= 500 status))
+          (is (= {:return "missing-required-key"
+                  :value "disallowed-key"}
+                 (:errors body))))))))
 
-(fact ":query-params, :path-params, :header-params , :body-params and :form-params"
+(deftest query-params-path-params-header-params-body-params-and-form-params-test
   (let [app (api
               (context "/smart" []
                 (GET "/plus" []
@@ -386,37 +392,37 @@
                   :form-params [x :- Long y :- Long]
                   (ok {:total (/ x y)}))))]
 
-    (fact "query-parameters"
+    (testing "query-parameters"
       (let [[status body] (get* app "/smart/plus" {:x 2 :y 3})]
-        status => 200
-        body => {:total 5}))
+        (is-200-status status)
+        (is (= {:total 5} body))))
 
-    (fact "path-parameters"
+    (testing "path-parameters"
       (let [[status body] (get* app "/smart/multiply/2/3")]
-        status => 200
-        body => {:total 6}))
+        (is-200-status status)
+        (is (= {:total 6} body))))
 
-    (fact "header-parameters"
+    (testing "header-parameters"
       (let [[status body] (get* app "/smart/power" {} {:x 2 :y 3})]
-        status => 200
-        body => {:total 8}))
+        (is-200-status status)
+        (is (= {:total 8} body))))
 
-    (fact "form-parameters"
+    (testing "form-parameters"
       (let [[status body] (form-post* app "/smart/divide" {:x 6 :y 3})]
-        status => 200
-        body => {:total 2}))
+        (is-200-status status)
+        (is (= {:total 2} body))))
 
-    (fact "body-parameters"
+    (testing "body-parameters"
       (let [[status body] (post* app "/smart/minus" (json-string {:x 2 :y 3}))]
-        status => 200
-        body => {:total -1}))
+        (is-200-status status)
+        (is (= {:total -1} body))))
 
-    (fact "default parameters"
+    (testing "default parameters"
       (let [[status body] (post* app "/smart/minus" (json-string {:x 2}))]
-        status => 200
-        body => {:total 1}))))
+        (is-200-status status)
+        (is (= {:total 1} body))))))
 
-(fact "primitive support"
+(deftest primitive-support-test
   (let [app (api
               {:swagger {:spec "/swagger.json"}}
               (context "/primitives" []
@@ -433,46 +439,46 @@
                   :body [longs [Long]]
                   (ok longs))))]
 
-    (fact "when :return is set, longs can be returned"
+    (testing "when :return is set, longs can be returned"
       (let [[status body] (raw-get* app "/primitives/return-long")]
-        status => 200
-        body => "1"))
+        (is-200-status status)
+        (is (= "1" body))))
 
-    (fact "when :return is not set, longs won't be encoded"
+    (testing "when :return is not set, longs won't be encoded"
       (let [[status body] (raw-get* app "/primitives/long")]
-        status => 200
-        body => number?))
+        (is-200-status status)
+        (is (number? body))))
 
-    (fact "when :return is set, raw strings can be returned"
+    (testing "when :return is set, raw strings can be returned"
       (let [[status body] (raw-get* app "/primitives/return-string")]
-        status => 200
-        body => "\"kikka\""))
+        (is-200-status status)
+        (is (= "\"kikka\"" body))))
 
-    (fact "primitive arrays work"
+    (testing "primitive arrays work"
       (let [[status body] (raw-post* app "/primitives/arrays" (json-string [1 2 3]))]
-        status => 200
-        body => "[1,2,3]"))
+        (is-200-status status)
+        (is (= "[1,2,3]" body))))
 
-    (fact "swagger-spec is valid"
+    (testing "swagger-spec is valid"
       (validator/validate app))
 
-    (fact "primitive array swagger-docs are good"
+    (testing "primitive array swagger-docs are good"
 
-      (-> app get-spec :paths (get "/primitives/arrays") :post :parameters)
-      => [{:description ""
-           :in "body"
-           :name ""
-           :required true
-           :schema {:items {:format "int64"
-                            :type "integer"}
-                    :type "array"}}]
+      (is (= [{:description ""
+               :in "body"
+               :name ""
+               :required true
+               :schema {:items {:format "int64"
+                                :type "integer"}
+                        :type "array"}}]
+             (-> app get-spec :paths (get "/primitives/arrays") :post :parameters)))
 
-      (-> app get-spec :paths (get "/primitives/arrays") :post :responses :200 :schema)
-      => {:items {:format "int64",
-                  :type "integer"},
-          :type "array"})))
+      (is (= {:items {:format "int64",
+                      :type "integer"},
+              :type "array"}
+             (-> app get-spec :paths (get "/primitives/arrays") :post :responses :200 :schema))))))
 
-(fact "compojure destructuring support"
+(deftest compojure-destructuring-support-test
   (let [app (api
               (context "/destructuring" []
                 (GET "/regular" {{:keys [a]} :params}
@@ -496,12 +502,12 @@
                        :b b}))))]
 
     (doseq [uri ["regular" "regular2" "vector" "vector2" "symbol" "integrated"]]
-      (fact {:midje/description uri}
+      (testing uri
         (let [[status body] (get* app (str "/destructuring/" uri) {:a "a" :b "b"})]
-          status => 200
-          body => {:a "a" :b "b"})))))
+          (is-200-status status)
+          (is (= {:a "a" :b "b"} body)))))))
 
-(fact "counting execution times, issue #19"
+(deftest counting-execution-times-issue-19-test
   (let [execution-times (atom 0)
         app (api
               (GET "/user" []
@@ -510,14 +516,14 @@
                 (swap! execution-times inc)
                 (ok user)))]
 
-    (fact "body is executed one"
-      @execution-times => 0
+    (testing "body is executed one"
+      (is (zero? @execution-times))
       (let [[status body] (get* app "/user" pertti)]
-        status => 200
-        body => pertti)
-      @execution-times => 1)))
+        (is-200-status status)
+        (is (= pertti body)))
+      (is (= 1 @execution-times)))))
 
-(fact "swagger-docs"
+(deftest swagger-docs-test
   (let [app (api
               {:formats (m/select-formats
                           m/default-options
@@ -526,102 +532,100 @@
               (GET "/user" []
                 (continue)))]
 
-    (fact "api-listing shows produces & consumes for known types"
-      (get-spec app) => {:swagger "2.0"
-                         :info {:title "Swagger API"
-                                :version "0.0.1"}
-                         :basePath "/"
-                         :consumes ["application/json" "application/edn"]
-                         :produces ["application/json" "application/edn"]
-                         :definitions {}
-                         :paths {"/user" {:get {:responses {:default {:description ""}}}}}}))
+    (testing "api-listing shows produces & consumes for known types"
+      (is (= {:swagger "2.0"
+              :info {:title "Swagger API"
+                     :version "0.0.1"}
+              :basePath "/"
+              :consumes ["application/json" "application/edn"]
+              :produces ["application/json" "application/edn"]
+              :definitions {}
+              :paths {"/user" {:get {:responses {:default {:description ""}}}}}}
+             (get-spec app)))))
 
-  (fact "swagger-routes"
+  (testing "swagger-routes"
 
-    (fact "with defaults"
+    (testing "with defaults"
       (let [app (api (swagger-routes))]
 
-        (fact "api-docs are mounted to /"
+        (testing "api-docs are mounted to /"
           (let [[status body] (raw-get* app "/")]
-            status => 200
-            body => #"<title>Swagger UI</title>"))
+            (is-200-status status)
+            (is (str/includes? body "<title>Swagger UI</title>"))))
 
-        (fact "spec is mounted to /swagger.json"
+        (testing "spec is mounted to /swagger.json"
           (let [[status body] (get* app "/swagger.json")]
-            status => 200
-            body => (contains {:swagger "2.0"})))))
+            (is-200-status status)
+            (is (= "2.0" (:swagger body)))))))
 
-    (fact "with partial overridden values"
+    (testing "with partial overridden values"
       (let [app (api (swagger-routes {:ui "/api-docs"
                                       :data {:info {:title "Kikka"}
                                              :paths {"/ping" {:get {}}}}}))]
 
-        (fact "api-docs are mounted"
+        (testing "api-docs are mounted"
           (let [[status body] (raw-get* app "/api-docs")]
-            status => 200
-            body => #"<title>Swagger UI</title>"))
+            (is-200-status status)
+            (is (str/includes? body "<title>Swagger UI</title>"))))
 
-        (fact "spec is mounted to /swagger.json"
+        (testing "spec is mounted to /swagger.json"
           (let [[status body] (get* app "/swagger.json")]
-            status => 200
-            body => (contains
-                      {:swagger "2.0"
-                       :info (contains
-                               {:title "Kikka"})
-                       :paths (contains
-                                {(keyword "/ping") anything})}))))))
+            (is-200-status status)
+            (is (= "2.0" (:swagger body)))
+            (is (= "Kikka" (-> body :info :title)))
+            (is (some? (-> body :paths (get (keyword "/ping"))))))))))
 
-  (fact "swagger via api-options"
+  (testing "swagger via api-options"
 
-    (fact "with defaults"
+    (testing "with defaults"
       (let [app (api)]
 
-        (fact "api-docs are not mounted"
+        (testing "api-docs are not mounted"
           (let [[status body] (raw-get* app "/")]
-            status => nil))
+            (is (nil? status))))
 
-        (fact "spec is not mounted"
+        (testing "spec is not mounted"
           (let [[status body] (get* app "/swagger.json")]
-            status => nil))))
+            (is (= nil status))))))
 
-    (fact "with spec"
+    (testing "with spec"
       (let [app (api {:swagger {:spec "/swagger.json"}})]
 
-        (fact "api-docs are not mounted"
+        (testing "api-docs are not mounted"
           (let [[status body] (raw-get* app "/")]
-            status => nil))
+            (is (= nil status))))
 
-        (fact "spec is mounted to /swagger.json"
+        (testing "spec is mounted to /swagger.json"
           (let [[status body] (get* app "/swagger.json")]
-            status => 200
-            body => (contains {:swagger "2.0"}))))))
+            (is-200-status status)
+            (is (= "2.0" (:swagger body))))))))
 
-  (fact "with ui"
+  (testing "with ui"
     (let [app (api {:swagger {:ui "/api-docs"}})]
 
-      (fact "api-docs are mounted"
+      (testing "api-docs are mounted"
         (let [[status body] (raw-get* app "/api-docs")]
-          status => 200
-          body => #"<title>Swagger UI</title>"))
+          (is-200-status status)
+          (is (str/includes? body "<title>Swagger UI</title>"))))
 
-      (fact "spec is not mounted"
+      (testing "spec is not mounted"
         (let [[status body] (get* app "/swagger.json")]
-          status => nil))))
+          (is (= nil status))))))
 
-  (fact "with ui and spec"
+  (testing "with ui and spec"
     (let [app (api {:swagger {:spec "/swagger.json", :ui "/api-docs"}})]
 
-      (fact "api-docs are mounted"
+      (testing "api-docs are mounted"
         (let [[status body] (raw-get* app "/api-docs")]
-          status => 200
-          body => #"<title>Swagger UI</title>"))
+          (is-200-status status)
+          (str/includes? body "<title>Swagger UI</title>")))
 
-      (fact "spec is mounted to /swagger.json"
+      (testing "spec is mounted to /swagger.json"
         (let [[status body] (get* app "/swagger.json")]
-          status => 200
-          body => (contains {:swagger "2.0"}))))))
+          (is-200-status status)
+          (is (= "2.0" (:swagger body))))))))
 
-(facts "swagger-docs with anonymous Return and Body models"
+(deftest swagger-docs-with-anonymous-Return-and-Body-models-test
   (let [app (api
               (swagger-routes)
               (POST "/echo" []
@@ -629,19 +633,19 @@
                 :body [_ (s/maybe {:a String})]
                 identity))]
 
-    (fact "api-docs"
+    (testing "api-docs"
       (let [spec (get-spec app)]
 
         (let [operation (some-> spec :paths vals first :post)
               body-ref (some-> operation :parameters first :schema :$ref)
               return-ref (get-in operation [:responses :200 :schema :$ref])]
 
-          (fact "generated body-param is found in Definitions"
-            (find-definition spec body-ref) => truthy)
+          (testing "generated body-param is found in Definitions"
+            (is (find-definition spec body-ref)))
 
-          (fact "generated return-param is found in Definitions"
-            return-ref => truthy
-            (find-definition spec body-ref) => truthy))))))
+          (testing "generated return-param is found in Definitions"
+            (is return-ref)
+            (is (find-definition spec body-ref))))))))
 
 (def Boundary
   {:type (s/enum "MultiPolygon" "Polygon" "MultiPoint" "Point")
@@ -650,7 +654,8 @@
 (def ReturnValue
   {:boundary (s/maybe Boundary)})
 
-(facts "https://github.com/metosin/compojure-api/issues/53"
+;; "https://github.com/metosin/compojure-api/issues/53"
+(deftest issue-53-test
   (let [app (api
               (swagger-routes)
               (POST "/" []
@@ -658,25 +663,25 @@
                 :body [_ Boundary]
                 identity))]
 
-    (fact "api-docs"
+    (testing "api-docs"
       (let [spec (get-spec app)]
 
         (let [operation (some-> spec :paths vals first :post)
               body-ref (some-> operation :parameters first :schema :$ref)
               return-ref (get-in operation [:responses :200 :schema :$ref])]
 
-          (fact "generated body-param is found in Definitions"
-            (find-definition spec body-ref) => truthy)
+          (testing "generated body-param is found in Definitions"
+            (is (find-definition spec body-ref)))
 
-          (fact "generated return-param is found in Definitions"
-            return-ref => truthy
-            (find-definition spec body-ref) => truthy))))))
+          (testing "generated return-param is found in Definitions"
+            (is return-ref)
+            (is (find-definition spec body-ref))))))))
 
 (s/defschema Urho {:kaleva {:kekkonen {s/Keyword s/Any}}})
 (s/defschema Olipa {:kerran {:avaruus {s/Keyword s/Any}}})
 
 ; https://github.com/metosin/compojure-api/issues/94
-(facts "preserves deeply nested schema names"
+(deftest preserves-deeply-nested-schema-names-test
   (let [app (api
               (swagger-routes)
               (POST "/" []
@@ -684,16 +689,15 @@
                 :body [_ Olipa]
                 identity))]
 
-    (fact "api-docs"
+    (testing "api-docs"
       (let [spec (get-spec app)]
 
-        (fact "nested models are discovered correctly"
-          (-> spec :definitions keys set)
+        (testing "nested models are discovered correctly"
+          (is (= #{:Urho :UrhoKaleva :UrhoKalevaKekkonen
+                   :Olipa :OlipaKerran :OlipaKerranAvaruus}
+                 (-> spec :definitions keys set))))))))
 
-          => #{:Urho :UrhoKaleva :UrhoKalevaKekkonen
-               :Olipa :OlipaKerran :OlipaKerranAvaruus})))))
-
-(fact "swagger-docs works with the :middleware"
+(deftest swagger-docs-works-with-the-middleware-test
   (let [app (api
               (swagger-routes)
               (GET "/middleware" []
@@ -701,16 +705,16 @@
                 :middleware [[constant-middleware (ok 1)]]
                 (ok 2)))]
 
-    (fact "api-docs"
-      (-> app get-spec :paths vals first)
-      => {:get {:parameters [{:description ""
-                              :in "query"
-                              :name "x"
-                              :required true
-                              :type "string"}]
-                :responses {:default {:description ""}}}})))
+    (testing "api-docs"
+      (is (= {:get {:parameters [{:description ""
+                                  :in "query"
+                                  :name "x"
+                                  :required true
+                                  :type "string"}]
+                    :responses {:default {:description ""}}}}
+             (-> app get-spec :paths vals first))))))
 
-(fact "sub-context paths"
+(deftest sub-context-paths-test
   (let [response {:ping "pong"}
         ok (ok response)
         ok? (fn [[status body]]
@@ -727,65 +731,60 @@
                   (GET "/" [] ok)
                   (GET "/b2" [] ok))))]
 
-    (fact "valid routes"
-      (get* app "/") => ok?
-      (get* app "/a") => ok?
-      (get* app "/b/b1") => ok?
-      (get* app "/b") => ok?
-      (get* app "/b/b2") => ok?)
+    (testing "valid routes"
+      (is (ok? (get* app "/")))
+      (is (ok? (get* app "/a")))
+      (is (ok? (get* app "/b/b1")))
+      (is (ok? (get* app "/b")))
+      (is (ok? (get* app "/b/b2"))))
 
-    (fact "undocumented compojure easter eggs"
-      (get* app "/b/b1/") => ok?
-      (get* app "/b/") => ok?
-      (fact "this is fixed in compojure 1.5.1"
-        (get* app "/b//") =not=> ok?))
+    (testing "undocumented compojure easter eggs"
+      (is (ok? (get* app "/b/b1/")))
+      (is (ok? (get* app "/b/")))
+      (testing "this is fixed in compojure 1.5.1"
+        (is (not (ok? (get* app "/b//"))))))
 
-    (fact "swagger-docs have trailing slashes removed"
-      (->> app get-spec :paths keys)
-      => (just ["/" "/a" "/b/b1" "/b" "/b/b2"] :in-any-order))))
+    (testing "swagger-docs have trailing slashes removed"
+      (is (= (sort ["/" "/a" "/b/b1" "/b" "/b/b2"])
+             (-> app get-spec :paths keys sort))))))
 
-(fact "formats supported by ring-middleware-format"
+(deftest formats-supported-by-ring-middleware-format-test
   (let [app (api
               (POST "/echo" []
                 :body-params [foo :- String]
                 (ok {:foo foo})))]
 
-    (tabular
-      (facts
-        (fact {:midje/description (str ?content-type " to json")}
+    (doseq [[?content-type ?body] [["application/json" "{\"foo\":\"bar\"}"]
+                                   ["application/edn" "{:foo \"bar\"}"]
+                                   ["application/transit+json" "[\"^ \",\"~:foo\",\"bar\"]"]]]
+      (testing (pr-str [?content-type ?body])
+        (testing (str ?content-type " to json")
           (let [[status body]
                 (raw-post* app "/echo" ?body ?content-type {:accept "application/json"})]
-            status => 200
-            body => "{\"foo\":\"bar\"}"))
-        (fact {:midje/description (str "json to " ?content-type)}
+            (is-200-status status)
+            (is (= "{\"foo\":\"bar\"}" body))))
+        (testing (str "json to " ?content-type)
           (let [[status body]
                 (raw-post* app "/echo" "{\"foo\":\"bar\"}" "application/json" {:accept ?content-type})]
-            status => 200
-            body => ?body)))
+            (is-200-status status)
+            (is (= ?body body))))))))
 
-      ?content-type ?body
-      "application/json" "{\"foo\":\"bar\"}"
-      "application/edn" "{:foo \"bar\"}"
-      "application/transit+json" "[\"^ \",\"~:foo\",\"bar\"]")))
-
-(fact "multiple routes in context"
+(deftest multiple-routes-in-context-test
   (let [app (api
               (context "/foo" []
                 (GET "/bar" [] (ok ["bar"]))
                 (GET "/baz" [] (ok ["baz"]))))]
 
-    (fact "first route works"
+    (testing "first route works"
       (let [[status body] (get* app "/foo/bar")]
-        status => 200
-        body => ["bar"]))
-    (fact "second route works"
+        (is-200-status status)
+        (is (= ["bar"] body))))
+    (testing "second route works"
       (let [[status body] (get* app "/foo/baz")]
-        status => 200
-        body => ["baz"]))))
+        (is-200-status status)
+        (is (= ["baz"] body))))))
 
-(require '[compojure.api.test-domain :refer [Pizza burger-routes]])
-
-(fact "external deep schemas"
+(deftest external-deep-schemas-test
   (let [app (api
               (swagger-routes)
               burger-routes
@@ -794,22 +793,23 @@
                 :body [body Pizza]
                 (ok body)))]
 
-    (fact "direct route with nested named schema works when called"
+    (testing "direct route with nested named schema works when called"
       (let [pizza {:toppings [{:name "cheese"}]}
             [status body] (post* app "/pizza" (json-string pizza))]
-        status => 200
-        body => pizza))
+        (is-200-status status)
+        (is (= pizza body))))
 
-    (fact "defroute*'d route with nested named schema works when called"
+    (testing "defroute*'d route with nested named schema works when called"
       (let [burger {:ingredients [{:name "beef"}, {:name "egg"}]}
             [status body] (post* app "/burger" (json-string burger))]
-        status => 200
-        body => burger))
+        (is-200-status status)
+        (is (= burger body))))
 
-    (fact "generates correct swagger-spec"
-      (-> app get-spec :definitions keys set) => #{:Topping :Pizza :Burger :Beef})))
+    (testing "generates correct swagger-spec"
+      (is (= #{:Topping :Pizza :Burger :Beef}
+             (-> app get-spec :definitions keys set))))))
 
-(fact "multiple routes with same path & method in same file"
+(deftest multiple-routes-with-same-path-and-method-in-same-file-test
   (let [app (api
               (swagger-routes)
               (GET "/ping" []
@@ -819,15 +819,15 @@
                 :summary "passive-ping"
                 (ok {:ping "passive"})))]
 
-    (fact "first route matches with Compojure"
+    (testing "first route matches with Compojure"
       (let [[status body] (get* app "/ping" {})]
-        status => 200
-        body => {:ping "active"}))
+        (is-200-status status)
+        (is (= {:ping "active"} body))))
 
-    (fact "generates correct swagger-spec"
-      (-> app get-spec :paths vals first :get :summary) => "active-ping")))
+    (testing "generates correct swagger-spec"
+      (is (= "active-ping" (-> app get-spec :paths vals first :get :summary))))))
 
-(fact "multiple routes with same path & method over context"
+(deftest multiple-routes-with-same-path-and-method-over-context-test
   (let [app (api
               (swagger-routes)
               (context "/api" []
@@ -841,15 +841,16 @@
                     :summary "passive-ping"
                     (ok {:ping "passive"})))))]
 
-    (fact "first route matches with Compojure"
+    (testing "first route matches with Compojure"
       (let [[status body] (get* app "/api/ipa/ping" {})]
-        status => 200
-        body => {:ping "active"}))
+        (is-200-status status)
+        (is (= {:ping "active"} body))))
 
-    (fact "generates correct swagger-spec"
-      (-> app get-spec :paths vals first :get :summary) => "active-ping")))
+    (testing "generates correct swagger-spec"
+      (is (= "active-ping" (-> app get-spec :paths vals first :get :summary))))))
 
-(fact "multiple routes with same overall path (with different path sniplets & method over context"
+;; multiple routes with same overall path (with different path sniplets & method over context)
+(deftest multiple-routes-with-same-overall-path-test
   (let [app (api
               (swagger-routes)
               (context "/api/ipa" []
@@ -862,72 +863,73 @@
                     :summary "passive-ping"
                     (ok {:ping "passive"})))))]
 
-    (fact "first route matches with Compojure"
+    (testing "first route matches with Compojure"
       (let [[status body] (get* app "/api/ipa/ping" {})]
-        status => 200
-        body => {:ping "active"}))
+        (is-200-status status)
+        (is (= {:ping "active"} body))))
 
-    (fact "generates correct swagger-spec"
-      (-> app get-spec :paths vals first :get :summary) => "active-ping")))
+    (testing "generates correct swagger-spec"
+      (is (= "active-ping" (-> app get-spec :paths vals first :get :summary))))))
 
 ; https://github.com/metosin/compojure-api/issues/98
 ; https://github.com/metosin/compojure-api/issues/134
-(fact "basePath"
+(deftest basePath-test
   (let [app (api (swagger-routes))]
 
-    (fact "no context"
-      (-> app get-spec :basePath) => "/")
+    (testing "no context"
+      (is (= "/" (-> app get-spec :basePath))))
 
-    (fact "app-servers with given context"
-      (against-background (rsc/context anything) => "/v2")
-      (-> app get-spec :basePath) => "/v2"))
+    (testing "app-servers with given context"
+      (with-redefs [rsc/context (fn [& args] "/v2")]
+        (is (= "/v2" (-> app get-spec :basePath))))))
 
   (let [app (api (swagger-routes {:data {:basePath "/serve/from/here"}}))]
-    (fact "override it"
-      (-> app get-spec :basePath) => "/serve/from/here"))
+    (testing "override it"
+      (is (= "/serve/from/here" (-> app get-spec :basePath)))))
 
   (let [app (api (swagger-routes {:data {:basePath "/"}}))]
-    (fact "can set it to the default"
-      (-> app get-spec :basePath) => "/")))
+    (testing "can set it to the default"
+      (is (= "/" (-> app get-spec :basePath))))))
 
-(fact "multiple different models with same name"
+(deftest multiple-different-models-with-same-name-test
 
-  (fact "schemas with same regexps are not equal"
-    {:d #"\D"} =not=> {:d #"\D"})
+  (testing "schemas with same regexps are not equal"
+    (is (not= {:d #"\D"} {:d #"\D"})))
 
-  (fact "api-spec with 2 schemas with non-equal contents"
+  (testing "api-spec with 2 schemas with non-equal contents"
     (let [app (api
                 (swagger-routes)
                 (GET "/" []
                   :responses {200 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}
                               201 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}}
                   identity))]
-      (fact "api spec doesn't fail (#102)"
-        (get-spec app) => anything))))
+      (testing "api spec doesn't fail (#102)"
+        (is (get-spec app))))))
 
 (def over-the-hills-and-far-away
   (POST "/" []
     :body-params [a :- s/Str]
     identity))
 
-(fact "anonymous body models over defined routes"
+(deftest anonymous-body-models-over-defined-routes-test
   (let [app (api
               (swagger-routes)
               over-the-hills-and-far-away)]
-    (fact "generated model doesn't have namespaced keys"
-      (-> app get-spec :definitions vals first :properties keys first) => :a)))
+    (testing "generated model doesn't have namespaced keys"
+      (is (= :a (-> app get-spec :definitions vals first :properties keys first))))))
 
 (def foo
   (GET "/foo" []
     (let [foo {:foo "bar"}]
       (ok foo))))
 
-(fact "defroutes with local symbol usage with same name (#123)"
+;;defroutes with local symbol usage with same name (#123)
+(deftest defroutes-with-local-symbol-usage-with-same-name-test
   (let [app (api
               foo)]
     (let [[status body] (get* app "/foo")]
-      status => 200
-      body => {:foo "bar"})))
+      (is-200-status status)
+      (is (= {:foo "bar"} body)))))
 
 (def response-descriptions-routes
   (GET "/x" []
@@ -935,13 +937,13 @@
                      :description "Horror"}}
     identity))
 
-(fact "response descriptions"
+(deftest response-descriptions-test
   (let [app (api
               (swagger-routes)
               response-descriptions-routes)]
-    (-> app get-spec :paths vals first :get :responses :500 :description) => "Horror"))
+    (is (= "Horror" (-> app get-spec :paths vals first :get :responses :500 :description)))))
 
-(fact "exceptions options with custom validation error handler"
+(deftest exceptions-options-with-custom-validation-error-handler-test
   (let [app (api
               {:exceptions {:handlers {::ex/request-validation custom-validation-error-handler
                                        ::ex/request-parsing custom-validation-error-handler
@@ -954,27 +956,27 @@
                   1 (ok 1)
                   (ok "not a number"))))]
 
-    (fact "return case, valid request & valid model"
+    (testing "return case, valid request & valid model"
       (let [[status body] (post* app "/get-long" "{\"x\": 1}")]
-        status => 200
-        body => 1))
+        (is-200-status status)
+        (is (= 1 body))))
 
-    (fact "return case, not schema valid request"
+    (testing "return case, not schema valid request"
       (let [[status body] (post* app "/get-long" "{\"x\": \"1\"}")]
-        status => 400
-        body => (contains {:custom-error "/get-long"})))
+        (is (= 400 status))
+        (is (= "/get-long" (:custom-error body)))))
 
-    (fact "return case, invalid json request"
+    (testing "return case, invalid json request"
       (let [[status body] (post* app "/get-long" "{x: 1}")]
-        status => 400
-        body => (contains {:custom-error "/get-long"})))
+        (is (= 400 status))
+        (is (= "/get-long" (:custom-error body)))))
 
-    (fact "return case, valid request & invalid model"
+    (testing "return case, valid request & invalid model"
       (let [[status body] (post* app "/get-long" "{\"x\": 2}")]
-        status => 501
-        body => (contains {:custom-error "/get-long"})))))
+        (is (= 501 status))
+        (is (= "/get-long" (:custom-error body)))))))
 
-(fact "exceptions options with custom exception and error handler"
+(deftest exceptions-options-with-custom-exception-and-error-handler-test
   (let [app (api
               {:exceptions {:handlers {::ex/default (custom-exception-handler :custom-exception)
                                        SQLException (custom-exception-handler :sql-exception)
@@ -991,72 +993,72 @@
               (GET "/sub-class" []
                 (throw (SQLWarning.))))]
 
-    (fact "uses default exception handler for unknown exceptions"
+    (testing "uses default exception handler for unknown exceptions"
       (let [[status body] (get* app "/some-exception")]
-        status => 200
-        body => {:custom-exception "java.lang.RuntimeException"}))
+        (is-200-status status)
+        (is (= {:custom-exception "java.lang.RuntimeException"} body))))
 
-    (fact "uses default exception handler for unknown errors"
+    (testing "uses default exception handler for unknown errors"
       (let [[status body] (get* app "/some-error")]
-        status => 200
-        (:custom-exception body) => (contains ":data \"some error\"")))
+        (is-200-status status)
+        (is (str/includes? (:custom-exception body) ":data \"some error\"" ))))
 
-    (fact "uses specific error handler for ::custom-errors"
+    (testing "uses specific error handler for ::custom-errors"
       (let [[_ body] (get* app "/specific-error")]
-        body => {:custom-error "my error"}))
+        (is (= {:custom-error "my error"} body))))
 
-    (fact "direct class"
+    (testing "direct class"
       (let [[_ body] (get* app "/class")]
-        body => (contains {:sql-exception "java.sql.SQLException"})))
+        (is (= "java.sql.SQLException" (:sql-exception body)))))
 
-    (fact "sub-class"
+    (testing "sub-class"
       (let [[_ body] (get* app "/sub-class")]
-        body => (contains {:sql-exception "java.sql.SQLWarning"})))))
+        (is (= "java.sql.SQLWarning" (:sql-exception body)))))))
 
-(fact "exception handling can be disabled"
+(deftest exception-handling-can-be-disabled-test
   (let [app (api
               {:exceptions nil}
               (GET "/throw" []
                 (throw (new RuntimeException))))]
-    (get* app "/throw") => throws))
+    (is (thrown? RuntimeException (get* app "/throw")))))
 
 (s/defn schema-error [a :- s/Int]
   {:bar a})
 
-(fact "handling schema.core/error"
+;; handling schema.core/error
+(deftest handling-schema-core-error-test
   (let [app (api
               {:exceptions {:handlers {:schema.core/error ex/schema-error-handler}}}
               (GET "/:a" []
                 :path-params [a :- s/Str]
                 (ok (s/with-fn-validation (schema-error a)))))]
     (let [[status body] (get* app "/foo")]
-      status => 400
-      body => (contains {:errors vector?}))))
+      (is (= 400 status))
+      (is (-> body :errors vector?)))))
 
-(fact "ring-swagger options"
+(deftest ring-swagger-options-test
   (let [app (api
               {:ring-swagger {:default-response-description-fn status/get-description}}
               (swagger-routes)
               (GET "/ping" []
                 :responses {500 nil}
                 identity))]
-    (-> app get-spec :paths vals first :get :responses :500 :description)
-    => "There was an internal server error."))
+    (is (= "There was an internal server error." (-> app get-spec :paths vals first :get :responses :500 :description)))))
 
-(fact "path-for"
-  (fact "simple case"
+(deftest path-for-test
+  (testing "simple case"
     (let [app (api
                 (GET "/api/pong" []
                   :name :pong
                   (ok {:pong "pong"}))
                 (GET "/api/ping" []
                   (moved-permanently (path-for :pong))))]
-      (fact "path-for works"
+      (testing "path-for works"
         (let [[status body] (get* app "/api/ping" {})]
-          status => 200
-          body => {:pong "pong"}))))
+          (is-200-status status)
+          (is (= {:pong "pong"} body))))))
 
-  (fact "with path parameters"
+  (testing "with path parameters"
     (let [app (api
                 (GET "/lost-in/:country/:zip" []
                   :name :lost
@@ -1066,25 +1068,24 @@
                 (GET "/api/ping" []
                   (moved-permanently
                     (path-for :lost {:country :FI, :zip 33200}))))]
-      (fact "path-for resolution"
+      (testing "path-for resolution"
         (let [[status body] (get* app "/api/ping" {})]
-          status => 200
-          body => {:country "FI"
-                   :zip 33200}))))
+          (is-200-status status)
+          (is (= {:country "FI" :zip 33200} body))))))
 
-  (fact "https://github.com/metosin/compojure-api/issues/150"
+  (testing "https://github.com/metosin/compojure-api/issues/150"
     (let [app (api
                 (GET "/companies/:company-id/refresh" []
                   :path-params [company-id :- s/Int]
                   :name :refresh-company
                   :return String
                   (ok (path-for :refresh-company {:company-id company-id}))))]
-      (fact "path-for resolution"
+      (testing "path-for resolution"
         (let [[status body] (get* app "/companies/4/refresh")]
-          status => 200
-          body => "/companies/4/refresh"))))
+          (is-200-status status)
+          (is (= "/companies/4/refresh" body))))))
 
-  (fact "multiple routes with same name fail at compile-time"
+  (testing "multiple routes with same name fail at compile-time"
     (let [app' `(api
                   (GET "/api/pong" []
                     :name :pong
@@ -1092,115 +1093,113 @@
                   (GET "/api/ping" []
                     :name :pong
                     identity))]
-      (eval app') => (throws RuntimeException)))
+      (is (thrown? RuntimeException (eval app')))))
 
-  (fact "bindings with wrong syntax should fail nicely"
+  (testing "bindings with wrong syntax should fail nicely"
     (let [app' `(api
                   (GET "/api/:id/pong" []
                     :path-params [id ::id]
                     :name :pong
                     identity))]
-      (eval app') => (throws RuntimeException))))
+      (is (thrown? RuntimeException (eval app'))))))
 
-(fact "swagger-spec-path"
-  (fact "defaults to /swagger.json"
+(deftest swagger-spec-path-test
+  (testing "defaults to /swagger.json"
     (let [app (api (swagger-routes))]
-      (swagger/swagger-spec-path app) => "/swagger.json"))
-  (fact "follows defined path"
+      (is (= "/swagger.json" (swagger/swagger-spec-path app)))))
+  (testing "follows defined path"
     (let [app (api (swagger-routes {:spec "/api/api-docs/swagger.json"}))]
-      (swagger/swagger-spec-path app) => "/api/api-docs/swagger.json")))
+      (is (= "/api/api-docs/swagger.json" (swagger/swagger-spec-path app))))))
 
 (defrecord NonSwaggerRecord [data])
 
-(fact "api validation"
+(deftest api-validation-test
 
-  (fact "a swagger api with valid swagger records"
+  (testing "a swagger api with valid swagger records"
     (let [app (api
                 (swagger-routes)
                 (GET "/ping" []
                   :return {:data s/Str}
                   (ok {:data "ping"})))]
 
-      (fact "works"
+      (testing "works"
         (let [[status body] (get* app "/ping")]
-          status => 200
-          body => {:data "ping"}))
+          (is-200-status status)
+          (is (= {:data "ping"} body))))
 
-      (fact "the api is valid"
-        (validator/validate app) => app)))
+      (testing "the api is valid"
+        (is (= app (validator/validate app))))))
 
-  (fact "a swagger api with invalid swagger records"
+  (testing "a swagger api with invalid swagger records"
     (let [app (api
                 (swagger-routes)
                 (GET "/ping" []
                   :return NonSwaggerRecord
                   (ok (->NonSwaggerRecord "ping"))))]
 
-      (fact "works"
+      (testing "works"
         (let [[status body] (get* app "/ping")]
-          status => 200
-          body => {:data "ping"}))
+          (is-200-status status)
+          (is (= {:data "ping"} body))))
 
-      (fact "the api is invalid"
-        (validator/validate app)
-        => (throws
-             IllegalArgumentException
-             (str
-               "don't know how to convert class compojure.api.integration_test.NonSwaggerRecord "
-               "into a Swagger Schema. Check out ring-swagger docs for details.")))))
+      (testing "the api is invalid"
+        (is (thrown-with-msg?
+              IllegalArgumentException
+              #"don't know how to convert class compojure.api.integration_test.NonSwaggerRecord into a Swagger Schema. Check out ring-swagger docs for details."
+              (validator/validate app))))))
 
-  (fact "a non-swagger api with invalid swagger records"
+  (testing "a non-swagger api with invalid swagger records"
     (let [app (api
                 (GET "/ping" []
                   :return NonSwaggerRecord
                   (ok (->NonSwaggerRecord "ping"))))]
 
-      (fact "works"
+      (testing "works"
         (let [[status body] (get* app "/ping")]
-          status => 200
-          body => {:data "ping"}))
+          (is-200-status status)
+          (is (= {:data "ping"} body))))
 
-      (fact "the api is valid"
-        (validator/validate app) => app))))
+      (testing "the api is valid"
+        (is (= app (validator/validate app)))))))
 
-(fact "component integration"
+(deftest component-integration-test
   (let [system {:magic 42}]
-    (fact "via options"
+    (testing "via options"
       (let [app (api
                   {:components system}
                   (GET "/magic" []
                     :components [magic]
                     (ok {:magic magic})))]
         (let [[status body] (get* app "/magic")]
-          status => 200
-          body => {:magic 42})))
+          (is-200-status status)
+          (is (= {:magic 42} body)))))
 
-    (fact "via middleware"
+    (testing "via middleware"
       (let [handler (api
                       (GET "/magic" []
                         :components [magic]
                         (ok {:magic magic})))
             app (mw/wrap-components handler system)]
         (let [[status body] (get* app "/magic")]
-          status => 200
-          body => {:magic 42})))))
+          (is-200-status status)
+          (is (= {:magic 42} body)))))))
 
-(fact "sequential string parameters"
+(deftest sequential-string-parameters-test
   (let [app (api
               (GET "/ints" []
                 :query-params [i :- [s/Int]]
                 (ok {:i i})))]
-    (fact "multiple values"
+    (testing "multiple values"
       (let [[status body] (get* app "/ints?i=1&i=2&i=3")]
-        status => 200
-        body => {:i [1, 2, 3]}))
-    (fact "single value"
+        (is-200-status status)
+        (is (= {:i [1, 2, 3]} body))))
+    (testing "single value"
       (let [[status body] (get* app "/ints?i=42")]
-        status => 200
-        body => {:i [42]}))))
+        (is-200-status status)
+        (is (= {:i [42]} body))))))
 
-(fact ":swagger params just for ducumentation"
-  (fact "compile-time values"
+(deftest swagger-params-just-for-documentation-test
+  (testing "compile-time values"
     (let [app (api
                 (swagger-routes)
                 (GET "/route" [q]
@@ -1210,23 +1209,23 @@
                             :parameters {:query {:q s/Bool}}}
                   (ok {:q q})))]
 
-      (fact "there is no coercion"
+      (testing "there is no coercion"
         (let [[status body] (get* app "/route" {:q "kikka"})]
-          status => 200
-          body => {:q "kikka"}))
+          (is-200-status status)
+          (is (= {:q "kikka"} body))))
 
-      (fact "swagger-docs are generated"
-        (-> app get-spec :paths vals first :get)
-        => (contains
-             {:x-name "boolean"
-              :operationId "echoBoolean"
-              :description "Echoes a boolean"
-              :parameters [{:description ""
-                            :in "query"
-                            :name "q"
-                            :required true
-                            :type "boolean"}]}))))
-  (fact "run-time values"
+      (testing "swagger-docs are generated"
+        (is (= {:x-name "boolean"
+                :operationId "echoBoolean"
+                :description "Echoes a boolean"
+                :parameters [{:description ""
+                              :in "query"
+                              :name "q"
+                              :required true
+                              :type "boolean"}]}
+               (-> app get-spec :paths vals first :get
+                   (select-keys [:x-name :operationId :description :parameters])))))))
+  (testing "run-time values"
     (let [runtime-data {:x-name :boolean
                         :operationId "echoBoolean"
                         :description "Echoes a boolean"
@@ -1237,24 +1236,25 @@
                   :swagger runtime-data
                   (ok {:q q})))]
 
-      (fact "there is no coercion"
+      (testing "there is no coercion"
         (let [[status body] (get* app "/route" {:q "kikka"})]
-          status => 200
-          body => {:q "kikka"}))
+          (is-200-status status)
+          (is (= {:q "kikka"} body))))
 
-      (fact "swagger-docs are generated"
-        (-> app get-spec :paths vals first :get)
-        => (contains
-             {:x-name "boolean"
-              :operationId "echoBoolean"
-              :description "Echoes a boolean"
-              :parameters [{:description ""
-                            :in "query"
-                            :name "q"
-                            :required true
-                            :type "boolean"}]})))))
+      (testing "swagger-docs are generated"
+        (is (= {:x-name "boolean"
+                :operationId "echoBoolean"
+                :description "Echoes a boolean"
+                :parameters [{:description ""
+                              :in "query"
+                              :name "q"
+                              :required true
+                              :type "boolean"}]}
+               (-> app get-spec :paths vals first :get
+                   (select-keys [:x-name :operationId :description :parameters]))))))))
 
-(fact "swagger-docs via api options, #218"
+;; swagger-docs via api options, #218
+(deftest swagger-docs-via-api-options
   (let [routes (routes
                  (context "/api" []
                    (GET "/ping" []
@@ -1268,14 +1268,15 @@
         api1 (api {:swagger {:spec "/swagger.json", :ui "/"}} routes)
         api2 (api (swagger-routes) routes)]
 
-    (fact "both generate same swagger-spec"
-      (get-spec api1) => (get-spec api2))
+    (testing "both generate same swagger-spec"
+      (is (= (get-spec api1) (get-spec api2))))
 
-    (fact "not-found handler works"
-      (second (get* api1 "/missed")) => {:message "404"}
-      (second (get* api2 "/missed")) => {:message "404"})))
+    (testing "not-found handler works"
+      (is (= {:message "404"} (second (get* api1 "/missed"))))
+      (is (= {:message "404"} (second (get* api2 "/missed")))))))
 
-(fact "more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170"
+;; more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170
+(deftest issue-170-test
   (let [app (api
               (route-middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
                 (swagger-routes
@@ -1283,30 +1284,29 @@
                    {:info {:version "2.0.0"}
                     :paths {"/extra" {:get {}}}}})
                 (GET "/normal" [] (ok))))]
-    (get-spec app) => (contains
-                        {:paths (just
-                                  {"/normal" irrelevant
-                                   "/extra" irrelevant
-                                   "/runtime" irrelevant})})))
+    (is (= #{"/normal" "/extra" "/runtime"}
+           (-> (get-spec app) :paths keys set)))))
 
 
-(fact "handling invalid routes with api"
+(deftest handling-invalid-routes-with-api-test
   (let [invalid-routes (routes (constantly nil))]
 
-    (fact "by default, logs the exception"
-      (api invalid-routes) => truthy
-      (provided
-        (compojure.api.impl.logging/log! :warn irrelevant) => irrelevant :times 1))
+    (testing "by default, logs the exception"
+      (let [a (atom [])]
+        (with-redefs [compojure.api.impl.logging/log! (fn [& args] (swap! a conj args))]
+          (is (api invalid-routes)))
+        (is (= [:warn] (map first @a)))))
 
-    (fact "ignoring invalid routes doesn't log"
-      (api {:api {:invalid-routes-fn nil}} invalid-routes) => truthy
-      (provided
-        (compojure.api.impl.logging/log! :warn irrelevant) => irrelevant :times 0))
+    (testing "ignoring invalid routes doesn't log"
+      (let [a (atom [])]
+        (with-redefs [compojure.api.impl.logging/log! (fn [& args] (swap! a conj args))]
+          (is (api {:api {:invalid-routes-fn nil}} invalid-routes)))
+        (is (empty? @a))))
 
-    (fact "throwing exceptions"
-      (api {:api {:invalid-routes-fn routes/fail-on-invalid-child-routes}} invalid-routes)) => throws))
+    (testing "throwing exceptions"
+      (is (thrown? Exception (api {:api {:invalid-routes-fn routes/fail-on-invalid-child-routes}} invalid-routes))))))
 
-(fact "using local symbols for restructuring params"
+(deftest using-local-symbols-for-restructuring-params-test
   (let [responses {400 {:schema {:fail s/Str}}}
         app (api
               {:swagger {:spec "/swagger.json"
@@ -1319,32 +1319,39 @@
                 :responses (assoc responses 500 {:schema {:m s/Str}})
                 :return {:ok s/Str}
                 (ok)))
-        paths (:paths (get-spec app))]
+        paths (:paths (get-spec app))
+        a-resp (get-in paths ["/a" :get :responses])
+        b-resp (get-in paths ["/b" :get :responses])]
 
-    (get-in paths ["/a" :get :responses])
-    => (just {:400 (just {:schema anything :description ""})
-              :200 (just {:schema anything :description ""})})
+    (is (= #{:200 :400} (-> a-resp keys set)))
+    (is (= #{:schema :description} (-> a-resp :400 keys set)))
+    (is (= #{:schema :description} (-> a-resp :200 keys set)))
+    (is (= "" (-> a-resp :400 :description)))
+    (is (= "" (-> a-resp :200 :description)))
 
-    (get-in paths ["/b" :get :responses])
-    => (just {:400 (just {:schema anything :description ""})
-              :200 (just {:schema anything :description ""})
-              :500 (just {:schema anything :description ""})})))
+    (is (= #{:200 :400 :500} (-> b-resp keys set)))
+    (is (= #{:schema :description} (-> b-resp :500 keys set)))
+    (is (= #{:schema :description} (-> b-resp :400 keys set)))
+    (is (= #{:schema :description} (-> b-resp :200 keys set)))
+    (is (= "" (-> b-resp :500 :description)))
+    (is (= "" (-> b-resp :400 :description)))
+    (is (= "" (-> b-resp :200 :description)))))
 
-(fact "when functions are returned"
+(deftest when-functions-are-returned-test
   (let [wrap-mw-params (fn [handler value]
                          (fn [request]
                            (handler
                              (update request ::mw #(str % value)))))]
-    (fact "from endpoint"
+    (testing "from endpoint"
       (let [app (GET "/ping" []
                   :middleware [[wrap-mw-params "1"]]
                   :query-params [{a :- s/Str "a"}]
                   (fn [req] (str (::mw req) a)))]
 
-        (app {:request-method :get, :uri "/ping", :query-params {}}) => (contains {:body "1a"})
-        (app {:request-method :get, :uri "/ping", :query-params {:a "A"}}) => (contains {:body "1A"})))
+        (is (= "1a" (:body (app {:request-method :get, :uri "/ping", :query-params {}}))))
+        (is (= "1A" (:body (app {:request-method :get, :uri "/ping", :query-params {:a "A"}}))))))
 
-    (fact "from endpoint under context"
+    (testing "from endpoint under context"
       (let [app (context "/api" []
                   :middleware [[wrap-mw-params "1"]]
                   :query-params [{a :- s/Str "a"}]
@@ -1353,9 +1360,9 @@
                     :query-params [{b :- s/Str "b"}]
                     (fn [req] (str (::mw req) a b))))]
 
-        (app {:request-method :get, :uri "/api/ping", :query-params {}}) => (contains {:body "12ab"})
-        (app {:request-method :get, :uri "/api/ping", :query-params {:a "A"}}) => (contains {:body "12Ab"})
-        (app {:request-method :get, :uri "/api/ping", :query-params {:a "A", :b "B"}}) => (contains {:body "12AB"})))))
+        (is (= "12ab" (:body (app {:request-method :get, :uri "/api/ping", :query-params {}}))))
+        (is (= "12Ab" (:body (app {:request-method :get, :uri "/api/ping", :query-params {:a "A"}}))))
+        (is (= "12AB" (:body (app {:request-method :get, :uri "/api/ping", :query-params {:a "A", :b "B"}}))))))))
 
 (defn check-for-response-handler
   "This response-validation handler checks for the existence of :response in its input. If it's there, it
@@ -1365,7 +1372,7 @@
     (ok {:message "Found :response in data!" :attempted-body (get-in data [:response :body])})
     (not-found "No :response key present in data!")))
 
-(fact "response-validation handler has access to response value that failed coercion"
+(deftest response-validation-handler-has-access-to-response-value-that-failed-coercion-test
   (let [incorrect-return-value {:incorrect "response"}
         app (api
               {:exceptions {:handlers {::ex/response-validation check-for-response-handler}}}
@@ -1375,46 +1382,50 @@
                 ; This should fail and trigger our error handler
                 (ok incorrect-return-value)))]
 
-    (fact "return case, valid request & valid model"
+    (testing "return case, valid request & valid model"
       (let [[status body] (get* app "/test-response")]
-        status => 200
-        (:attempted-body body) => incorrect-return-value))))
+        (is-200-status status)
+        (is (= incorrect-return-value (:attempted-body body)))))))
 
-(fact "correct swagger parameter order with small number or parameters, #224"
+;; "correct swagger parameter order with small number or parameters, #224"
+(deftest issue-224-test
   (let [app (api
               (swagger-routes)
               (GET "/ping" []
                 :query-params [a b c d e]
                 (ok {:a a, :b b, :c c, :d d, :e e})))]
-    (fact "api works"
+    (testing "api works"
       (let [[status body] (get* app "/ping" {:a "A" :b "B" :c "C" :d "D" :e "E"})]
-        status => 200
-        body => {:a "A" :b "B" :c "C" :d "D" :e "E"}))
-    (fact "swagger parameters are in correct order"
-      (-> app get-spec :paths (get "/ping") :get :parameters (->> (map (comp keyword :name)))) => [:a :b :c :d :e])))
+        (is-200-status status)
+        (is (= {:a "A" :b "B" :c "C" :d "D" :e "E"} body))))
+    (testing "swagger parameters are in correct order"
+      (is (= [:a :b :c :d :e]
+             (-> app get-spec :paths (get "/ping") :get :parameters (->> (map (comp keyword :name)))))))))
 
-(fact "empty top-level route, #https://github.com/metosin/ring-swagger/issues/92"
+;; empty top-level route, #https://github.com/metosin/ring-swagger/issues/92
+(deftest issue-92-test 
   (let [app (api
               {:swagger {:spec "/swagger.json"}}
               (GET "/" [] (ok {:kikka "kukka"})))]
-    (fact "api works"
+    (testing "api works"
       (let [[status body] (get* app "/")]
-        status => 200
-        body => {:kikka "kukka"}))
-    (fact "swagger docs"
-      (-> app get-spec :paths keys) => ["/"])))
+        (is-200-status status)
+        (is (= {:kikka "kukka"} body))))
+    (testing "swagger docs"
+      (is (= ["/"] (-> app get-spec :paths keys))))))
 
-(fact "describe works on anonymous bodys, #168"
+;; describe works on anonymous bodys, #168
+(deftest issue-168-test
   (let [app (api
               (swagger-routes)
               (POST "/" []
                 :body [body (describe {:kikka [{:kukka String}]} "kikkas")]
                 (ok body)))]
-    (fact "description is in place"
-      (-> app get-spec :paths (get "/") :post :parameters first)
-      => (contains {:description "kikkas"}))))
+    (testing "description is in place"
+      (is (= "kikkas" (-> app get-spec :paths (get "/") :post :parameters first :description))))))
 
-(facts "swagger responses headers are mapped correctly, #232"
+;; swagger responses headers are mapped correctly, #232
+(deftest issue-232-test
   (let [app (api
               (swagger-routes)
               (context "/resource" []
@@ -1422,25 +1433,26 @@
                   {:get {:responses {200 {:schema {:size s/Str}
                                           :description "size"
                                           :headers {"X-men" (describe s/Str "mutant")}}}}})))]
-    (-> app get-spec :paths vals first :get :responses :200 :headers)
-    => {:X-men {:description "mutant", :type "string"}}))
+    (is (= {:X-men {:description "mutant", :type "string"}}
+           (-> app get-spec :paths vals first :get :responses :200 :headers)))))
 
-(facts "api-middleware can be disabled"
+(deftest api-middleware-can-be-disabled-test
   (let [app (api
               {:api {:disable-api-middleware? true}}
               (swagger-routes)
               (GET "/params" [x] (ok {:x x}))
               (GET "/throw" [] (throw (RuntimeException. "kosh"))))]
 
-    (fact "json-parsing & wrap-params is off"
+    (testing "json-parsing & wrap-params is off"
       (let [[status body] (raw-get* app "/params" {:x 1})]
-        status => 200
-        body => {:x nil}))
+        (is-200-status status)
+        (is (= {:x nil} body))))
 
-    (fact "exceptions are not caught"
-      (raw-get* app "/throw") => throws)))
+    (testing "exceptions are not caught"
+      (is (thrown? Exception (raw-get* app "/throw"))))))
 
-(facts "custom formats contribute to Swagger :consumes & :produces"
+;"custom formats contribute to Swagger :consumes & :produces"
+(deftest custom-formats-contribute-to-Swagger-consumes-produces-test
   (let [custom-type "application/vnd.vendor.v1+json"
         app (api
               {:swagger {:spec "/swagger.json"}
@@ -1451,32 +1463,34 @@
                 :body [data {:kikka s/Str}]
                 (ok data)))]
 
-    (fact "it works"
+    (testing "it works"
       (let [response (app {:uri "/echo"
                            :request-method :post
                            :body (json-stream {:kikka "kukka"})
                            :headers {"content-type" "application/vnd.vendor.v1+json"
                                      "accept" "application/vnd.vendor.v1+json"}})]
 
-        (-> response :body slurp) => (json-string {:kikka "kukka"})
-        (-> response :headers) => (contains {"Content-Type" "application/vnd.vendor.v1+json; charset=utf-8"})))
+        (is (= (json-string {:kikka "kukka"}) (-> response :body slurp)))
+        (is (= "application/vnd.vendor.v1+json; charset=utf-8"
+               (-> response :headers (get "Content-Type"))))))
 
-    (fact "spec is correct"
-      (get-spec app)
-      => (contains
-           {:produces (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)
-            :consumes (just ["application/vnd.vendor.v1+json" "application/json"] :in-any-order)}))))
+    (testing "spec is correct"
+      (let [res (get-spec app)]
+        (is (= (sort ["application/vnd.vendor.v1+json" "application/json"])
+               (-> res :produces sort)))
+        (is (= (sort ["application/vnd.vendor.v1+json" "application/json"])
+               (-> res :consumes sort)))))))
 
-(facts "muuntaja is bound in request"
+(deftest muuntaja-is-bound-in-request-test
   (let [app (api
               (GET "/ping" {:keys [::request/muuntaja]}
                 (ok {:pong (slurp (m/encode muuntaja "application/json" {:is "json"}))})))]
 
     (let [[status body] (get* app "/ping")]
-      status => 200
-      body => {:pong "{\"is\":\"json\"}"})))
+      (is-200-status status)
+      (is (= {:pong "{\"is\":\"json\"}"} body)))))
 
-(facts ":body doesn't keywordize keys"
+(deftest body-doesnt-keywordize-keys-test
   (let [m (m/create)
         data {:items {"kikka" 42}}
         body* (atom nil)
@@ -1491,23 +1505,23 @@
                 (reset! body* body)
                 (ok)))]
 
-    (facts ":body-params keywordizes params"
-      (app {:uri "/echo"
-            :request-method :post
-            :body (m/encode m "application/transit+json" data)
-            :headers {"content-type" "application/transit+json"
-                      "accept" "application/transit+json"}}) => http/ok?
-      @body* => {:items {:kikka 42}})
+    (testing ":body-params keywordizes params"
+      (is (http/ok? (app {:uri "/echo"
+                          :request-method :post
+                          :body (m/encode m "application/transit+json" data)
+                          :headers {"content-type" "application/transit+json"
+                                    "accept" "application/transit+json"}})))
+       (is (= {:items {:kikka 42}} @body*)))
 
-    (facts ":body does not keywordizes params"
-      (app {:uri "/echo2"
-            :request-method :post
-            :body (m/encode m "application/transit+json" data)
-            :headers {"content-type" "application/transit+json"
-                      "accept" "application/transit+json"}}) => http/ok?
-      @body* => {:items {"kikka" 42}})
+    (testing ":body does not keywordizes params"
+      (is (http/ok? (app {:uri "/echo2"
+                          :request-method :post
+                          :body (m/encode m "application/transit+json" data)
+                          :headers {"content-type" "application/transit+json"
+                                    "accept" "application/transit+json"}})))
+      (is (= {:items {"kikka" 42}} @body*)))
 
-    (facts "swagger spec is generated both ways"
+    (testing "swagger spec is generated both ways"
       (let [spec (get-spec app)
             echo-schema-name (-> (get-in spec [:paths "/echo" :post :parameters 0 :name])
                                  name (str "Items") keyword)
@@ -1515,16 +1529,16 @@
                                   name (str "Items") keyword)
             echo-schema (get-in spec [:definitions echo-schema-name :properties])
             echo2-schema (get-in spec [:definitions echo2-schema-name :properties])]
-        echo-schema => {:kikka {:type "integer", :format "int64"}}
-        echo2-schema => {:kikka {:type "integer", :format "int64"}}))))
+        (is (= {:kikka {:type "integer", :format "int64"}} echo-schema))
+        (is (= {:kikka {:type "integer", :format "int64"}} echo2-schema))))))
 
 
 (def ^:dynamic *response* nil)
 
-(facts "format-based body & response coercion"
+(deftest format-based-body-and-response-coercion-test
   (let [m (mw/create-muuntaja)]
 
-    (facts "application/transit & application/edn validate request & response (no coercion)"
+    (testing "application/transit & application/edn validate request & response (no coercion)"
       (let [valid-data {:items {"kikka" :kukka}}
             invalid-data {"items" {"kikka" :kukka}}
             Schema {:items {(s/required-key "kikka") s/Keyword}}
@@ -1535,22 +1549,22 @@
                     (ok *response*)))]
 
         (doseq [format ["application/transit+json" "application/edn"]]
-          (fact {:midje/description format}
+          (testing format
 
-            (fact "fails with invalid body"
-              (app (ring-request m format invalid-data)) => http/bad-request?)
+            (testing "fails with invalid body"
+              (is (http/bad-request? (app (ring-request m format invalid-data)))))
 
-            (fact "fails with invalid response"
+            (testing "fails with invalid response"
               (binding [*response* invalid-data]
-                (app (ring-request m format valid-data)) => http/internal-server-error?))
+                (is (http/internal-server-error? (app (ring-request m format valid-data))))))
 
-            (fact "succeeds with valid body & response"
+            (testing "succeeds with valid body & response"
               (binding [*response* valid-data]
                 (let [response (app (ring-request m format valid-data))]
-                  response => http/ok?
-                  (m/decode m format (:body response)) => valid-data)))))))
+                  (is (http/ok? response))
+                  (is (= valid-data (m/decode m format (:body response)))))))))))
 
-    (facts "application/json - coerce request, validate response"
+    (testing "application/json - coerce request, validate response"
       (let [valid-data {:int 1, :keyword "kikka"}
             valid-response-data {:int 1, :keyword :kikka}
             invalid-data {:int "1", :keyword "kikka"}
@@ -1562,43 +1576,43 @@
                     (ok *response*)))]
 
         (doseq [format ["application/json"]]
-          (fact {:midje/description format}
+          (testing format
 
-            (fact "fails with invalid body"
-              (app (ring-request m format invalid-data)) => http/bad-request?)
+            (testing "fails with invalid body"
+              (is (http/bad-request? (app (ring-request m format invalid-data)))))
 
-            (fact "fails with invalid response"
+            (testing "fails with invalid response"
               (binding [*response* invalid-data]
-                (app (ring-request m format valid-data)) => http/internal-server-error?))
+                (is (http/internal-server-error? (app (ring-request m format valid-data))))))
 
-            (fact "does not coerce response"
+            (testing "does not coerce response"
               (binding [*response* valid-data]
-                (app (ring-request m format valid-data)) => http/internal-server-error?))
+                (is (http/internal-server-error? (app (ring-request m format valid-data))))))
 
-            (fact "succeeds with valid body & response"
+            (testing "succeeds with valid body & response"
               (binding [*response* valid-response-data]
                 (let [response (app (ring-request m format valid-data))]
-                  response => http/ok?
-                  (m/decode m format (:body response)) => valid-data)))))))))
+                  (is (http/ok? response))
+                  (is (= valid-data (m/decode m format (:body response)))))))))))))
 
-(fact "static contexts just work"
+(deftest static-contexts-just-work-test
   (let [app (context "/:a" [a]
               (GET "/:b" [b]
                 (ok [a b])))]
-    (app {:request-method :get, :uri "/a/b"}) => (contains {:body ["a" "b"]})
-    (app {:request-method :get, :uri "/b/c"}) => (contains {:body ["b" "c"]})))
+    (is (= ["a" "b"] (:body (app {:request-method :get, :uri "/a/b"}))))
+    (is (= ["b" "c"] (:body (app {:request-method :get, :uri "/b/c"}))))))
 
-(facts "file responses don't get coerced"
+(deftest file-responses-dont-get-coerced-test
   (let [app (api
               (swagger-routes)
               (GET "/file" []
                 :return File
                 (ok (io/file "project.clj"))))]
     (let [{:keys [status body]} (app {:uri "/file", :request-method :get})]
-      status => 200
-      body => (partial instance? File))))
+      (is-200-status status)
+      (is (instance? File body)))))
 
-(fact "nil routes are ignored"
+(deftest nil-routes-are-ignored-test
   (let [create-app (fn [{:keys [dev?]}]
                      (context "/api" []
                        (GET "/ping" [] (ok))
@@ -1609,20 +1623,20 @@
                          (context "/dev" []
                            (GET "/tools" [] (ok))))))]
 
-    (facts "with routes"
+    (testing "with routes"
       (let [app (create-app {:dev? true})]
-        (app {:request-method :get, :uri "/api/ping"}) => http/ok?
-        (app {:request-method :get, :uri "/api/db/drop"}) => http/ok?
-        (app {:request-method :get, :uri "/api/dev/tools"}) => http/ok?))
+        (is (http/ok? (app {:request-method :get, :uri "/api/ping"})))
+        (is (http/ok? (app {:request-method :get, :uri "/api/db/drop"})))
+        (is (http/ok? (app {:request-method :get, :uri "/api/dev/tools"})))))
 
-    (facts "without routes"
+    (testing "without routes"
       (let [app (create-app {:dev? false})]
-        (app {:request-method :get, :uri "/api/ping"}) => http/ok?
-        (app {:request-method :get, :uri "/api/db/drop"}) => nil
-        (app {:request-method :get, :uri "/api/dev/tools"}) => nil))))
+        (is (http/ok? (app {:request-method :get, :uri "/api/ping"})))
+        (is (nil? (app {:request-method :get, :uri "/api/db/drop"})))
+        (is (nil? (app {:request-method :get, :uri "/api/dev/tools"})))))))
 
-(facts "wrap-routes"
-  (fact "simple middleware"
+(deftest wrap-routes-test
+  (testing "simple middleware"
     (let [called? (atom false)
           app (api
                 (route-middleware
@@ -1636,17 +1650,17 @@
                   (ok {:ok true})))
           response (app {:uri "/a"
                          :request-method :get})]
-      (-> response :body slurp) => (json-string {:ok true})
-      (fact "middleware is called"
-        @called? => truthy)
+      (is (= (json-string {:ok true}) (-> response :body slurp)))
+      (testing "middleware is called"
+        (is @called?))
 
       (reset! called? false)
       (let [response (app {:uri "/b"
                            :request-method :get})]
-        (-> response :body slurp) => (json-string {:ok true})
-        @called? => falsey)))
+        (is (= (json-string {:ok true}) (-> response :body slurp)))
+        (is (not @called?)))))
 
-  (fact "middleware with args"
+  (testing "middleware with args"
     (let [mw-value (atom nil)
           app (api
                 (route-middleware
@@ -1661,33 +1675,34 @@
                   (ok {:ok true})))
           response (app {:uri "/a"
                          :request-method :get})]
-      (-> response :body slurp) => (json-string {:ok true})
-      (fact "middleware is called"
-        @mw-value => :foo-bar)
+      (is (= (json-string {:ok true}) (-> response :body slurp)))
+      (testing "middleware is called"
+        (is (= :foo-bar @mw-value)))
 
       (reset! mw-value nil)
       (let [response (app {:uri "/b"
                            :request-method :get})]
-        (-> response :body slurp) => (json-string {:ok true})
-        @mw-value => nil))))
+        (is (= (json-string {:ok true}) (-> response :body slurp)))
+        (is (nil? @mw-value))))))
 
-(facts "ring-handler"
+(deftest ring-handler-test
   (let [app (api (GET "/ping" [] (ok)))
         ring-app (c/ring-handler app)]
-    (fact "both work"
-      (get* app "/ping") => (contains 200)
-      (get* ring-app "/ping") => (contains 200))
-    (fact "ring-app is also a Fn"
-      app =not=> fn?
-      ring-app => fn?)))
+    (testing "both work"
+      (is (some #{200} (get* app "/ping")))
+      (is (some #{200} (get* ring-app "/ping"))))
+    (testing "ring-app is also a Fn"
+      (is (not (fn? app)))
+      (is (fn? ring-app)))))
 
-(fact ":body-params are set to :params"
+(deftest body-params-are-set-to-params-test
   (let [app (api (POST "/echo" [x] (ok {:x x})))
         [status body] (post* app "/echo" (json-string {:x 1}))]
-    status => 200
-    body => {:x 1}))
+    (is-200-status status)
+    (is (= {:x 1} body))))
 
-(facts "body in error handling, #306 & #313"
+;; #306 & #313"
+(deftest body-in-error-handling-test
   (let [app (api
               {:exceptions
                {:handlers
@@ -1697,45 +1712,45 @@
               (POST "/error" []
                 (throw (RuntimeException. "error"))))
         [status body] (post* app "/error" (json-string {:kikka 6}))]
-    status => 500
-    body => {:kikka 6}))
+    (is (= 500 status))
+    (is (= {:kikka 6} body))))
 
-(fact "sequential routes"
+(deftest sequential-routes-test
 
-  (fact "context"
+  (testing "context"
     (let [app (api
                 (context "/api" []
                   (for [path ["/ping" "/pong"]]
                     (GET path [] (ok {:path path})))))]
 
-      (fact "all routes can be invoked"
+      (testing "all routes can be invoked"
         (let [[status body] (get* app "/api/ping")]
-          status => 200
-          body => {:path "/ping"})
+          (is-200-status status)
+          (is (= {:path "/ping"} body)))
 
         (let [[status body] (get* app "/api/pong")]
-          status => 200
-          body => {:path "/pong"}))))
+          (is-200-status status)
+          (is (= {:path "/pong"} body))))))
 
-  (fact "routes"
+  (testing "routes"
     (let [app (api
                 (routes
                   (for [path ["/ping" "/pong"]]
                     (GET path [] (ok {:path path})))))]
 
-      (fact "all routes can be invoked"
+      (testing "all routes can be invoked"
         (let [[status body] (get* app "/ping")]
-          status => 200
-          body => {:path "/ping"})
+          (is-200-status status)
+          (is (= {:path "/ping"} body)))
 
         (let [[status body] (get* app "/pong")]
-          status => 200
-          body => {:path "/pong"})))))
+          (is-200-status status)
+          (is (= {:path "/pong"} body)))))))
 
-(fact "wrap-format, #374"
+(deftest wrap-format-issue-374-test
   (let [data {:war "hammer"}]
 
-    (fact "first api consumes the body"
+    (testing "first api consumes the body"
       (let [app (routes
                   (api
                     (POST "/echo1" []
@@ -1746,16 +1761,16 @@
                       :body [body s/Any]
                       (ok body))))]
 
-        (fact "first api sees the body"
+        (testing "first api sees the body"
           (let [[status body] (post* app "/echo1" (json-string data))]
-            status => 200
-            body => data))
+            (is-200-status status)
+            (is (= data body))))
 
-        (fact "second api fails"
+        (testing "second api fails"
           (let [[status] (post* app "/echo2" (json-string data))]
-            status => 400)))
+            (is (= 400 status)))))
 
-      (fact "wrap-format with defaults"
+      (testing "wrap-format with defaults"
         (let [app (-> (routes
                         (api
                           (POST "/echo1" []
@@ -1768,17 +1783,17 @@
                             (ok body))))
                       (mw/wrap-format))]
 
-          (fact "first api sees the body"
+          (testing "first api sees the body"
             (let [[status body] (post* app "/echo1" (json-string data))]
-              status => 200
-              body => data))
+              (is-200-status status)
+              (is (= data body))))
 
-          (fact "second api sees it too!"
+          (testing "second api sees it too!"
             (let [[status body] (post* app "/echo2" (json-string data))]
-              status => 200
-              body => data))))
+              (is-200-status status)
+              (is (= data body))))))
 
-      (fact "wrap-format with configuration"
+      (testing "wrap-format with configuration"
         (let [muuntaja (m/create
                          (m/select-formats
                            m/default-options
@@ -1799,34 +1814,35 @@
                       (mw/wrap-format
                         {:formats muuntaja}))]
 
-          (fact "first api sees the body"
+          (testing "first api sees the body"
             (let [[status body] (post* app "/echo1" (json-string data))]
-              status => 200
-              body => data))
+              (is-200-status status)
+              (is (= data body))))
 
-          (fact "second api sees it too!"
+          (testing "second api sees it too!"
             (let [[status body] (post* app "/echo2" (json-string data))]
-              status => 200
-              body => data))
+              (is-200-status status)
+              (is (= data body))))
 
-          (fact "top-level muuntaja effect both"
+          (testing "top-level muuntaja effect both"
             (let [[status body] (get* app "/swagger1.json")]
-              status => 200
-              body => (contains
-                        {:produces ["application/json"]
-                         :consumes ["application/json"]}))
+              (is-200-status status)
+              (is (= {:produces ["application/json"]
+                      :consumes ["application/json"]}
+                     (select-keys body [:produces :consumes]))))
             (let [[status body] (get* app "/swagger2.json")]
-              status => 200
-              body => (contains
-                        {:produces ["application/json"]
-                         :consumes ["application/json"]}))))))))
+              (is-200-status status)
+              (is (= {:produces ["application/json"]
+                      :consumes ["application/json"]}
+                     (select-keys body [:produces :consumes]))))))))))
 
-(fact "2.* will fail fast with :format"
+;;"2.* will fail fast with :format"
+(deftest compojure-2x-will-fail-fast-with-format-test 
   (let [app' `(api {:format (m/create)})]
-    (eval app') => (throws AssertionError)))
+    (is (thrown? AssertionError (eval app')))))
 
-(fact "Muuntaja 0.6.0 options"
-  (fact "new formats"
+(deftest Muuntaja-0-6-0-options-test
+  (testing "new formats"
     (let [muuntaja (m/create
                      (-> m/default-options
                          (m/install muuntaja.format.msgpack/format)
@@ -1843,12 +1859,12 @@
                       "application/x-yaml"
                       "application/transit+json"
                       "application/transit+msgpack"]]
-        (fact {:midje/description (str "format " (pr-str format))}
+        (testing (str "format " (pr-str format))
           (let [{:keys [status body]} (app (ring-request muuntaja format data))]
-            status => 200
-            (m/decode muuntaja format body) => data)))))
+            (is-200-status status)
+            (is (= data (m/decode muuntaja format body))))))))
 
-  (fact "return types"
+  (testing "return types"
     (doseq [[return type] {:input-stream ByteArrayInputStream
                            :bytes (class (make-array Byte/TYPE 0))
                            :output-stream StreamableResponse}]
@@ -1856,7 +1872,7 @@
                   {:formats (assoc m/default-options :return return)}
                   (GET "/" []
                     (ok {:kikka "kukka"})))]
-        (fact {:midje/description (str "return " (pr-str return))}
+        (testing (str "return " (pr-str return))
           (let [{:keys [status body]} (app {:uri "/", :request-method :get})]
-            status => 200
-            body => (partial instance? type)))))))
+            (is-200-status status)
+            (is (instance? type body))))))))

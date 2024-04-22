@@ -1,5 +1,6 @@
 (ns compojure.api.coercion.spec-coercion-test
-  (:require [midje.sweet :refer :all]
+  (:require [testit.core :refer :all]
+            [clojure.test :refer [deftest]]
             [clojure.spec.alpha :as s]
             [compojure.api.test-utils :refer :all]
             [compojure.api.sweet :refer :all]
@@ -42,7 +43,7 @@
 (def valid-value {:kikka :kukka})
 (def invalid-value {:kikka "kukka"})
 
-(fact "request-coercion"
+(deftest request-coercion-test
   (let [c! #(coercion/coerce-request! ::spec :body-params :body false false %)]
 
     (fact "default coercion"
@@ -107,7 +108,7 @@
     (-> cs/default-options
         (assoc-in [:response :formats "application/json"] cs/json-transformer))))
 
-(fact "response-coercion"
+(deftest response-coercion-test
   (let [c! coercion/coerce-response!]
 
     (fact "default coercion"
@@ -151,7 +152,7 @@
 (s/def ::xy (s/keys :req-un [::x ::y]))
 (s/def ::total pos-int?)
 
-(facts "apis"
+(deftest apis-test
   (let [app (api
               {:swagger {:spec "/swagger.json"}
                :coercion :spec}
@@ -498,7 +499,7 @@
 
 (s/def ::id pos-int?)
 
-(fact "spec coercion in context"
+(deftest spec-coercion-in-context-test
   (let [app (context "/product/:id" []
               :coercion :spec
               :path-params [id :- ::id]

@@ -1,13 +1,14 @@
 (ns compojure.api.common-test
   (:require [compojure.api.common :as common]
-            [midje.sweet :refer :all]
+            [testit.core :refer :all]
+            [clojure.test :refer [deftest]]
             [criterium.core :as cc]))
 
-(fact "group-with"
+(deftest group-with-test
   (common/group-with pos? [1 -10 2 -4 -1 999]) => [[1 2 999] [-10 -4 -1]]
   (common/group-with pos? [1 2 999]) => [[1 2 999] nil])
 
-(fact "extract-parameters"
+(deftest extract-parameters-test
 
   (facts "expect body"
     (common/extract-parameters [] true) => [{} nil]
