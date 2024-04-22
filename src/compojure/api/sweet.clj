@@ -9,40 +9,13 @@
 
 (import-vars
 
-  [compojure.api.core
+  [compojure.api.core routes defroutes let-routes undocumented
+   context GET ANY HEAD PATCH DELETE OPTIONS POST PUT]
 
-   routes
-   defroutes
-   let-routes
-   undocumented
+  [compojure.api.api api]
 
-   context
+  [compojure.api.resource resource]
+[compojure.api.routes path-for]
 
-   GET
-   ANY
-   HEAD
-   PATCH
-   DELETE
-   OPTIONS
-   POST
-   PUT]
-
-  [compojure.api.api
-
-   api]
-
-  [compojure.api.resource
-
-   resource]
-
-  [compojure.api.routes
-
-   path-for]
-
-  [compojure.api.swagger
-
-   swagger-routes]
-
-  [ring.swagger.json-schema
-
-   describe])
+  [compojure.api.swagger swagger-routes]
+[ring.swagger.json-schema describe])
