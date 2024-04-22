@@ -74,7 +74,7 @@
       {:childs [handler]
        :handler x-handler})))
 
-(defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true}))
+(defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :&form &form :&env &env}))
 
 (defmacro GET {:style/indent 2} [& args] (meta/restructure :get args nil))
 (defmacro ANY {:style/indent 2} [& args] (meta/restructure nil args nil))

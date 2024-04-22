@@ -75,25 +75,55 @@
 (defmethod help/help-for [:meta :dynamic] [_ _]
   (help/text
     "If set to to `true`, makes a `context` dynamic,"
-    "e.g. body is evaluated on each request. NOTE:"
-    "Vanilla Compojure has this enabled by default"
-    "while compojure-api default to `false`, being"
-    "much faster. For details, see:\n"
-    "https://github.com/weavejester/compojure/issues/148\n"
+    "which wraps the body in a closure that is evaluated on each request."
+    "This is the default behavior in vanilla compojure. In compojure-api,"
+    "this is also the usual behavior, except:"
+    "If the context does not bind any variables and its body contains"
+    "just top-level calls to compojure.api endpoint macros like GET,"
+    "then the body will be cached for each request."
 
     (help/code
       "(context \"/static\" []"
-      "  (if (= 0 (random-int 2))"
+      "  :static true"
+      "  (when (= 0 (random-int 2))"
+      "     (println 'ping!) ;; never printed during request"
       "     ;; mounting decided once"
-      "     (GET \"/ping\" [] (ok \"pong\")))"
+      "     (GET \"/ping\" [] (ok \"pong\"))))"
       ""
       "(context \"/dynamic\" []"
       "  :dynamic true"
-      "  (if (= 0 (random-int 2))"
+      "  (when (= 0 (random-int 2))"
+      "     (println 'ping!) ;; printed 50% of requests"
+      "     ;; mounted for 50% of requests"
+      "     (GET \"/ping\" [] (ok \"pong\"))))")))
+
+(defmethod restructure-param :dynamic [k v acc]
+  (update-in acc [:info :public] assoc k v))
+
+(defmethod help/help-for [:meta :static] [_ _]
+  (help/text
+    "If set to to `true`, makes a `context` static,"
+    "which resolves the body before processing requests."
+    "This is much faster than :dynamic contexts at the"
+    "cost of expressivity: routes under a static context"
+    "cannot change based on the request."
+
+    (help/code
+      "(context \"/static\" []"
+      "  :static true"
+      "  (when (= 0 (random-int 2))"
+      "     (println 'ping!) ;; never printed during request"
+      "     ;; mounting decided once"
+      "     (GET \"/ping\" [] (ok \"pong\"))))"
+      ""
+      "(context \"/dynamic\" []"
+      "  :dynamic true"
+      "  (when (= 0 (random-int 2))"
+      "     (println 'ping!) ;; printed 50% of requests"
       "     ;; mounted for 50% of requests"
       "     (GET \"/ping\" [] (ok \"pong\")))")))
 
-(defmethod restructure-param :dynamic [k v acc]
+(defmethod restructure-param :static [k v acc]
   (update-in acc [:info :public] assoc k v))
 
 ;;
@@ -579,7 +609,7 @@
 
 (defmacro static-context
   [path route]
-  `(#'compojure.api.compojure-compat/make-context
+  `(compojure.api.compojure-compat/make-context
      ~(#'compojure.core/context-route path)
      (constantly ~route)))
 
@@ -628,7 +658,145 @@
 (defn- route-args? [arg]
   (not= arg []))
 
-(defn restructure [method [path route-arg & args] {:keys [context?]}]
+(def endpoint-vars (conj (into #{}
+                               (mapcat (fn [n]
+                                         (map #(symbol (name %) (name n))
+                                              '[compojure.api.core
+                                                compojure.api.sweet])))
+                               '[GET ANY HEAD PATCH DELETE OPTIONS POST PUT])
+                         'compojure.api.sweet/resource
+                         'compojure.api.resource/resource))
+
+(defn- static-endpoint? [&env body]
+  (and (seq? body)
+       (boolean
+         (let [sym (first body)]
+           (when (symbol? sym)
+             (when-some [v (resolve &env sym)]
+               (when (var? v)
+                 (endpoint-vars
+                   (symbol v)))))))))
+
+(declare static-body?)
+
+(def context-vars (into #{}
+                        (mapcat (fn [n]
+                                  (map #(symbol (name %) (name n))
+                                       '[compojure.api.core
+                                         compojure.api.sweet])))
+                        '[context]))
+
+(defn- static-context? [&env body]
+  (and (seq? body)
+       (boolean
+         (let [sym (first body)]
+           (when (symbol? sym)
+             (when-some [v (resolve &env sym)]
+               (when (var? v)
+                 (when (context-vars (symbol v))
+                   (let [[_ path route-arg & args] body
+                         [options body] (extract-parameters args true)
+                         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
+                         {:keys [lets
+                                 letks
+                                 responses
+                                 middleware
+                                 info
+                                 swagger
+                                 body]} (reduce
+                                          (fn [acc [k v]]
+                                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
+                                          {:lets lets
+                                           :letks []
+                                           :responses nil
+                                           :middleware []
+                                           :info {}
+                                           :body body}
+                                          options)
+                         static? (not (or (-> info :public :dynamic)
+                                          (route-args? route-arg) (seq lets) (seq letks)))
+                         safely-static (or (-> info :public :static) (static-body? &env body))]
+                     safely-static)))))))))
+
+(def middleware-vars (into #{}
+                           (mapcat (fn [n]
+                                     (map #(symbol (name %) (name n))
+                                          '[compojure.api.core
+                                            compojure.api.sweet])))
+                           '[middleware]))
+
+(defn- static-middleware? [&env body]
+  (and (seq? body)
+       (boolean
+         (let [sym (first body)]
+           (when (symbol? sym)
+             (when-some [v (resolve &env sym)]
+               (when (var? v)
+                 (when (middleware-vars (symbol v))
+                   (let [[_ path route-arg & args] body
+                         [options body] (extract-parameters args true)
+                         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
+                         {:keys [lets
+                                 letks
+                                 responses
+                                 middleware
+                                 info
+                                 swagger
+                                 body]} (reduce
+                                          (fn [acc [k v]]
+                                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
+                                          {:lets lets
+                                           :letks []
+                                           :responses nil
+                                           :middleware []
+                                           :info {}
+                                           :body body}
+                                          options)
+                         safely-static (static-body? &env body)]
+                     safely-static)))))))))
+
+(def route-middleware-vars (into #{}
+                                 (mapcat (fn [n]
+                                           (map #(symbol (name %) (name n))
+                                                '[compojure.api.core
+                                                  compojure.api.sweet])))
+                                 '[route-middleware]))
+
+(defn- static-route-middleware? [&env body]
+  (and (seq? body)
+       (boolean
+         (let [sym (first body)]
+           (when (symbol? sym)
+             (when-some [v (resolve &env sym)]
+               (when (var? v)
+                 (when (route-middleware-vars (symbol v))
+                   (let [[_ mids & body] body]
+                     (and (some? mids)
+                          (static-body? &env body)))))))))))
+
+(defn- static-cond? [&env form]
+  (and (seq? form)
+       (boolean
+         (let [sym (first form)]
+           (when (symbol? sym)
+             (let [v (resolve &env sym)]
+               (when (or (= #'when v)
+                         (= #'= v)
+                         (= #'not= v)
+                         (= sym 'if))
+                 (static-body? &env (next form)))))))))
+
+(defn- static-body? [&env body]
+  (every? #(or (static-endpoint? &env %)
+               (contains? &env %) ;;local
+               ((some-fn keyword? number? boolean?) %)
+               (static-cond? &env %)
+               (static-context? &env %)
+               (static-middleware? &env %)
+               (static-route-middleware? &env %))
+          body))
+
+(defn restructure [method [path route-arg & args] {:keys [context? &form &env]}]
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
 
@@ -651,10 +819,30 @@
 
         coercion (:coercion info)
 
+        _ (assert (not (and (-> info :public :dynamic)
+                            (-> info :public :static)))
+                  "Cannot be both a :dynamic and :static context.")
+
         static? (not (or (-> info :public :dynamic)
                          (route-args? route-arg) (seq lets) (seq letks)))
+        safely-static (or (-> info :public :static) (static-body? &env body))
 
-        static-context? (and static? context?)
+        _ (when context?
+            (when-not safely-static
+              (when-some [coach (or (System/getProperty "compojure.api.meta.static-context-coach")
+                                    "assert")]
+                (when (and static? (not (-> info :public :static)))
+                  (case coach
+                    "off" nil
+                    "print" (println "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)}))
+                    "assert" (throw (ex-info "This looks like it could be a static context"
+                                             {:form &form
+                                              :meta (meta &form)}))
+                    (throw (ex-info "compojure.api.meta.static-context-coach must be either print or assert" {:provided coach})))))))
+
+        ;; :dynamic by default
+        static-context? (and static? context? safely-static)
+
         info (cond-> info
                      static-context? (assoc :static-context? static-context?))
 
@@ -676,7 +864,7 @@
                       ~form)
                    form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
-            form (if static?
+            form (if static-context?
                    `(static-context ~path ~form)
                    `(compojure.core/context ~path ~arg-with-request ~form))
 

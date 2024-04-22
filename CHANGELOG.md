@@ -7,6 +7,11 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 * Remove potemkin [#445](https://github.com/metosin/compojure-api/issues/445)
 * Add back `compojure.api.routes/create`
 * Add back `middleware` (and deprecate it)
+* Make `context` :dynamic by default
+* Add `:static true` option to `context`
+* Add static context optimization coach
+  * `-Dcompojure.api.meta.static-context-coach=print` to print hints
+  * `-Dcompojure.api.meta.static-context-coach=assert` to assert hints
 
 ## 2.0.0-alpha31 (2019-12-20)
 

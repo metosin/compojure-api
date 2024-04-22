@@ -1206,7 +1206,7 @@
                 (GET "/route" [q]
                   :swagger {:x-name :boolean
                             :operationId "echoBoolean"
-                            :description "Ehcoes a boolean"
+                            :description "Echoes a boolean"
                             :parameters {:query {:q s/Bool}}}
                   (ok {:q q})))]
 
@@ -1220,7 +1220,7 @@
         => (contains
              {:x-name "boolean"
               :operationId "echoBoolean"
-              :description "Ehcoes a boolean"
+              :description "Echoes a boolean"
               :parameters [{:description ""
                             :in "query"
                             :name "q"
@@ -1229,7 +1229,7 @@
   (fact "run-time values"
     (let [runtime-data {:x-name :boolean
                         :operationId "echoBoolean"
-                        :description "Ehcoes a boolean"
+                        :description "Echoes a boolean"
                         :parameters {:query {:q s/Bool}}}
           app (api
                 (swagger-routes)
@@ -1247,7 +1247,7 @@
         => (contains
              {:x-name "boolean"
               :operationId "echoBoolean"
-              :description "Ehcoes a boolean"
+              :description "Echoes a boolean"
               :parameters [{:description ""
                             :in "query"
                             :name "q"
@@ -1705,6 +1705,7 @@
   (fact "context"
     (let [app (api
                 (context "/api" []
+                  :static true
                   (for [path ["/ping" "/pong"]]
                     (GET path [] (ok {:path path})))))]
 

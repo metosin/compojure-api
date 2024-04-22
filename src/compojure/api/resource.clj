@@ -159,7 +159,7 @@
                         Setting value to `(constantly nil)` disables both request- &
                         response coercion. See tests and wiki for details.
 
-  Enchancements to ring-swagger operations map:
+  Enhancements to ring-swagger operations map:
 
   1) :parameters use ring request keys (query-params, path-params, ...) instead of
   swagger-params (query, path, ...). This keeps things simple as ring keys are used in

@@ -39,8 +39,10 @@
     (context "/api" []
       :tags ["api"]
       :coercion :spec
+      :static true
 
       (context "/jr1" []
+        :static true
         (resource
           {:get
            {:summary "Number of successful full-text article requests by month and journal"
