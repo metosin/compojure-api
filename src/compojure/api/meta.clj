@@ -963,9 +963,9 @@
 
         a (atom [])
         safely-static (when context?
-                        (when static?
-                          (when-not (-> info :public :dynamic)
-                            (or (-> info :public :static)
+                        (or (-> info :public :static)
+                            (when static?
+                              (when-not (-> info :public :dynamic)
                                 (try (binding [*not-safely-static* a]
                                        (static-body? &env body))
                                      (catch Exception e
