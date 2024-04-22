@@ -924,6 +924,8 @@
 (defn- static-body? [&env body]
   (every? #(static-form? &env %) body))
 
+(def ^:private warned-non-static? (atom false))
+
 (defn restructure [method [path route-arg & args] {:keys [context? &form &env]}]
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
@@ -975,43 +977,48 @@
             (when-not safely-static
               (when (and static? (not (-> info :public :static)))
                 (let [coach (some-> (System/getProperty "compojure.api.meta.static-context-coach")
-                                    edn/read-string)
-                      _ (assert (map? coach)
-                                (str "-Dcompojure.api.meta.static-context-coach should be a map, given: "
-                                     (pr-str coach)))
-                      nsym (ns-name *ns*)
-                      mode (or (get coach nsym)
-                               (get coach :default)
-                               :print)
-                      _ (when (:verbose coach)
-                          (println "The following forms were not inferred static:")
-                          ((requiring-resolve 'clojure.pprint/pprint)
-                           @a))
-                      msg (str "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)})
-                               "\n\n"
-                               "If you intend for the body of this context to be evaluated on every request, please "
-                               "use (context ... :dynamic true ...)."
-                               "\n\n"
-                               "If you intend for the body of this context to be fixed for every request, please "
-                               "use (context ... :static true ...)."
-                               "\n\n"
-                               "If you feel this case could be automatically inferred as :static, please suggest a "
-                               "new inference rule at https://github.com/metosin/compojure-api. Use "
-                               "-Dcompojure.api.meta.static-context-coach={:verbose true} to print additional information "
-                               "and include it in the issue."
-                               "\n\n"
-                               "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
-                               "{" nsym " " :off "}"
-                               (when coach
-                                 (str "\n\nCurrent coach config: " (pr-str coach))))]
-                  (case mode
-                    :off nil
-                    :print (println msg)
-                    :assert (throw (ex-info msg
-                                            {:form &form
-                                             :meta (meta &form)}))
-                    (throw (ex-info "compojure.api.meta.static-context-coach mode must be either :off, :print, or :assert" {:coach coach
-                                                                                                                            :provided mode})))))))
+                                    edn/read-string)]
+                  (if-not coach
+                    (when (ffirst (reset-vals! warned-non-static? true))
+                      (str "WARNING: Performance issue detected with compojure-api usage. "
+                           "To fix this warning, set: -Dcompojure.api.meta.static-context-coach={:default :print}. "
+                           "To suppress this warning, set: -Dcompojure.api.meta.static-context-coach={:default :off}."))
+                    (let [_ (assert (map? coach)
+                                    (str "-Dcompojure.api.meta.static-context-coach should be a map, given: "
+                                         (pr-str coach)))
+                          nsym (ns-name *ns*)
+                          mode (or (get coach nsym)
+                                   (get coach :default)
+                                   :print)
+                          _ (when (:verbose coach)
+                              (println "The following forms were not inferred static:")
+                              ((requiring-resolve 'clojure.pprint/pprint)
+                               @a))
+                          msg (str "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)})
+                                   "\n\n"
+                                   "If you intend for the body of this context to be evaluated on every request, please "
+                                   "use (context ... :dynamic true ...)."
+                                   "\n\n"
+                                   "If you intend for the body of this context to be fixed for every request, please "
+                                   "use (context ... :static true ...)."
+                                   "\n\n"
+                                   "If you feel this case could be automatically inferred as :static, please suggest a "
+                                   "new inference rule at https://github.com/metosin/compojure-api. Use "
+                                   "-Dcompojure.api.meta.static-context-coach={:verbose true} to print additional information "
+                                   "and include it in the issue."
+                                   "\n\n"
+                                   "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
+                                   "{" nsym " " :off "}"
+                                   (when coach
+                                     (str "\n\nCurrent coach config: " (pr-str coach))))]
+                      (case mode
+                        :off nil
+                        :print (println msg)
+                        :assert (throw (ex-info msg
+                                                {:form &form
+                                                 :meta (meta &form)}))
+                        (throw (ex-info "compojure.api.meta.static-context-coach mode must be either :off, :print, or :assert" {:coach coach
+                                                                                                                                :provided mode})))))))))
 
         ;; :dynamic by default
         static-context? (and static? context? (boolean safely-static))
