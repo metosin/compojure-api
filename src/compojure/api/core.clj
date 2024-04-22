@@ -38,7 +38,7 @@
     (routes/create nil nil {} nil (partial handle handlers))))
 
 (defmacro middleware
-  "Wraps routes with given middleware using thread-first macro.
+  "Wraps routes with given middlewares using thread-first macro.
 
   Note that middlewares will be executed even if routes in body
   do not match the request uri. Be careful with middleware that
@@ -47,6 +47,10 @@
    :deprecated "1.1.14"
    :superseded-by "route-middleware"}
   [middleware & body]
+  (assert (= "true" (System/getProperty "compojure.api.core.allow-dangerous-middleware"))
+          (str "compojure.api.core.middleware is deprecated because of security issues. "
+               "Please use route-middleware instead. "
+               "Set compojure.api.core.allow-dangerous-middleware=true to keep using middleware."))
   `(let [body# (routes ~@body)
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
