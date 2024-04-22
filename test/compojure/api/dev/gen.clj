@@ -180,7 +180,7 @@
                                 :f #'gen-compojure-api-upload-ns-forms})
 
 (def gen-source->nsym
-  {"src/compojure/api/sweet.clj" compojure-api-upload-conf
+  {"src/compojure/api/sweet.clj" compojure-api-sweet-conf
    "src/compojure/api/upload.clj" compojure-api-upload-conf})
 
 (defn spit-compojure-api-ns []
