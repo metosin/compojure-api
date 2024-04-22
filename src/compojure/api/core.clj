@@ -54,6 +54,10 @@
    :deprecated "1.1.14"
    :superseded-by "route-middleware"}
   [middleware & body]
+  (assert (= "true" (System/getProperty "compojure.api.core.allow-dangerous-middleware"))
+          (str "compojure.api.core.middleware is deprecated because of security issues. "
+               "Please use route-middleware instead. "
+               "Set compojure.api.core.allow-dangerous-middleware=true to keep using middleware."))
   `(let [body# (routes ~@body)
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
