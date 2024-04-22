@@ -852,9 +852,12 @@
       (and (seq? form)
            (symbol? (first form))
            (when-some [v (resolve-var &env (first form))]
-             (when (#{"spec-tools.data-spec"
-                      "spec-tools.core"}
-                     (namespace (symbol v)))
+             (when (or (#{"spec-tools.data-spec"
+                          "spec-tools.core"}
+                         (namespace (symbol v)))
+                       ('#{compojure.api.sweet/describe
+                           ring.swagger.json-schema/describe}
+                         (symbol v)))
                (when-not (:macro (meta v))
                  (every? #(static-form? &env %) (next form))))))))
 
