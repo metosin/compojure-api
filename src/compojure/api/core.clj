@@ -2,6 +2,7 @@
   (:require [compojure.api.meta :as meta]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw]
+            [compojure.core :as compojure]
             [clojure.tools.macro :as macro]))
 
 (defn- handle [handlers request]
@@ -37,16 +38,30 @@
     (routes/create nil nil {} nil (partial handle handlers))))
 
 (defmacro middleware
-  "Wraps routes with given middlewares using thread-first macro.
+  "Wraps routes with given middleware using thread-first macro.
 
   Note that middlewares will be executed even if routes in body
-  do not match the request uri. Be careful with middlewares that
-  have side-effects."
-  {:style/indent 1}
+  do not match the request uri. Be careful with middleware that
+  has side-effects."
+  {:style/indent 1
+   :deprecated "1.1.14"
+   :superseded-by "route-middleware"}
   [middleware & body]
   `(let [body# (routes ~@body)
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
+
+(defn route-middleware
+  "Wraps routes with given middleware using thread-first macro."
+  {:style/indent 1
+   :supercedes "middleware"}
+  [middleware & body]
+  (let [handler (apply routes body)
+        x-handler (compojure/wrap-routes handler (mw/compose-middleware middleware))]
+    ;; use original handler for docs and wrapped handler for implementation
+    (routes/map->Route
+      {:childs [handler]
+       :handler x-handler})))
 
 (defmacro context {:style/indent 2} [& args] (meta/restructure nil      args {:context? true}))
 

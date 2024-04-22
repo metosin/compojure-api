@@ -1,5 +1,6 @@
 ## NEXT
 * Remove potemkin [#445](https://github.com/metosin/compojure-api/issues/445)
+* backport `route-middleware`
 
 ## 1.1.13 (2019-11-02)
 
