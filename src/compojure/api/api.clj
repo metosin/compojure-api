@@ -72,3 +72,19 @@
                           {::request/paths paths
                            ::request/lookup lookup}))]
     (assoc partial-api-route :handler api-handler)))
+
+(defmacro
+  ^{:superseded-by "api" 
+    :deprecated "2.0.0"
+    :doc (str
+  "Deprecated: please use (def name (api ...body..))
+  
+  Defines an api.
+
+  API middleware options:
+
+  " (:doc (meta #'compojure.api.middleware/api-middleware)))}
+  defapi
+  [name & body]
+  {:style/indent 1}
+  `(def ~name (api ~@body)))
