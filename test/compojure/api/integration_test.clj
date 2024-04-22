@@ -1705,7 +1705,6 @@
   (fact "context"
     (let [app (api
                 (context "/api" []
-                  :static true
                   (for [path ["/ping" "/pong"]]
                     (GET path [] (ok {:path path})))))]
 

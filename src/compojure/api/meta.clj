@@ -813,7 +813,7 @@
           (static-form? &env form'))))))
 
 (defn- constant-form? [&env form]
-  (or ((some-fn nil? keyword? number? boolean?) form)
+  (or ((some-fn nil? keyword? number? boolean? string?) form)
       (and (seq? form)
            (= 2 (count form))
            (= 'quote (first form)))))
@@ -821,9 +821,12 @@
 (defn- static-binder? [&env bv]
   (and (vector? bv)
        (even? (count bv))
-       (every? (fn [[_ init]]
-                 (static-body? &env init))
-               (partition 2 bv))))
+       (reduce (fn [&env [l init]]
+                 (if-not (or (simple-symbol? l)
+                             (static-form? init))
+                   (reduced false)
+                   (assoc &env l true)))
+               &env (partition 2 bv))))
 
 (defn- static-let? [&env body]
   (and (seq? body)
@@ -832,9 +835,10 @@
            (let [v (resolve &env (first body))]
              (when (var? v)
                (contains?
-                 '#{clojure.core/let compojure.api.sweet/let-routes compojure.api.core/let-routes}
+                 '#{clojure.core/let clojure.core/for
+                    compojure.api.sweet/let-routes compojure.api.core/let-routes}
                  (symbol v)))))
-       (let [[_ bv & body] body]
+       (let [[_ bv & body] (macroexpand-1 (list* `let (next body)))]
          (and (static-binder? &env bv)
               (static-body? &env body)))))
 
