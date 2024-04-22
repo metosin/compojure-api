@@ -814,7 +814,9 @@
   (boolean
     (or (and (seq? form)
              (= 2 (count form))
-             (= 'var (first form)))
+             (= 'var (first form))
+             (when-some [v (resolve-var &env (second form))]
+               (not (:dynamic (meta v)))))
         (when (symbol? form)
           (let [r (resolve &env form)]
             (or (class? r)
