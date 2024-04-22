@@ -659,14 +659,12 @@
 (defn- route-args? [arg]
   (not= arg []))
 
-(def endpoint-vars (conj (into #{}
-                               (mapcat (fn [n]
-                                         (map #(symbol (name %) (name n))
-                                              '[compojure.api.core
-                                                compojure.api.sweet])))
-                               '[GET ANY HEAD PATCH DELETE OPTIONS POST PUT])
-                         'compojure.api.sweet/resource
-                         'compojure.api.resource/resource))
+(def endpoint-vars (into #{}
+                         (mapcat (fn [n]
+                                   (map #(symbol (name %) (name n))
+                                        '[compojure.api.core
+                                          compojure.api.sweet])))
+                         '[GET ANY HEAD PATCH DELETE OPTIONS POST PUT]))
 
 (def routes-vars #{'compojure.api.sweet/routes
                    'compojure.api.core/routes})
@@ -687,6 +685,26 @@
                    (or (endpoint-vars sym)
                        (and (routes-vars sym)
                             (static-body? &env (next form))))))))))))
+
+(def resource-vars '#{compojure.api.sweet/resource
+                      compojure.api.resource/resource})
+
+(defn- static-resource? [&env form]
+  (and (seq? form)
+       (boolean
+         (let [sym (first form)]
+           (when (symbol? sym)
+             (when-some [v (resolve &env sym)]
+               (when (var? v)
+                 (let [sym (symbol v)]
+                   (when (and (resource-vars sym)
+                              (= 1 (count form)))
+                     (let [[_ data] form]
+                       ;; TODO only needs to be static in a few places.
+                       ;; is it enough to just test for map?.
+                       (or (static-form? data)
+                           (and (map? data)
+                                ()))))))))))))
 
 (def context-vars (into #{}
                         (mapcat (fn [n]
@@ -898,8 +916,14 @@
                             (-> info :public :static)))
                   "Cannot be both a :dynamic and :static context.")
 
-        static? (not (or (-> info :public :dynamic)
-                         (route-args? route-arg) (seq lets) (seq letks)))
+        bindings? (boolean (or (route-args? route-arg) (seq lets) (seq letks)))
+
+        _ (assert (not (and (-> info :public :static)
+                            bindings?))
+                  "A context cannot be :static and also provide bindings. Either push bindings into endpoints or remove :static.")
+
+        static? (not (or (-> info :public :dynamic) bindings?))
+
         safely-static (or (-> info :public :static)
                           (try (static-body? &env body)
                                (catch Exception e
@@ -928,16 +952,17 @@
                                "use (context ... :static true ...)."
                                "\n\n"
                                "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
-                               "{" nsym :off "}"
+                               "{" nsym " " :off "}"
                                (when coach
                                  (str "\n\nCurrent coach config: " (pr-str coach))))]
-                  (case coach
+                  (case mode
                     :off nil
                     :print (println msg)
                     :assert (throw (ex-info msg
                                             {:form &form
                                              :meta (meta &form)}))
-                    (throw (ex-info "compojure.api.meta.static-context-coach must be either :off, :print, or :assert" {:provided coach})))))))
+                    (throw (ex-info "compojure.api.meta.static-context-coach mode must be either :off, :print, or :assert" {:coach coach
+                                                                                                                            :provided mode})))))))
 
         ;; :dynamic by default
         static-context? (and static? context? (boolean safely-static))

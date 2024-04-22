@@ -14,7 +14,7 @@
   (fact "all compojure.api.core macros are interpreted"
     (let [app (context "/a" []
                 (routes
-                  (context "/b" []
+                  (context "/b" a
                     (let-routes []
                       (GET "/c" [] identity)
                       (POST "/d" [] identity)
