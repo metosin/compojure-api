@@ -713,30 +713,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (when (context-vars (symbol v))
-                   (let [[_ path route-arg & args] body
-                         [options body] (extract-parameters args true)
-                         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
-                         {:keys [lets
-                                 letks
-                                 responses
-                                 middleware
-                                 info
-                                 swagger
-                                 body]} (reduce
-                                          (fn [acc [k v]]
-                                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
-                                          {:lets lets
-                                           :letks []
-                                           :responses nil
-                                           :middleware []
-                                           :info {}
-                                           :body body}
-                                          options)
-                         static? (not (or (-> info :public :dynamic)
-                                          (route-args? route-arg) (seq lets) (seq letks)))
-                         safely-static (or (-> info :public :static) (static-body? &env body))]
-                     safely-static)))))))))
+                 (context-vars (symbol v)))))))))
 
 (def middleware-vars (into #{}
                            (mapcat (fn [n]
@@ -771,9 +748,8 @@
                                            :middleware []
                                            :info {}
                                            :body body}
-                                          options)
-                         safely-static (static-body? &env body)]
-                     safely-static)))))))))
+                                          options)]
+                     (static-body? &env body))))))))))
 
 (def route-middleware-vars (into #{}
                                  (mapcat (fn [n]
@@ -972,24 +948,35 @@
                             bindings?))
                   "A context cannot be :static and also provide bindings. Either push bindings into endpoints or remove :static.")
 
-        static? (not (or (-> info :public :dynamic) bindings?))
+        configured-dynamic? (-> info :public :dynamic)
+
+        configured-static? (or (-> info :public :static)
+                               (when-not configured-dynamic?
+                                 (contains?
+                                   (some-> (System/getProperty "compojure.api.meta.static-context-namespaces")
+                                           edn/read-string
+                                           set)
+                                   (ns-name *ns*))))
+
+        static? (or configured-static?
+                    (and (not configured-dynamic?)
+                         (not bindings?)))
 
         a (atom [])
-        safely-static (when context?
-                        (or (-> info :public :static)
-                            (when static?
-                              (when-not (-> info :public :dynamic)
-                                (try (binding [*not-safely-static* a]
-                                       (static-body? &env body))
-                                     (catch Exception e
-                                       (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
-                                       (prn {:form &form :env &env})
-                                       (prn e)
-                                       false))))))
+        safely-static? (boolean
+                         (when context?
+                           (when static?
+                             (try (binding [*not-safely-static* a]
+                                    (static-body? &env body))
+                                  (catch Exception e
+                                    (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
+                                    (prn {:form &form :env &env})
+                                    (prn e)
+                                    false)))))
 
         _ (when (and context? static?)
-            (when-not safely-static
-              (when (and static? (not (-> info :public :static)))
+            (when-not safely-static?
+              (when (and static? (not configured-static?))
                 (let [coach (some-> (System/getProperty "compojure.api.meta.static-context-coach")
                                     edn/read-string)]
                   (if-not coach
@@ -1036,7 +1023,7 @@
                                                                                                                                 :provided mode})))))))))
 
         ;; :dynamic by default
-        static-context? (and static? context? (boolean safely-static))
+        static-context? (and static? context? safely-static?)
 
         info (cond-> info
                      static-context? (assoc :static-context? static-context?))
