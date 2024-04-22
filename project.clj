@@ -48,7 +48,7 @@
                                   [org.immutant/immutant "2.1.10"]
                                   [http-kit "2.3.0"]
                                   [criterium "0.4.5"]]
-                   :jvm-opts ["-Dcompojure.api.meta.static-context-coach={:default :assert}"]
+                   :jvm-opts ["-Dcompojure.api.meta.static-context-coach={:default :assert :verbose true}"]
                    :test-paths ["test19"]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/thingie/src"]}

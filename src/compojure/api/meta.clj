@@ -697,12 +697,7 @@
                    (when (and (resource-vars sym)
                               (= 2 (count form)))
                      (let [[_ data] form]
-                       (or (static-form? &env data)
-                           ;; TODO only needs to be static in a few places.
-                           ;; is it enough to just test for map?.
-                           #_
-                           (and (map? data)
-                                ()))))))))))))
+                       (static-form? &env data)))))))))))
 
 (def context-vars (into #{}
                         (mapcat (fn [n]
@@ -787,6 +782,8 @@
                                                   compojure.api.sweet])))
                                  '[route-middleware]))
 
+(def ^:private ^:dynamic *not-safely-static* nil)
+
 (defn- static-route-middleware? [&env body]
   (and (seq? body)
        (boolean
@@ -850,14 +847,14 @@
            (= 'fn* (first form)))
       (and (seq? form)
            ('#{clojure.spec.alpha/keys}
-             (some-> (resolve-var &env (symbol? (first form)))
+             (some-> (resolve-var &env (first form))
                      symbol)))
       (and (seq? form)
            (symbol? (first form))
-           (when-some [v (resolve-var &env (symbol? (first form)))]
+           (when-some [v (resolve-var &env (first form))]
              (when (#{"spec-tools.data-spec"
                       "spec-tools.core"}
-                     (symbol v))
+                     (namespace (symbol v)))
                (when-not (:macro (meta v))
                  (every? #(static-form? &env %) (next form))))))))
 
@@ -900,18 +897,23 @@
        (every? #(static-body? &env %) body)))
 
 (defn- static-form? [&env form]
-  (boolean
-    (or (contains? &env form) ;;local
-        (static-resolved-form? &env form)
-        (constant-form? &env form)
-        (static-endpoint? &env form)
-        (static-resource? &env form)
-        (static-let? &env form)
-        (static-cond? &env form)
-        (static-context? &env form)
-        (static-middleware? &env form)
-        (static-route-middleware? &env form)
-        (static-expansion? &env form))))
+  (let [res (boolean
+              (or (contains? &env form) ;;local
+                  (static-resolved-form? &env form)
+                  (constant-form? &env form)
+                  (static-endpoint? &env form)
+                  (static-resource? &env form)
+                  (static-let? &env form)
+                  (static-cond? &env form)
+                  (static-context? &env form)
+                  (static-middleware? &env form)
+                  (static-route-middleware? &env form)
+                  (static-expansion? &env form)))]
+    (when-not res
+      (some-> *not-safely-static* (swap! conj {:form form :&env (into {} (map (fn [[k v]]
+                                                                                [k (if (boolean? v) v (class v))]))
+                                                                      &env)})))
+    res))
 
 (defn- static-body? [&env body]
   (every? #(static-form? &env %) body))
@@ -951,10 +953,12 @@
 
         static? (not (or (-> info :public :dynamic) bindings?))
 
+        a (atom [])
         safely-static (when context?
                         (when-not (-> info :public :dynamic)
                           (or (-> info :public :static)
-                              (try (static-body? &env body)
+                              (try (binding [*not-safely-static* a]
+                                     (static-body? &env body))
                                    (catch Exception e
                                      (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
                                      (prn {:form &form :env &env})
@@ -973,6 +977,10 @@
                       mode (or (get coach nsym)
                                (get coach :default)
                                :print)
+                      _ (when (:verbose coach)
+                          (println "The following forms were not inferred static:")
+                          ((requiring-resolve 'clojure.pprint/pprint)
+                           @a))
                       msg (str "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)})
                                "\n\n"
                                "If you intend for the body of this context to be evaluated on every request, please "
@@ -982,7 +990,9 @@
                                "use (context ... :static true ...)."
                                "\n\n"
                                "If you feel this case could be automatically inferred as :static, please suggest a "
-                               "new inference rule at https://github.com/metosin/compojure-api"
+                               "new inference rule at https://github.com/metosin/compojure-api. Use "
+                               "-Dcompojure.api.meta.static-context-coach={:verbose true} to print additional information "
+                               "and include it in the issue."
                                "\n\n"
                                "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
                                "{" nsym " " :off "}"
