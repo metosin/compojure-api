@@ -669,10 +669,7 @@
 (def routes-vars #{'compojure.api.sweet/routes
                    'compojure.api.core/routes})
 
-(declare static-body?)
-
-(defn- static-form? [&env form]
-  (static-body? &env [form]))
+(declare static-body? static-form?)
 
 (defn- static-endpoint? [&env form]
   (and (seq? form)
@@ -698,11 +695,12 @@
                (when (var? v)
                  (let [sym (symbol v)]
                    (when (and (resource-vars sym)
-                              (= 1 (count form)))
+                              (= 2 (count form)))
                      (let [[_ data] form]
-                       ;; TODO only needs to be static in a few places.
-                       ;; is it enough to just test for map?.
-                       (or (static-form? data)
+                       (or (static-form? &env data)
+                           ;; TODO only needs to be static in a few places.
+                           ;; is it enough to just test for map?.
+                           #_
                            (and (map? data)
                                 ()))))))))))))
 
@@ -815,13 +813,13 @@
                          (= sym 'if))
                  (static-body? &env (next form)))))))))
 
-(defn- var-form? [&env form]
+(defn- static-resolved-form? [&env form]
   (boolean
     (or (and (seq? form)
              (= 2 (count form))
              (= 'var (first form)))
         (when (symbol? form)
-          (var? (resolve &env form))))))
+          ((some-fn var? class?) (resolve &env form))))))
 
 (defn- static-expansion? [&env form]
   (boolean
@@ -832,11 +830,36 @@
         (when-not (identical? form' form)
           (static-form? &env form'))))))
 
+(defn- resolve-var [&env sym]
+  (when (symbol? sym)
+    (let [v (resolve &env sym)]
+      (when (var? v)
+        v))))
+
 (defn- constant-form? [&env form]
   (or ((some-fn nil? keyword? number? boolean? string?) form)
       (and (seq? form)
            (= 2 (count form))
-           (= 'quote (first form)))))
+           (= 'quote (first form)))
+      (and (vector? form)
+           (every? #(static-form? &env %) form))
+      (and (map? form)
+           (every? #(static-form? &env %) form))
+      (and (seq? form)
+           (next form)
+           (= 'fn* (first form)))
+      (and (seq? form)
+           ('#{clojure.spec.alpha/keys}
+             (some-> (resolve-var &env (symbol? (first form)))
+                     symbol)))
+      (and (seq? form)
+           (symbol? (first form))
+           (when-some [v (resolve-var &env (symbol? (first form)))]
+             (when (#{"spec-tools.data-spec"
+                      "spec-tools.core"}
+                     (symbol v))
+               (when-not (:macro (meta v))
+                 (every? #(static-form? &env %) (next form))))))))
 
 (defn- static-binder-env [&env bv]
   (when (and (vector? bv)
@@ -876,18 +899,22 @@
   (and (vector? body)
        (every? #(static-body? &env %) body)))
 
+(defn- static-form? [&env form]
+  (boolean
+    (or (contains? &env form) ;;local
+        (static-resolved-form? &env form)
+        (constant-form? &env form)
+        (static-endpoint? &env form)
+        (static-resource? &env form)
+        (static-let? &env form)
+        (static-cond? &env form)
+        (static-context? &env form)
+        (static-middleware? &env form)
+        (static-route-middleware? &env form)
+        (static-expansion? &env form))))
+
 (defn- static-body? [&env body]
-  (every? #(or (static-endpoint? &env %)
-               (contains? &env %) ;;local
-               (var-form? &env %)
-               (constant-form? &env %)
-               (static-let? &env %)
-               (static-cond? &env %)
-               (static-context? &env %)
-               (static-middleware? &env %)
-               (static-route-middleware? &env %)
-               (static-expansion? &env %))
-          body))
+  (every? #(static-form? &env %) body))
 
 (defn restructure [method [path route-arg & args] {:keys [context? &form &env]}]
   (let [[options body] (extract-parameters args true)
@@ -924,12 +951,15 @@
 
         static? (not (or (-> info :public :dynamic) bindings?))
 
-        safely-static (or (-> info :public :static)
-                          (try (static-body? &env body)
-                               (catch Exception e
-                                 (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
-                                 (prn e)
-                                 false)))
+        safely-static (when context?
+                        (when-not (-> info :public :dynamic)
+                          (or (-> info :public :static)
+                              (try (static-body? &env body)
+                                   (catch Exception e
+                                     (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
+                                     (prn {:form &form :env &env})
+                                     (prn e)
+                                     false)))))
 
         _ (when context?
             (when-not safely-static
@@ -950,6 +980,9 @@
                                "\n\n"
                                "If you intend for the body of this context to be fixed for every request, please "
                                "use (context ... :static true ...)."
+                               "\n\n"
+                               "If you feel this case could be automatically inferred as :static, please suggest a "
+                               "new inference rule at https://github.com/metosin/compojure-api"
                                "\n\n"
                                "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
                                "{" nsym " " :off "}"
