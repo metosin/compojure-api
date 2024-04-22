@@ -8,7 +8,6 @@
   :scm {:name "git"
         :url "https://github.com/metosin/compojure-api"}
   :dependencies [[prismatic/plumbing "0.5.5"]
-                 [potemkin "0.4.5"]
                  [cheshire "5.9.0"]
                  [compojure "1.6.1"]
                  [prismatic/schema "1.1.12"]
