@@ -1011,8 +1011,7 @@
                                    "\n\n"
                                    "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
                                    "{" nsym " " :off "}"
-                                   (when coach
-                                     (str "\n\nCurrent coach config: " (pr-str coach))))]
+                                   "\n\nCurrent coach config: " (pr-str coach))]
                       (case mode
                         :off nil
                         :print (println msg)
