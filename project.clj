@@ -24,7 +24,8 @@
                                       [http-kit "2.3.0"]
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.4.0"]]}
-             :dev {:repl-options {:init-ns user}
+             :dev {:jvm-opts ["-Dcompojure.api.core.allow-dangerous-middleware=true"]
+                   :repl-options {:init-ns user}
                    :plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
                              [lein-ring "0.12.0"]
