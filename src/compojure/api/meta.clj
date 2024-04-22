@@ -963,17 +963,18 @@
 
         a (atom [])
         safely-static (when context?
-                        (when-not (-> info :public :dynamic)
-                          (or (-> info :public :static)
-                              (try (binding [*not-safely-static* a]
-                                     (static-body? &env body))
-                                   (catch Exception e
-                                     (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
-                                     (prn {:form &form :env &env})
-                                     (prn e)
-                                     false)))))
+                        (when static?
+                          (when-not (-> info :public :dynamic)
+                            (or (-> info :public :static)
+                                (try (binding [*not-safely-static* a]
+                                       (static-body? &env body))
+                                     (catch Exception e
+                                       (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
+                                       (prn {:form &form :env &env})
+                                       (prn e)
+                                       false))))))
 
-        _ (when context?
+        _ (when (and context? static?)
             (when-not safely-static
               (when (and static? (not (-> info :public :static)))
                 (let [coach (some-> (System/getProperty "compojure.api.meta.static-context-coach")
