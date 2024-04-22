@@ -100,7 +100,9 @@
          syms)))
 
 (def compojure-api-sweet-impl-info
-  {:vars '([compojure.api.core routes defroutes let-routes undocumented middleware
+  {:vars '([compojure.api.core routes defroutes let-routes undocumented
+            ;;BREAKING CHANGE FROM 1.1.x
+            ;middleware
             context GET ANY HEAD PATCH DELETE OPTIONS POST PUT]
            [compojure.api.api api defapi]
            [compojure.api.resource resource]
