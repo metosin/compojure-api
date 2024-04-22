@@ -1,5 +1,6 @@
 (ns compojure.api.routes-test
-  (:require [midje.sweet :refer :all]
+  (:require [testit.core :refer :all]
+            [clojure.test :refer [deftest]]
             [compojure.api.sweet :refer :all]
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]
@@ -10,7 +11,7 @@
   (:import (org.joda.time LocalDate)
            (clojure.lang ExceptionInfo)))
 
-(facts "path-string"
+(deftest path-string-test
 
   (fact "missing path parameter"
     (#'routes/path-string muuntaja "/api/:kikka" {})
@@ -26,10 +27,10 @@
                                                       :e :kikka})
     => "/a/2015-05-22/12345/d/kikka/f"))
 
-(fact "string-path-parameters"
+(deftest string-path-parameters-test
   (#'routes/string-path-parameters "/:foo.json") => {:foo String})
 
-(facts "nested routes"
+(deftest nested-routes-test
   (let [mw (fn [handler]
              (fn ([request] (handler request))
                ([request raise respond] (handler request raise respond))))
@@ -121,11 +122,11 @@
     (GET "/more" []
       (ok {:gary "moore"}))))
 
-(facts "following var-routes, #219"
+(deftest issue-219-test ;"following var-routes, #219"
   (let [routes (context "/api" [] #'more-routes)]
     (routes/get-routes routes) => [["/api/more" :get {:static-context? true}]]))
 
-(facts "dynamic routes"
+(deftest dynamic-routes-test
   (let [more-routes (fn [version]
                       (GET (str "/" version) []
                         (ok {:message version})))
@@ -158,12 +159,12 @@
       (-> app get-spec :paths keys)
       => ["/api/{version}/[]"])))
 
-(fact "route merging"
+(deftest route-merging-test
   (routes/get-routes (routes (routes))) => []
   (routes/get-routes (routes (swagger-routes {:spec nil}))) => []
   (routes/get-routes (routes (routes (GET "/ping" [] "pong")))) => [["/ping" :get {}]])
 
-(fact "invalid route options"
+(deftest invalid-route-options-test
   (let [r (routes (constantly nil))]
 
     (fact "ignore 'em all"
@@ -179,12 +180,12 @@
     (fact "throw exception"
       (routes/get-routes r {:invalid-routes-fn routes/fail-on-invalid-child-routes})) => throws))
 
-(fact "context routes with compojure destructuring"
+(deftest context-routes-with-compojure-destructuring-test
   (let [app (context "/api" req
               (GET "/ping" [] (ok (:magic req))))]
     (app {:request-method :get :uri "/api/ping" :magic {:just "works"}}) => (contains {:body {:just "works"}})))
 
-(fact "dynamic context routes"
+(deftest dynamic-context-routes-test
   (let [endpoint? (atom true)
         app (context "/api" []
               :dynamic true
@@ -197,7 +198,7 @@
     (fact "the endpoint does not exist"
       (app {:request-method :get :uri "/api/ping"}) => nil)))
 
-(fact "listing static context routes"
+(deftest listing-static-context-routes-test
   (let [app (routes
               (context "/static" []
                 (GET "/ping" [] (ok "pong")))

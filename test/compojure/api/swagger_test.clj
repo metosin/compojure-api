@@ -4,12 +4,13 @@
             [compojure.api.swagger :as swagger]
             compojure.core
             [compojure.api.test-utils :refer :all]
-            [midje.sweet :refer :all]))
+            [clojure.test :refer [deftest]]
+            [testit.core :refer :all]))
 
 (defmacro optional-routes [p & body] (when p `(routes ~@body)))
 (defmacro GET+ [p & body] `(GET ~(str "/xxx" p) ~@body))
 
-(fact "extracting compojure paths"
+(deftest extracting-compojure-paths-test
 
   (fact "all compojure.api.core macros are interpreted"
     (let [app (context "/a" []
@@ -80,7 +81,7 @@
 
     => {"/api/:param" {:get {:parameters {:path {:param String}}}}}))
 
-(fact "context meta-data"
+(deftest context-meta-data-test-1
   (extract-paths
     (context "/api/:id" []
       :summary "top-summary"
@@ -109,7 +110,7 @@
                                   :tags #{:wasp}
                                   :parameters {:path {:id String}}}}})
 
-(facts "duplicate context merge"
+(deftest duplicate-context-merge-test
   (let [app (routes
               (context "/api" []
                 :tags [:kiss]
@@ -132,12 +133,13 @@
     :path-params [id :- Long]
     identity))
 
-(facts "defined routes path-params"
+(deftest defined-routes-path-params-test
   (extract-paths (routes r1 r2))
   => {"/:id" {:get {:parameters {:path {:id String}}}}
       "/kukka/:id" {:get {:parameters {:path {:id Long}}}}})
 
-(fact "context meta-data"
+;;FIXME is this a duplicate of context-meta-data-test-1?
+(deftest context-meta-data-test-2
   (extract-paths
     (context "/api/:id" []
       :summary "top-summary"
@@ -166,14 +168,14 @@
                                   :tags #{:wasp}
                                   :parameters {:path {:id String}}}}})
 
-(fact "path params followed by an extension"
+(deftest path-params-followed-by-an-extension-test
   (extract-paths
     (GET "/:foo.json" []
       :path-params [foo :- String]
       identity))
   => {"/:foo.json" {:get {:parameters {:path {:foo String}}}}})
 
-(facts
+(deftest swagger-routes-basePath-test
   (tabular
     (fact "swagger-routes basePath can be changed"
       (let [app (api (swagger-routes ?given-options))]
@@ -188,7 +190,8 @@
     {:data {:basePath "/app"}} "/app/swagger.json" "/app"
     {:data {:basePath "/app"} :options {:ui {:swagger-docs "/imaginary.json"}}} "/imaginary.json" "/app"))
 
-(fact "change of contract in 1.2.0 with swagger-docs % swagger-ui"
+;;"change of contract in 1.2.0 with swagger-docs % swagger-ui"
+(deftest change-1-2-0-swagger-docs-ui-test
   (fact "swagger-ui"
     (swagger/swagger-ui "/path") => (throws AssertionError))
   (fact "swagger-docs"

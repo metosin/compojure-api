@@ -1,7 +1,8 @@
 (ns compojure.api.middleware-test
   (:require [compojure.api.middleware :refer :all]
             [compojure.api.exception :as ex]
-            [midje.sweet :refer :all]
+            [testit.core :refer :all]
+            [clojure.test :refer [deftest]]
             [ring.util.http-response :refer [ok]]
             [ring.util.http-status :as status]
             [ring.util.test])
@@ -20,7 +21,7 @@
        (finally
          (System/setErr err#)))))
 
-(facts encode?
+(deftest encode?-test
   (tabular
     (fact
       (encode? nil
@@ -50,7 +51,7 @@
         (throw value))
       (throw (Exception. "Timeout while waiting for the request handler.")))))
 
-(facts "wrap-exceptions"
+(deftest wrap-exceptions-test
   (with-out-str
     (without-err
       (let [exception (RuntimeException. "kosh")
@@ -94,7 +95,7 @@
                         (wrap-exceptions (assoc-in default-options [:handlers ::ex/request-parsing] (ex/with-logging ex/request-parsing-handler :info))))]
         (with-out-str (handler {})) => "INFO Error parsing request\n"))))
 
-(facts "compose-middeleware strips nils aways. #228"
+(deftest issue-228-test ; "compose-middeleware strips nils aways. #228"
   (let [times2-mw (fn [handler]
                     (fn [request]
                       (* 2 (handler request))))]

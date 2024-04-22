@@ -43,7 +43,7 @@ jobs:
         with:
           lein: latest
       - name: Run tests
-        run: lein do clean, all midje, all check
+        run: lein do clean, all test, all check
   deploy:
     concurrency: deploy
     needs: test
