@@ -980,9 +980,11 @@
                                     edn/read-string)]
                   (if-not coach
                     (when (ffirst (reset-vals! warned-non-static? true))
-                      (str "WARNING: Performance issue detected with compojure-api usage. "
-                           "To fix this warning, set: -Dcompojure.api.meta.static-context-coach={:default :print}. "
-                           "To suppress this warning, set: -Dcompojure.api.meta.static-context-coach={:default :off}."))
+                      (println
+                        (str (format "WARNING: Performance issue detected with compojure-api usage in %s.\n" (ns-name *ns*))
+                             "To fix this warning, set: -Dcompojure.api.meta.static-context-coach={:default :print}.\n"
+                             "To suppress this warning, set: -Dcompojure.api.meta.static-context-coach={:default :off}.\n"
+                             "This warning will only print once, other namespaces may be affected.")))
                     (let [_ (assert (map? coach)
                                     (str "-Dcompojure.api.meta.static-context-coach should be a map, given: "
                                          (pr-str coach)))
