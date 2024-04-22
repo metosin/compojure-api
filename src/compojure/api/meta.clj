@@ -919,6 +919,12 @@
                                :print)
                       msg (str "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)})
                                "\n\n"
+                               "If you intend for the body of this context to be evaluated on every request, please "
+                               "use (context ... :dynamic true ...)."
+                               "\n\n"
+                               "If you intend for the body of this context to be fixed for every request, please "
+                               "use (context ... :static true ...)."
+                               "\n\n"
                                "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
                                "{" nsym :off "}")]
                   (case coach
