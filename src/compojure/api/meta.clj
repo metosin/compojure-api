@@ -816,7 +816,10 @@
              (= 2 (count form))
              (= 'var (first form)))
         (when (symbol? form)
-          ((some-fn var? class?) (resolve &env form))))))
+          (let [r (resolve &env form)]
+            (or (class? r)
+                (and (var? r)
+                     (not (:dynamic (meta r))))))))))
 
 (defn- static-expansion? [&env form]
   (boolean
@@ -861,7 +864,7 @@
                            ring.swagger.json-schema/describe
                            clojure.core/constantly}
                          (symbol v)))
-               (when-not (:macro (meta v))
+               (when-not (some #{:dynamic :macro} (meta v))
                  (every? #(static-form? &env %) (next form))))))))
 
 (defn- static-binder-env [&env bv]
@@ -882,14 +885,13 @@
        (symbol? (first form))
        (when-some [op (or (when (= 'let* (first form))
                             'let*)
-                          (let [v (resolve &env (first form))]
-                            (when (var? v)
-                              (let [sym (symbol v)]
-                                (when (contains?
-                                        '#{clojure.core/let clojure.core/for
-                                           compojure.api.sweet/let-routes compojure.api.core/let-routes}
-                                        sym)
-                                  sym)))))]
+                          (when-some [v (resolve-var &env (first form))]
+                            (let [sym (symbol v)]
+                              (when (contains?
+                                      '#{clojure.core/let clojure.core/for
+                                         compojure.api.sweet/let-routes compojure.api.core/let-routes}
+                                      sym)
+                                sym))))]
          (let [;; expand destructuring
                [_ bv & body] (macroexpand
                                (if ('#{compojure.api.sweet/let-routes compojure.api.core/let-routes} op)
