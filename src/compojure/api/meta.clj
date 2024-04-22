@@ -910,9 +910,11 @@
         _ (when context?
             (when-not safely-static
               (when (and static? (not (-> info :public :static)))
-                (let [coach (or (some-> (System/getProperty "compojure.api.meta.static-context-coach")
-                                        edn/read-string)
-                                {:default :print})
+                (let [coach (some-> (System/getProperty "compojure.api.meta.static-context-coach")
+                                    edn/read-string)
+                      _ (assert (map? coach)
+                                (str "-Dcompojure.api.meta.static-context-coach should be a map, given: "
+                                     (pr-str coach)))
                       nsym (ns-name *ns*)
                       mode (or (get coach nsym)
                                (get coach :default)
@@ -926,7 +928,9 @@
                                "use (context ... :static true ...)."
                                "\n\n"
                                "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
-                               "{" nsym :off "}")]
+                               "{" nsym :off "}"
+                               (when coach
+                                 (str "\n\nCurrent coach config: " (pr-str coach))))]
                   (case coach
                     :off nil
                     :print (println msg)
