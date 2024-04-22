@@ -44,9 +44,24 @@
   (let [handlers (keep identity handlers)]
     (routes/map->Route {:handler (meta/routing handlers)})))
 
+(defmacro middleware
+  "Wraps routes with given middlewares using thread-first macro.
+
+  Note that middlewares will be executed even if routes in body
+  do not match the request uri. Be careful with middleware that
+  has side-effects."
+  {:style/indent 1
+   :deprecated "1.1.14"
+   :superseded-by "route-middleware"}
+  [middleware & body]
+  `(let [body# (routes ~@body)
+         wrap-mw# (mw/compose-middleware ~middleware)]
+     (routes/create nil nil {} [body#] (wrap-mw# body#))))
+
 (defn route-middleware
   "Wraps routes with given middlewares using thread-first macro."
-  {:style/indent 1}
+  {:style/indent 1
+   :supercedes "middleware"}
   [middleware & body]
   (let [handler (apply routes body)
         x-handler (compojure/wrap-routes handler (mw/compose-middleware middleware))]

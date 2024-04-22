@@ -6,6 +6,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 * Add back `defapi` (and deprecate it)
 * Remove potemkin [#445](https://github.com/metosin/compojure-api/issues/445)
 * Add back `compojure.api.routes/create`
+* Add back `middleware` (and deprecate it)
 
 ## 2.0.0-alpha31 (2019-12-20)
 
