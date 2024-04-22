@@ -853,10 +853,13 @@
            (symbol? (first form))
            (when-some [v (resolve-var &env (first form))]
              (when (or (#{"spec-tools.data-spec"
-                          "spec-tools.core"}
+                          "spec-tools.core"
+                          "schema.core"
+                          "ring.util.http-response"}
                          (namespace (symbol v)))
                        ('#{compojure.api.sweet/describe
-                           ring.swagger.json-schema/describe}
+                           ring.swagger.json-schema/describe
+                           clojure.core/constantly}
                          (symbol v)))
                (when-not (:macro (meta v))
                  (every? #(static-form? &env %) (next form))))))))
