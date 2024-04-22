@@ -1,5 +1,6 @@
 (ns compojure.api.meta
-  (:require [compojure.api.common :refer [extract-parameters]]
+  (:require [clojure.edn :as edn]
+            [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
             [plumbing.core :as p]
@@ -899,23 +900,37 @@
 
         static? (not (or (-> info :public :dynamic)
                          (route-args? route-arg) (seq lets) (seq letks)))
-        safely-static (or (-> info :public :static) (static-body? &env body))
+        safely-static (or (-> info :public :static)
+                          (try (static-body? &env body)
+                               (catch Exception e
+                                 (println `restructure-param "Internal error, please report the following trace to https://github.com/metosin/compojure-api")
+                                 (prn e)
+                                 false)))
 
         _ (when context?
             (when-not safely-static
-              (when-some [coach (or (System/getProperty "compojure.api.meta.static-context-coach")
-                                    "assert")]
-                (when (and static? (not (-> info :public :static)))
+              (when (and static? (not (-> info :public :static)))
+                (let [coach (or (some-> (System/getProperty "compojure.api.meta.static-context-coach")
+                                        edn/read-string)
+                                {:default :print})
+                      nsym (ns-name *ns*)
+                      mode (or (get coach nsym)
+                               (get coach :default)
+                               :print)
+                      msg (str "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)})
+                               "\n\n"
+                               "To suppress this message for this namespace use -Dcompojure.api.meta.static-context-coach="
+                               "{" nsym :off "}")]
                   (case coach
-                    "off" nil
-                    "print" (println "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)}))
-                    "assert" (throw (ex-info "This looks like it could be a static context"
-                                             {:form &form
-                                              :meta (meta &form)}))
-                    (throw (ex-info "compojure.api.meta.static-context-coach must be either print or assert" {:provided coach})))))))
+                    :off nil
+                    :print (println msg)
+                    :assert (throw (ex-info msg
+                                            {:form &form
+                                             :meta (meta &form)}))
+                    (throw (ex-info "compojure.api.meta.static-context-coach must be either :off, :print, or :assert" {:provided coach})))))))
 
         ;; :dynamic by default
-        static-context? (and static? context? safely-static)
+        static-context? (and static? context? (boolean safely-static))
 
         info (cond-> info
                      static-context? (assoc :static-context? static-context?))
