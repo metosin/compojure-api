@@ -1,5 +1,5 @@
 (ns compojure.api.coercion.issue336-test
-  (:require [midje.sweet :refer :all]
+  (:require [clojure.test :refer [deftest is testing]]
             [compojure.api.test-utils :refer :all]
             [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
@@ -49,10 +49,10 @@
             :handler (fn [{:keys [query-params]}]
                        (ok query-params))}})))))
 
-(fact "coercion works with s/and"
+(deftest coercion-works-with-s-and-test
   (let [data {:endpoint "http://sushi.cambridge.org/GetReport"
               :customer-id "abc"
               :requestor-id "abc"}
         [status body] (get* app "/api/jr1" data)]
-    status => 200
-    body => data))
+    (is (= status 200))
+    (is (= body data))))

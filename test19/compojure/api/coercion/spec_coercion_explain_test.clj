@@ -1,5 +1,5 @@
 (ns compojure.api.coercion.spec-coercion-explain-test
-  (:require [midje.sweet :refer :all]
+  (:require [clojure.test :refer [deftest is testing]]
             [clojure.spec.alpha :as s]
             [spec-tools.spec :as spec]
             [compojure.api.test-utils :refer :all]
@@ -25,16 +25,18 @@
 (def coerced-value {:name "foo" :age "24" :languages #{:clj} :birthdate #inst "1968-01-02T15:04:05Z"})
 (def invalid-value {:name "foo" :age "24" :lanxguages ["clj"] :birthdate "1968-01-02T15:04:05Z"})
 
-(fact "request-coercion"
+(deftest request-coercion-test
   (let [c! #(coercion/coerce-request! ::spec :body-params :body false false %)]
 
-    (fact "default coercion"
-      (c! {:body-params valid-value
-           :muuntaja/request {:format "application/json"}
-           ::request/coercion :spec}) => coerced-value
-      (c! {:body-params invalid-value
-           :muuntaja/request {:format "application/json"}
-           ::request/coercion :spec}) => (throws)
+    (testing "default coercion"
+      (is (= (c! {:body-params valid-value
+                  :muuntaja/request {:format "application/json"}
+                  ::request/coercion :spec})
+             coerced-value))
+      (is (thrown? Exception
+                   (c! {:body-params invalid-value
+                        :muuntaja/request {:format "application/json"}
+                        ::request/coercion :spec})))
       (try
         (c! {:body-params invalid-value
              :muuntaja/request {:format "application/json"}
@@ -42,12 +44,12 @@
         (catch Exception e
           (let [data (ex-data e)
                 spec-problems (get-in data [:problems ::s/problems])]
-            (count spec-problems) => 1
-            (first spec-problems) => (contains {:in []
-                                                :path []
-                                                :val {:age "24"
-                                                      :birthdate #inst "1968-01-02T15:04:05Z"
-                                                      :name "foo"}
-                                                :via [::spec]})))))))
-
-
+            (is (= (count spec-problems) 1))
+            (is (= (select-keys (first spec-problems)
+                                [:in :path :val :via])
+                   {:in []
+                    :path []
+                    :val {:age "24"
+                          :birthdate #inst "1968-01-02T15:04:05Z"
+                          :name "foo"}
+                    :via [::spec]}))))))))

@@ -12,6 +12,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 * Add static context optimization coach
   * `-Dcompojure.api.meta.static-context-coach=print` to print hints
   * `-Dcompojure.api.meta.static-context-coach=assert` to assert hints
+* port unit tests from midje to clojure.test
 
 ## 2.0.0-alpha31 (2019-12-20)
 
