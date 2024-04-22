@@ -668,7 +668,7 @@
                          'compojure.api.resource/resource))
 
 (def routes-vars #{'compojure.api.sweet/routes
-                   'compojure.api.resource/routes})
+                   'compojure.api.core/routes})
 
 (declare static-body?)
 
@@ -682,9 +682,10 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (or (endpoint-vars (symbol v))
-                     (and (routes-vars (symbol v))
-                          (static-body? &env (next form)))))))))))
+                 (let [sym (symbol v)]
+                   (or (endpoint-vars sym)
+                       (and (routes-vars sym)
+                            (static-body? &env (next form))))))))))))
 
 (def context-vars (into #{}
                         (mapcat (fn [n]
@@ -818,29 +819,39 @@
            (= 2 (count form))
            (= 'quote (first form)))))
 
-(defn- static-binder? [&env bv]
-  (and (vector? bv)
-       (even? (count bv))
-       (reduce (fn [&env [l init]]
-                 (if-not (or (simple-symbol? l)
-                             (static-form? init))
-                   (reduced false)
-                   (assoc &env l true)))
-               &env (partition 2 bv))))
+(defn- static-binder-env [&env bv]
+  (when (and (vector? bv)
+             (even? (count bv)))
+    (reduce (fn [&env [l init]]
+              (if-not (or (simple-symbol? l)
+                          (simple-keyword? l) ;;for
+                          (static-form? init))
+                (reduced nil)
+                (cond-> &env
+                  (simple-symbol? l)
+                  (assoc l true))))
+            (or &env {}) (partition 2 bv))))
 
-(defn- static-let? [&env body]
-  (and (seq? body)
-       (symbol? (first body))
-       (or (= 'let* (first body))
-           (let [v (resolve &env (first body))]
-             (when (var? v)
-               (contains?
-                 '#{clojure.core/let clojure.core/for
-                    compojure.api.sweet/let-routes compojure.api.core/let-routes}
-                 (symbol v)))))
-       (let [[_ bv & body] (macroexpand-1 (list* `let (next body)))]
-         (and (static-binder? &env bv)
-              (static-body? &env body)))))
+(defn- static-let? [&env form]
+  (and (seq? form)
+       (symbol? (first form))
+       (when-some [op (or (when (= 'let* (first form))
+                            'let*)
+                          (let [v (resolve &env (first form))]
+                            (when (var? v)
+                              (let [sym (symbol v)]
+                                (when (contains?
+                                        '#{clojure.core/let clojure.core/for
+                                           compojure.api.sweet/let-routes compojure.api.core/let-routes}
+                                        sym)
+                                  sym)))))]
+         (let [;; expand destructuring
+               [_ bv & body] (macroexpand
+                               (if ('#{compojure.api.sweet/let-routes compojure.api.core/let-routes} op)
+                                 form
+                                 (list* `let (next form))))]
+           (when-some [&env (static-binder-env &env bv)]
+             (static-body? &env body))))))
 
 (defn- static-vector? [&env body]
   (and (vector? body)
