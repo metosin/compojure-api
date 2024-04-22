@@ -239,7 +239,7 @@
 
   - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
                                    a Muuntaja instance or nil (to unmount it). See
-                                   https://github.com/metosin/muuntaja/wiki/Configuration for details.
+                                   https://github.com/metosin/muuntaja/blob/master/doc/Configuration.md for details.
 
   - **:middleware**                vector of extra middleware to be applied last (just before the handler).
 
@@ -303,7 +303,7 @@
 
   - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
                                    a Muuntaja instance or nil (to unmount it). See
-                                   https://github.com/metosin/muuntaja/wiki/Configuration for details."
+                                   https://github.com/metosin/muuntaja/blob/master/doc/Configuration.md for details."
   ([handler]
    (wrap-format handler {:formats ::default}))
   ([handler options]
