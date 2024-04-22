@@ -93,6 +93,9 @@
   (applyTo [this args]
     (AFn/applyToHelper this args)))
 
+(defn create [path method info childs handler]
+  (->Route path method info childs handler))
+
 (defmethod print-method Route
   [this ^Writer w]
   (let [childs (some-> this realize-childs filter-childs :childs seq vec)]

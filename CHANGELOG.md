@@ -3,7 +3,9 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 ## Unreleased
 
 * Fix empty spec response coercion. [#413](https://github.com/metosin/compojure-api/issues/413)
+* Add back `defapi` (and deprecate it)
 * Remove potemkin [#445](https://github.com/metosin/compojure-api/issues/445)
+* Add back `compojure.api.routes/create`
 
 ## 2.0.0-alpha31 (2019-12-20)
 
