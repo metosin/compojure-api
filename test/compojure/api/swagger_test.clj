@@ -13,10 +13,8 @@
 
   (fact "all compojure.api.core macros are interpreted"
     (let [app (context "/a" []
-                :static true ;;FIXME nested static/dynamic?
                 (routes
                   (context "/b" []
-                    :dynamic true
                     (let-routes []
                       (GET "/c" [] identity)
                       (POST "/d" [] identity)
@@ -50,14 +48,12 @@
   (fact "route-macros are expanded"
     (extract-paths
       (context "/api" []
-        :static true
         (optional-routes true (GET "/true" [] identity))
         (optional-routes false (PUT "/false" [] identity)))) => {"/api/true" {:get {}}})
 
   (fact "endpoint-macros are expanded"
     (extract-paths
       (context "/api" []
-        :static true
         (GET+ "/true" [] identity))) => {"/api/xxx/true" {:get {}}})
 
   (fact "Vanilla Compojure defroutes are NOT followed"

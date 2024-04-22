@@ -672,6 +672,9 @@
 
 (declare static-body?)
 
+(defn- static-form? [&env form]
+  (static-body? &env [form]))
+
 (defn- static-endpoint? [&env form]
   (and (seq? form)
        (boolean
@@ -785,21 +788,71 @@
            (when (symbol? sym)
              (let [v (resolve &env sym)]
                (when (or (= #'when v)
+                         (= #'cond v)
                          (= #'= v)
                          (= #'not= v)
+                         (= #'boolean v)
                          (= sym 'if))
                  (static-body? &env (next form)))))))))
+
+(defn- var-form? [&env form]
+  (boolean
+    (or (and (seq? form)
+             (= 2 (count form))
+             (= 'var (first form)))
+        (when (symbol? form)
+          (var? (resolve &env form))))))
+
+(defn- static-expansion? [&env form]
+  (boolean
+    (when (and (seq? form)
+               (symbol? (first form))
+               (not (contains? &env (first form))))
+      (let [form' (macroexpand-1 form)]
+        (when-not (identical? form' form)
+          (static-form? &env form'))))))
+
+(defn- constant-form? [&env form]
+  (or ((some-fn nil? keyword? number? boolean?) form)
+      (and (seq? form)
+           (= 2 (count form))
+           (= 'quote (first form)))))
+
+(defn- static-binder? [&env bv]
+  (and (vector? bv)
+       (even? (count bv))
+       (every? (fn [[_ init]]
+                 (static-body? &env init))
+               (partition 2 bv))))
+
+(defn- static-let? [&env body]
+  (and (seq? body)
+       (symbol? (first body))
+       (or (= 'let* (first body))
+           (let [v (resolve &env (first body))]
+             (when (var? v)
+               (contains?
+                 '#{clojure.core/let compojure.api.sweet/let-routes compojure.api.core/let-routes}
+                 (symbol v)))))
+       (let [[_ bv & body] body]
+         (and (static-binder? &env bv)
+              (static-body? &env body)))))
+
+(defn- static-vector? [&env body]
+  (and (vector? body)
+       (every? #(static-body? &env %) body)))
 
 (defn- static-body? [&env body]
   (every? #(or (static-endpoint? &env %)
                (contains? &env %) ;;local
-               (when (symbol? %)
-                 (var? (resolve &env %))) ;;var deref
-               ((some-fn keyword? number? boolean?) %)
+               (var-form? &env %)
+               (constant-form? &env %)
+               (static-let? &env %)
                (static-cond? &env %)
                (static-context? &env %)
                (static-middleware? &env %)
-               (static-route-middleware? &env %))
+               (static-route-middleware? &env %)
+               (static-expansion? &env %))
           body))
 
 (defn restructure [method [path route-arg & args] {:keys [context? &form &env]}]
