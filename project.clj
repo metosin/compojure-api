@@ -5,8 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[potemkin "0.4.5"]
-                 [prismatic/schema "1.1.12"]
+  :dependencies [[prismatic/schema "1.1.12"]
                  [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
                  [metosin/muuntaja "0.6.6"]
