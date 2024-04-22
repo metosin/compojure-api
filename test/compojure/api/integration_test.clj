@@ -3,7 +3,6 @@
             [compojure.api.test-utils :refer :all]
             [compojure.api.exception :as ex]
             [compojure.api.swagger :as swagger]
-            [compojure.api.core :refer [route-middleware]]
             [midje.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [ring.util.http-predicates :as http]
