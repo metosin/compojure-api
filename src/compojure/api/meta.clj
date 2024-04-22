@@ -810,6 +810,12 @@
                          (= sym 'if))
                  (static-body? &env (next form)))))))))
 
+(defn- resolve-var [&env sym]
+  (when (symbol? sym)
+    (let [v (resolve &env sym)]
+      (when (var? v)
+        v))))
+
 (defn- static-resolved-form? [&env form]
   (boolean
     (or (and (seq? form)
@@ -831,12 +837,6 @@
       (let [form' (macroexpand-1 form)]
         (when-not (identical? form' form)
           (static-form? &env form'))))))
-
-(defn- resolve-var [&env sym]
-  (when (symbol? sym)
-    (let [v (resolve &env sym)]
-      (when (var? v)
-        v))))
 
 (defn- constant-form? [&env form]
   (or ((some-fn nil? keyword? number? boolean? string?) form)
@@ -872,15 +872,24 @@
 (defn- static-binder-env [&env bv]
   (when (and (vector? bv)
              (even? (count bv)))
-    (reduce (fn [&env [l init]]
-              (if-not (or (simple-symbol? l)
-                          (simple-keyword? l) ;;for
-                          (static-form? init))
-                (reduced nil)
-                (cond-> &env
-                  (simple-symbol? l)
-                  (assoc l true))))
-            (or &env {}) (partition 2 bv))))
+    (let [flat (eduction
+                 (partition-all 2)
+                 (mapcat (fn [[l init]]
+                           (if (and (= :let l)
+                                    (even? count init))
+                             (partition-all 2 init)
+                             [[l init]])))
+                 bv)]
+      (reduce (fn [&env [l init]]
+                (if-not (or (simple-symbol? l)
+                            (simple-keyword? l) ;;for
+                            (static-form? init))
+                  (reduced nil)
+                  (cond-> &env
+                    (simple-symbol? l)
+                    (assoc l true))))
+              (or &env {})
+              flat))))
 
 (defn- static-let? [&env form]
   (and (seq? form)
