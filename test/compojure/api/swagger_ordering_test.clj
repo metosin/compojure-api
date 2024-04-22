@@ -1,5 +1,6 @@
 (ns compojure.api.swagger-ordering-test
-  (:require [midje.sweet :refer :all]
+  (:require [testit.core :refer :all]
+            [clojure.test :refer [deftest]]
             [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]))
 
@@ -9,7 +10,7 @@
     (GET "/7" [] identity)
     (GET "/8" [] identity)))
 
-(facts "with 10+ routes"
+(deftest with-10+-routes-test
   (let [app (api
               (context "/a" []
                 (GET "/1" [] identity)

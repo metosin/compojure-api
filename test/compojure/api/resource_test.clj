@@ -2,7 +2,8 @@
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
             [plumbing.core :refer [fnk]]
-            [midje.sweet :refer :all]
+            [clojure.test :refer [deftest]]
+            [testit.core :refer :all]
             [ring.util.http-response :refer :all]
             [clojure.core.async :as a]
             [schema.core :as s]
@@ -19,7 +20,7 @@
 (def response-validation-failed?
   (throws ExceptionInfo #"Response validation failed"))
 
-(facts "resource definitions"
+(deftest resource-definitions-test
 
   (fact "only top-level handler"
     (let [handler (resource
@@ -150,7 +151,7 @@
       (call handler {:request-method :get, :query-params {:x "10"}}) => (has-body {:total 10})
       (call handler {:request-method :post, :query-params {:x "1"}}) => (has-body {:total 1}))))
 
-(fact "explicit async tests"
+(deftest explicit-async-tests-test
   (let [handler (resource
                   {:parameters {:query-params {:x Long}}
                    :responses {200 {:schema {:total (s/constrained Long pos? 'pos)}}}
@@ -210,7 +211,7 @@
         (handler {:request-method :put, :query-params {:x 1}}) => (throws) #_(has-body {:total 100})
         (handler {:request-method :put, :query-params {:x -1}}) => (throws) #_response-validation-failed?))))
 
-(fact "compojure-api routing integration"
+(deftest compojure-api-routing-integration-test
   (let [app (context "/rest" []
 
               (GET "/no" request
@@ -262,7 +263,7 @@
     (fact "top-level GET with extra path misses"
       (call app {:request-method :get, :uri "/rest/in-peaces"}) => nil)))
 
-(fact "swagger-integration"
+(deftest swagger-integration-test
   (fact "explicitely defined methods produce api-docs"
     (let [app (api
                 (swagger-routes)
