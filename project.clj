@@ -93,4 +93,4 @@
             "test-ancient" ["midje"]
             "perf" ["with-profile" "default,dev,perf"]
             "deploy!" ^{:doc "Recompile sources, then deploy if tests succeed."}
-["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
+            ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
