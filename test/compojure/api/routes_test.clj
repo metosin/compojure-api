@@ -121,7 +121,7 @@
 
 (deftest issue-219-test ;"following var-routes, #219"
   (let [routes (context "/api" [] #'more-routes)]
-    (routes/get-routes routes) => [["/api/more" :get {:static-context? true}]]))
+    (is (= (routes/get-routes routes) [["/api/more" :get {:static-context? true}]]))))
 
 (deftest dynamic-routes-test
   (let [more-routes (fn [version]
@@ -136,51 +136,53 @@
 
     (testing "all routes can be invoked"
       (let [[status body] (get* app "/api/v3/v3")]
-        status => 200
-        body => {:message "v3"})
+        (is (= status 200))
+        (is (= body {:message "v3"})))
 
       (let [[status body] (get* app "/api/v6/v6")]
-        status => 200
-        body => {:message "v6"}))
+        (is (= status 200))
+        (is (= body {:message "v6"}))))
 
     (testing "routes can be extracted at runtime"
-      (routes/get-routes app)
-      => [["/swagger.json" :get {:no-doc true,
-                                 :coercion :schema
-                                 :name :compojure.api.swagger/swagger
-                                 :public {:x-name :compojure.api.swagger/swagger}}]
-          ["/api/:version/[]" :get {:coercion :schema
-                                    :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
+      (is (= (routes/get-routes app)
+             [["/swagger.json" :get {:no-doc true,
+                                     :coercion :schema
+                                     :name :compojure.api.swagger/swagger
+                                     :public {:x-name :compojure.api.swagger/swagger}}]
+              ["/api/:version/[]" :get {:coercion :schema
+                                        :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])))
 
     (testing "swagger-docs can be generated"
-      (-> app get-spec :paths keys)
-      => ["/api/{version}/[]"])))
+      (is (= (-> app get-spec :paths keys)
+             ["/api/{version}/[]"])))))
 
 (deftest route-merging-test
-  (routes/get-routes (routes (routes))) => []
-  (routes/get-routes (routes (swagger-routes {:spec nil}))) => []
-  (routes/get-routes (routes (routes (GET "/ping" [] "pong")))) => [["/ping" :get {}]])
+  (is (= (routes/get-routes (routes (routes))) []))
+  (is (= (routes/get-routes (routes (swagger-routes {:spec nil}))) []))
+  (is (= (routes/get-routes (routes (routes (GET "/ping" [] "pong")))) [["/ping" :get {}]])))
 
 (deftest invalid-route-options-test
   (let [r (routes (constantly nil))]
 
     (testing "ignore 'em all"
-      (routes/get-routes r) => []
-      (routes/get-routes r nil) => []
-      (routes/get-routes r {:invalid-routes-fn nil}) => [])
+      (is (= (routes/get-routes r) []))
+      (is (= (routes/get-routes r nil) []))
+      (is (= (routes/get-routes r {:invalid-routes-fn nil}) [])))
 
     (testing "log warnings"
-      (routes/get-routes r {:invalid-routes-fn routes/log-invalid-child-routes}) => []
-      (provided
-        (compojure.api.impl.logging/log! :warn irrelevant) => irrelevant :times 1))
+      (let [a (atom [])]
+        (with-redefs [compojure.api.impl.logging/log! (fn [& args] (swap! a conj args))]
+          (is (= [] (routes/get-routes r {:invalid-routes-fn routes/log-invalid-child-routes}))))
+        (is (= 1 (count @a)))))
 
     (testing "throw exception"
-      (routes/get-routes r {:invalid-routes-fn routes/fail-on-invalid-child-routes})) => throws))
+      (is (thrown? Exception (routes/get-routes r {:invalid-routes-fn routes/fail-on-invalid-child-routes}))))))
 
 (deftest context-routes-with-compojure-destructuring-test
   (let [app (context "/api" req
               (GET "/ping" [] (ok (:magic req))))]
-    (app {:request-method :get :uri "/api/ping" :magic {:just "works"}}) => (contains {:body {:just "works"}})))
+    (is (= {:just "works"}
+           (:body (app {:request-method :get :uri "/api/ping" :magic {:just "works"}}))))))
 
 (deftest dynamic-context-routes-test
   (let [endpoint? (atom true)
@@ -189,11 +191,11 @@
               (when @endpoint?
                 (GET "/ping" [] (ok "pong"))))]
     (testing "the endpoint exists"
-      (app {:request-method :get :uri "/api/ping"}) => (contains {:body "pong"}))
+      (is (= (:body (app {:request-method :get :uri "/api/ping"})) "pong")))
 
     (reset! endpoint? false)
     (testing "the endpoint does not exist"
-      (app {:request-method :get :uri "/api/ping"}) => nil)))
+      (is (= (app {:request-method :get :uri "/api/ping"}) nil)))))
 
 (deftest listing-static-context-routes-test
   (let [app (routes
@@ -201,5 +203,5 @@
                 (GET "/ping" [] (ok "pong")))
               (context "/dynamic" req
                 (GET "/ping" [] (ok "pong"))))]
-    (routes/get-static-context-routes app)
-    => [["/static/ping" :get {:static-context? true}]]))
+    (is (= (routes/get-static-context-routes app)
+           [["/static/ping" :get {:static-context? true}]]))))
