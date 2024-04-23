@@ -63,10 +63,10 @@
                      :handler (constantly (ok))})]
 
       (testing "top + method-level mw are applied if they are set"
-        (call handler {:request-method :get}) => (is-has-body {:mw [:top1 :top2 :get1 :get2]})
-        (call handler {:request-method :post}) => (is-has-body {:mw [:top1 :top2 :post1 :post2]}))
+        (is-has-body {:mw [:top1 :top2 :get1 :get2]} (call handler {:request-method :get}))
+        (is-has-body {:mw [:top1 :top2 :post1 :post2]} (call handler {:request-method :post})))
       (testing "top-level mw are applied if method doesn't have mw"
-        (call handler {:request-method :put}) => (is-has-body {:mw [:top1 :top2]}))))
+        (is-has-body {:mw [:top1 :top2]} (call handler {:request-method :put})))))
 
   (testing "operation-level handlers"
     (let [handler (resource
@@ -76,21 +76,21 @@
                                       (ok {:total (+ x y)}))}
                      :post {:parameters {:query-params {:z Long}}}})]
 
-      (call handler {:request-method :get}) => is-request-validation-failed?
-      (call handler {:request-method :get, :query-params {:x "1"}}) => (is-has-body {:total 1})
-      (call handler {:request-method :get, :query-params {:x "1", :y "a"}}) => is-request-validation-failed?
-      (call handler {:request-method :get, :query-params {:x "1", :y "2"}}) => (is-has-body {:total 3})
+      (is-request-validation-failed? (call handler {:request-method :get}))
+      (is-has-body {:total 1} (call handler {:request-method :get, :query-params {:x "1"}}))
+      (is-request-validation-failed? (call handler {:request-method :get, :query-params {:x "1", :y "a"}}))
+      (is-has-body {:total 3} (call handler {:request-method :get, :query-params {:x "1", :y "2"}}))
 
       (testing "if no handler is found, nil is returned"
-        (call handler {:request-method :post, :query-params {:x "1"}}) => nil)))
+        (is (nil? (call handler {:request-method :post, :query-params {:x "1"}}))))))
 
   (testing "handler preference"
     (let [handler (resource
                     {:get {:handler (constantly (ok {:from "get"}))}
                      :handler (constantly (ok {:from "top"}))})]
 
-      (call handler {:request-method :get}) => (is-has-body {:from "get"})
-      (call handler {:request-method :post}) => (is-has-body {:from "top"})))
+      (is-has-body {:from "get"} (call handler {:request-method :get}))
+      (is-has-body {:from "top"} (call handler {:request-method :post}))))
 
   (testing "resource without coercion"
     (let [handler (resource
@@ -101,11 +101,11 @@
                                       (ok {:x x
                                            :y y}))}})]
 
-      (call handler {:request-method :get}) => (is-has-body {:x nil, :y nil})
-      (call handler {:request-method :get, :query-params {:x "1"}}) => (is-has-body {:x "1", :y nil})
-      (call handler {:request-method :get, :query-params {:x "1", :y "a"}}) => (is-has-body {:x "1", :y "a"})
-      (call handler {:request-method :get, :query-params {:x 1, :y 2}}) => (is-has-body {:x 1, :y 2})))
-
+      (is-has-body {:x nil, :y nil} (call handler {:request-method :get}))
+      (is-has-body {:x "1", :y nil} (call handler {:request-method :get, :query-params {:x "1"}}))
+      (is-has-body {:x "1", :y "a"} (call handler {:request-method :get, :query-params {:x "1", :y "a"}}))
+      (is-has-body {:x 1, :y 2} (call handler {:request-method :get, :query-params {:x 1, :y 2}}))))
+ 
   (testing "parameter mappings"
     (let [handler (resource
                     {:get {:parameters {:query-params {:q s/Str}
@@ -120,18 +120,19 @@
                                                                 :header-params
                                                                 :path-params])))}})]
 
-      (call handler {:request-method :get
-                     :query-params {:q "q"}
-                     :body-params {:b "b"}
-                     :form-params {:f "f"}
-                     ;; the ring headers
-                     :headers {"h" "h"}
-                     ;; compojure routing
-                     :route-params {:p "p"}}) => (is-has-body {:query-params {:q "q"}
-                                                            :body-params {:b "b"}
-                                                            :form-params {:f "f"}
-                                                            :header-params {:h "h"}
-                                                            :path-params {:p "p"}})))
+      (is-has-body {:query-params {:q "q"}
+                    :body-params {:b "b"}
+                    :form-params {:f "f"}
+                    :header-params {:h "h"}
+                    :path-params {:p "p"}}
+                   (call handler {:request-method :get
+                                  :query-params {:q "q"}
+                                  :body-params {:b "b"}
+                                  :form-params {:f "f"}
+                                  ;; the ring headers
+                                  :headers {"h" "h"}
+                                  ;; compojure routing
+                                  :route-params {:p "p"}}))))
 
   (testing "response coercion"
     (let [handler (resource
@@ -143,11 +144,11 @@
                      :handler (fnk [[:query-params x]]
                                 (ok {:total x}))})]
 
-      (call handler {:request-method :get}) => is-request-validation-failed?
-      (call handler {:request-method :get, :query-params {:x "-1"}}) => is-response-validation-failed?
-      (call handler {:request-method :get, :query-params {:x "1"}}) => is-response-validation-failed?
-      (call handler {:request-method :get, :query-params {:x "10"}}) => (is-has-body {:total 10})
-      (call handler {:request-method :post, :query-params {:x "1"}}) => (is-has-body {:total 1}))))
+      (is-request-validation-failed? (call handler {:request-method :get}))
+      (is-response-validation-failed? (call handler {:request-method :get, :query-params {:x "-1"}}))
+      (is-response-validation-failed? (call handler {:request-method :get, :query-params {:x "1"}}))
+      (is-has-body {:total 10} (call handler {:request-method :get, :query-params {:x "10"}}))
+      (is-has-body {:total 1} (call handler {:request-method :post, :query-params {:x "1"}})))))
 
 (deftest explicit-async-tests-test
   (let [handler (resource
