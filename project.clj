@@ -5,20 +5,19 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :dependencies [[prismatic/schema "1.4.1"]
-                 [prismatic/plumbing "0.6.0"]
+  :dependencies [[prismatic/schema "1.1.12"]
+                 [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
-                 [metosin/jsonista "0.3.1"] ;; dependency conflicts
-                 [metosin/muuntaja "0.6.10"]
+                 [metosin/muuntaja "0.6.6"]
                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.10.1"]
-                 [ring/ring-core "1.12.1"]
-                 [compojure "1.7.1" ]
-                 [metosin/spec-tools "0.10.6"]
-                 [metosin/ring-http-response "0.9.3"]
-                 [metosin/ring-swagger-ui "3.52.3"]
+                 [ring/ring-core "1.8.0"]
+                 [compojure "1.6.1" ]
+                 [metosin/spec-tools "0.10.0"]
+                 [metosin/ring-http-response "0.9.1"]
+                 [metosin/ring-swagger-ui "3.24.3"]
                  [metosin/ring-swagger "0.26.2"]
 
-                 [com.fasterxml.jackson.core/jackson-annotations "2.12.0"]
+                 ;; Fix dependency conflicts
                  [clj-time "0.15.2"]
                  [joda-time "2.10.5"]
                  [riddley "0.2.0"]]
@@ -37,9 +36,10 @@
                                   [org.clojure/core.async "0.6.532"]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
                                   [peridot "0.5.2"]
+                                  [com.rpl/specter "1.1.3"]
                                   [com.stuartsierra/component "0.4.0"]
                                   [expound "0.8.2"]
-                                  [metosin/jsonista "0.3.1"]
+                                  [metosin/jsonista "0.2.5"]
                                   [reloaded.repl "0.2.4"]
                                   [metosin/muuntaja-msgpack "0.6.6"]
                                   [metosin/muuntaja-yaml "0.6.6"]
