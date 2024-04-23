@@ -58,63 +58,61 @@
 
     (testing "all routes can be invoked"
       (let [[status body] (get* app "/api/v1/hello" {:name "Tommi"})]
-        status = 200
-        body => {:message "Hello, Tommi"})
+        (is (= 200 status))
+        (is (= body {:message "Hello, Tommi"})))
 
       (let [[status body] (get* app "/api/v1/ping")]
-        status = 200
-        body => {:message "pong - v1"})
+        (is (= status 200))
+        (is (= body {:message "pong - v1"})))
 
       (let [[status body] (get* app "/api/v2/ping")]
-        status = 200
-        body => {:message "pong - v2"})
+        (is (= status 200))
+        (is (= body {:message "pong - v2"})))
 
       (let [[status body] (get* app "/api/v3/more")]
-        status => 200
-        body => {:message "v3"}))
+        (is (= status 200))
+        (is (= body {:message "v3"}))))
 
     (testing "routes can be extracted at runtime"
-      (routes/get-routes app)
-      => [["/swagger.json" :get {:no-doc true
-                                 :coercion :schema
-                                 :name :compojure.api.swagger/swagger
-                                 :public {:x-name :compojure.api.swagger/swagger}}]
-          ["/api/:version/ping" :get {:coercion :schema
-                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/ping" :post {:coercion :schema
-                                       :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ;; 'ANY' expansion
-          ["/api/:version/foo" :get {:coercion :schema
-                                     :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/foo" :patch {:coercion :schema
-                                       :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/foo" :delete {:coercion :schema
-                                        :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/foo" :head {:coercion :schema
-                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/foo" :post {:coercion :schema
-                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/foo" :options {:coercion :schema
+      (is (= [["/swagger.json" :get {:no-doc true
+                                     :coercion :schema
+                                     :name :compojure.api.swagger/swagger
+                                     :public {:x-name :compojure.api.swagger/swagger}}]
+              ["/api/:version/ping" :get {:coercion :schema
+                                          :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ["/api/:version/ping" :post {:coercion :schema
+                                           :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ;; 'ANY' expansion
+              ["/api/:version/foo" :get {:coercion :schema
                                          :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ["/api/:version/foo" :put {:coercion :schema
-                                     :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
-          ;;
-          ["/api/:version/hello" :get {:coercion :schema
-                                       :public {:parameters {:query {:name String, s/Keyword s/Any}
-                                                             :path {:version String, s/Keyword s/Any}}
-                                                :responses {200 {:description "", :schema {:message String}}}
-                                                :summary "cool ping"}}]
-          ["/api/:version/more" :get {:coercion :schema
-                                      :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]])
+              ["/api/:version/foo" :patch {:coercion :schema
+                                           :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ["/api/:version/foo" :delete {:coercion :schema
+                                            :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ["/api/:version/foo" :head {:coercion :schema
+                                          :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ["/api/:version/foo" :post {:coercion :schema
+                                          :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ["/api/:version/foo" :options {:coercion :schema
+                                             :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ["/api/:version/foo" :put {:coercion :schema
+                                         :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]
+              ;;
+              ["/api/:version/hello" :get {:coercion :schema
+                                           :public {:parameters {:query {:name String, s/Keyword s/Any}
+                                                                 :path {:version String, s/Keyword s/Any}}
+                                                    :responses {200 {:description "", :schema {:message String}}}
+                                                    :summary "cool ping"}}]
+              ["/api/:version/more" :get {:coercion :schema
+                                          :public {:parameters {:path {:version String, s/Keyword s/Any}}}}]]
+           (routes/get-routes app))))
 
     (testing "swagger-docs can be generated"
-      (-> app get-spec :paths keys)
-      => (just
-           ["/api/{version}/ping"
-            "/api/{version}/foo"
-            "/api/{version}/hello"
-            "/api/{version}/more"]
-           :in-any-order))))
+      (is (= (sort ["/api/{version}/ping"
+                    "/api/{version}/foo"
+                    "/api/{version}/hello"
+                    "/api/{version}/more"])
+             (-> app get-spec :paths keys sort))))))
 
 (def more-routes
   (routes
