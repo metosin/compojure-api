@@ -237,30 +237,40 @@
                                   (ok (select-keys request [:uri :path-info])))}}))]
 
     (testing "normal endpoint works"
-      (call app {:request-method :get, :uri "/rest/no"}) => (is-has-body {:uri "/rest/no", :path-info "/no"}))
+      (is-has-body
+        {:uri "/rest/no", :path-info "/no"}
+        (call app {:request-method :get, :uri "/rest/no"})))
 
     (testing "wrapped in ANY works"
-      (call app {:request-method :get, :uri "/rest/any"}) => (is-has-body "ANY"))
+      (is-has-body
+        "ANY"
+        (call app {:request-method :get, :uri "/rest/any"})))
 
     (testing "wrapped in context works"
-      (call app {:request-method :get, :uri "/rest/context"}) => (is-has-body "CONTEXT"))
+      (is-has-body
+        "CONTEXT"
+        (call app {:request-method :get, :uri "/rest/context"})))
 
     (testing "only exact path match works"
-      (call app {:request-method :get, :uri "/rest/context/2"}) => nil)
+      (is (nil? (call app {:request-method :get, :uri "/rest/context/2"}))))
 
     (testing "path-parameters work: route-params are left untoucehed, path-params are coerced"
-      (call app {:request-method :get, :uri "/rest/path/12"}) => (is-has-body {:path-params {:id 12}
-                                                                            :route-params {:id "12"}}))
+      (is-has-body
+        {:path-params {:id 12}
+         :route-params {:id "12"}}
+        (call app {:request-method :get, :uri "/rest/path/12"})))
 
     (testing "top-level GET without extra path works"
-      (call app {:request-method :get, :uri "/rest"}) => (is-has-body {:uri "/rest"
-                                                                    :path-info "/"}))
+      (is-has-body
+        {:uri "/rest"
+         :path-info "/"}
+        (call app {:request-method :get, :uri "/rest"})))
 
     (testing "top-level POST without extra path works"
-      (call app {:request-method :post, :uri "/rest"}) => nil)
+      (is (nil? (call app {:request-method :post, :uri "/rest"}))))
 
     (testing "top-level GET with extra path misses"
-      (call app {:request-method :get, :uri "/rest/in-peaces"}) => nil)))
+      (is (nil? (call app {:request-method :get, :uri "/rest/in-peaces"}))))))
 
 (deftest swagger-integration-test
   (testing "explicitely defined methods produce api-docs"
