@@ -273,7 +273,7 @@
       (is (nil? (call app {:request-method :get, :uri "/rest/in-peaces"}))))))
 
 (deftest swagger-integration-test
-  (testing "explicitely defined methods produce api-docs"
+  (testing "explicitly defined methods produce api-docs"
     (let [app (api
                 (swagger-routes)
                 (context "/rest" []
@@ -286,18 +286,18 @@
                      :handler (constantly (ok {:total 1}))})))
           spec (get-spec app)]
 
-      spec => (contains
-                {:definitions (just
-                                {:Error irrelevant
-                                 :Total irrelevant})
-                 :paths (just
-                          {"/rest" (just
-                                     {:get (just
-                                             {:parameters (two-of irrelevant)
-                                              :responses (just {:200 irrelevant, :400 irrelevant})})
-                                      :post (just
-                                              {:parameters (one-of irrelevant)
-                                               :responses (just {:400 irrelevant})})})})})))
+      (is (= {:definitions #{:Error :Total}
+              :paths {"/rest" {:get {:parameters 2
+                                     :responses #{:200 :400}}
+                               :post {:parameters 1
+                                      :responses #{:400}}}}}
+            (-> spec
+                (select-keys [:definitions :paths])
+                (update :definitions (comp set keys))
+                (update-in [:paths "/rest" :get :parameters] count)
+                (update-in [:paths "/rest" :get :responses] (comp set keys))
+                (update-in [:paths "/rest" :post :parameters] count)
+                (update-in [:paths "/rest" :post :responses] (comp set keys)))))))
   (testing "top-level handler doesn't contribute to docs"
     (let [app (api
                 (swagger-routes)
