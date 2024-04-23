@@ -306,5 +306,4 @@
                     {:handler (constantly (ok {:total 1}))})))
           spec (get-spec app)]
 
-      spec => (contains
-                {:paths {}}))))
+      (is (= {} (:paths spec))))))
