@@ -1,4 +1,4 @@
-# Compojure-api [![Build Status](https://api.travis-ci.org/metosin/compojure-api.svg?branch=master)](https://travis-ci.org/metosin/compojure-api)
+# Compojure-api
 
 **Psst!** If you're starting a new project, why not try out [reitit](https://github.com/metosin/reitit)?
 
