@@ -179,36 +179,36 @@
         (handler {:query-params {:x -1}} (promise) res-raise)
         (handler {:query-params {:x "x"}} (promise) req-raise)
 
-        (deref respond 1000 :timeout) => (is-has-body {:total 1})
-        (throw (deref res-raise 1000 :timeout)) => is-response-validation-failed?
-        (throw (deref req-raise 1000 :timeout)) => is-request-validation-failed?))
+        (is-has-body {:total 1} (deref respond 1000 :timeout))
+        (is-response-validation-failed? (throw (deref res-raise 1000 :timeout)))
+        (is-request-validation-failed? (throw (deref req-raise 1000 :timeout)))))
 
     (testing "operation-level async handler"
       (let [respond (promise)]
         (handler {:request-method :get, :query-params {:x 1}} respond (promise))
-        (deref respond 1000 :timeout) => (is-has-body {:total 2})))
+        (is-has-body {:total 2} (deref respond 1000 :timeout))))
 
     (testing "sync handler can be called from async"
       (let [respond (promise)]
         (handler {:request-method :post, :query-params {:x 1}} respond (promise))
-        (deref respond 1000 :timeout) => (is-has-body {:total 10}))
+        (is-has-body {:total 10} (deref respond 1000 :timeout)))
       (testing "response coercion works"
         (let [raise (promise)]
           (handler {:request-method :post, :query-params {:x -1}} (promise) raise)
-          (throw (deref raise 1000 :timeout)) => is-response-validation-failed?)))
+          (is-response-validation-failed? (throw (deref raise 1000 :timeout))))))
 
     (testing "core.async ManyToManyChannel"
       (testing "works with 3-arity"
         (let [respond (promise)]
           (handler {:request-method :put, :query-params {:x 1}} respond (promise))
-          (deref respond 2000 :timeout) => (is-has-body {:total 100}))
+          (is-has-body {:total 100} (deref respond 2000 :timeout)))
         (testing "response coercion works"
           (let [raise (promise)]
             (handler {:request-method :put, :query-params {:x -1}} (promise) raise)
-            (throw (deref raise 2000 :timeout)) => is-response-validation-failed?)))
+            (is-response-validation-failed? (throw (deref raise 2000 :timeout))))))
       (testing "fails with 1-arity"
-        (handler {:request-method :put, :query-params {:x 1}}) => (throws) #_(is-has-body {:total 100})
-        (handler {:request-method :put, :query-params {:x -1}}) => (throws) #_response-validation-failed?))))
+        (is (thrown? Exception (handler {:request-method :put, :query-params {:x 1}}))) #_(is-has-body {:total 100})
+        (is (thrown? Exception (handler {:request-method :put, :query-params {:x -1}}))) #_response-validation-failed?))))
 
 (deftest compojure-api-routing-integration-test
   (let [app (context "/rest" []
