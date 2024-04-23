@@ -72,10 +72,10 @@
                                      :username [:gpg :env/clojars_user]
                                      :password [:gpg :env/clojars_token]
                                      :sign-releases false}]
-                        ["releases" {:url "https://clojars.org/repo"
-                                     :username [:gpg :env/clojars_user]
-                                     :password [:gpg :env/clojars_token]
-                                     :sign-releases false}]]
+                        ["release" {:url "https://clojars.org/repo"
+                                    :username [:gpg :env/clojars_user]
+                                    :password [:gpg :env/clojars_token]
+                                    :sign-releases false}]]
   :release-tasks [["clean"]
                   ["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
