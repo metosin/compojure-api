@@ -3,7 +3,21 @@
             [clojure.walk :as walk]
             [compojure.api.impl.logging :as logging]
             [compojure.api.coercion.core :as cc]
-            [compojure.api.coercion.schema]))
+            [compojure.api.coercion.schema]
+            [schema.utils :as su])
+  (:import [schema.utils ValidationError NamedError]))
+
+;; 1.1.x
+(defn stringify-error
+  "Stringifies symbols and validation errors in Schema error, keeping the structure intact."
+  [error]
+  (walk/postwalk
+    (fn [x]
+      (cond
+        (instance? ValidationError x) (str (su/validation-error-explain x))
+        (instance? NamedError x) (str (su/named-error-explain x))
+        :else x))
+    error))
 
 ;;
 ;; Default exception handlers

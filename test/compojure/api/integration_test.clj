@@ -523,7 +523,110 @@
         (is (= pertti body)))
       (is (= 1 @execution-times)))))
 
-(deftest swagger-docs-test
+(deftest ring-middleware-format-swagger-docs
+  (let [app (api
+              {:format {:formats [:json-kw :edn :UNKNOWN]}}
+              (swagger-routes)
+              (GET "/user" []
+                (continue)))]
+
+    (testing "api-listing shows produces & consumes for known types"
+      (is (= (get-spec app)
+             {:swagger "2.0"
+              :info {:title "Swagger API"
+                     :version "0.0.1"}
+              :basePath "/"
+              :consumes ["application/json" "application/edn"]
+              :produces ["application/json" "application/edn"]
+              :definitions {}
+              :paths {"/user" {:get {:responses {:default {:description ""}}}}}}))))
+
+  (fact "swagger-routes"
+
+    (fact "with defaults"
+      (let [app (api (swagger-routes))]
+
+        (fact "api-docs are mounted to /"
+          (let [[status body] (raw-get* app "/")]
+            status => 200
+            body => #"<title>Swagger UI</title>"))
+
+        (fact "spec is mounted to /swagger.json"
+          (let [[status body] (get* app "/swagger.json")]
+            status => 200
+            body => (contains {:swagger "2.0"})))))
+
+    (fact "with partial overridden values"
+      (let [app (api (swagger-routes {:ui "/api-docs"
+                                      :data {:info {:title "Kikka"}
+                                             :paths {"/ping" {:get {}}}}}))]
+
+        (fact "api-docs are mounted"
+          (let [[status body] (raw-get* app "/api-docs")]
+            status => 200
+            body => #"<title>Swagger UI</title>"))
+
+        (fact "spec is mounted to /swagger.json"
+          (let [[status body] (get* app "/swagger.json")]
+            status => 200
+            body => (contains
+                      {:swagger "2.0"
+                       :info (contains
+                               {:title "Kikka"})
+                       :paths (contains
+                                {(keyword "/ping") anything})}))))))
+
+  (fact "swagger via api-options"
+
+    (fact "with defaults"
+      (let [app (api)]
+
+        (fact "api-docs are not mounted"
+          (let [[status body] (raw-get* app "/")]
+            status => nil))
+
+        (fact "spec is not mounted"
+          (let [[status body] (get* app "/swagger.json")]
+            status => nil))))
+
+    (fact "with spec"
+      (let [app (api {:swagger {:spec "/swagger.json"}})]
+
+        (fact "api-docs are not mounted"
+          (let [[status body] (raw-get* app "/")]
+            status => nil))
+
+        (fact "spec is mounted to /swagger.json"
+          (let [[status body] (get* app "/swagger.json")]
+            status => 200
+            body => (contains {:swagger "2.0"}))))))
+
+  (fact "with ui"
+    (let [app (api {:swagger {:ui "/api-docs"}})]
+
+      (fact "api-docs are mounted"
+        (let [[status body] (raw-get* app "/api-docs")]
+          status => 200
+          body => #"<title>Swagger UI</title>"))
+
+      (fact "spec is not mounted"
+        (let [[status body] (get* app "/swagger.json")]
+          status => nil))))
+
+  (fact "with ui and spec"
+    (let [app (api {:swagger {:spec "/swagger.json", :ui "/api-docs"}})]
+
+      (fact "api-docs are mounted"
+        (let [[status body] (raw-get* app "/api-docs")]
+          status => 200
+          body => #"<title>Swagger UI</title>"))
+
+      (fact "spec is mounted to /swagger.json"
+        (let [[status body] (get* app "/swagger.json")]
+          status => 200
+          body => (contains {:swagger "2.0"}))))))
+
+(deftest muuntaja-swagger-docs-test
   (let [app (api
               {:formats (m/select-formats
                           m/default-options

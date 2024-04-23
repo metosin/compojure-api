@@ -659,6 +659,12 @@
 (defn- route-args? [arg]
   (not= arg []))
 
+(defn- resolve-var [&env sym]
+  (when (symbol? sym)
+    (let [v (resolve &env sym)]
+      (when (var? v)
+        v))))
+
 (def endpoint-vars (into #{}
                          (mapcat (fn [n]
                                    (map #(symbol (name %) (name n))
@@ -725,31 +731,11 @@
 (defn- static-middleware? [&env body]
   (and (seq? body)
        (boolean
-         (let [sym (first body)]
-           (when (symbol? sym)
-             (when-some [v (resolve &env sym)]
-               (when (var? v)
-                 (when (middleware-vars (symbol v))
-                   (let [[_ path route-arg & args] body
-                         [options body] (extract-parameters args true)
-                         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
-                         {:keys [lets
-                                 letks
-                                 responses
-                                 middleware
-                                 info
-                                 swagger
-                                 body]} (reduce
-                                          (fn [acc [k v]]
-                                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
-                                          {:lets lets
-                                           :letks []
-                                           :responses nil
-                                           :middleware []
-                                           :info {}
-                                           :body body}
-                                          options)]
-                     (static-body? &env body))))))))))
+         (when-some [v (resolve-var &env (first body))]
+           (when (middleware-vars (symbol v))
+             (let [[_ mid & body] body]
+               (and (static-form? &env mid)
+                    (static-body? &env body))))))))
 
 (def route-middleware-vars (into #{}
                                  (mapcat (fn [n]
@@ -785,12 +771,6 @@
                          (= #'boolean v)
                          (= sym 'if))
                  (static-body? &env (next form)))))))))
-
-(defn- resolve-var [&env sym]
-  (when (symbol? sym)
-    (let [v (resolve &env sym)]
-      (when (var? v)
-        v))))
 
 (defn- static-resolved-form? [&env form]
   (boolean
@@ -987,7 +967,7 @@
                 (let [coach (some-> (System/getProperty "compojure.api.meta.static-context-coach")
                                     edn/read-string)]
                   (if-not coach
-                    (when (ffirst (reset-vals! warned-non-static? true))
+                    (when (first (reset-vals! warned-non-static? true))
                       (println
                         (str (format "WARNING: Performance issue detected with compojure-api usage in %s.\n" (ns-name *ns*))
                              "To fix this warning, set: -Dcompojure.api.meta.static-context-coach={:default :print}.\n"
