@@ -13,21 +13,21 @@
 (deftest path-string-test
 
   (testing "missing path parameter"
-    (#'routes/path-string muuntaja "/api/:kikka" {})
-    => (throws IllegalArgumentException))
+    (is (thrown? IllegalArgumentException (#'routes/path-string muuntaja "/api/:kikka" {}))))
 
   (testing "missing serialization"
-    (#'routes/path-string muuntaja "/api/:kikka" {:kikka (reify Comparable)})
-    => (throws ExceptionInfo #"Malformed application/json"))
+    (is (thrown-with-msg?
+          ExceptionInfo #"Malformed application/json"
+          (#'routes/path-string muuntaja "/api/:kikka" {:kikka (reify Comparable)}))))
 
   (testing "happy path"
-    (#'routes/path-string muuntaja "/a/:b/:c/d/:e/f" {:b (LocalDate/parse "2015-05-22")
-                                                      :c 12345
-                                                      :e :kikka})
-    => "/a/2015-05-22/12345/d/kikka/f"))
+    (is (= "/a/2015-05-22/12345/d/kikka/f"
+           (#'routes/path-string muuntaja "/a/:b/:c/d/:e/f" {:b (LocalDate/parse "2015-05-22")
+                                                             :c 12345
+                                                             :e :kikka})))))
 
 (deftest string-path-parameters-test
-  (#'routes/string-path-parameters "/:foo.json") => {:foo String})
+  (is (= {:foo String} (#'routes/string-path-parameters "/:foo.json"))))
 
 (deftest nested-routes-test
   (let [mw (fn [handler]
