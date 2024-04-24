@@ -1032,12 +1032,9 @@
                 '(clojure.core/let
                    [?G__51754 EXPENSIVE
                     ?G__51755 schema.core/Any
-                    ?G__51756
-                    s/Int
-                    ?G__51759
-                    s/Keyword
-                    ?G__51760
-                    s/Keyword
+                    ?G__51756 s/Int
+                    ?G__51759 s/Keyword
+                    ?G__51760 s/Keyword
                     ?G__51762 {?G__51759 ?G__51760,
                                :field ?G__51754,
                                :field2 ?G__51755,
@@ -1056,7 +1053,7 @@
                         :get
                         {:__record__ "clout.core.CompiledRoute",
                          :source "/ping",
-                         :re (clojure.core/re-pattern "/ping"),
+                         :re #"/ping",
                          :keys [],
                          :absolute? false}
                         (clojure.core/fn [?request]
@@ -1065,8 +1062,8 @@
                             (plumbing.core/letk
                               [[field :- ?G__51754
                                 field2 :- ?G__51755
-                                {default :-, ?G__51756 (inc 42)}
-                                :& foo :- {?G__51759 ?G__51760}
+                                {default :- ?G__51756 (inc 42)}
+                                & foo :- {?G__51759 ?G__51760}
                                 :as all]
                                (compojure.api.coercion/coerce-request!
                                  ?G__51762
