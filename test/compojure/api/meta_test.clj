@@ -286,7 +286,6 @@
                    (let [?r ~'(routing [(POST "/ping" [])])]
                      (fn [?_] ?r)))))
   (testing "schemas"
-    ;;FIXME EXPENSIVE is evaluated twice
     (is-expands (GET "/ping" []
                      :return EXPENSIVE
                      (ok "kikka"))
