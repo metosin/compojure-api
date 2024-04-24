@@ -315,31 +315,30 @@
     (is-expands (GET "/ping" []
                      :body [body EXPENSIVE]
                      (ok "kikka"))
-                `
-                (let [?body-schema ~'EXPENSIVE]
-                  (map->Route
-                    {:path "/ping",
-                     :method :get,
-                     :info (merge-parameters
-                             {:public {:parameters {:body ?body}}})
-                     :handler
-                     (make-route
-                       :get
-                       {:__record__ "clout.core.CompiledRoute",
-                        :source "/ping",
-                        :re #"/ping",
-                        :keys [],
-                        :absolute? false}
-                       (fn [?request]
-                         (let-request [[:as +compojure-api-request+] ?request]
-                           (let [~'body (compojure.api.coercion/coerce-request!
-                                          ?body
-                                          :body-params
-                                          :body
-                                          false
-                                          false
-                                          +compojure-api-request+)]
-                             (do ~'(ok "kikka"))))))}))))
+                `(let [?body-schema ~'EXPENSIVE]
+                   (map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info (merge-parameters
+                              {:public {:parameters {:body ?body}}})
+                      :handler
+                      (make-route
+                        :get
+                        {:__record__ "clout.core.CompiledRoute",
+                         :source "/ping",
+                         :re #"/ping",
+                         :keys [],
+                         :absolute? false}
+                        (fn [?request]
+                          (let-request [[:as +compojure-api-request+] ?request]
+                            (let [~'body (compojure.api.coercion/coerce-request!
+                                           ?body
+                                           :body-params
+                                           :body
+                                           false
+                                           false
+                                           +compojure-api-request+)]
+                              (do ~'(ok "kikka"))))))}))))
 )
 
 
