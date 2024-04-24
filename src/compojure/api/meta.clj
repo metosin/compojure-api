@@ -471,11 +471,11 @@
           :else (throw (ex-info (str "Unknown fnk syntax: " (pr-str binder)) {})))))))
 
 (defmethod restructure-param :body-params [_ body-params acc]
-  (let [{:keys [g outer-lets binder]} (stage-letk-binder body-params)]
-    ;(prn {:g g :outer-lets outer-lets :binder binder})
+  (let [schema (strict (fnk-schema body-params))
+        g (gensym 'body-params-schema)]
     (-> acc
-        (update :outer-lets into outer-lets)
-        (update-in [:letks] into [binder (src-coerce! g :body-params :body)])
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [body-params (src-coerce! g :body-params :body)])
         (assoc-in [:info :public :parameters :body] g))))
 
 ;;

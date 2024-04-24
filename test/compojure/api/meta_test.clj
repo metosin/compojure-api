@@ -1065,43 +1065,40 @@
                      :body-params [field :- EXPENSIVE, field2, {default :- s/Int (inc 42)} & foo :- {s/Keyword s/Keyword} :as all]
                      (ok "kikka"))
                 '(clojure.core/let
-                   [?field-schema EXPENSIVE
-                    ?field2-schema schema.core/Any
-                    ?default-schema s/Int
-                    ?extra-keys s/Keyword
-                    ?extra-vals s/Keyword
-                    ?body-schema {?extra-keys ?extra-vals,
-                                  :field ?field-schema,
-                                  :field2 ?field2-schema,
-                                  (clojure.core/with-meta
-                                    (schema.core/optional-key :default)
-                                    {:default '(inc 42)})
-                                  ?default-schema}]
+                   [?body-params-schema87896 {s/Keyword s/Keyword,
+                                              :field EXPENSIVE,
+                                              :field2 schema.core/Any,
+                                              (clojure.core/with-meta
+                                                (schema.core/optional-key :default)
+                                                {:default '(inc 42)})
+                                              s/Int}]
                    (compojure.api.routes/map->Route
                      {:path "/ping",
                       :method :get,
                       :info
                       (compojure.api.meta/merge-parameters
-                        {:public {:parameters {:body ?body-schema}}}),
+                        {:public {:parameters {:body ?body-params-schema87896}}}),
                       :handler
                       (compojure.core/make-route
                         :get
                         {:__record__ "clout.core.CompiledRoute",
                          :source "/ping",
-                         :re #"/ping",
+                         :re (clojure.core/re-pattern "/ping"),
                          :keys [],
                          :absolute? false}
-                        (clojure.core/fn [?request]
+                        (clojure.core/fn
+                          [request__3574__auto__]
                           (compojure.core/let-request
-                            [[:as +compojure-api-request+] ?request]
+                            [[:as +compojure-api-request+] request__3574__auto__]
                             (plumbing.core/letk
-                              [[field :- ?field-schema
-                                field2 :- ?field2-schema
-                                {default :- ?default-schema (inc 42)}
-                                & foo :- {?extra-keys ?extra-vals}
+                              ;; Note: these schemas are just cosmetic. if a future plumbing uses
+                              ;; them, the runtime tests below will fail.
+                              [[field :- EXPENSIVE
+                                field2 {default :-, s/Int (inc 42)}
+                                :& foo :- {s/Keyword s/Keyword}
                                 :as all]
                                (compojure.api.coercion/coerce-request!
-                                 ?body-schema
+                                 ?body-params-schema87896
                                  :body-params
                                  :body
                                  true
