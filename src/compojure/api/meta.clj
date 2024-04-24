@@ -529,10 +529,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :path-params [_ path-params acc]
-  (let [schema (fnk-schema path-params)]
+  (let [schema (fnk-schema path-params)
+        g (gensym 'form-params-schema)]
     (-> acc
-        (update-in [:letks] into [path-params (src-coerce! schema :route-params :string)])
-        (assoc-in [:info :public :parameters :path] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [path-params (src-coerce! g :route-params :string)])
+        (assoc-in [:info :public :parameters :path] g))))
 
 ;;
 ;; middleware
