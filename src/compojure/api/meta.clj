@@ -390,10 +390,16 @@
       "  :headers [headers HeaderSchema]"
       "  (ok headers))")))
 
-(defmethod restructure-param :headers [_ [value schema] acc]
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :headers :string)])
-      (assoc-in [:info :public :parameters :header] schema)))
+(defmethod restructure-param :headers [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-headers"))
+    (assert (= 2 (count bv))
+            (str ":headers should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-headers=true")))
+  (let [g (gensym 'headers-schema)]
+    (-> acc
+        (update :outer-lets into [g schema])
+        (update-in [:lets] into [value (src-coerce! g :headers :string)])
+        (assoc-in [:info :public :parameters :header] g))))
 
 ;;
 ;; body-params
