@@ -1065,19 +1065,19 @@
                      :body-params [field :- EXPENSIVE, field2, {default :- s/Int (inc 42)} & foo :- {s/Keyword s/Keyword} :as all]
                      (ok "kikka"))
                 '(clojure.core/let
-                   [?body-params-schema87896 {s/Keyword s/Keyword,
-                                              :field EXPENSIVE,
-                                              :field2 schema.core/Any,
-                                              (clojure.core/with-meta
-                                                (schema.core/optional-key :default)
-                                                {:default '(inc 42)})
-                                              s/Int}]
+                   [?body-params-schema {s/Keyword s/Keyword,
+                                         :field EXPENSIVE,
+                                         :field2 schema.core/Any,
+                                         (clojure.core/with-meta
+                                           (schema.core/optional-key :default)
+                                           {:default '(inc 42)})
+                                         s/Int}]
                    (compojure.api.routes/map->Route
                      {:path "/ping",
                       :method :get,
                       :info
                       (compojure.api.meta/merge-parameters
-                        {:public {:parameters {:body ?body-params-schema87896}}}),
+                        {:public {:parameters {:body ?body-params-schema}}}),
                       :handler
                       (compojure.core/make-route
                         :get
@@ -1087,9 +1087,9 @@
                          :keys [],
                          :absolute? false}
                         (clojure.core/fn
-                          [request__3574__auto__]
+                          [?request]
                           (compojure.core/let-request
-                            [[:as +compojure-api-request+] request__3574__auto__]
+                            [[:as +compojure-api-request+] ?request]
                             (plumbing.core/letk
                               ;; Note: these schemas are just cosmetic. if a future plumbing uses
                               ;; them, the runtime tests below will fail.
@@ -1098,7 +1098,7 @@
                                 :& foo :- {s/Keyword s/Keyword}
                                 :as all]
                                (compojure.api.coercion/coerce-request!
-                                 ?body-params-schema87896
+                                 ?body-params-schema
                                  :body-params
                                  :body
                                  true
