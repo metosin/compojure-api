@@ -295,10 +295,12 @@
       "  (ok {:name \"Kirsi\"))")))
 
 (defmethod restructure-param :return [_ schema acc]
-  (let [response (convert-return schema)]
+  (let [response (convert-return schema)
+        g (gensym 'response)]
     (-> acc
-        (update-in [:info :public :responses] (fnil conj []) response)
-        (update-in [:responses] (fnil conj []) response))))
+        (update-in [:outer-lets] into [g response])
+        (update-in [:info :public :responses] (fnil conj []) g)
+        (update-in [:responses] (fnil conj []) g))))
 
 ;;
 ;; responses
@@ -926,6 +928,7 @@
 
         {:keys [lets
                 letks
+                outer-lets
                 responses
                 middleware
                 info
@@ -948,6 +951,7 @@
                             (-> info :public :static)))
                   "Cannot be both a :dynamic and :static context.")
 
+        ;; I think it's ok if we have :outer-lets
         bindings? (boolean (or (route-args? route-arg) (seq lets) (seq letks)))
 
         _ (assert (not (and (-> info :public :static)
@@ -1070,24 +1074,26 @@
                          form `(compojure.core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
                          form `(fn [~'+compojure-api-request+] ~form)
                          form `(delay (flatten (~form {})))]
-                     form)]
-
-        `(routes/map->Route
-           {:path ~path-string
-            :method ~method
-            :info (merge-parameters ~info)
-            :childs ~childs
-            :handler ~form}))
+                     form)
+            form `(routes/map->Route
+                    {:path ~path-string
+                     :method ~method
+                     :info (merge-parameters ~info)
+                     :childs ~childs
+                     :handler ~form})
+            form (if (seq outer-lets) `(let ~outer-lets ~form) form)]
+        form)
 
       ;; endpoints
       (let [form `(do ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (compojure.core/compile-route method path arg-with-request (list form))
-            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
-
-        `(routes/map->Route
-           {:path ~path-string
-            :method ~method
-            :info (merge-parameters ~info)
-            :handler ~form})))))
+            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)
+            form `(routes/map->Route
+                    {:path ~path-string
+                     :method ~method
+                     :info (merge-parameters ~info)
+                     :handler ~form})
+            form (if (seq outer-lets) `(let ~outer-lets ~form) form)]
+        form))))

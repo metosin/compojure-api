@@ -290,27 +290,28 @@
     (is-expands (GET "/ping" []
                      :return EXPENSIVE
                      (ok "kikka"))
-                `(map->Route
-                   {:path "/ping",
-                    :method :get,
-                    :info (merge-parameters
-                            {:public {:responses [{200 {:schema ~'EXPENSIVE, :description ""}}]}}),
-                    :handler
-                    (wrap-routes
-                      (make-route
-                        :get
-                        {:__record__ "clout.core.CompiledRoute",
-                         :source "/ping",
-                         :re #"/ping",
-                         :keys [],
-                         :absolute? false}
-                        (fn [?request]
-                          (let-request [[:as +compojure-api-request+] ?request]
-                            (do ~'(ok "kikka")))))
-                      (compose-middleware
-                        [[wrap-coerce-response
-                          (merge-vector
-                            [{200 {:schema ~'EXPENSIVE, :description ""}}])]]))}))
+                `(let [?return {200 {:schema ~'EXPENSIVE, :description ""}}]
+                   (map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info (merge-parameters
+                              {:public {:responses [?return]}}),
+                      :handler
+                      (wrap-routes
+                        (make-route
+                          :get
+                          {:__record__ "clout.core.CompiledRoute",
+                           :source "/ping",
+                           :re #"/ping",
+                           :keys [],
+                           :absolute? false}
+                          (fn [?request]
+                            (let-request [[:as +compojure-api-request+] ?request]
+                              (do ~'(ok "kikka")))))
+                        (compose-middleware
+                          [[wrap-coerce-response
+                            (merge-vector
+                              [?return])]]))})))
     #_
     (is-expands (GET "/ping" []
                      :body [body EXPENSIVE]
@@ -348,9 +349,9 @@
                      (ok "kikka"))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
       (exercise)
-      (is (= 2 @times))
+      (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
-      (is (= 2 @times))))
+      (is (= 1 @times))))
   (testing "inferred static context"
     (let [times (atom 0)
           route (context
@@ -360,9 +361,9 @@
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
       (exercise)
-      (is (= 2 @times))
+      (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
-      (is (= 2 @times))))
+      (is (= 1 @times))))
   (testing "dynamic context that doesn't bind variables"
     (let [times (atom 0)
           route (context
@@ -373,9 +374,9 @@
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
       (exercise)
-      (is (= 2 @times))
+      (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
-      (is (= 22 @times))))
+      (is (= 11 @times))))
   (testing "dynamic context where schema is bound outside context"
     (let [times (atom 0)
           route (let [s String]
@@ -388,9 +389,9 @@
                          (ok "kikka"))))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
       (exercise)
-      (is (= 2 @times))
+      (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
-      (is (= 22 @times))))
+      (is (= 11 @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom 0)
           route (context
@@ -402,9 +403,9 @@
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
       (exercise)
-      (is (= 2 @times))
+      (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
-      (is (= 22 @times))))
+      (is (= 11 @times))))
   (testing "idea for lifting impl"
     (let [times (atom 0)
           route (let [rs (GET "/ping" req
@@ -417,6 +418,6 @@
                     rs))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
       (exercise)
-      (is (= 2 @times))
+      (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
-      (is (= 2 @times)))))
+      (is (= 1 @times)))))
