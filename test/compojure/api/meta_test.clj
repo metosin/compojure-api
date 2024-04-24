@@ -384,7 +384,7 @@
                     "" []
                     :dynamic true
                     (GET "/ping" []
-                         ;; could lift this since the locals occur outside the context
+                         ;;TODO could lift this since the locals occur outside the context
                          :return (do (swap! times inc) s)
                          (ok "kikka"))))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
@@ -406,6 +406,21 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
+  (testing "bind :return in context"
+    (let [times (atom {:outer 0 :inner 0})
+          route (context
+                  "" []
+                  :return (do (swap! times update :outer inc)
+                              String)
+                  (GET "/ping" req
+                       :return (do (swap! times update :inner inc)
+                                   String)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= {:outer 1 :inner 1} @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= {:outer 1 :inner 1} @times))))
   (testing "idea for lifting impl"
     (let [times (atom 0)
           route (let [rs (GET "/ping" req
