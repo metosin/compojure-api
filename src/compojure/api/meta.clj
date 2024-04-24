@@ -1,5 +1,6 @@
 (ns compojure.api.meta
   (:require [clojure.edn :as edn]
+            [clojure.walk :as walk]
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
@@ -414,12 +415,74 @@
       "  :body-params [x :- s/Int, {y :- s/Int 1}]"
       "  (ok {:total (+ x y)}))")))
 
+(defn stage-map-schema [m outer-lets]
+  {:pre [(map? m)
+         (vector? outer-lets)]}
+  (reduce-kv (fn [acc k v]
+               (let [[gk gv] (repeatedly 2 gensym)]
+                 (-> acc
+                     (update :outer-lets conj gk k gv v)
+                     (assoc-in [:schema gk] gv))))
+             {:outer-lets outer-lets
+              :schema {}}
+             m))
+
+(defn stage-letk-binder [binder]
+  (fnk-schema binder)
+  (assert (vector? binder))
+  (loop [outer-lets []
+         [fst snd thrd :as binder] binder
+         out []]
+    (let [g (gensym)]
+      (prn "binder" binder)
+      (prn "outer-lets" outer-lets)
+      (prn "out" out)
+      (if (empty? binder)
+        {:g g
+         :outer-lets (conj outer-lets g (strict (fnk-schema out)))
+         :binder out}
+        (cond
+          (= '& fst) (recur outer-lets (subvec binder 1) (conj out fst))
+          (= :as fst) (do (assert (= (symbol? snd)))
+                          (recur outer-lets (subvec binder 2) (conj out fst snd)))
+          (symbol? fst) (let [more-sym (= '& (peek out))]
+                          (if (= :- snd)
+                            (let [_ (assert (>= (count binder) 3))
+                                  {:keys [outer-lets schema]} (if more-sym
+                                                                (stage-map-schema thrd outer-lets)
+                                                                {:outer-lets outer-lets
+                                                                 :schema thrd})]
+                              (recur (conj outer-lets g schema)
+                                     (subvec binder 3)
+                                     (conj out fst :- (if more-sym schema g))))
+                            (let [_ (assert (>= (count binder) 2))
+                                  {:keys [outer-lets schema]} (if more-sym
+                                                                (stage-map-schema `{s/Keyword s/Any} outer-lets)
+                                                                {:outer-lets outer-lets
+                                                                 :schema thrd})]
+                              (recur (conj outer-lets g schema)
+                                     (subvec binder 1)
+                                     (conj out fst :- (if more-sym schema g))))))
+          (map? fst) (let [has-default (= 2 (count fst))
+                           _ (assert (<= 1 (count fst) 2))
+                           [k1 k2] (keys fst)
+                           [schema-k default-k] (if has-default
+                                                  (if (= :- (get fst k1))
+                                                    [k1 k2]
+                                                    [k2 k1])
+                                                  [k1])]
+                       (assert (symbol? schema-k))
+                       (recur (conj outer-lets g (if has-default default-k `s/Any))
+                              (subvec binder 1)
+                              (conj out (cond-> fst
+                                          has-default (-> (dissoc default-k) (assoc g (get fst default-k)))))))
+          :else (throw (ex-info (str "Unknown fnk syntax: " (pr-str binder)) {})))))))
+
 (defmethod restructure-param :body-params [_ body-params acc]
-  (let [schema (strict (fnk-schema body-params))
-        g (gensym 'body-params-schema)]
+  (let [{:keys [g outer-lets binder]} (stage-letk-binder body-params)]
     (-> acc
-        (update :outer-lets into [g schema])
-        (update-in [:letks] into [body-params (src-coerce! g :body-params :body)])
+        (update :outer-lets into outer-lets)
+        (update-in [:letks] into [binder (src-coerce! g :body-params :body)])
         (assoc-in [:info :public :parameters :body] g))))
 
 ;;

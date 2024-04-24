@@ -1000,18 +1000,36 @@
       (dorun (repeatedly 10 exercise))
       (is (= 1 @times)))))
 
+(comment
+  (let [EXPENSIVE 1]
+    (GET "/ping" []
+         :body-params [field :- EXPENSIVE, field2, {default :- s/Int 42} & foo :- {s/Keyword s/Keyword} :as all]
+         (ok "kikka")))
+  (macroexpand-1 (GET "/ping" []
+         :body-params [{field :-}]
+         (ok "kikka")))
+  (macroexpand-1 (GET "/ping" []
+         :body-params [:as b :- s/Int]
+         (ok "kikka")))
+)
+
 (deftest body-params-double-eval-test
   (testing "no :body-params double expansion"
     (is-expands (GET "/ping" []
-                     :body-params [field :- EXPENSIVE, field2, {default :- s/Int 42} & foo :- {s/Keyword s/Keyword} :as all]
+                     :body-params [field :- EXPENSIVE, field2, {default :- s/Int (inc 42)} & foo :- {s/Keyword s/Keyword} :as all]
                      (ok "kikka"))
-                `(let [?body-schema {:field ~'EXPENSIVE
-                                     :field2 s/Any
-                                     (with-meta
+                `(let [?expensive ~'EXPENSIVE
+                       ?field2-schema s/Any
+                       ?default-key (with-meta
                                        (s/optional-key :default)
                                        {:default '42})
-                                     ~'s/Int
-                                     ~'s/Keyword ~'s/Keyword}]
+                       ?default-schema ~'s/Int
+                       ?more-keys ~'s/Keyword
+                       ?more-vals ~'s/Keyword
+                       ?body-schema {:field ?expensive
+                                     :field2 ?field2-schema
+                                     ?default-key ?default-schema
+                                     ?more-keys ?more-vals}]
                    (map->Route
                      {:path "/ping",
                       :method :get,
