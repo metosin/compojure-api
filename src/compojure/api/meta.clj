@@ -415,10 +415,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :body-params [_ body-params acc]
-  (let [schema (strict (fnk-schema body-params))]
+  (let [schema (strict (fnk-schema body-params))
+        g (gensym 'body-params-schema)]
     (-> acc
-        (update-in [:letks] into [body-params (src-coerce! schema :body-params :body)])
-        (assoc-in [:info :public :parameters :body] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [body-params (src-coerce! g :body-params :body)])
+        (assoc-in [:info :public :parameters :body] g))))
 
 ;;
 ;; form-params

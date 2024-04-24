@@ -999,3 +999,150 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 1 @times)))))
+
+(deftest body-params-double-eval-test
+  (testing "no :body-params double expansion"
+    (is-expands (GET "/ping" []
+                     :body-params [field :- EXPENSIVE, field2, {default :- s/Int 42} & foo :- {s/Keyword s/Keyword} :as all]
+                     (ok "kikka"))
+                `(let [?body-schema {:field ~'EXPENSIVE
+                                     :field2 s/Any
+                                     (with-meta
+                                       (s/optional-key :default)
+                                       {:default '42})
+                                     ~'s/Int
+                                     ~'s/Keyword ~'s/Keyword}]
+                   (map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info (merge-parameters
+                              {:public {:parameters {:body ?body-schema}}})
+                      :handler
+                      (make-route
+                        :get
+                        {:__record__ "clout.core.CompiledRoute",
+                         :source "/ping",
+                         :re #"/ping",
+                         :keys [],
+                         :absolute? false}
+                        (fn [?request]
+                          (let-request [[:as +compojure-api-request+] ?request]
+                            (plumbing.core/letk
+                              [~'[field :- EXPENSIVE, field2, {default :- s/Int 42}
+                                  & foo :- {s/Keyword s/Keyword} :as all]
+                               (compojure.api.coercion/coerce-request!
+                                 ?body-schema
+                                 :body-params
+                                 :body
+                                 true
+                                 false
+                                 +compojure-api-request+)]
+                              (do ~'(ok "kikka"))))))}))))
+  (testing "no context"
+    (let [times (atom 0)
+          route (GET "/ping" []
+                     :body [body (do (swap! times inc) s/Any)]
+                     (ok "kikka"))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 1 @times))))
+  (testing "inferred static context"
+    (let [times (atom 0)
+          route (context
+                  "" []
+                  (GET "/ping" []
+                       :body [body (do (swap! times inc) s/Any)]
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 1 @times))))
+  (testing "dynamic context that doesn't bind variables"
+    (let [times (atom 0)
+          route (context
+                  "" []
+                  :dynamic true
+                  (GET "/ping" []
+                       :body [body (do (swap! times inc) s/Any)]
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 11 @times))))
+  (testing "dynamic context where schema is bound outside context"
+    (let [times (atom 0)
+          route (let [s s/Any]
+                  (context
+                    "" []
+                    :dynamic true
+                    (GET "/ping" []
+                         ;;TODO could lift this since the locals occur outside the context
+                         :body [body (do (swap! times inc) s)]
+                         (ok "kikka"))))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 11 @times))))
+  (testing "dynamic context that binds req and uses it in schema"
+    (let [times (atom 0)
+          route (context
+                  "" req
+                  (GET "/ping" req
+                       :body [body (do (swap! times inc)
+                                       ;; should never lift this since it refers to request
+                                       (second [req s/Any]))]
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 11 @times))))
+  (testing "bind :body in static context"
+    (is-thrown-with-msg?
+      AssertionError
+      #"cannot be :static"
+      (eval `(context
+               "" []
+               :static true
+               :body [body (do (swap! times update :outer inc)
+                               s/Any)]
+               (GET "/ping" req
+                    :body [body (do (swap! times update :inner inc)
+                                    s/Any)]
+                    (ok "kikka"))))))
+  (testing "bind :body in dynamic context"
+    (let [times (atom {:outer 0 :inner 0})
+          route (context
+                  "" []
+                  :dynamic true
+                  :body [body (do (swap! times update :outer inc)
+                                  s/Any)]
+                  (GET "/ping" req
+                       :body [body (do (swap! times update :inner inc)
+                                       s/Any)]
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= {:outer 1 :inner 1} @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= {:outer 1 :inner 11} @times))))
+  (testing "idea for lifting impl"
+    (let [times (atom 0)
+          route (let [rs (GET "/ping" req
+                              :body [body (do (swap! times inc)
+                                              s/Any)]
+                              (ok "kikka"))]
+                  (context
+                    "" []
+                    :dynamic true
+                    rs))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 1 @times)))))
