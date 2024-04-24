@@ -1,9 +1,10 @@
 (ns compojure.api.meta-test
   (:require [compojure.api.sweet :as sweet :refer :all]
             [compojure.api.meta :as meta :refer [merge-parameters static-context routing]]
+            [compojure.api.common :refer [merge-vector]]
             [compojure.api.compojure-compat :refer [make-context]]
             [clojure.data :as data]
-            [compojure.core :as cc :refer [let-request make-route]]
+            [compojure.core :as cc :refer [let-request make-route wrap-routes]]
             [clojure.walk :as walk]
             [clojure.string :as str]
             [clojure.pprint :as pp]
@@ -17,7 +18,8 @@
             [schema.core :as s]
             [ring.swagger.core :as rsc]
             [ring.util.http-status :as status]
-            [compojure.api.middleware :as mw]
+            [compojure.api.middleware :as mw :refer [compose-middleware]]
+            [compojure.api.coercion :refer [wrap-coerce-response]]
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
             [compojure.api.request :as request]
@@ -55,9 +57,9 @@
                  (reify-records form)))
 
 (defn is-expands* [nsym form & expecteds]
-  (assert expecteds)
   (binding [*ns* (the-ns nsym)]
-    (let [;; support `(let [?a 1] 1) => '(clojure.core/let [?a 1] 1)
+    (let [expecteds (or expecteds [(list (gensym 'dummy))])
+          ;; support `(let [?a 1] 1) => '(clojure.core/let [?a 1] 1)
           ;; without having the lvars be qualified
           expecteds (mapv (fn [expected]
                             (assert (and (seq? expected) (seq expected)))
@@ -115,7 +117,7 @@
                                     (with-out-str (pp/pprint unifies)))
                                (str "\nDoes not unify\n"))
                              "\nDiff via (data/diff expected expansion):\n"
-                             (with-out-str (pp/pprint (data/diff expected form')))))))
+                             (with-out-str (pp/pprint (data/diff (if unifies subst-expected expected) form')))))))
                 (let [form'' (macroexpand-1 form')]
                   (if-not (identical? form' form'')
                     (recur form'' (conj seen form'') expecteds)
@@ -127,7 +129,6 @@
                                (run! pp/pprint (interpose '=> (map massage-expansion seen))))))))))))))))
 
 (defmacro is-expands [form & expected-exprs]
-  (assert expected-exprs)
   `(is-expands* '~(ns-name *ns*) '~form ~@expected-exprs))
 
 (comment
@@ -255,7 +256,34 @@
                     :keys [:__path-info],
                     :absolute? false}
                    (let [?r ~'(routing [(POST "/ping" [])])]
-                     (fn [?_] ?r))))))
+                     (fn [?_] ?r)))))
+  (testing "schemas"
+    (is-expands (GET "/ping" []
+                     :return String
+                     (ok "kikka"))
+                `(map->Route
+                  {:path "/ping",
+                   :method :get,
+                   :info
+                   (merge-parameters
+                    {:public {:responses [{200 {:schema ~'String, :description ""}}]}}),
+                   :handler
+                   (wrap-routes
+                    (make-route
+                     :get
+                     {:__record__ "clout.core.CompiledRoute",
+                      :source "/ping",
+                      :re #"/ping",
+                      :keys [],
+                      :absolute? false}
+                     (fn [?request]
+                      (compojure.core/let-request
+                       [[:as +compojure-api-request+] ?request]
+                       (do (~'ok "kikka")))))
+                    (compose-middleware
+                     [[wrap-coerce-response
+                       (merge-vector
+                        [{200 {:schema ~'String, :description ""}}])]]))}))))
 
 (deftest lift-schemas-test
   (testing "no context"
