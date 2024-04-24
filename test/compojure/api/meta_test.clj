@@ -1020,15 +1020,13 @@
                      (ok "kikka"))
                 `(let [?expensive ~'EXPENSIVE
                        ?field2-schema s/Any
-                       ?default-key (with-meta
-                                       (s/optional-key :default)
-                                       {:default '42})
                        ?default-schema ~'s/Int
                        ?more-keys ~'s/Keyword
                        ?more-vals ~'s/Keyword
+                       ;;FIXME there's an extra schema here we should delete
                        ?body-schema {:field ?expensive
                                      :field2 ?field2-schema
-                                     ?default-key ?default-schema
+                                     (with-meta (s/optional-key :default) {:default '42}) ?default-schema
                                      ?more-keys ?more-vals}]
                    (map->Route
                      {:path "/ping",
