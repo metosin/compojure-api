@@ -19,8 +19,6 @@
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
 
-(def ^:private ^:dynamic *gensym* gensym)
-
 ;;
 ;; Schema
 ;;
