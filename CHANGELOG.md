@@ -1,5 +1,13 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
+## NEXT
+* Throw an error on malformed `:{body,query,headers}`, in particular is anything other than 2 elements was provided
+  * Disable check with `-Dcompojure.api.meta.allow-bad-{body,query,headers}=true`
+* 50% reduction in the number of times `:{return,body,query,responses,headers,coercion,{body,form,header,query,path}-params}` schemas/arguments are evaluated/expanded
+  * saves 1 evaluation per schema for static contexts
+  * saves 1 evaluation per schema, per request, for dynamic contexts
+* Fix: Merge `:{form,multipart}-params` `:info :public :parameters :formData` field at runtime
+
 ## 2.0.0-alpha32 (2024-03-20)
 
 * Fix empty spec response coercion. [#413](https://github.com/metosin/compojure-api/issues/413)
