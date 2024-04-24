@@ -364,7 +364,11 @@
       "  :query [params {:q s/Str, :max s/Int}]"
       "  (ok params))")))
 
-(defmethod restructure-param :query [_ [value schema] acc]
+(defmethod restructure-param :query [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-query"))
+    (assert (= 2 (count bv))
+            (str ":query should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-query=true")))
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
       (assoc-in [:info :public :parameters :query] schema)))
