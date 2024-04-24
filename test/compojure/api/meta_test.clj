@@ -1030,24 +1030,24 @@
                      :body-params [field :- EXPENSIVE, field2, {default :- s/Int (inc 42)} & foo :- {s/Keyword s/Keyword} :as all]
                      (ok "kikka"))
                 '(clojure.core/let
-                   [?G__51754 EXPENSIVE
-                    ?G__51755 schema.core/Any
-                    ?G__51756 s/Int
-                    ?G__51759 s/Keyword
-                    ?G__51760 s/Keyword
-                    ?G__51762 {?G__51759 ?G__51760,
-                               :field ?G__51754,
-                               :field2 ?G__51755,
-                               (clojure.core/with-meta
-                                 (schema.core/optional-key :default)
-                                 {:default '(inc 42)})
-                               ?G__51756}]
+                   [?field-schema EXPENSIVE
+                    ?field2-schema schema.core/Any
+                    ?default-schema s/Int
+                    ?extra-keys s/Keyword
+                    ?extra-vals s/Keyword
+                    ?body-schema {?extra-keys ?extra-vals,
+                                  :field ?field-schema,
+                                  :field2 ?field2-schema,
+                                  (clojure.core/with-meta
+                                    (schema.core/optional-key :default)
+                                    {:default '(inc 42)})
+                                  ?default-schema}]
                    (compojure.api.routes/map->Route
                      {:path "/ping",
                       :method :get,
                       :info
                       (compojure.api.meta/merge-parameters
-                        {:public {:parameters {:body ?G__51762}}}),
+                        {:public {:parameters {:body ?body-schema}}}),
                       :handler
                       (compojure.core/make-route
                         :get
@@ -1060,13 +1060,13 @@
                           (compojure.core/let-request
                             [[:as +compojure-api-request+] ?request]
                             (plumbing.core/letk
-                              [[field :- ?G__51754
-                                field2 :- ?G__51755
-                                {default :- ?G__51756 (inc 42)}
-                                & foo :- {?G__51759 ?G__51760}
+                              [[field :- ?field-schema
+                                field2 :- ?field2-schema
+                                {default :- ?default-schema (inc 42)}
+                                & foo :- {?extra-keys ?extra-vals}
                                 :as all]
                                (compojure.api.coercion/coerce-request!
-                                 ?G__51762
+                                 ?body-schema
                                  :body-params
                                  :body
                                  true
