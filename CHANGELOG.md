@@ -3,7 +3,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 ## NEXT
 * Throw an error on malformed `:body`, in particular is anything other than 2 elements was provided
   * Disable check with `-Dcompojure.api.meta.allow-bad-body=true`
-* 50% reduction in the number of times `:return` schema is evaluated
+* 50% reduction in the number of times `:return`, `:body` schemas are evaluated
   * saves 1 evaluation for static contexts
   * saves 1 evaluation per request for dynamic contexts
 

@@ -345,9 +345,11 @@
     (assert (= 2 (count bv))
             (str ":body should be [sym schema], provided: " bv
                  "\nDisable this check with -Dcompojure.api.meta.allow-bad-body=true")))
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :body-params :body false)])
-      (assoc-in [:info :public :parameters :body] schema)))
+  (let [g (gensym 'body-schema)]
+    (-> acc
+        (update :outer-lets into [g schema])
+        (update-in [:lets] into [value (src-coerce! g :body-params :body false)])
+        (assoc-in [:info :public :parameters :body] g))))
 
 ;;
 ;; query
