@@ -285,7 +285,7 @@
                     :absolute? false}
                    (let [?r ~'(routing [(POST "/ping" [])])]
                      (fn [?_] ?r)))))
-  (testing "schemas"
+  (testing "no :return double expansion"
     (is-expands (GET "/ping" []
                      :return EXPENSIVE
                      (ok "kikka"))
@@ -310,11 +310,37 @@
                         (compose-middleware
                           [[wrap-coerce-response
                             (merge-vector
-                              [?return])]]))})))
-    #_
+                              [?return])]]))}))))
+  (testing "no :body double expansion"
+    ;;FIXME double expansion
     (is-expands (GET "/ping" []
                      :body [body EXPENSIVE]
-                     (ok "kikka")))))
+                     (ok "kikka"))
+                `(map->Route
+                   {:path "/ping",
+                    :method :get,
+                    :info (merge-parameters
+                            {:public {:parameters {:body ~'EXPENSIVE}}})
+                    :handler
+                    (make-route
+                      :get
+                      {:__record__ "clout.core.CompiledRoute",
+                       :source "/ping",
+                       :re #"/ping",
+                       :keys [],
+                       :absolute? false}
+                      (fn [?request]
+                        (let-request [[:as +compojure-api-request+] ?request]
+                          (let [~'body (compojure.api.coercion/coerce-request!
+                                         ~'EXPENSIVE
+                                         :body-params
+                                         :body
+                                         false
+                                         false
+                                         +compojure-api-request+)]
+                            (do ~'(ok "kikka"))))))})))
+)
+
 
 (deftest is-thrown-with-msg?-test
   (is-thrown-with-msg? Exception #"message" (throw (Exception. "message")))
