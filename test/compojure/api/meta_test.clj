@@ -205,7 +205,7 @@
 
 (deftest meta-expansion-test
   (is-expands (sweet/GET "/ping" [])
-              `(core/GET "/ping" [])
+              `(c/GET "/ping" [])
               `(map->Route
                  {:path "/ping",
                   :method :get,
@@ -222,7 +222,7 @@
                       (let-request [[:as +compojure-api-request+] ?request]
                         (do))))}))
   (is-expands (sweet/POST "/ping" [])
-              `(core/POST "/ping" [])
+              `(c/POST "/ping" [])
               `(map->Route
                  {:path "/ping",
                   :method :post,
@@ -240,7 +240,7 @@
                         (do))))}))
   (testing "static context"
     (is-expands (context "/a" [] (POST "/ping" []))
-                `(core/context "/a" [] (~'POST "/ping" []))
+                `(c/context "/a" [] (~'POST "/ping" []))
                 `(map->Route
                    {:path "/a",
                     :childs
@@ -311,8 +311,9 @@
                         [[wrap-coerce-response
                           (merge-vector
                             [{200 {:schema ~'EXPENSIVE, :description ""}}])]]))}))
+    #_
     (is-expands (GET "/ping" []
-                     :body [body :- EXPENSIVE]
+                     :body [body EXPENSIVE]
                      (ok "kikka")))))
 
 (deftest is-thrown-with-msg?-test

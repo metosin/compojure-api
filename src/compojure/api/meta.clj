@@ -935,6 +935,7 @@
                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
                          {:lets lets
                           :letks []
+                          :outer-lets [] ;; lets around the call to map->Route
                           :responses nil
                           :middleware []
                           :info {}
