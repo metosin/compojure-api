@@ -1,8 +1,8 @@
 (ns compojure.api.meta-test
   (:require [compojure.api.sweet :as sweet :refer :all]
-            [compojure.api.meta :as meta]
+            [compojure.api.meta :as meta :refer [merge-parameters static-context routing]]
             [clojure.data :as data]
-            [compojure.core :as cc]
+            [compojure.core :as cc :refer [let-request make-route]]
             [clojure.walk :as walk]
             [clojure.string :as str]
             [clojure.pprint :as pp]
@@ -20,7 +20,7 @@
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
             [compojure.api.request :as request]
-            [compojure.api.routes :as routes]
+            [compojure.api.routes :as routes :refer [map->Route]]
             [muuntaja.core :as m]
             [compojure.api.core :as c]
             [clojure.java.io :as io]
@@ -67,7 +67,8 @@
                                    reify-records
                                    (walk/postwalk (fn [s]
                                                     (if (and (symbol? s)
-                                                             (str/starts-with? (name s) "?"))
+                                                             (or (str/starts-with? (name s) "?")
+                                                                 (= "+compojure-api-request+" (name s))))
                                                       (symbol nil (name s))
                                                       (if (instance? Pattern s)
                                                         (subst-regex s)
@@ -174,16 +175,30 @@
 
 (deftest meta-expansion-test
   (is-expands (sweet/GET "/ping" [])
-              `(core/GET "/ping" []))
+              `(core/GET "/ping" [])
+              `(map->Route
+                 {:path "/ping",
+                  :method :get,
+                  :info (merge-parameters {}),
+                  :handler
+                  (make-route
+                    :get
+                    {:__record__ "clout.core.CompiledRoute"
+                     :source "/ping",
+                     :re #"/ping",
+                     :keys [],
+                     :absolute? false}
+                    (fn [?request]
+                      (let-request [[:as +compojure-api-request+] ?request]
+                        (do))))}))
   (is-expands (sweet/POST "/ping" [])
-              `(core/POST "/ping" []))
-  (is-expands (sweet/POST "/ping" [])
-              `(routes/map->Route
+              `(core/POST "/ping" [])
+              `(map->Route
                  {:path "/ping",
                   :method :post,
-                  :info (meta/merge-parameters {}),
+                  :info (merge-parameters {}),
                   :handler
-                  (cc/make-route
+                  (make-route
                     :post
                     {:__record__ "clout.core.CompiledRoute"
                      :source "/ping",
@@ -191,9 +206,24 @@
                      :keys [],
                      :absolute? false}
                     (fn [?request]
-                      (cc/let-request
-                        [[:as ~'+compojure-api-request+] ?request]
+                      (let-request [[:as +compojure-api-request+] ?request]
                         (do))))}))
+  (is-expands (context "/a" [] (POST "/ping" []))
+              `(map->Route
+                {:path "/a",
+                 :childs
+                 (delay
+                   (flatten
+                     ((fn [+compojure-api-request+]
+                        (let-request
+                          [[:as +compojure-api-request+] +compojure-api-request+]
+                          [(~'POST "/ping" [])]))
+                      {}))),
+                 :method nil,
+                 :info (merge-parameters {:static-context? true}),
+                 :handler
+                 (static-context "/a"
+                   (routing [(~'POST "/ping" [])]))}))
   )
 
 (deftest lift-schemas-test
