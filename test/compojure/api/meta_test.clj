@@ -208,23 +208,43 @@
                     (fn [?request]
                       (let-request [[:as +compojure-api-request+] ?request]
                         (do))))}))
-  (is-expands (context "/a" [] (POST "/ping" []))
-              `(map->Route
-                {:path "/a",
-                 :childs
-                 (delay
-                   (flatten
-                     ((fn [+compojure-api-request+]
-                        (let-request
-                          [[:as +compojure-api-request+] +compojure-api-request+]
-                          [(~'POST "/ping" [])]))
-                      {}))),
-                 :method nil,
-                 :info (merge-parameters {:static-context? true}),
-                 :handler
-                 (static-context "/a"
-                   (routing [(~'POST "/ping" [])]))}))
-  )
+  (testing "static context"
+    (is-expands (context "/a" [] (POST "/ping" []))
+                `(map->Route
+                   {:path "/a",
+                    :childs
+                    (delay
+                      (flatten
+                        ((fn [+compojure-api-request+]
+                           (let-request
+                             [[:as +compojure-api-request+] +compojure-api-request+]
+                             [(~'POST "/ping" [])]))
+                         {}))),
+                    :method nil,
+                    :info (merge-parameters {:static-context? true}),
+                    :handler
+                    (static-context "/a"
+                                    (routing [(~'POST "/ping" [])]))})))
+  (testing "dynamic context"
+    (is-expands (context "/a" []
+                  :dynamic true
+                  (POST "/ping" []))
+                `(map->Route
+                   {:path "/a",
+                    :childs
+                    (delay
+                      (flatten
+                        ((fn [+compojure-api-request+]
+                           (let-request
+                             [[:as +compojure-api-request+] +compojure-api-request+]
+                             [(~'POST "/ping" [])]))
+                         {}))),
+                    :method nil,
+                    :info (merge-parameters {:public {:dynamic true}}),
+                    :handler
+                    (cc/context "/a"
+                      [:as +compojure-api-request+]
+                      (routing [(~'POST "/ping" [])]))}))))
 
 (deftest lift-schemas-test
   (testing "no context"
