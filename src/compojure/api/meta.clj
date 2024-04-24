@@ -369,9 +369,11 @@
     (assert (= 2 (count bv))
             (str ":query should be [sym schema], provided: " bv
                  "\nDisable this check with -Dcompojure.api.meta.allow-bad-query=true")))
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
-      (assoc-in [:info :public :parameters :query] schema)))
+  (let [g (gensym 'query-schema)]
+    (-> acc
+        (update :outer-lets into [g schema])
+        (update-in [:lets] into [value (src-coerce! g :query-params :string)])
+        (assoc-in [:info :public :parameters :query] g))))
 
 ;;
 ;; headers
