@@ -338,7 +338,11 @@
       "  :body [body User]"
       "  (ok body))")))
 
-(defmethod restructure-param :body [_ [value schema] acc]
+(defmethod restructure-param :body [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-body"))
+    (assert (= 2 (count bv))
+            (str ":body should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-body=true")))
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :body-params :body false)])
       (assoc-in [:info :public :parameters :body] schema)))

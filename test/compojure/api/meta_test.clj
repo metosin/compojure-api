@@ -35,6 +35,35 @@
            (muuntaja.protocols StreamableResponse)
            (java.io File ByteArrayInputStream)))
 
+(def macroexpand-2 (comp macroexpand-1 macroexpand-1))
+
+(defn is-thrown-with-msg?* [is* ^Class cls re form f]
+  (try (f)
+       (is* false (str "Expected to throw: " form))
+       (catch Throwable outer
+         (let [encountered-class-match (atom false)]
+           (loop [e outer]
+             (let [matches-class (instance? cls e)]
+               (swap! encountered-class-match #(or % matches-class))
+               (if (and matches-class
+                        (some->> (ex-message e) (re-find re)))
+                 (is* true "")
+                 (let [e' (ex-cause e)]
+                   (if (identical? e' e)
+                     (if @encountered-class-match
+                       (is* false (str "Did not match exception message:\n"
+                                       (pr-str outer)))
+                       (is* false (str "Did not find an exception of class " (.getName cls) ":\n"
+                                       (pr-str outer))))
+                     (recur e'))))))))))
+
+;;TODO use this to unit test is-thrown-with-msg?
+(defmacro ^:private is-thrown-with-msg?-with-is-fn [is* cls re e]
+  `(is-thrown-with-msg?* ~is* ~cls ~re '~e #(do ~e)))
+
+(defmacro is-thrown-with-msg? [cls re e]
+  `(is-thrown-with-msg?-with-is-fn (fn [v# msg#] (is v# msg#)) ~cls ~re ~e))
+
 (defn subst-regex [^Pattern regex]
   `(re-pattern ~(.pattern regex)))
 
@@ -282,7 +311,34 @@
                       (compose-middleware
                         [[wrap-coerce-response
                           (merge-vector
-                            [{200 {:schema ~'EXPENSIVE, :description ""}}])]]))}))))
+                            [{200 {:schema ~'EXPENSIVE, :description ""}}])]]))}))
+    (is-expands (GET "/ping" []
+                     :body [body :- EXPENSIVE]
+                     (ok "kikka")))))
+
+(deftest is-thrown-with-msg?-test
+  (is-thrown-with-msg? Exception #"message" (throw (Exception. "message")))
+  (is-thrown-with-msg? AssertionError #"Assert failed" (assert nil))
+  (is-thrown-with-msg? Exception #"message" (throw (RuntimeException. (Exception. "message"))))
+  (let [a (atom [])
+        _ (is-thrown-with-msg?-with-is-fn
+            (fn [& args] (swap! a conj args))
+            AssertionError
+            #"message"
+            (throw (RuntimeException. (Exception. "message"))))]
+    (let [[ret :as all] @a]
+      (when (is (= 1 (count all)))
+        (is (= false (first ret)))
+        (is (str/starts-with? (second ret) "Did not find an exception of class java.lang.AssertionError"))))))
+
+(deftest bad-body-test
+  (is-thrown-with-msg? 
+    AssertionError
+    #""
+    (macroexpand-2
+      `(GET "/ping" []
+            :body ~'[body :- EXPENSIVE]
+            (ok "kikka")))))
 
 (deftest lift-schemas-test
   (testing "no context"
