@@ -1,7 +1,8 @@
 (ns compojure.api.meta-test
   (:require [compojure.api.sweet :as sweet :refer :all]
-            [compojure.api.core :as core]
+            [compojure.api.meta :as meta]
             [clojure.data :as data]
+            [compojure.core :as cc]
             [clojure.walk :as walk]
             [clojure.string :as str]
             [clojure.pprint :as pp]
@@ -177,22 +178,21 @@
   (is-expands (sweet/POST "/ping" [])
               `(core/POST "/ping" []))
   (is-expands (sweet/POST "/ping" [])
-              '(compojure.api.routes/map->Route
+              `(routes/map->Route
                  {:path "/ping",
                   :method :post,
-                  :info (compojure.api.meta/merge-parameters {}),
+                  :info (meta/merge-parameters {}),
                   :handler
-                  (compojure.core/make-route
+                  (cc/make-route
                     :post
                     {:__record__ "clout.core.CompiledRoute"
                      :source "/ping",
-                     :re (clojure.core/re-pattern "/ping"),
+                     :re #"/ping",
                      :keys [],
                      :absolute? false}
-                    (clojure.core/fn
-                      [?request]
-                      (compojure.core/let-request
-                        [[:as +compojure-api-request+] ?request]
+                    (fn [?request]
+                      (cc/let-request
+                        [[:as ~'+compojure-api-request+] ?request]
                         (do))))}))
   )
 
