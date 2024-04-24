@@ -3,9 +3,10 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 ## NEXT
 * Throw an error on malformed `:{body,query,headers}`, in particular is anything other than 2 elements was provided
   * Disable check with `-Dcompojure.api.meta.allow-bad-{body,query,headers}=true`
-* 50% reduction in the number of times `:{return,body,query,responses,headers,body-params}` schemas are evaluated
+* 50% reduction in the number of times `:{return,body,query,responses,headers,body-params,form-params}` schemas are evaluated
   * saves 1 evaluation per schema for static contexts
   * saves 1 evaluation per schema, per request, for dynamic contexts
+* Merge `:form-params` `:info :public :parameters :formData` field at runtime
 
 ## 2.0.0-alpha32 (2024-03-20)
 

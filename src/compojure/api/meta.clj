@@ -438,10 +438,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :form-params [_ form-params acc]
-  (let [schema (strict (fnk-schema form-params))]
+  (let [schema (strict (fnk-schema form-params))
+        g (gensym 'form-params-schema)]
     (-> acc
-        (update-in [:letks] into [form-params (src-coerce! schema :form-params :string)])
-        (update-in [:info :public :parameters :formData] st/merge schema)
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [form-params (src-coerce! g :form-params :string)])
+        (update-in [:info :public :parameters :formData] #(if % (list `st/merge % g) g))
         (assoc-in [:info :public :consumes] ["application/x-www-form-urlencoded"]))))
 
 ;;
