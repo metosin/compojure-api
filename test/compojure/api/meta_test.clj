@@ -405,7 +405,7 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "bind :return in context"
+  (testing "bind :return in static context"
     (let [times (atom {:outer 0 :inner 0})
           route (context
                   "" []
@@ -420,6 +420,22 @@
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:outer 1 :inner 1} @times))))
+  (testing "bind :return in dynamic context"
+    (let [times (atom {:outer 0 :inner 0})
+          route (context
+                  "" []
+                  :dynamic true
+                  :return (do (swap! times update :outer inc)
+                              String)
+                  (GET "/ping" req
+                       :return (do (swap! times update :inner inc)
+                                   String)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= {:outer 1 :inner 1} @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= {:outer 1 :inner 11} @times))))
   (testing "idea for lifting impl"
     (let [times (atom 0)
           route (let [rs (GET "/ping" req
