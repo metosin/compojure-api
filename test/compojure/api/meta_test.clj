@@ -1,0 +1,278 @@
+(ns compojure.api.meta-test
+  (:require [compojure.api.sweet :as sweet :refer :all]
+            [compojure.api.core :as core]
+            [clojure.data :as data]
+            [clojure.walk :as walk]
+            [clojure.string :as str]
+            [clojure.pprint :as pp]
+            [clojure.test :refer [deftest is testing]]
+            [compojure.api.test-domain :refer [Pizza burger-routes]]
+            [compojure.api.test-utils :refer :all]
+            [compojure.api.exception :as ex]
+            [compojure.api.swagger :as swagger]
+            [ring.util.http-response :refer :all]
+            [ring.util.http-predicates :as http]
+            [schema.core :as s]
+            [ring.swagger.core :as rsc]
+            [ring.util.http-status :as status]
+            [compojure.api.middleware :as mw]
+            [ring.swagger.middleware :as rsm]
+            [compojure.api.validator :as validator]
+            [compojure.api.request :as request]
+            [compojure.api.routes :as routes]
+            [muuntaja.core :as m]
+            [compojure.api.core :as c]
+            [clojure.java.io :as io]
+            [muuntaja.format.msgpack]
+            [muuntaja.format.yaml]
+            [clojure.core.unify :as unify])
+  (:import (java.sql SQLException SQLWarning)
+           (java.util.regex Pattern)
+           (muuntaja.protocols StreamableResponse)
+           (java.io File ByteArrayInputStream)))
+
+(defn subst-regex [^Pattern regex]
+  `(re-pattern ~(.pattern regex)))
+
+(defn- reify-records [form]
+  (walk/prewalk (fn [s]
+                  (if (record? s)
+                    (do (assert (not (contains? s :__record__)))
+                        (into {:__record__ (.getName (class s))} s))
+                    s))
+                 form))
+
+(defn- massage-expansion [form]
+  (walk/postwalk (fn [s]
+                   (when (symbol? s)
+                     (assert (not (str/starts-with? (name s) "?"))
+                             "Form not allowed lvars"))
+                   (if (instance? Pattern s)
+                     (subst-regex s)
+                     s))
+                 (reify-records form)))
+
+(defn is-expands* [nsym form & expecteds]
+  (assert expecteds)
+  (binding [*ns* (the-ns nsym)]
+    (let [;; support `(let [?a 1] 1) => '(clojure.core/let [?a 1] 1)
+          ;; without having the lvars be qualified
+          expecteds (mapv (fn [expected]
+                            (assert (and (seq? expected) (seq expected)))
+                            (let [fexpected (first expected)]
+                              (assert (symbol? fexpected) "First form of expected should be a symbol")
+                              (assert (not (str/starts-with? (name fexpected) "?")))
+                              (->> expected
+                                   reify-records
+                                   (walk/postwalk (fn [s]
+                                                    (if (and (symbol? s)
+                                                             (str/starts-with? (name s) "?"))
+                                                      (symbol nil (name s))
+                                                      (if (instance? Pattern s)
+                                                        (subst-regex s)
+                                                        s)))))))
+                          expecteds)]
+      (loop [form' (macroexpand-1 form)
+             seen [form form']
+             [expected :as expecteds] expecteds]
+        (if-not (seq expecteds)
+          (is true)
+          (if-not (and (seq? form') (seq form'))
+            (is false)
+            (let [fform' (first form')
+                  fexpected (first expected)]
+              (when (symbol? fform')
+                (assert (not (str/starts-with? (name fform') "?"))))
+              (if (= fform' fexpected)
+                (let [actual-form form'
+                      form' (massage-expansion form')
+                      unifies (unify/unify form' expected)
+                      subst-expected (some->> unifies (unify/subst expected))]
+                  (if (and unifies (= form' subst-expected))
+                    (if-some [expecteds (next expecteds)]
+                      (let [actual-form' (macroexpand-1 actual-form)]
+                        (if (identical? actual-form actual-form')
+                          (is (empty? expecteds)
+                              (str "No expansions matched pattern:\n"
+                                   (with-out-str (pp/pprint expected))
+                                   "Seen:\n"
+                                   (with-out-str
+                                     (run! pp/pprint (interpose '=> (map massage-expansion seen))))))
+                          (recur actual-form' (conj seen actual-form') expecteds)))
+                      (is true))
+                    (is false
+                        (str "Did not match pattern:\n"
+                             (with-out-str (pp/pprint expected))
+                             "\nExpansion:\n"
+                             (with-out-str (pp/pprint form'))
+                             (if unifies
+                               (str "\nUnifies to:\n"
+                                    (with-out-str (pp/pprint subst-expected))
+                                    "With substitution map:\n"
+                                    (with-out-str (pp/pprint unifies)))
+                               (str "\nDoes not unify\n"))
+                             "\nDiff via (data/diff expected expansion):\n"
+                             (with-out-str (pp/pprint (data/diff expected form')))))))
+                (let [form'' (macroexpand-1 form')]
+                  (if-not (identical? form' form'')
+                    (recur form'' (conj seen form'') expecteds)
+                    (is false
+                        (str "No expansions matched pattern:\n"
+                             (with-out-str (pp/pprint expected))
+                             "Seen:\n"
+                             (with-out-str
+                               (run! pp/pprint (interpose '=> (map massage-expansion seen))))))))))))))))
+
+(defmacro is-expands [form & expected-exprs]
+  (assert expected-exprs)
+  `(is-expands* '~(ns-name *ns*) '~form ~@expected-exprs))
+
+(comment
+  (unify/unifier
+    '(+ 1 2)
+    '(+ ?a ?b))
+
+  (unify/unifier
+    '(+ 2)
+    '(+ ?a ?b))
+
+  (is-expands (+ 1 a)
+              (+ 1))
+
+  (unify/unify `(+ 1 a#) `(+ 1 ?a))
+  (unify/unify `(+ 1) `(?a/+ 1))
+
+  (is-expands* *ns* `(+ 1 a#) `(+ 1 ?a))
+  (expands `(+ 1 a#) `(+ 1 ?a))
+
+  (unify/subst
+    '(+ ?a ?b)
+    (unify/unify
+      `(~'+ a#)
+      '(+ ?a ?b)
+      ))
+
+
+  (let [orig ])
+
+  (-> `(GET "/ping" []
+            :return String
+            (ok "kikka"))
+    macroexpand
+    pp/pprint
+    )
+
+  (-> (take 4 (iterate macroexpand-1 `(sweet/POST "/ping" []) ))
+      (nth 2)
+      second
+      :handler
+      (nth 2)
+      prn
+      )
+  )
+
+(deftest meta-expansion-test
+  (is-expands (sweet/GET "/ping" [])
+              `(core/GET "/ping" []))
+  (is-expands (sweet/POST "/ping" [])
+              `(core/POST "/ping" []))
+  (is-expands (sweet/POST "/ping" [])
+              '(compojure.api.routes/map->Route
+                 {:path "/ping",
+                  :method :post,
+                  :info (compojure.api.meta/merge-parameters {}),
+                  :handler
+                  (compojure.core/make-route
+                    :post
+                    {:__record__ "clout.core.CompiledRoute"
+                     :source "/ping",
+                     :re (clojure.core/re-pattern "/ping"),
+                     :keys [],
+                     :absolute? false}
+                    (clojure.core/fn
+                      [?request]
+                      (compojure.core/let-request
+                        [[:as +compojure-api-request+] ?request]
+                        (do))))}))
+  )
+
+(deftest lift-schemas-test
+  (testing "no context"
+    (let [times (atom 0)
+          route (GET "/ping" []
+                     :return (do (swap! times inc) String)
+                     (ok "kikka"))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 2 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 2 @times))))
+  (testing "inferred static context"
+    (let [times (atom 0)
+          route (context
+                  "" []
+                  (GET "/ping" []
+                       :return (do (swap! times inc) String)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 2 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 2 @times))))
+  (testing "dynamic context that doesn't bind variables"
+    (let [times (atom 0)
+          route (context
+                  "" []
+                  :dynamic true
+                  (GET "/ping" []
+                       :return (do (swap! times inc) String)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 2 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 22 @times))))
+  (testing "dynamic context where schema is bound outside context"
+    (let [times (atom 0)
+          route (let [s String]
+                  (context
+                    "" []
+                    :dynamic true
+                    (GET "/ping" []
+                         ;; could lift this since the locals occur outside the context
+                         :return (do (swap! times inc) s)
+                         (ok "kikka"))))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 2 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 22 @times))))
+  (testing "dynamic context that binds req and uses it in schema"
+    (let [times (atom 0)
+          route (context
+                  "" req
+                  (GET "/ping" req
+                       :return (do (swap! times inc)
+                                   ;; should never lift this since it refers to request
+                                   (second [req String]))
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 2 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 22 @times))))
+  (testing "idea for lifting impl"
+    (let [times (atom 0)
+          route (let [rs (GET "/ping" req
+                              :return (do (swap! times inc)
+                                          String)
+                              (ok "kikka"))]
+                  (context
+                    "" []
+                    :dynamic true
+                    rs))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (exercise)
+      (is (= 2 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 2 @times)))))

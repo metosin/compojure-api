@@ -19,6 +19,8 @@
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
 
+(def ^:private ^:dynamic *gensym* gensym)
+
 ;;
 ;; Schema
 ;;
@@ -568,7 +570,7 @@
 
 (defmethod help/help-for [:meta :coercion] [_ _]
   (help/text
-    "Route-spesific overrides for coercion. See more on wiki:"
+    "Route-specific overrides for coercion. See more on wiki:"
     "https://github.com/metosin/compojure-api/wiki/Validation-and-coercion\n"
     (help/code
       "(POST \"/user\" []"
@@ -586,13 +588,13 @@
 ;;
 
 (defmacro dummy-let
-  "Dummy let-macro used in resolving route-docs. not part of normal invokation chain."
+  "Dummy let-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
   (let [bind-form (vec (apply concat (for [n (take-nth 2 bindings)] [n nil])))]
     `(let ~bind-form ~@body)))
 
 (defmacro dummy-letk
-  "Dummy letk-macro used in resolving route-docs. not part of normal invokation chain."
+  "Dummy letk-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
   (reduce
     (fn [cur-body-form [bind-form]]
@@ -612,7 +614,8 @@
   [path route]
   `(compojure.api.compojure-compat/make-context
      ~(#'compojure.core/context-route path)
-     (constantly ~route)))
+     (let [r# ~route]
+       (fn [_#] r#))))
 
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity (flatten handlers)))]
