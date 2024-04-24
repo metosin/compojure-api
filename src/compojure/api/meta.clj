@@ -323,9 +323,11 @@
       "  (bad-request \"kosh\"))")))
 
 (defmethod restructure-param :responses [_ responses acc]
-  (-> acc
-      (update-in [:info :public :responses] (fnil conj []) responses)
-      (update-in [:responses] (fnil conj []) responses)))
+  (let [g (gensym 'responses)]
+    (-> acc
+        (update :outer-lets into [g responses])
+        (update-in [:info :public :responses] (fnil conj []) g)
+        (update-in [:responses] (fnil conj []) g))))
 
 ;;
 ;; body

@@ -3,7 +3,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 ## NEXT
 * Throw an error on malformed `:{body,query}`, in particular is anything other than 2 elements was provided
   * Disable check with `-Dcompojure.api.meta.allow-bad-{body,query}=true`
-* 50% reduction in the number of times `:{return,body,query}` schemas are evaluated
+* 50% reduction in the number of times `:{return,body,query,responses}` schemas are evaluated
   * saves 1 evaluation for static contexts
   * saves 1 evaluation per request for dynamic contexts
 
