@@ -284,143 +284,7 @@
                     :keys [:__path-info],
                     :absolute? false}
                    (let [?r ~'(routing [(POST "/ping" [])])]
-                     (fn [?_] ?r)))))
-  (testing "no :return double expansion"
-    (is-expands (GET "/ping" []
-                     :return EXPENSIVE
-                     (ok "kikka"))
-                `(let [?return {200 {:schema ~'EXPENSIVE, :description ""}}]
-                   (map->Route
-                     {:path "/ping",
-                      :method :get,
-                      :info (merge-parameters
-                              {:public {:responses [?return]}}),
-                      :handler
-                      (wrap-routes
-                        (make-route
-                          :get
-                          {:__record__ "clout.core.CompiledRoute",
-                           :source "/ping",
-                           :re #"/ping",
-                           :keys [],
-                           :absolute? false}
-                          (fn [?request]
-                            (let-request [[:as +compojure-api-request+] ?request]
-                              (do ~'(ok "kikka")))))
-                        (compose-middleware
-                          [[wrap-coerce-response
-                            (merge-vector
-                              [?return])]]))}))))
-  (testing "no :body double expansion"
-    (is-expands (GET "/ping" []
-                     :body [body EXPENSIVE]
-                     (ok "kikka"))
-                `(let [?body-schema ~'EXPENSIVE]
-                   (map->Route
-                     {:path "/ping",
-                      :method :get,
-                      :info (merge-parameters
-                              {:public {:parameters {:body ?body}}})
-                      :handler
-                      (make-route
-                        :get
-                        {:__record__ "clout.core.CompiledRoute",
-                         :source "/ping",
-                         :re #"/ping",
-                         :keys [],
-                         :absolute? false}
-                        (fn [?request]
-                          (let-request [[:as +compojure-api-request+] ?request]
-                            (let [~'body (compojure.api.coercion/coerce-request!
-                                           ?body
-                                           :body-params
-                                           :body
-                                           false
-                                           false
-                                           +compojure-api-request+)]
-                              (do ~'(ok "kikka"))))))}))))
-  (testing "no :body double expansion"
-    (is-expands (GET "/ping" []
-                     :body [body EXPENSIVE]
-                     (ok "kikka"))
-                `(let [?body-schema ~'EXPENSIVE]
-                   (map->Route
-                     {:path "/ping",
-                      :method :get,
-                      :info (merge-parameters
-                              {:public {:parameters {:body ?body}}})
-                      :handler
-                      (make-route
-                        :get
-                        {:__record__ "clout.core.CompiledRoute",
-                         :source "/ping",
-                         :re #"/ping",
-                         :keys [],
-                         :absolute? false}
-                        (fn [?request]
-                          (let-request [[:as +compojure-api-request+] ?request]
-                            (let [~'body (compojure.api.coercion/coerce-request!
-                                           ?body
-                                           :body-params
-                                           :body
-                                           false
-                                           false
-                                           +compojure-api-request+)]
-                              (do ~'(ok "kikka"))))))}))))
-  (testing "no :query double expansion"
-    (is-expands (GET "/ping" []
-                     :query [query EXPENSIVE]
-                     (ok "kikka"))
-                `(let [?query-schema ~'EXPENSIVE]
-                   (map->Route
-                     {:path "/ping",
-                      :method :get,
-                      :info (merge-parameters
-                              {:public {:parameters {:query ?query-schema}}})
-                      :handler
-                      (make-route
-                        :get
-                        {:__record__ "clout.core.CompiledRoute",
-                         :source "/ping",
-                         :re #"/ping",
-                         :keys [],
-                         :absolute? false}
-                        (fn [?request]
-                          (let-request [[:as +compojure-api-request+] ?request]
-                            (let [~'query (compojure.api.coercion/coerce-request!
-                                            ?query-schema
-                                            :query-params
-                                            :string
-                                            true
-                                            false
-                                            +compojure-api-request+)]
-                              (do ~'(ok "kikka"))))))}))))
-  (testing "no :responses double expansion"
-    (is-expands (GET "/ping" []
-                     :responses {200 {:schema EXPENSIVE}}
-                     (ok "kikka"))
-                `(let [?responses {200 {:schema ~'EXPENSIVE}}]
-                   (map->Route
-                     {:path "/ping",
-                      :method :get,
-                      :info (merge-parameters
-                              {:public {:responses [?responses]}}),
-                      :handler
-                      (wrap-routes
-                        (make-route
-                          :get
-                          {:__record__ "clout.core.CompiledRoute",
-                           :source "/ping",
-                           :re #"/ping",
-                           :keys [],
-                           :absolute? false}
-                          (fn [?request]
-                            (let-request [[:as +compojure-api-request+] ?request]
-                              (do ~'(ok "kikka")))))
-                        (compose-middleware
-                          [[wrap-coerce-response
-                            (merge-vector
-                              [?responses])]]))})))))
+                     (fn [?_] ?r))))))
 
 (deftest is-thrown-with-msg?-test
   (is-thrown-with-msg? Exception #"message" (throw (Exception. "message")))
@@ -447,6 +311,32 @@
             (ok "kikka")))))
 
 (deftest return-double-eval-test
+  (testing "no :return double expansion"
+    (is-expands (GET "/ping" []
+                     :return EXPENSIVE
+                     (ok "kikka"))
+                `(let [?return {200 {:schema ~'EXPENSIVE, :description ""}}]
+                   (map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info (merge-parameters
+                              {:public {:responses [?return]}}),
+                      :handler
+                      (wrap-routes
+                        (make-route
+                          :get
+                          {:__record__ "clout.core.CompiledRoute",
+                           :source "/ping",
+                           :re #"/ping",
+                           :keys [],
+                           :absolute? false}
+                          (fn [?request]
+                            (let-request [[:as +compojure-api-request+] ?request]
+                              (do ~'(ok "kikka")))))
+                        (compose-middleware
+                          [[wrap-coerce-response
+                            (merge-vector
+                              [?return])]]))}))))
   (testing "no context"
     (let [times (atom 0)
           route (GET "/ping" []
@@ -559,6 +449,34 @@
       (is (= 1 @times)))))
 
 (deftest body-double-eval-test
+  (testing "no :body double expansion"
+    (is-expands (GET "/ping" []
+                     :body [body EXPENSIVE]
+                     (ok "kikka"))
+                `(let [?body-schema ~'EXPENSIVE]
+                   (map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info (merge-parameters
+                              {:public {:parameters {:body ?body}}})
+                      :handler
+                      (make-route
+                        :get
+                        {:__record__ "clout.core.CompiledRoute",
+                         :source "/ping",
+                         :re #"/ping",
+                         :keys [],
+                         :absolute? false}
+                        (fn [?request]
+                          (let-request [[:as +compojure-api-request+] ?request]
+                            (let [~'body (compojure.api.coercion/coerce-request!
+                                           ?body
+                                           :body-params
+                                           :body
+                                           false
+                                           false
+                                           +compojure-api-request+)]
+                              (do ~'(ok "kikka"))))))}))))
   (testing "no context"
     (let [times (atom 0)
           route (GET "/ping" []
@@ -669,6 +587,34 @@
       (is (= 1 @times)))))
 
 (deftest query-double-eval-test
+  (testing "no :query double expansion"
+    (is-expands (GET "/ping" []
+                     :query [query EXPENSIVE]
+                     (ok "kikka"))
+                `(let [?query-schema ~'EXPENSIVE]
+                   (map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info (merge-parameters
+                              {:public {:parameters {:query ?query-schema}}})
+                      :handler
+                      (make-route
+                        :get
+                        {:__record__ "clout.core.CompiledRoute",
+                         :source "/ping",
+                         :re #"/ping",
+                         :keys [],
+                         :absolute? false}
+                        (fn [?request]
+                          (let-request [[:as +compojure-api-request+] ?request]
+                            (let [~'query (compojure.api.coercion/coerce-request!
+                                            ?query-schema
+                                            :query-params
+                                            :string
+                                            true
+                                            false
+                                            +compojure-api-request+)]
+                              (do ~'(ok "kikka"))))))}))))
   (testing "no context"
     (let [times (atom 0)
           route (GET "/ping" []
@@ -779,6 +725,32 @@
       (is (= 1 @times)))))
 
 (deftest responses-double-eval-test
+  (testing "no :responses double expansion"
+    (is-expands (GET "/ping" []
+                     :responses {200 {:schema EXPENSIVE}}
+                     (ok "kikka"))
+                `(let [?responses {200 {:schema ~'EXPENSIVE}}]
+                   (map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info (merge-parameters
+                              {:public {:responses [?responses]}}),
+                      :handler
+                      (wrap-routes
+                        (make-route
+                          :get
+                          {:__record__ "clout.core.CompiledRoute",
+                           :source "/ping",
+                           :re #"/ping",
+                           :keys [],
+                           :absolute? false}
+                          (fn [?request]
+                            (let-request [[:as +compojure-api-request+] ?request]
+                              (do ~'(ok "kikka")))))
+                        (compose-middleware
+                          [[wrap-coerce-response
+                            (merge-vector
+                              [?responses])]]))}))))
   (testing "no context"
     (let [times (atom 0)
           route (GET "/ping" []
