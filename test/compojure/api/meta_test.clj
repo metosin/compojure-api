@@ -1,6 +1,7 @@
 (ns compojure.api.meta-test
   (:require [compojure.api.sweet :as sweet :refer :all]
             [compojure.api.meta :as meta :refer [merge-parameters static-context routing]]
+            [compojure.api.compojure-compat :refer [make-context]]
             [clojure.data :as data]
             [compojure.core :as cc :refer [let-request make-route]]
             [clojure.walk :as walk]
@@ -210,6 +211,7 @@
                         (do))))}))
   (testing "static context"
     (is-expands (context "/a" [] (POST "/ping" []))
+                `(core/context "/a" [] (~'POST "/ping" []))
                 `(map->Route
                    {:path "/a",
                     :childs
@@ -224,11 +226,9 @@
                     :info (merge-parameters {:static-context? true}),
                     :handler
                     (static-context "/a"
-                                    (routing [(~'POST "/ping" [])]))})))
+                      (routing [(~'POST "/ping" [])]))})))
   (testing "dynamic context"
-    (is-expands (context "/a" []
-                  :dynamic true
-                  (POST "/ping" []))
+    (is-expands (context "/a" [] :dynamic true (POST "/ping" []))
                 `(map->Route
                    {:path "/a",
                     :childs
@@ -244,7 +244,18 @@
                     :handler
                     (cc/context "/a"
                       [:as +compojure-api-request+]
-                      (routing [(~'POST "/ping" [])]))}))))
+                      (routing [(~'POST "/ping" [])]))})))
+  (testing "static-context"
+    (is-expands (static-context "/a"
+                                (routing [(POST "/ping" [])]))
+                `(make-context
+                   {:__record__ "clout.core.CompiledRoute",
+                    :source "/a:__path-info",
+                    :re #"/a(|/.*)",
+                    :keys [:__path-info],
+                    :absolute? false}
+                   (let [?r ~'(routing [(POST "/ping" [])])]
+                     (fn [?_] ?r))))))
 
 (deftest lift-schemas-test
   (testing "no context"
