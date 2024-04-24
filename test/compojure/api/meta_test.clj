@@ -57,7 +57,6 @@
                                        (pr-str outer))))
                      (recur e'))))))))))
 
-;;TODO use this to unit test is-thrown-with-msg?
 (defmacro ^:private is-thrown-with-msg?-with-is-fn [is* cls re e]
   `(is-thrown-with-msg?* ~is* ~cls ~re '~e #(do ~e)))
 
