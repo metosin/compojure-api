@@ -345,6 +345,7 @@
                      :return (do (swap! times inc) String)
                      (ok "kikka"))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -357,7 +358,6 @@
                        :return (do (swap! times inc) String)
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 1 @times))))
@@ -370,6 +370,7 @@
                        :return (do (swap! times inc) String)
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -385,6 +386,7 @@
                          :return (do (swap! times inc) s)
                          (ok "kikka"))))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -399,6 +401,7 @@
                                    (second [req String]))
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -414,6 +417,7 @@
                                    String)
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 1} @times))
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
@@ -430,6 +434,7 @@
                                    String)
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 0} @times))
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
@@ -445,6 +450,7 @@
                     :dynamic true
                     rs))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -485,6 +491,7 @@
                      :body [body (do (swap! times inc) s/Any)]
                      (ok "kikka"))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -497,6 +504,7 @@
                        :body [body (do (swap! times inc) s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -510,6 +518,7 @@
                        :body [body (do (swap! times inc) s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -525,6 +534,7 @@
                          :body [body (do (swap! times inc) s)]
                          (ok "kikka"))))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -539,6 +549,7 @@
                                        (second [req s/Any]))]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -568,6 +579,7 @@
                                        s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 0} @times))
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
@@ -583,6 +595,7 @@
                     :dynamic true
                     rs))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -623,6 +636,7 @@
                      :query [body (do (swap! times inc) s/Any)]
                      (ok "kikka"))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -635,6 +649,7 @@
                        :query [body (do (swap! times inc) s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -648,6 +663,7 @@
                        :query [body (do (swap! times inc) s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -663,6 +679,7 @@
                          :query [body (do (swap! times inc) s)]
                          (ok "kikka"))))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -677,6 +694,7 @@
                                        (second [req s/Any]))]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -706,6 +724,7 @@
                                        s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 0} @times))
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
@@ -721,6 +740,7 @@
                     :dynamic true
                     rs))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -759,6 +779,7 @@
                      :responses {200 (do (swap! times inc) String)}
                      (ok "kikka"))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -771,6 +792,7 @@
                        :responses {200 (do (swap! times inc) String)}
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -784,6 +806,7 @@
                        :responses {200 (do (swap! times inc) String)}
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -799,6 +822,7 @@
                          :responses {200 (do (swap! times inc) s)}
                          (ok "kikka"))))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -813,6 +837,7 @@
                                            (second [req String]))}
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -828,6 +853,7 @@
                                            String)}
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 1} @times))
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
@@ -844,6 +870,7 @@
                                            String)}
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 0} @times))
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
@@ -859,6 +886,7 @@
                     :dynamic true
                     rs))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -899,6 +927,7 @@
                      :headers [body (do (swap! times inc) s/Any)]
                      (ok "kikka"))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -911,6 +940,7 @@
                        :headers [body (do (swap! times inc) s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -924,6 +954,7 @@
                        :headers [body (do (swap! times inc) s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -939,6 +970,7 @@
                          :headers [body (do (swap! times inc) s)]
                          (ok "kikka"))))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -953,6 +985,7 @@
                                        (second [req s/Any]))]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -982,6 +1015,7 @@
                                        s/Any)]
                        (ok "kikka")))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 0} @times))
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
@@ -997,6 +1031,7 @@
                     :dynamic true
                     rs))
           exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
       (exercise)
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
@@ -1074,15 +1109,20 @@
                                  +compojure-api-request+)]
                               (do (ok "kikka"))))))}))))
   (testing "no context"
-    (let [times (atom 0)
+    (let [times (atom {})
+          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (GET "/ping" []
-                     :body [body (do (swap! times inc) s/Any)]
+                     :body-params [field :- (record :field s/Str)
+                                   field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
+                                   & foo :- {(record :extra-keys s/Keyword)
+                                             (record :extra-vals s/Keyword)} :as all]
                      (ok "kikka"))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:body-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
       (exercise)
-      (is (= 1 @times))
+      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= 1 @times))))
+      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times))))
   (testing "inferred static context"
     (let [times (atom 0)
           route (context
