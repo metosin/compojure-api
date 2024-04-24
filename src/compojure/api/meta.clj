@@ -508,10 +508,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :query-params [_ query-params acc]
-  (let [schema (fnk-schema query-params)]
+  (let [schema (fnk-schema query-params)
+        g (gensym 'multipart-params-schema)]
     (-> acc
-        (update-in [:letks] into [query-params (src-coerce! schema :query-params :string)])
-        (assoc-in [:info :public :parameters :query] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [query-params (src-coerce! g :query-params :string)])
+        (assoc-in [:info :public :parameters :query] g))))
 
 ;;
 ;; path-params

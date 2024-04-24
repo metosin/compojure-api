@@ -1620,13 +1620,13 @@
       (dorun (repeatedly 10 exercise))
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
 
-(deftest header-params-double-eval-test
-  (testing "no :header-params double expansion"
+(deftest query-params-double-eval-test
+  (testing "no :query-params double expansion"
     (is-expands (GET "/ping" []
-                     :header-params [field :- EXPENSIVE, field2, {default :- s/Int (inc 42)} & foo :- {s/Keyword s/Keyword} :as all]
+                     :query-params [field :- EXPENSIVE, field2, {default :- s/Int (inc 42)} & foo :- {s/Keyword s/Keyword} :as all]
                      (ok "kikka"))
                 '(clojure.core/let
-                   [?header-params-schema108882
+                   [?query-params-schema108882
                     {s/Keyword s/Keyword,
                      :field EXPENSIVE,
                      :field2 schema.core/Any,
@@ -1639,7 +1639,7 @@
                       :method :get,
                       :info
                       (compojure.api.meta/merge-parameters
-                        {:public {:parameters {:header ?header-params-schema108882}}}),
+                        {:public {:parameters {:query ?query-params-schema108882}}}),
                       :handler
                       (compojure.core/make-route
                         :get
@@ -1658,8 +1658,8 @@
                                 :& foo :- {s/Keyword s/Keyword}
                                 :as all]
                                (compojure.api.coercion/coerce-request!
-                                 ?header-params-schema108882
-                                 :headers
+                                 ?query-params-schema108882
+                                 :query-params
                                  :string
                                  true
                                  false
@@ -1669,12 +1669,12 @@
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (GET "/ping" []
-                     :header-params [field :- (record :field s/Str)
+                     :query-params [field :- (record :field s/Str)
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
                      (ok "kikka"))
-          exercise #(is (= "kikka" (:body (route {:headers {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
@@ -1686,12 +1686,12 @@
           route (context
                   "" []
                   (GET "/ping" []
-                       :header-params [field :- (record :field s/Str)
+                       :query-params [field :- (record :field s/Str)
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
                        (ok "kikka")))
-          exercise #(is (= "kikka" (:body (route {:headers {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
@@ -1704,12 +1704,12 @@
                   "" []
                   :dynamic true
                   (GET "/ping" []
-                       :header-params [field :- (record :field s/Str)
+                       :query-params [field :- (record :field s/Str)
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
                        (ok "kikka")))
-          exercise #(is (= "kikka" (:body (route {:headers {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
       (is (= {} @times))
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
@@ -1724,12 +1724,12 @@
                     :dynamic true
                     (GET "/ping" []
                          ;;TODO could lift this since the locals occur outside the context
-                         :header-params [field :- (record :field s/Str)
+                         :query-params [field :- (record :field s/Str)
                                        field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                        & foo :- {(record :extra-keys s/Keyword)
                                                  (record :extra-vals s/Keyword)} :as all]
                          (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:headers {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
       (is (= {} @times))
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
@@ -1741,25 +1741,25 @@
           route (context
                   "" req
                   (GET "/ping" req
-                       :header-params [field :- (record :field s/Str)
+                       :query-params [field :- (record :field s/Str)
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
                        (ok "kikka")))
-          exercise #(is (= "kikka" (:body (route {:headers {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
       (is (= {} @times))
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "bind :header-params in static context"
+  (testing "bind :query-params in static context"
     (is-thrown-with-msg?
       AssertionError
       #"cannot be :static"
       (eval `(context
                "" []
                :static true
-               :header-params [field :- (record :field s/Str)
+               :query-params [field :- (record :field s/Str)
                              field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                              & foo :- {(record :extra-keys s/Keyword)
                                        (record :extra-vals s/Keyword)} :as all]
@@ -1767,19 +1767,19 @@
                     :body [body (do (swap! times update :inner inc)
                                     s/Any)]
                     (ok "kikka"))))))
-  (testing "bind :header-params in dynamic context"
+  (testing "bind :query-params in dynamic context"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (context
                   "" []
                   :dynamic true
                   (GET "/ping" req
-                       :header-params [field :- (record :field s/Str)
+                       :query-params [field :- (record :field s/Str)
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
                        (ok "kikka")))
-          exercise #(is (= "kikka" (:body (route {:headers {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
       (is (= {} @times))
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
@@ -1789,7 +1789,7 @@
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (let [rs (GET "/ping" req
-                              :header-params [field :- (record :field s/Str)
+                              :query-params [field :- (record :field s/Str)
                                             field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                             & foo :- {(record :extra-keys s/Keyword)
                                                       (record :extra-vals s/Keyword)} :as all]
@@ -1798,7 +1798,7 @@
                     "" []
                     :dynamic true
                     rs))
-          exercise #(is (= "kikka" (:body (route {:headers {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
+          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
