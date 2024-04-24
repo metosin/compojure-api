@@ -19,7 +19,7 @@
             [ring.swagger.core :as rsc]
             [ring.util.http-status :as status]
             [compojure.api.middleware :as mw :refer [compose-middleware]]
-            [compojure.api.coercion :refer [wrap-coerce-response]]
+            [compojure.api.coercion :refer [coerce-request! wrap-coerce-response]]
             [ring.swagger.middleware :as rsm]
             [compojure.api.validator :as validator]
             [compojure.api.request :as request]
@@ -81,7 +81,9 @@
                              "Form not allowed lvars"))
                    (if (instance? Pattern s)
                      (subst-regex s)
-                     s))
+                     (if (= '& s)
+                       :& ;; clojure.core.unify/wildcard?
+                       s)))
                  (reify-records form)))
 
 (defn is-expands* [nsym form & expecteds]
@@ -103,7 +105,9 @@
                                                       (symbol nil (name s))
                                                       (if (instance? Pattern s)
                                                         (subst-regex s)
-                                                        s)))))))
+                                                        (if (= '& s)
+                                                          :& ;; clojure.core.unify/wildcard?
+                                                          s))))))))
                           expecteds)]
       (loop [form' (macroexpand-1 form)
              seen [form form']
@@ -143,9 +147,7 @@
                                     (with-out-str (pp/pprint subst-expected))
                                     "With substitution map:\n"
                                     (with-out-str (pp/pprint unifies)))
-                               (str "\nDoes not unify\n"))
-                             "\nDiff via (data/diff expected expansion):\n"
-                             (with-out-str (pp/pprint (data/diff (if unifies subst-expected expected) form')))))))
+                               (str "\nDoes not unify\n"))))))
                 (let [form'' (macroexpand-1 form')]
                   (if-not (identical? form' form'')
                     (recur form'' (conj seen form'') expecteds)
@@ -160,11 +162,11 @@
   `(is-expands* '~(ns-name *ns*) '~form ~@expected-exprs))
 
 (comment
-  (unify/unifier
+  (unify/unifier-
     '(+ 1 2)
     '(+ ?a ?b))
 
-  (unify/unifier
+  (unify/unifier-
     '(+ 2)
     '(+ ?a ?b))
 
@@ -1011,6 +1013,15 @@
   (macroexpand-1 (GET "/ping" []
          :body-params [:as b :- s/Int]
          (ok "kikka")))
+  (macroexpand-1
+    '(plumbing.core/letk
+      [[field :- ?field-schema
+        field2 :- ?field2-schema
+        {default :- ?default-schema (inc 42)}
+        & foo :- {?extra-keys ?extra-vals}
+        :as all]
+       (coerce-request! ?body-schema :body-params :body true false +compojure-api-request+)]
+      nil))
 )
 
 (deftest body-params-double-eval-test
@@ -1018,42 +1029,53 @@
     (is-expands (GET "/ping" []
                      :body-params [field :- EXPENSIVE, field2, {default :- s/Int (inc 42)} & foo :- {s/Keyword s/Keyword} :as all]
                      (ok "kikka"))
-                `(let [?expensive ~'EXPENSIVE
-                       ?field2-schema s/Any
-                       ?default-schema ~'s/Int
-                       ?more-keys ~'s/Keyword
-                       ?more-vals ~'s/Keyword
-                       ;;FIXME there's an extra schema here we should delete
-                       ?body-schema {:field ?expensive
-                                     :field2 ?field2-schema
-                                     (with-meta (s/optional-key :default) {:default '42}) ?default-schema
-                                     ?more-keys ?more-vals}]
-                   (map->Route
+                '(clojure.core/let
+                   [?G__51754 EXPENSIVE
+                    ?G__51755 schema.core/Any
+                    ?G__51756
+                    s/Int
+                    ?G__51759
+                    s/Keyword
+                    ?G__51760
+                    s/Keyword
+                    ?G__51762 {?G__51759 ?G__51760,
+                               :field ?G__51754,
+                               :field2 ?G__51755,
+                               (clojure.core/with-meta
+                                 (schema.core/optional-key :default)
+                                 {:default '(inc 42)})
+                               ?G__51756}]
+                   (compojure.api.routes/map->Route
                      {:path "/ping",
                       :method :get,
-                      :info (merge-parameters
-                              {:public {:parameters {:body ?body-schema}}})
+                      :info
+                      (compojure.api.meta/merge-parameters
+                        {:public {:parameters {:body ?G__51762}}}),
                       :handler
-                      (make-route
+                      (compojure.core/make-route
                         :get
                         {:__record__ "clout.core.CompiledRoute",
                          :source "/ping",
-                         :re #"/ping",
+                         :re (clojure.core/re-pattern "/ping"),
                          :keys [],
                          :absolute? false}
-                        (fn [?request]
-                          (let-request [[:as +compojure-api-request+] ?request]
+                        (clojure.core/fn [?request]
+                          (compojure.core/let-request
+                            [[:as +compojure-api-request+] ?request]
                             (plumbing.core/letk
-                              [~'[field :- EXPENSIVE, field2, {default :- s/Int 42}
-                                  & foo :- {s/Keyword s/Keyword} :as all]
+                              [[field :- ?G__51754
+                                field2 :- ?G__51755
+                                {default :-, ?G__51756 (inc 42)}
+                                :& foo :- {?G__51759 ?G__51760}
+                                :as all]
                                (compojure.api.coercion/coerce-request!
-                                 ?body-schema
+                                 ?G__51762
                                  :body-params
                                  :body
                                  true
                                  false
                                  +compojure-api-request+)]
-                              (do ~'(ok "kikka"))))))}))))
+                              (do (ok "kikka"))))))}))))
   (testing "no context"
     (let [times (atom 0)
           route (GET "/ping" []

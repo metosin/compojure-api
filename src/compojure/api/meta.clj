@@ -449,7 +449,7 @@
                                                                 (stage-map-schema thrd outer-lets)
                                                                 {:outer-lets outer-lets
                                                                  :schema thrd})]
-                              (recur (conj outer-lets g schema)
+                              (recur (cond-> outer-lets (not more-sym) (conj g schema))
                                      (subvec binder 3)
                                      (conj out fst :- (if more-sym schema g))))
                             (recur (conj outer-lets g `s/Any)
@@ -472,7 +472,7 @@
 
 (defmethod restructure-param :body-params [_ body-params acc]
   (let [{:keys [g outer-lets binder]} (stage-letk-binder body-params)]
-    (prn {:g g :outer-lets outer-lets :binder binder})
+    ;(prn {:g g :outer-lets outer-lets :binder binder})
     (-> acc
         (update :outer-lets into outer-lets)
         (update-in [:letks] into [binder (src-coerce! g :body-params :body)])
