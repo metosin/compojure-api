@@ -487,10 +487,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :header-params [_ header-params acc]
-  (let [schema (fnk-schema header-params)]
+  (let [schema (fnk-schema header-params)
+        g (gensym 'multipart-params-schema)]
     (-> acc
-        (update-in [:letks] into [header-params (src-coerce! schema :headers :string)])
-        (assoc-in [:info :public :parameters :header] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [header-params (src-coerce! g :headers :string)])
+        (assoc-in [:info :public :parameters :header] g))))
 
 ;;
 ;; :query-params
