@@ -258,32 +258,31 @@
                    (let [?r ~'(routing [(POST "/ping" [])])]
                      (fn [?_] ?r)))))
   (testing "schemas"
+    ;;FIXME EXPENSIVE is evaluated twice
     (is-expands (GET "/ping" []
-                     :return String
+                     :return EXPENSIVE
                      (ok "kikka"))
                 `(map->Route
-                  {:path "/ping",
-                   :method :get,
-                   :info
-                   (merge-parameters
-                    {:public {:responses [{200 {:schema ~'String, :description ""}}]}}),
-                   :handler
-                   (wrap-routes
-                    (make-route
-                     :get
-                     {:__record__ "clout.core.CompiledRoute",
-                      :source "/ping",
-                      :re #"/ping",
-                      :keys [],
-                      :absolute? false}
-                     (fn [?request]
-                      (compojure.core/let-request
-                       [[:as +compojure-api-request+] ?request]
-                       (do (~'ok "kikka")))))
-                    (compose-middleware
-                     [[wrap-coerce-response
-                       (merge-vector
-                        [{200 {:schema ~'String, :description ""}}])]]))}))))
+                   {:path "/ping",
+                    :method :get,
+                    :info (merge-parameters
+                            {:public {:responses [{200 {:schema ~'EXPENSIVE, :description ""}}]}}),
+                    :handler
+                    (wrap-routes
+                      (make-route
+                        :get
+                        {:__record__ "clout.core.CompiledRoute",
+                         :source "/ping",
+                         :re #"/ping",
+                         :keys [],
+                         :absolute? false}
+                        (fn [?request]
+                          (let-request [[:as +compojure-api-request+] ?request]
+                            (do ~'(ok "kikka")))))
+                      (compose-middleware
+                        [[wrap-coerce-response
+                          (merge-vector
+                            [{200 {:schema ~'EXPENSIVE, :description ""}}])]]))}))))
 
 (deftest lift-schemas-test
   (testing "no context"
