@@ -465,10 +465,12 @@
       "  (ok (dissoc foo :tempfile)))")))
 
 (defmethod restructure-param :multipart-params [_ params acc]
-  (let [schema (strict (fnk-schema params))]
+  (let [schema (strict (fnk-schema params))
+        g (gensym 'multipart-params-schema)]
     (-> acc
-        (update-in [:letks] into [params (src-coerce! schema :multipart-params :string)])
-        (update-in [:info :public :parameters :formData] st/merge schema)
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [params (src-coerce! g :multipart-params :string)])
+        (update-in [:info :public :parameters :formData] #(if % (list `st/merge % g) g))
         (assoc-in [:info :public :consumes] ["multipart/form-data"]))))
 
 ;;

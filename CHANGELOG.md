@@ -6,7 +6,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 * 50% reduction in the number of times `:{return,body,query,responses,headers,body-params,form-params}` schemas are evaluated
   * saves 1 evaluation per schema for static contexts
   * saves 1 evaluation per schema, per request, for dynamic contexts
-* Merge `:form-params` `:info :public :parameters :formData` field at runtime
+* Fix: Merge `:{form,multipart}-params` `:info :public :parameters :formData` field at runtime
 
 ## 2.0.0-alpha32 (2024-03-20)
 
