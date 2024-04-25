@@ -35,6 +35,8 @@
            (muuntaja.protocols StreamableResponse)
            (java.io File ByteArrayInputStream)))
 
+(set! *warn-on-reflection* true)
+
 (def macroexpand-2 (comp macroexpand-1 macroexpand-1))
 
 (defn is-thrown-with-msg?* [is* ^Class cls re form f]
@@ -42,13 +44,13 @@
        (is* false (str "Expected to throw: " form))
        (catch Throwable outer
          (let [encountered-class-match (atom false)]
-           (loop [e outer]
+           (loop [^Throwable e outer]
              (let [matches-class (instance? cls e)]
                (swap! encountered-class-match #(or % matches-class))
                (if (and matches-class
-                        (some->> (ex-message e) (re-find re)))
+                        (some->> (.getMessage e) (re-find re)))
                  (is* true "")
-                 (let [e' (ex-cause e)]
+                 (let [e' (some-> e .getCause)]
                    (if (identical? e' e)
                      (if @encountered-class-match
                        (is* false (str "Did not match exception message:\n"
