@@ -20,6 +20,9 @@
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
 
+(defn- var->sym [^clojure.lang.Var v]
+  (symbol (-> v .ns ns-name name) (-> v .sym name)))
+
 ;;
 ;; Schema
 ;;
@@ -716,7 +719,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (let [sym (symbol v)]
+                 (let [sym (var->sym v)]
                    (or (endpoint-vars sym)
                        (and (routes-vars sym)
                             (static-body? &env (next form))))))))))))
@@ -731,7 +734,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (let [sym (symbol v)]
+                 (let [sym (var->sym v)]
                    (when (and (resource-vars sym)
                               (= 2 (count form)))
                      (let [[_ data] form]
@@ -751,7 +754,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (context-vars (symbol v)))))))))
+                 (context-vars (var->sym v)))))))))
 
 (def middleware-vars (into #{}
                            (mapcat (fn [n]
@@ -767,7 +770,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (when (middleware-vars (symbol v))
+                 (when (middleware-vars (var->sym v))
                    (let [[_ path route-arg & args] body
                          [options body] (extract-parameters args true)]
                      (static-body? &env body))))))))))
@@ -788,7 +791,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (when (route-middleware-vars (symbol v))
+                 (when (route-middleware-vars (var->sym v))
                    (let [[_ mids & body] body]
                      (and (some? mids)
                           (static-body? &env body)))))))))))
@@ -850,7 +853,7 @@
       (and (seq? form)
            ('#{clojure.spec.alpha/keys}
              (some-> (resolve-var &env (first form))
-                     symbol)))
+                     var->sym)))
       (and (seq? form)
            (symbol? (first form))
            (when-some [v (resolve-var &env (first form))]
@@ -858,11 +861,11 @@
                           "spec-tools.core"
                           "schema.core"
                           "ring.util.http-response"}
-                         (namespace (symbol v)))
+                         (namespace (var->sym v)))
                        ('#{compojure.api.sweet/describe
                            ring.swagger.json-schema/describe
                            clojure.core/constantly}
-                         (symbol v)))
+                         (var->sym v)))
                (when-not (some #{:dynamic :macro} (meta v))
                  (every? #(static-form? &env %) (next form))))))))
 
@@ -894,7 +897,7 @@
        (when-some [op (or (when (= 'let* (first form))
                             'let*)
                           (when-some [v (resolve-var &env (first form))]
-                            (let [sym (symbol v)]
+                            (let [sym (var->sym v)]
                               (when (contains?
                                       '#{clojure.core/let clojure.core/for
                                          compojure.api.sweet/let-routes compojure.api.core/let-routes}

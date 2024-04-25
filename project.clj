@@ -25,14 +25,14 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.10.1"]
+                       :dependencies [[org.clojure/clojure "1.9.0"]
                                       [http-kit "2.3.0"]
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.4.0"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-ring "0.12.5"]
                              [funcool/codeina "0.5.0"]]
-                   :dependencies [[org.clojure/clojure "1.10.1"]
+                   :dependencies [[org.clojure/clojure "1.9.0"]
                                   [org.clojure/core.unify "0.6.0"]
                                   [org.clojure/core.async "0.6.532"]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
