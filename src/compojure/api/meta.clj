@@ -612,9 +612,11 @@
       "  (ok user))")))
 
 (defmethod restructure-param :coercion [_ coercion acc]
-  (-> acc
-      (assoc-in [:info :coercion] coercion)
-      (update-in [:middleware] conj [`mw/wrap-coercion coercion])))
+  (let [g (gensym 'coercion)]
+    (-> acc
+        (update :outer-lets into [g coercion])
+        (assoc-in [:info :coercion] g)
+        (update-in [:middleware] conj [`mw/wrap-coercion g]))))
 
 ;;
 ;; Impl
@@ -767,24 +769,7 @@
                (when (var? v)
                  (when (middleware-vars (symbol v))
                    (let [[_ path route-arg & args] body
-                         [options body] (extract-parameters args true)
-                         [path-string lets arg-with-request] (destructure-compojure-api-request path route-arg)
-                         {:keys [lets
-                                 letks
-                                 responses
-                                 middleware
-                                 info
-                                 swagger
-                                 body]} (reduce
-                                          (fn [acc [k v]]
-                                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
-                                          {:lets lets
-                                           :letks []
-                                           :responses nil
-                                           :middleware []
-                                           :info {}
-                                           :body body}
-                                          options)]
+                         [options body] (extract-parameters args true)]
                      (static-body? &env body))))))))))
 
 (def route-middleware-vars (into #{}

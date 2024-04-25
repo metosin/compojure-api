@@ -456,6 +456,151 @@
       (dorun (repeatedly 10 exercise))
       (is (= 1 @times)))))
 
+(deftest coercion-double-eval-test
+  (testing "no :coercion double expansion"
+    (is-expands (GET "/ping" []
+                     :coercion EXPENSIVE
+                     (ok "kikka"))
+                '(clojure.core/let
+                   [?coercion172603 EXPENSIVE]
+                   (compojure.api.routes/map->Route
+                     {:path "/ping",
+                      :method :get,
+                      :info
+                      (compojure.api.meta/merge-parameters {:coercion ?coercion172603}),
+                      :handler
+                      (compojure.core/wrap-routes
+                        (compojure.core/make-route
+                          :get
+                          {:__record__ "clout.core.CompiledRoute",
+                           :source "/ping",
+                           :re (clojure.core/re-pattern "/ping"),
+                           :keys [],
+                           :absolute? false}
+                          (clojure.core/fn
+                            [?request__3574__auto__]
+                            (compojure.core/let-request
+                              [[:as +compojure-api-request+] ?request__3574__auto__]
+                              (do (ok "kikka")))))
+                        (compojure.api.middleware/compose-middleware
+                          [[compojure.api.middleware/wrap-coercion ?coercion172603]]))}))))
+  (testing "no context"
+    (let [times (atom 0)
+          route (GET "/ping" []
+                     :coercion (do (swap! times inc) identity)
+                     (ok "kikka"))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 1 @times))))
+  (testing "inferred static context"
+    (let [times (atom 0)
+          route (context
+                  "" []
+                  (GET "/ping" []
+                       :coercion (do (swap! times inc) identity)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 1 @times))))
+  (testing "dynamic context that doesn't bind variables"
+    (let [times (atom 0)
+          route (context
+                  "" []
+                  :dynamic true
+                  (GET "/ping" []
+                       :coercion (do (swap! times inc) identity)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 11 @times))))
+  (testing "dynamic context where schema is bound outside context"
+    (let [times (atom 0)
+          route (let [s identity]
+                  (context
+                    "" []
+                    :dynamic true
+                    (GET "/ping" []
+                         ;;TODO could lift this since the locals occur outside the context
+                         :coercion (do (swap! times inc) s)
+                         (ok "kikka"))))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 11 @times))))
+  (testing "dynamic context that binds req and uses it in schema"
+    (let [times (atom 0)
+          route (context
+                  "" req
+                  (GET "/ping" req
+                       :coercion (do (swap! times inc)
+                                   ;; should never lift this since it refers to request
+                                   (second [req identity]))
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 0 @times))
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 11 @times))))
+  (testing "bind :coercion in static context"
+    (let [times (atom {:outer 0 :inner 0})
+          route (context
+                  "" []
+                  :coercion (do (swap! times update :outer inc)
+                              String)
+                  (GET "/ping" req
+                       :coercion (do (swap! times update :inner inc)
+                                   identity)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 1} @times))
+      (exercise)
+      (is (= {:outer 1 :inner 1} @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= {:outer 1 :inner 1} @times))))
+  (testing "bind :coercion in dynamic context"
+    (let [times (atom {:outer 0 :inner 0})
+          route (context
+                  "" []
+                  :dynamic true
+                  :coercion (do (swap! times update :outer inc)
+                              identity)
+                  (GET "/ping" req
+                       :coercion (do (swap! times update :inner inc)
+                                   identity)
+                       (ok "kikka")))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= {:outer 1 :inner 0} @times))
+      (exercise)
+      (is (= {:outer 1 :inner 1} @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= {:outer 1 :inner 11} @times))))
+  (testing "idea for lifting impl"
+    (let [times (atom 0)
+          route (let [rs (GET "/ping" req
+                              :coercion (do (swap! times inc)
+                                          identity)
+                              (ok "kikka"))]
+                  (context
+                    "" []
+                    :dynamic true
+                    rs))
+          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
+      (is (= 1 @times))
+      (exercise)
+      (is (= 1 @times))
+      (dorun (repeatedly 10 exercise))
+      (is (= 1 @times)))))
+
 (deftest body-double-eval-test
   (testing "no :body double expansion"
     (is-expands (GET "/ping" []
@@ -842,7 +987,7 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "bind :return in static context"
+  (testing "bind :responses in static context"
     (let [times (atom {:outer 0 :inner 0})
           route (context
                   "" []
@@ -858,7 +1003,7 @@
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:outer 1 :inner 1} @times))))
-  (testing "bind :return in dynamic context"
+  (testing "bind :responses in dynamic context"
     (let [times (atom {:outer 0 :inner 0})
           route (context
                   "" []
