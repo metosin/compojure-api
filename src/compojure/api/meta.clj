@@ -1,6 +1,5 @@
 (ns compojure.api.meta
-  (:require [clojure.edn :as edn]
-            [clojure.walk :as walk]
+  (:require [clojure.edn :as edn] ;; TODO load lazily
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
