@@ -1,5 +1,6 @@
 (ns compojure.api.meta
   (:require [clojure.edn :as edn] ;; TODO load lazily
+            [clojure.pprint :as pp] ;;TODO load lazily
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
@@ -1025,8 +1026,7 @@
                                    :print)
                           _ (when (:verbose coach)
                               (println "The following forms were not inferred static:")
-                              ((requiring-resolve 'clojure.pprint/pprint)
-                               @a))
+                              (pp/pprint @a))
                           msg (str "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)})
                                    "\n\n"
                                    "If you intend for the body of this context to be evaluated on every request, please "
