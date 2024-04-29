@@ -2138,9 +2138,19 @@
       (dorun (repeatedly 10 exercise))
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
 
-#_
 (deftest push-context-parameters-into-endpoints-test
   (macroexpand-2
     `(context "/foo" []
-              :dynamic true
-              )))
+              :query-params [a# t/Int]
+              (GET "/bar" [] (ok a#))
+              (POST "/bar" [] (ok a#))
+              ))
+  ;=>
+  `(context "/foo" []
+            (GET "/bar" []
+                 :query-params [a# t/Int]
+                 (ok a#))
+            (POST "/bar" []
+                  :query-params [a# t/Int]
+                  (ok a#)))
+  )
