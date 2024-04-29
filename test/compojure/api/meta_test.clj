@@ -1,6 +1,6 @@
 (ns compojure.api.meta-test
   (:require [compojure.api.sweet :as sweet :refer :all]
-            [compojure.api.meta :as meta :refer [merge-parameters static-context routing]]
+            [compojure.api.meta :as meta :refer [merge-parameters routing]]
             [compojure.api.common :refer [merge-vector]]
             [compojure.api.compojure-compat :refer [make-context]]
             [clojure.data :as data]
@@ -258,8 +258,11 @@
                     :method nil,
                     :info (merge-parameters {:static-context? true}),
                     :handler
-                    (static-context "/a"
-                      (routing [(~'POST "/ping" [])]))})))
+                    (let [?form (routing [(~'POST "/ping" [])])]
+                      (cc/context
+                        "/a"
+                        [:as +compojure-api-request+]
+                        ?form))})))
   (testing "dynamic context"
     (is-expands (context "/a" [] :dynamic true (POST "/ping" []))
                 `(map->Route
@@ -277,18 +280,7 @@
                     :handler
                     (cc/context "/a"
                       [:as +compojure-api-request+]
-                      (routing [(~'POST "/ping" [])]))})))
-  (testing "static-context"
-    (is-expands (static-context "/a"
-                                (routing [(POST "/ping" [])]))
-                `(make-context
-                   {:__record__ "clout.core.CompiledRoute",
-                    :source "/a:__path-info",
-                    :re #"/a(|/.*)",
-                    :keys [:__path-info],
-                    :absolute? false}
-                   (let [?r ~'(routing [(POST "/ping" [])])]
-                     (fn [?_] ?r))))))
+                      (routing [(~'POST "/ping" [])]))}))))
 
 (deftest is-thrown-with-msg?-test
   (is-thrown-with-msg? Exception #"message" (throw (Exception. "message")))
@@ -2145,3 +2137,10 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
+
+#_
+(deftest push-context-parameters-into-endpoints-test
+  (macroexpand-2
+    `(context "/foo" []
+              :dynamic true
+              )))
