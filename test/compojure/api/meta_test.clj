@@ -369,22 +369,6 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom 0)
-          route (let [s String]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :return (do (swap! times inc) s)
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 0 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 11 @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom 0)
           route (context
@@ -432,23 +416,7 @@
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:outer 1 :inner 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom 0)
-          route (let [rs (GET "/ping" req
-                              :return (do (swap! times inc)
-                                          String)
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 1 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 1 @times)))))
+      (is (= {:outer 1 :inner 11} @times)))))
 
 (deftest coercion-double-eval-test
   (testing "no :coercion double expansion"
@@ -514,22 +482,6 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom 0)
-          route (let [s identity]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :coercion (do (swap! times inc) s)
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 0 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 11 @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom 0)
           route (context
@@ -577,23 +529,7 @@
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:outer 1 :inner 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom 0)
-          route (let [rs (GET "/ping" req
-                              :coercion (do (swap! times inc)
-                                          identity)
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 1 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 1 @times)))))
+      (is (= {:outer 1 :inner 11} @times)))))
 
 (deftest body-double-eval-test
   (testing "no :body double expansion"
@@ -662,22 +598,6 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom 0)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :body [body (do (swap! times inc) s)]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 0 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 11 @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom 0)
           route (context
@@ -700,12 +620,7 @@
       (eval `(context
                "" []
                :static true
-               :body [body (do (swap! times update :outer inc)
-                               s/Any)]
-               (GET "/ping" req
-                    :body [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :body [body s/Any]))))
   (testing "bind :body in dynamic context"
     (let [times (atom {:outer 0 :inner 0})
           route (context
@@ -722,23 +637,7 @@
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:outer 1 :inner 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom 0)
-          route (let [rs (GET "/ping" req
-                              :body [body (do (swap! times inc)
-                                              s/Any)]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 1 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 1 @times)))))
+      (is (= {:outer 1 :inner 11} @times)))))
 
 (deftest query-double-eval-test
   (testing "no :query double expansion"
@@ -807,22 +706,6 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom 0)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :query [body (do (swap! times inc) s)]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 0 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 11 @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom 0)
           route (context
@@ -845,12 +728,7 @@
       (eval `(context
                "" []
                :static true
-               :query [body (do (swap! times update :outer inc)
-                               s/Any)]
-               (GET "/ping" req
-                    :query [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :query [body# s/Any]))))
   (testing "bind :query in dynamic context"
     (let [times (atom {:outer 0 :inner 0})
           route (context
@@ -867,23 +745,7 @@
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:outer 1 :inner 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom 0)
-          route (let [rs (GET "/ping" req
-                              :query [body (do (swap! times inc)
-                                              s/Any)]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 1 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 1 @times)))))
+      (is (= {:outer 1 :inner 11} @times)))))
 
 (deftest responses-double-eval-test
   (testing "no :responses double expansion"
@@ -950,22 +812,6 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom 0)
-          route (let [s String]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :responses {200 (do (swap! times inc) s)}
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 0 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 11 @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom 0)
           route (context
@@ -1013,23 +859,7 @@
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:outer 1 :inner 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom 0)
-          route (let [rs (GET "/ping" req
-                              :responses {200 (do (swap! times inc)
-                                                  String)}
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 1 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 1 @times)))))
+      (is (= {:outer 1 :inner 11} @times)))))
 
 (deftest headers-double-eval-test
   (testing "no :headers double expansion"
@@ -1098,22 +928,6 @@
       (is (= 1 @times))
       (dorun (repeatedly 10 exercise))
       (is (= 11 @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom 0)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :headers [body (do (swap! times inc) s)]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 0 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 11 @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom 0)
           route (context
@@ -1136,12 +950,7 @@
       (eval `(context
                "" []
                :static true
-               :headers [body (do (swap! times update :outer inc)
-                               s/Any)]
-               (GET "/ping" req
-                    :headers [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :headers [body# s/Any]))))
   (testing "bind :headers in dynamic context"
     (let [times (atom {:outer 0 :inner 0})
           route (context
@@ -1158,23 +967,7 @@
       (exercise)
       (is (= {:outer 1 :inner 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:outer 1 :inner 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom 0)
-          route (let [rs (GET "/ping" req
-                              :headers [body (do (swap! times inc)
-                                              s/Any)]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping"}))))]
-      (is (= 1 @times))
-      (exercise)
-      (is (= 1 @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= 1 @times)))))
+      (is (= {:outer 1 :inner 11} @times)))))
 
 (comment
   (let [EXPENSIVE 1]
@@ -1295,33 +1088,13 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :body-params [field :- (record :field s/Str)
-                                       field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                       & foo :- {(record :extra-keys s/Keyword)
-                                                 (record :extra-vals s/Keyword)} :as all]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:body-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (context
                   "" req
                   (GET "/ping" req
-                       :body-params [field :- (record :field s/Str)
+                       :body-params [field :- (record :field (second [req String]))
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
@@ -1339,14 +1112,7 @@
       (eval `(context
                "" []
                :static true
-               :body-params [field :- (record :field s/Str)
-                             field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                             & foo :- {(record :extra-keys s/Keyword)
-                                       (record :extra-vals s/Keyword)} :as all]
-               (GET "/ping" req
-                    :body [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :body-params [field# :- s/Str]))))
   (testing "bind :body-params in dynamic context"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
@@ -1364,26 +1130,7 @@
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [rs (GET "/ping" req
-                              :body-params [field :- (record :field s/Str)
-                                            field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                            & foo :- {(record :extra-keys s/Keyword)
-                                                      (record :extra-vals s/Keyword)} :as all]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:body-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
+      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times)))))
 
 (deftest form-params-double-eval-test
   (testing "no :form-params double expansion"
@@ -1482,33 +1229,13 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :form-params [field :- (record :field s/Str)
-                                       field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                       & foo :- {(record :extra-keys s/Keyword)
-                                                 (record :extra-vals s/Keyword)} :as all]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:form-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (context
                   "" req
                   (GET "/ping" req
-                       :form-params [field :- (record :field s/Str)
+                       :form-params [field :- (record :field (second [req String]))
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
@@ -1526,14 +1253,7 @@
       (eval `(context
                "" []
                :static true
-               :form-params [field :- (record :field s/Str)
-                             field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                             & foo :- {(record :extra-keys s/Keyword)
-                                       (record :extra-vals s/Keyword)} :as all]
-               (GET "/ping" req
-                    :body [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :form-params [field# :- s/Str]))))
   (testing "bind :form-params in dynamic context"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
@@ -1551,26 +1271,7 @@
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [rs (GET "/ping" req
-                              :form-params [field :- (record :field s/Str)
-                                            field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                            & foo :- {(record :extra-keys s/Keyword)
-                                                      (record :extra-vals s/Keyword)} :as all]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:form-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
+      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times)))))
 
 (deftest multipart-params-double-eval-test
   (testing "no :multipart-params double expansion"
@@ -1669,33 +1370,13 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :multipart-params [field :- (record :field s/Str)
-                                       field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                       & foo :- {(record :extra-keys s/Keyword)
-                                                 (record :extra-vals s/Keyword)} :as all]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:multipart-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (context
                   "" req
                   (GET "/ping" req
-                       :multipart-params [field :- (record :field s/Str)
+                       :multipart-params [field :- (record :field (second [req String]))
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
@@ -1713,14 +1394,7 @@
       (eval `(context
                "" []
                :static true
-               :multipart-params [field :- (record :field s/Str)
-                             field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                             & foo :- {(record :extra-keys s/Keyword)
-                                       (record :extra-vals s/Keyword)} :as all]
-               (GET "/ping" req
-                    :body [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :multipart-params [field# :- s/Str]))))
   (testing "bind :multipart-params in dynamic context"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
@@ -1738,26 +1412,7 @@
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [rs (GET "/ping" req
-                              :multipart-params [field :- (record :field s/Str)
-                                            field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                            & foo :- {(record :extra-keys s/Keyword)
-                                                      (record :extra-vals s/Keyword)} :as all]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:multipart-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
+      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times)))))
 
 (deftest query-params-double-eval-test
   (testing "no :query-params double expansion"
@@ -1854,33 +1509,13 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :query-params [field :- (record :field s/Str)
-                                       field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                       & foo :- {(record :extra-keys s/Keyword)
-                                                 (record :extra-vals s/Keyword)} :as all]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (context
                   "" req
                   (GET "/ping" req
-                       :query-params [field :- (record :field s/Str)
+                       :query-params [field :- (record :field (second [req String]))
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
@@ -1898,14 +1533,7 @@
       (eval `(context
                "" []
                :static true
-               :query-params [field :- (record :field s/Str)
-                             field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                             & foo :- {(record :extra-keys s/Keyword)
-                                       (record :extra-vals s/Keyword)} :as all]
-               (GET "/ping" req
-                    :body [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :query-params [field :- (record :field s/Str)]))))
   (testing "bind :query-params in dynamic context"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
@@ -1923,26 +1551,7 @@
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [rs (GET "/ping" req
-                              :query-params [field :- (record :field s/Str)
-                                            field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                            & foo :- {(record :extra-keys s/Keyword)
-                                                      (record :extra-vals s/Keyword)} :as all]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:query-params {:field "a" :field2 2} :request-method :get :uri "/ping"}))))]
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
+      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times)))))
 
 (deftest path-params-double-eval-test
   (testing "no :path-params double expansion"
@@ -2048,33 +1657,13 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "dynamic context where schema is bound outside context"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [s s/Any]
-                  (context
-                    "" []
-                    :dynamic true
-                    (GET "/ping/:field/:field2/:default" []
-                         ;;TODO could lift this since the locals occur outside the context
-                         :path-params [field :- (record :field s/Str)
-                                       field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                       & foo :- {(record :extra-keys s/Keyword)
-                                                 (record :extra-vals s/Keyword)} :as all]
-                         (ok "kikka"))))
-          exercise #(is (= "kikka" (:body (route {:path-params {:field "a" :field2 2} :request-method :get :uri "/ping/1/2/3"}))))]
-      (is (= {} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
   (testing "dynamic context that binds req and uses it in schema"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
           route (context
                   "" req
                   (GET "/ping/:field/:field2/:default" req
-                       :path-params [field :- (record :field s/Str)
+                       :path-params [field :- (record :field (second [req String]))
                                      field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
                                      & foo :- {(record :extra-keys s/Keyword)
                                                (record :extra-vals s/Keyword)} :as all]
@@ -2092,14 +1681,7 @@
       (eval `(context
                "" []
                :static true
-               :path-params [field :- (record :field s/Str)
-                             field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                             & foo :- {(record :extra-keys s/Keyword)
-                                       (record :extra-vals s/Keyword)} :as all]
-               (GET "/ping/:field/:field2/:default" req
-                    :body [body (do (swap! times update :inner inc)
-                                    s/Any)]
-                    (ok "kikka"))))))
+               :path-params [field :- (record :field s/Str)]))))
   (testing "bind :path-params in dynamic context"
     (let [times (atom {})
           record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
@@ -2117,23 +1699,4 @@
       (exercise)
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
-      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times))))
-  (testing "idea for lifting impl"
-    (let [times (atom {})
-          record (fn [path schema] (swap! times update path (fnil inc 0)) schema)
-          route (let [rs (GET "/ping/:field/:field2/:default" req
-                              :path-params [field :- (record :field s/Str)
-                                            field2 {default :- (record :default s/Int) (record :default-never (inc 42))}
-                                            & foo :- {(record :extra-keys s/Keyword)
-                                                      (record :extra-vals s/Keyword)} :as all]
-                              (ok "kikka"))]
-                  (context
-                    "" []
-                    :dynamic true
-                    rs))
-          exercise #(is (= "kikka" (:body (route {:request-method :get :uri "/ping/1/2/3"}))))]
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1} @times))
-      (exercise)
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
-      (dorun (repeatedly 10 exercise))
-      (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
+      (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times)))))
