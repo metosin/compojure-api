@@ -2137,10 +2137,3 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 11} @times)))))
-
-#_
-(deftest push-context-parameters-into-endpoints-test
-  (macroexpand-2
-    `(context "/foo" []
-              :dynamic true
-              )))
