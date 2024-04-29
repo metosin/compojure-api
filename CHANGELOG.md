@@ -8,6 +8,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
   * saves 1 evaluation per schema, per request, for dynamic contexts
 * Fix: Merge `:{form,multipart}-params` `:info :public :parameters :formData` field at runtime
 * Add `:outer-lets` field to `restructure-param` result which wraps entire resulting form
+* Remove `static-context` macro and replace with equivalent expansion without relying on compojure internals.
 
 ## 2.0.0-alpha32 (2024-03-20)
 

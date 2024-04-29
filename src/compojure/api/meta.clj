@@ -648,13 +648,6 @@
     `(do ~@body)
     (reverse (partition 2 bindings))))
 
-(defmacro static-context
-  [path route]
-  `(compojure.api.compojure-compat/make-context
-     ~(#'compojure.core/context-route path)
-     (let [r# ~route]
-       (fn [_#] r#))))
-
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity (flatten handlers)))]
     (apply compojure.core/routes handlers)
@@ -1080,7 +1073,8 @@
                    form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
             form (if static-context?
-                   `(static-context ~path ~form)
+                   `(let [form# ~form]
+                      (compojure.core/context ~path ~arg-with-request form#))
                    `(compojure.core/context ~path ~arg-with-request ~form))
 
             ;; create and apply a separate lookup-function to find the inner routes
