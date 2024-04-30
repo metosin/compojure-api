@@ -39,7 +39,9 @@
         fn-form `(fn* ~(vec (keys &env)) ~dummy-body)]
     (with-bindings (analyzer-thread-bindings env)
       (env/ensure (ana-clj/global-env)
-        (let [init-ast (fn rec [ast]
+        (let [;; analyze (fn* [l1 l2 ..] placeholder) to initialize unique locals
+              ;; return an ast of (fn* [l1# l2# ..] form)
+              init-ast (fn rec [ast]
                          (ast/prewalk
                            ast
                            (comp
@@ -61,8 +63,6 @@
               _ (assert (empty? (set/intersection uniquified-locals locals))
                         {:uniquified-locals uniquified-locals
                          :locals locals})
-              _ (prn locals)
-              _ (prn uniquified-locals)
               found? (volatile! false)
               rec (fn rec [ast]
                     (ast/prewalk
