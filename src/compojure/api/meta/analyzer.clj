@@ -34,9 +34,10 @@
                        (keys &env))))
 
 (defn local-occurs? [form &env locals]
+  {:pre [(vector? locals)]}
   (let [env (compiler-env->env &env)
         dummy-body (gensym)
-        fn-form `(fn* ~(vec (keys &env)) ~dummy-body)]
+        fn-form `(fn* ~(vec locals) ~dummy-body)]
     (with-bindings (analyzer-thread-bindings env)
       (env/ensure (ana-clj/global-env)
         (let [;; analyze (fn* [l1 l2 ..] placeholder) to initialize unique locals
@@ -60,7 +61,7 @@
               uniquified-locals (into #{} (map :name) params)
               _ (assert (= (count uniquified-locals)
                            (count locals)))
-              _ (assert (empty? (set/intersection uniquified-locals locals))
+              _ (assert (empty? (set/intersection uniquified-locals (set locals)))
                         {:uniquified-locals uniquified-locals
                          :locals locals})
               found? (volatile! false)
@@ -83,17 +84,17 @@
 (comment
   (assert
     (true? (local-occurs?
-      'a {'a true} #{'a})))
+      'a {'a true} '[a])))
 
   (assert
     (false? (local-occurs?
-      'b {'a true} #{'a})))
+      'b {'a true} '[a])))
 
   (assert
     (false? (local-occurs?
-      '(list 'a 'b) {'a true} #{'a})))
+      '(list 'a 'b) {'a true} '[a])))
   (assert
     (true?
       (local-occurs?
-        '(list a 'b) {'a true} #{'a})))
+        '(list a 'b) {'a true} '[a])))
   )

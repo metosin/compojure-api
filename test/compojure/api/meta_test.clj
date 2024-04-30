@@ -1760,3 +1760,9 @@
                  (update :handler (let [g (partial coercion/coerce-request! s/Str :body-params :body true false)]
                                     #(comp % g)))
                  (update-in [:info :public :parameters :body] #(or % s/Str))))))
+
+(deftest push-context-test
+  (context "/foo" []
+           (GET "/bar" []
+                :body [body s/Str]
+                body)))

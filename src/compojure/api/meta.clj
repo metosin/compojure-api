@@ -1,9 +1,7 @@
 (ns compojure.api.meta
   (:require [clojure.edn :as edn] ;; TODO load lazily
             [clojure.pprint :as pp] ;;TODO load lazily
-            [compojure.api.meta.analyzer ]
-            [typed.cljc.analyzer :as ana]
-            [typed.clj.analyzer :as ana-clj]
+            [compojure.api.meta.analyzer :as mana]
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
@@ -693,6 +691,7 @@
   (cond-> info
           (contains? info :public) (update :public merge-public-parameters)))
 
+;; TODO could we also add (not= {} arg) ?
 (defn- route-args? [arg]
   (not= arg []))
 
@@ -1064,16 +1063,50 @@
 
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coercion/wrap-coerce-response (common/merge-vector ~responses)]) middleware)]
+   (or
+      ;; push dynamic contexts inwards
+      (when (and context? (not static-context?) (not configured-dynamic?)
+                 (seq body)
+                 ;;TODO consider arg-with-request. add let-request
+                 (not (route-args? route-arg)))
+        (if (= 1 (count body))
+          (let [[expr] body
+                introducing-locals (-> []
+                                       (into (comp (partition-all 2)
+                                                   (map first)
+                                                   (dedupe))
+                                             [lets letks])
+                                       ;;TODO consider arg-with-request. add let-request
+                                       #_
+                                       (cond->
+                                         (route-args? route-arg)
+                                         (conj arg)))
+                locals-used? (mana/local-occurs? expr &env introducing-locals)]
+            (when-not locals-used?
+              `(-> (compojure.api.core/routes ~expr)
+                   ;; TODO add :info
+                   (update :handler (fn [handler#]
+                                      ;;TODO share outer-lets with other pushed contexts
+                                      (let ~outer-lets
+                                        (let [side-effects# (fn [~'+compojure-api-request+]
+                                                              (compojure.core/let-request
+                                                                [~arg-with-request ~'+compojure-api-request+]
+                                                                ~(when (seq lets) `(let ~lets))
+                                                                ~(when (seq letks) `(p/letk ~letks))))]
+                                          (fn
+                                            ([request#]
+                                             (side-effects# request#)
+                                             (handler# request#))
+                                            ([request# respond# raise#]
+                                             (side-effects# request#)
+                                             (handler# request# respond# raise#)))))))))
+            (mapv (fn [c]
+                    `(compojure.api.core/context ~path ~route-arg
+                                                 ~@(mapcat identity options)
+                                                 ~c))
+                  body))))
 
     (cond
-      ;; push dynamic contexts inwards
-      (and context? (not static-context?) (not configured-dynamic?) (< 1 (count body)))
-      (mapv (fn [c]
-              `(compojure.api.core/context ~path ~route-arg
-                                           ~@(mapcat identity options)
-                                           ~c))
-            body)
-
       context?
       (let [form `(routing [~@body])
             form (if (seq letks) `(p/letk ~letks ~form) form)
@@ -1120,4 +1153,4 @@
                      :info (merge-parameters ~info)
                      :handler ~form})
             form (if (seq outer-lets) `(let ~outer-lets ~form) form)]
-        form))))
+        form)))))
