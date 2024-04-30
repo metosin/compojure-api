@@ -1,6 +1,9 @@
 (ns compojure.api.meta
   (:require [clojure.edn :as edn] ;; TODO load lazily
             [clojure.pprint :as pp] ;;TODO load lazily
+            [compojure.api.meta.analyzer ]
+            [typed.cljc.analyzer :as ana]
+            [typed.clj.analyzer :as ana-clj]
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
@@ -962,6 +965,9 @@
                   "Cannot be both a :dynamic and :static context.")
 
         ;; I think it's ok if we have :outer-lets
+        ;; TODO we can make a route static if none of the lets/letks bound
+        ;; are used in the body. we just need to add it to the inner handlers
+        ;; as side effects.
         bindings? (boolean (or (route-args? route-arg) (seq lets) (seq letks)))
 
         _ (assert (not (and (-> info :public :static)
@@ -1059,9 +1065,16 @@
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coercion/wrap-coerce-response (common/merge-vector ~responses)]) middleware)]
 
-    (if context?
+    (cond
+      ;; push dynamic contexts inwards
+      (and context? (not static-context?) (not configured-dynamic?) (< 1 (count body)))
+      (mapv (fn [c]
+              `(compojure.api.core/context ~path ~route-arg
+                                           ~@(mapcat identity options)
+                                           ~c))
+            body)
 
-      ;; context
+      context?
       (let [form `(routing [~@body])
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
@@ -1095,6 +1108,7 @@
         form)
 
       ;; endpoints
+      :else
       (let [form `(do ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)

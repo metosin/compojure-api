@@ -1700,3 +1700,63 @@
       (is (= {:field 1 :default 1 :extra-keys 1 :extra-vals 1 :default-never 1} @times))
       (dorun (repeatedly 10 exercise))
       (is (= {:field 11 :default 11 :extra-keys 11 :extra-vals 11  :default-never 11} @times)))))
+
+#_
+(deftest push-body-in-test
+  (macroexpand-2
+    `(context "/foo" []
+              :body [~'body s/Str]
+              (~'f)
+              (GET "/bar" []
+                   ~'body)))
+  :=>
+  (context "/foo" []
+           (GET "/bar" []
+                :body [body s/Str]
+                body))
+
+  (context "/foo" []
+           (context "" []
+                    :body [body s/Str]
+                    (GET "/bar" []
+                         body)))
+
+  (let [f (fn [] (GET "/bar" [] "body just for doc and coercion"))]
+    (context "/foo" []
+             :body [body s/Str]
+             (GET "/bar" [] body)
+             (f)))
+  :=>
+  (let [f (fn [] (GET "/bar" [] "body just for doc and coercion"))]
+    (vector
+      (context "/foo" []
+               :body [body s/Str]
+               (GET "/bar" [] body))
+      (context "/foo" []
+               :body [body s/Str]
+               (f))))
+  :=>
+  (let [f (fn [] (GET "/bar" [] "body just for doc and coercion"))]
+    (vector
+      (context "/foo" []
+               (GET "/bar" []
+                    :body [body s/Str]
+                    body))
+      (context "/foo" []
+               (-> (f)
+                   (update :handler (let [g (partial coercion/coerce-request! s/Str :body-params :body true false)]
+                                      #(comp % g)))
+                   (update-in [:info :public :parameters :body] #(or % s/Str))))))
+
+  (let [f (fn [] (GET "/bar" [] "body just for doc and coercion"))]
+    (context "/foo" []
+             :body [body s/Str]
+             (GET "/bar" [] body)
+             (f)))
+  :=>
+  (let [f (fn [] (GET "/bar" [] "body just for doc and coercion"))]
+    (context "/foo" []
+             (-> (f)
+                 (update :handler (let [g (partial coercion/coerce-request! s/Str :body-params :body true false)]
+                                    #(comp % g)))
+                 (update-in [:info :public :parameters :body] #(or % s/Str))))))

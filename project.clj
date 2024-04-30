@@ -6,6 +6,7 @@
             :distribution :repo
             :comments "same as Clojure"}
   :dependencies [[prismatic/schema "1.1.12"]
+                 [org.typedclojure/typed.clj.analyzer "1.2.2-SNAPSHOT" :exclusions [org.clojure/clojure]]
                  [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
                  [metosin/muuntaja "0.6.6"]
