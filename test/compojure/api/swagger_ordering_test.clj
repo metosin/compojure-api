@@ -11,6 +11,7 @@
 
 (deftest with-10+-routes-test
   (let [app (api
+              {:formatter :muuntaja}
               (context "/a" []
                 (GET "/1" [] identity)
                 (GET "/2" [] identity)

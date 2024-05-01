@@ -31,11 +31,11 @@
                                       :default {:schema {:value s/Int}}}
                           (ok {:value (or value "123")}))]
       (testing "200"
-        (is-has-body {:value "123"} (get* (api r-200) "/"))
-        (is-fails-with 500 (get* (api r-200) "/" {:value 123})))
+        (is-has-body {:value "123"} (get* (api {:formatter :muuntaja} r-200) "/"))
+        (is-fails-with 500 (get* (api {:formatter :muuntaja} r-200) "/" {:value 123})))
 
       (testing "exception data"
-        (let [ex (get* (api r-200) "/" {:value 123})]
+        (let [ex (get* (api {:formatter :muuntaja} r-200) "/" {:value 123})]
           (is (= 500 (first ex)))
           (is (= {:type "compojure.api.exception/response-validation"
                   :coercion "schema",
@@ -46,12 +46,12 @@
                  (select-keys (second ex) [:type :coercion :in :value :schema :errors])))))
 
       (testing ":default"
-        (is-has-body {:value "123"} (get* (api r-default) "/"))
-        (is-fails-with 500 (get* (api r-default) "/" {:value 123})))
+        (is-has-body {:value "123"} (get* (api {:formatter :muuntaja} r-default) "/"))
+        (is-fails-with 500 (get* (api {:formatter :muuntaja} r-default) "/" {:value 123})))
 
       (testing ":default"
-        (is-has-body {:value "123"} (get* (api r-200-default) "/"))
-        (is-fails-with 500 (get* (api r-200-default) "/" {:value 123})))))
+        (is-has-body {:value "123"} (get* (api {:formatter :muuntaja} r-200-default) "/"))
+        (is-fails-with 500 (get* (api {:formatter :muuntaja} r-200-default) "/" {:value 123})))))
 
   (testing "custom coercion"
 
@@ -62,20 +62,23 @@
 
         (testing "by default, applies response coercion"
           (let [app (api
+                      {:formatter :muuntaja}
                       ping-route)]
             (is-fails-with 500 (get* app "/ping"))))
 
         (testing "response-coercion can be disabled"
           (testing "separately"
             (let [app (api
-                        {:coercion (cs/create-coercion (dissoc cs/default-options :response))}
+                        {:formatter :muuntaja
+                         :coercion (cs/create-coercion (dissoc cs/default-options :response))}
                         ping-route)]
               (let [[status body] (get* app "/ping")]
                 (is (= 200 status))
                 (is (= {:pong 123} body)))))
           (testing "all coercion"
             (let [app (api
-                        {:coercion nil}
+                        {:formatter :muuntaja
+                         :coercion nil}
                         ping-route)]
               (let [[status body] (get* app "/ping")]
                 (is (= 200 status))
@@ -84,12 +87,16 @@
         (testing "coercion for async handlers"
           (binding [*async?* true]
             (testing "successful"
-              (let [app (api (GET "/async" []
+              (let [app (api
+                          {:formatter :muuntaja}
+                          (GET "/async" []
                                :return s/Str
                                (a/go (ok "abc"))))]
                 (is-has-body "abc" (get* app "/async"))))
             (testing "failing"
-              (let [app (api (GET "/async" []
+              (let [app (api
+                          {:formatter :muuntaja}
+                          (GET "/async" []
                                :return s/Int
                                (a/go (ok "foo"))))]
                 (is-fails-with 500 (get* app "/async"))))))))
@@ -101,6 +108,7 @@
 
         (testing "by default, applies body coercion (to set)"
           (let [app (api
+                      {:formatter :muuntaja}
                       beer-route)]
             (let [[status body] (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]}))]
               (is (= 200 status))
@@ -109,13 +117,15 @@
         (testing "body-coercion can be disabled"
           (let [no-body-coercion (cs/create-coercion (dissoc cs/default-options :body))
                 app (api
-                      {:coercion no-body-coercion}
+                      {:formatter :muuntaja
+                       :coercion no-body-coercion}
                       beer-route)]
             (let [[status body] (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]}))]
               (is (= 200 status))
               (is (= {:beers ["ipa" "apa" "ipa"]} body))))
           (let [app (api
-                      {:coercion nil}
+                      {:formatter :muuntaja
+                       :coercion nil}
                       beer-route)]
             (let [[status body] (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]}))]
               (is (= 200 status))
@@ -124,7 +134,8 @@
         (testing "body-coercion can be changed"
           (let [nop-body-coercion (cs/create-coercion (assoc cs/default-options :body {:default (constantly nil)}))
                 app (api
-                      {:coercion nop-body-coercion}
+                      {:formatter :muuntaja
+                       :coercion nop-body-coercion}
                       beer-route)]
             (is-fails-with 400 (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]})))))))
 
@@ -135,6 +146,7 @@
 
         (testing "by default, applies query coercion (string->int)"
           (let [app (api
+                      {:formatter :muuntaja}
                       query-route)]
             (let [[status body] (get* app "/query" {:i 10})]
               (is (= 200 status))
@@ -143,7 +155,8 @@
         (testing "query-coercion can be disabled"
           (let [no-query-coercion (cs/create-coercion (dissoc cs/default-options :string))
                 app (api
-                      {:coercion no-query-coercion}
+                      {:formatter :muuntaja
+                       :coercion no-query-coercion}
                       query-route)]
             (let [[status body] (get* app "/query" {:i 10})]
               (is (= 200 status))
@@ -152,12 +165,14 @@
         (testing "query-coercion can be changed"
           (let [nop-query-coercion (cs/create-coercion (assoc cs/default-options :string {:default (constantly nil)}))
                 app (api
-                      {:coercion nop-query-coercion}
+                      {:formatter :muuntaja
+                       :coercion nop-query-coercion}
                       query-route)]
             (is-fails-with 400 (get* app "/query" {:i 10}))))))
 
     (testing "route-specific coercion"
       (let [app (api
+                  {:formatter :muuntaja}
                   (GET "/default" []
                     :query-params [i :- s/Int]
                     (ok {:i i}))
