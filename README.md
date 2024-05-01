@@ -1,11 +1,11 @@
 # Compojure-api 1.1.x
 
-[Clojars 1.1.13](https://clojars.org/metosin/compojure-api/versions/1.1.13)
+[Clojars 1.1.14](https://clojars.org/metosin/compojure-api/versions/1.1.14)
 [![Slack](https://img.shields.io/badge/clojurians-ring_swagger-blue.svg?logo=slack)](https://clojurians.slack.com/messages/ring-swagger/)
 
 Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making sweet web apis.
 
-- [API Docs](https://cljdoc.org/d/metosin/compojure-api/1.1.13/doc/readme) & [Wiki](https://github.com/metosin/compojure-api/wiki)
+- [API Docs](https://cljdoc.org/d/metosin/compojure-api/1.1.14/doc/readme) & [Wiki](https://github.com/metosin/compojure-api/wiki)
 - [Schema](https://github.com/Prismatic/schema) for input & output data coercion
 - [Swagger](https://swagger.io/) for api documentation, via [ring-swagger](https://github.com/metosin/ring-swagger)
 - Extendable route DSL via [metadata handlers](https://github.com/metosin/compojure-api/wiki/Creating-your-own-metadata-handlers)
@@ -17,7 +17,7 @@ Stuff on top of [Compojure](https://github.com/weavejester/compojure) for making
 
 ## Latest version
 
-[1.1.13](https://clojars.org/metosin/compojure-api/versions/1.1.13)
+[1.1.14](https://clojars.org/metosin/compojure-api/versions/1.1.14)
 
 ## For information and help
 
