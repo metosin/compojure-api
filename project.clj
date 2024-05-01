@@ -15,7 +15,7 @@
                  [metosin/spec-tools "0.10.0"]
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/ring-swagger-ui "3.24.3"]
-                 [metosin/ring-swagger "0.26.2"]
+                 [metosin/ring-swagger "1.0.0"]
 
                  ;; Fix dependency conflicts
                  [clj-time "0.15.2"]
