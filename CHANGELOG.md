@@ -1,6 +1,8 @@
 ## NEXT
 * Remove potemkin [#445](https://github.com/metosin/compojure-api/issues/445)
 * backport `route-middleware`
+* deprecate `middleware`
+* upgrade to ring-swagger 1.0.0 to fix memory leaks
 
 ## 1.1.13 (2019-11-02)
 
