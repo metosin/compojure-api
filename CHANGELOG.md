@@ -1,6 +1,8 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
 ## NEXT
+
+## 2.0.0-alpha33 (2024-04-30)
 * Throw an error on malformed `:{body,query,headers}`, in particular if anything other than 2 elements was provided
   * Disable check with `-Dcompojure.api.meta.allow-bad-{body,query,headers}=true`
 * 50% reduction in the number of times `:{return,body,query,responses,headers,coercion,{body,form,header,query,path}-params}` schemas/arguments are evaluated/expanded
@@ -11,7 +13,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 * Remove `static-context` macro and replace with equivalent expansion without relying on compojure internals.
 * Upgrade to ring-swagger 1.0.0 to fix memory leaks
 
-## 2.0.0-alpha32 (2024-03-20)
+## 2.0.0-alpha32 (2024-04-20)
 
 * Fix empty spec response coercion. [#413](https://github.com/metosin/compojure-api/issues/413)
 * Add back `defapi` (and deprecate it)
