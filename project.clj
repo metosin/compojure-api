@@ -7,7 +7,7 @@
             :comments "same as Clojure"}
   :scm {:name "git"
         :url "https://github.com/metosin/compojure-api"}
-  :dependencies [[prismatic/plumbing "0.5.5"]
+  :dependencies [[prismatic/plumbing "0.6.0"]
                  [cheshire "5.9.0"]
                  [compojure "1.6.1"]
                  [prismatic/schema "1.1.12"]
@@ -15,7 +15,7 @@
                  [frankiesardo/linked "1.3.0"]
                  [ring-middleware-format "0.7.4"]
                  [metosin/ring-http-response "0.9.1"]
-                 [metosin/ring-swagger "0.26.2"]
+                 [metosin/ring-swagger "1.0.0"]
                  [metosin/ring-swagger-ui "2.2.10"]]
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
@@ -60,10 +60,10 @@
                                      :username [:gpg :env/clojars_user]
                                      :password [:gpg :env/clojars_token]
                                      :sign-releases false}]
-                        ["releases" {:url "https://clojars.org/repo"
-                                     :username [:gpg :env/clojars_user]
-                                     :password [:gpg :env/clojars_token]
-                                     :sign-releases false}]]
+                        ["release" {:url "https://clojars.org/repo"
+                                    :username [:gpg :env/clojars_user]
+                                    :password [:gpg :env/clojars_token]
+                                    :sign-releases false}]]
   :release-tasks [["clean"]
                   ["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
