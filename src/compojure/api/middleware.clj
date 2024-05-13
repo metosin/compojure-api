@@ -6,8 +6,6 @@
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
 
-            [ring.middleware.format-params :refer [wrap-restful-params]]
-            [ring.middleware.format-response :refer [wrap-restful-response]]
             [ring.swagger.coerce :as coerce]
 
             ring.middleware.http-response
@@ -331,13 +329,15 @@
       (seq formats) (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                             :consumes (->mime-types formats)})
       true (wrap-options (select-keys options [:ring-swagger :coercion]))
-      (seq formats) (wrap-restful-params {:formats (remove response-only-mimes formats)
-                                          :handle-error handle-req-error
-                                          :format-options params-opts})
+      (seq formats) ((requiring-resolve 'ring.middleware.format-params/wrap-restful-params)
+                     {:formats (remove response-only-mimes formats)
+                      :handle-error handle-req-error
+                      :format-options params-opts})
       exceptions (wrap-exceptions exceptions)
-      (seq formats) (wrap-restful-response {:formats formats
-                                            :predicate serializable?
-                                            :format-options response-opts})
+      (seq formats) ((requiring-resolve 'ring.middleware.format-response/wrap-restful-response)
+                     {:formats formats
+                      :predicate serializable?
+                      :format-options response-opts})
       true wrap-keyword-params
       true wrap-nested-params
       true wrap-params)))
