@@ -321,6 +321,8 @@
 
 (defn- ring-middleware-format-api-middleware
   [handler options]
+  (require 'ring.middleware.format-params
+           'ring.middleware.format-response)
   (let [{:keys [exceptions format components]} options
         {:keys [formats params-opts response-opts]} format]
     (cond-> handler
@@ -329,12 +331,12 @@
       (seq formats) (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
                                             :consumes (->mime-types formats)})
       true (wrap-options (select-keys options [:ring-swagger :coercion]))
-      (seq formats) ((requiring-resolve 'ring.middleware.format-params/wrap-restful-params)
+      (seq formats) ((resolve 'ring.middleware.format-params/wrap-restful-params)
                      {:formats (remove response-only-mimes formats)
                       :handle-error handle-req-error
                       :format-options params-opts})
       exceptions (wrap-exceptions exceptions)
-      (seq formats) ((requiring-resolve 'ring.middleware.format-response/wrap-restful-response)
+      (seq formats) ((resolve 'ring.middleware.format-response/wrap-restful-response)
                      {:formats formats
                       :predicate serializable?
                       :format-options response-opts})

@@ -553,90 +553,87 @@
               :definitions {}
               :paths {"/user" {:get {:responses {:default {:description ""}}}}}}))))
 
-  (fact "swagger-routes"
+  (testing "swagger-routes"
 
-    (fact "with defaults"
+    (testing "with defaults"
       (let [app (api (swagger-routes))]
 
-        (fact "api-docs are mounted to /"
+        (testing "api-docs are mounted to /"
           (let [[status body] (raw-get* app "/")]
-            status => 200
-            body => #"<title>Swagger UI</title>"))
+            (is (= 200 status))
+            (is (str/includes? body "<title>Swagger UI</title>"))))
 
-        (fact "spec is mounted to /swagger.json"
+        (testing "spec is mounted to /swagger.json"
           (let [[status body] (get* app "/swagger.json")]
-            status => 200
-            body => (contains {:swagger "2.0"})))))
+            (is (= 200 status))
+            (is (= "2.0" (:swagger body)))))))
 
-    (fact "with partial overridden values"
+    (testing "with partial overridden values"
       (let [app (api (swagger-routes {:ui "/api-docs"
                                       :data {:info {:title "Kikka"}
                                              :paths {"/ping" {:get {}}}}}))]
 
-        (fact "api-docs are mounted"
+        (testing "api-docs are mounted"
           (let [[status body] (raw-get* app "/api-docs")]
-            status => 200
-            body => #"<title>Swagger UI</title>"))
+            (is (= 200 status))
+            (is (str/includes? body "<title>Swagger UI</title>"))))
 
-        (fact "spec is mounted to /swagger.json"
+        (testing "spec is mounted to /swagger.json"
           (let [[status body] (get* app "/swagger.json")]
-            status => 200
-            body => (contains
-                      {:swagger "2.0"
-                       :info (contains
-                               {:title "Kikka"})
-                       :paths (contains
-                                {(keyword "/ping") anything})}))))))
+            (is (= 200 status))
+            (is (= "2.0" (:swagger body)))
+            (is (= "Kikka" (-> body :info :title)))
+            (is (some? (-> body :paths (get (keyword "/ping"))))))))))
 
-  (fact "swagger via api-options"
+  (testing "swagger via api-options"
 
-    (fact "with defaults"
+    (testing "with defaults"
       (let [app (api)]
 
-        (fact "api-docs are not mounted"
+        (testing "api-docs are not mounted"
           (let [[status body] (raw-get* app "/")]
-            status => nil))
+            (is (nil? status))))
 
-        (fact "spec is not mounted"
+        (testing "spec is not mounted"
           (let [[status body] (get* app "/swagger.json")]
-            status => nil))))
+            (is (nil? status))))))
 
-    (fact "with spec"
+    (testing "with spec"
       (let [app (api {:swagger {:spec "/swagger.json"}})]
 
-        (fact "api-docs are not mounted"
+        (testing "api-docs are not mounted"
           (let [[status body] (raw-get* app "/")]
-            status => nil))
+            (is (nil? status))))
 
-        (fact "spec is mounted to /swagger.json"
+        (testing "spec is mounted to /swagger.json"
           (let [[status body] (get* app "/swagger.json")]
-            status => 200
-            body => (contains {:swagger "2.0"}))))))
+            (is (nil? status))
+            (is (= "2.0" (:swagger body))))))))
 
-  (fact "with ui"
+  (testing "with ui"
     (let [app (api {:swagger {:ui "/api-docs"}})]
 
-      (fact "api-docs are mounted"
+      (testing "api-docs are mounted"
         (let [[status body] (raw-get* app "/api-docs")]
-          status => 200
-          body => #"<title>Swagger UI</title>"))
+          (is-200-status status)
+          (is (str/includes? body "<title>Swagger UI</title>"))))
 
-      (fact "spec is not mounted"
+      (testing "spec is not mounted"
         (let [[status body] (get* app "/swagger.json")]
-          status => nil))))
+          (is (nil? status))))))
 
-  (fact "with ui and spec"
+  (testing "with ui and spec"
     (let [app (api {:swagger {:spec "/swagger.json", :ui "/api-docs"}})]
 
-      (fact "api-docs are mounted"
+      (testing "api-docs are mounted"
         (let [[status body] (raw-get* app "/api-docs")]
-          status => 200
-          body => #"<title>Swagger UI</title>"))
+          (is-200-status status)
+          (is (str/includes? body "<title>Swagger UI</title>"))))
 
-      (fact "spec is mounted to /swagger.json"
+      (testing "spec is mounted to /swagger.json"
         (let [[status body] (get* app "/swagger.json")]
-          status => 200
-          body => (contains {:swagger "2.0"}))))))
+          (is-200-status status)
+          (is (= "2.0" (:swagger body))))))))
 
 (deftest muuntaja-swagger-docs-test
   (let [app (api

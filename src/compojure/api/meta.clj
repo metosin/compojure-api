@@ -766,7 +766,7 @@
   (and (seq? body)
        (boolean
          (when-some [v (resolve-var &env (first body))]
-           (when (middleware-vars (symbol v))
+           (when (middleware-vars (var->sym v))
              (let [[_ mid & body] body]
                (and (static-form? &env mid)
                     (static-body? &env body))))))))
