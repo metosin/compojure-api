@@ -53,6 +53,7 @@
                      (ok {:message (str "Hello, " name)}))
                    (more-routes version)))
         app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               routes)]
 
@@ -131,6 +132,7 @@
                  :path-params [version :- String]
                  (more-routes version))
         app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               routes)]
 

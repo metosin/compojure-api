@@ -26,7 +26,8 @@
 
 (def app
   (api
-    {:swagger
+    {:formatter :muuntaja
+     :swagger
      {:ui "/"
       :spec "/swagger.json"
       :data {:info {:version "1.0.0"

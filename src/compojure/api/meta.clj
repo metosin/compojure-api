@@ -1,5 +1,6 @@
 (ns compojure.api.meta
-  (:require [clojure.edn :as edn]
+  (:require [clojure.edn :as edn] ;; TODO load lazily
+            [clojure.pprint :as pp] ;;TODO load lazily
             [compojure.api.common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
@@ -18,6 +19,9 @@
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
+
+(defn- var->sym [^clojure.lang.Var v]
+  (symbol (-> v .ns ns-name name) (-> v .sym name)))
 
 ;;
 ;; Schema
@@ -295,10 +299,12 @@
       "  (ok {:name \"Kirsi\"))")))
 
 (defmethod restructure-param :return [_ schema acc]
-  (let [response (convert-return schema)]
+  (let [response (convert-return schema)
+        g (gensym 'response)]
     (-> acc
-        (update-in [:info :public :responses] (fnil conj []) response)
-        (update-in [:responses] (fnil conj []) response))))
+        (update-in [:outer-lets] into [g response])
+        (update-in [:info :public :responses] (fnil conj []) g)
+        (update-in [:responses] (fnil conj []) g))))
 
 ;;
 ;; responses
@@ -321,9 +327,11 @@
       "  (bad-request \"kosh\"))")))
 
 (defmethod restructure-param :responses [_ responses acc]
-  (-> acc
-      (update-in [:info :public :responses] (fnil conj []) responses)
-      (update-in [:responses] (fnil conj []) responses)))
+  (let [g (gensym 'responses)]
+    (-> acc
+        (update :outer-lets into [g responses])
+        (update-in [:info :public :responses] (fnil conj []) g)
+        (update-in [:responses] (fnil conj []) g))))
 
 ;;
 ;; body
@@ -338,10 +346,16 @@
       "  :body [body User]"
       "  (ok body))")))
 
-(defmethod restructure-param :body [_ [value schema] acc]
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :body-params :body false)])
-      (assoc-in [:info :public :parameters :body] schema)))
+(defmethod restructure-param :body [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-body"))
+    (assert (= 2 (count bv))
+            (str ":body should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-body=true")))
+  (let [g (gensym 'body-schema)]
+    (-> acc
+        (update :outer-lets into [g schema])
+        (update-in [:lets] into [value (src-coerce! g :body-params :body false)])
+        (assoc-in [:info :public :parameters :body] g))))
 
 ;;
 ;; query
@@ -356,10 +370,16 @@
       "  :query [params {:q s/Str, :max s/Int}]"
       "  (ok params))")))
 
-(defmethod restructure-param :query [_ [value schema] acc]
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
-      (assoc-in [:info :public :parameters :query] schema)))
+(defmethod restructure-param :query [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-query"))
+    (assert (= 2 (count bv))
+            (str ":query should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-query=true")))
+  (let [g (gensym 'query-schema)]
+    (-> acc
+        (update :outer-lets into [g schema])
+        (update-in [:lets] into [value (src-coerce! g :query-params :string)])
+        (assoc-in [:info :public :parameters :query] g))))
 
 ;;
 ;; headers
@@ -374,10 +394,16 @@
       "  :headers [headers HeaderSchema]"
       "  (ok headers))")))
 
-(defmethod restructure-param :headers [_ [value schema] acc]
-  (-> acc
-      (update-in [:lets] into [value (src-coerce! schema :headers :string)])
-      (assoc-in [:info :public :parameters :header] schema)))
+(defmethod restructure-param :headers [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-headers"))
+    (assert (= 2 (count bv))
+            (str ":headers should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-headers=true")))
+  (let [g (gensym 'headers-schema)]
+    (-> acc
+        (update :outer-lets into [g schema])
+        (update-in [:lets] into [value (src-coerce! g :headers :string)])
+        (assoc-in [:info :public :parameters :header] g))))
 
 ;;
 ;; body-params
@@ -393,10 +419,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :body-params [_ body-params acc]
-  (let [schema (strict (fnk-schema body-params))]
+  (let [schema (strict (fnk-schema body-params))
+        g (gensym 'body-params-schema)]
     (-> acc
-        (update-in [:letks] into [body-params (src-coerce! schema :body-params :body)])
-        (assoc-in [:info :public :parameters :body] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [body-params (src-coerce! g :body-params :body)])
+        (assoc-in [:info :public :parameters :body] g))))
 
 ;;
 ;; form-params
@@ -413,10 +441,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :form-params [_ form-params acc]
-  (let [schema (strict (fnk-schema form-params))]
+  (let [schema (strict (fnk-schema form-params))
+        g (gensym 'form-params-schema)]
     (-> acc
-        (update-in [:letks] into [form-params (src-coerce! schema :form-params :string)])
-        (update-in [:info :public :parameters :formData] st/merge schema)
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [form-params (src-coerce! g :form-params :string)])
+        (update-in [:info :public :parameters :formData] #(if % (list `st/merge % g) g))
         (assoc-in [:info :public :consumes] ["application/x-www-form-urlencoded"]))))
 
 ;;
@@ -438,10 +468,12 @@
       "  (ok (dissoc foo :tempfile)))")))
 
 (defmethod restructure-param :multipart-params [_ params acc]
-  (let [schema (strict (fnk-schema params))]
+  (let [schema (strict (fnk-schema params))
+        g (gensym 'multipart-params-schema)]
     (-> acc
-        (update-in [:letks] into [params (src-coerce! schema :multipart-params :string)])
-        (update-in [:info :public :parameters :formData] st/merge schema)
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [params (src-coerce! g :multipart-params :string)])
+        (update-in [:info :public :parameters :formData] #(if % (list `st/merge % g) g))
         (assoc-in [:info :public :consumes] ["multipart/form-data"]))))
 
 ;;
@@ -458,10 +490,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :header-params [_ header-params acc]
-  (let [schema (fnk-schema header-params)]
+  (let [schema (fnk-schema header-params)
+        g (gensym 'multipart-params-schema)]
     (-> acc
-        (update-in [:letks] into [header-params (src-coerce! schema :headers :string)])
-        (assoc-in [:info :public :parameters :header] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [header-params (src-coerce! g :headers :string)])
+        (assoc-in [:info :public :parameters :header] g))))
 
 ;;
 ;; :query-params
@@ -477,10 +511,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :query-params [_ query-params acc]
-  (let [schema (fnk-schema query-params)]
+  (let [schema (fnk-schema query-params)
+        g (gensym 'multipart-params-schema)]
     (-> acc
-        (update-in [:letks] into [query-params (src-coerce! schema :query-params :string)])
-        (assoc-in [:info :public :parameters :query] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [query-params (src-coerce! g :query-params :string)])
+        (assoc-in [:info :public :parameters :query] g))))
 
 ;;
 ;; path-params
@@ -496,10 +532,12 @@
       "  (ok {:total (+ x y)}))")))
 
 (defmethod restructure-param :path-params [_ path-params acc]
-  (let [schema (fnk-schema path-params)]
+  (let [schema (fnk-schema path-params)
+        g (gensym 'form-params-schema)]
     (-> acc
-        (update-in [:letks] into [path-params (src-coerce! schema :route-params :string)])
-        (assoc-in [:info :public :parameters :path] schema))))
+        (update :outer-lets into [g schema])
+        (update-in [:letks] into [path-params (src-coerce! g :route-params :string)])
+        (assoc-in [:info :public :parameters :path] g))))
 
 ;;
 ;; middleware
@@ -568,7 +606,7 @@
 
 (defmethod help/help-for [:meta :coercion] [_ _]
   (help/text
-    "Route-spesific overrides for coercion. See more on wiki:"
+    "Route-specific overrides for coercion. See more on wiki:"
     "https://github.com/metosin/compojure-api/wiki/Validation-and-coercion\n"
     (help/code
       "(POST \"/user\" []"
@@ -577,22 +615,24 @@
       "  (ok user))")))
 
 (defmethod restructure-param :coercion [_ coercion acc]
-  (-> acc
-      (assoc-in [:info :coercion] coercion)
-      (update-in [:middleware] conj [`mw/wrap-coercion coercion])))
+  (let [g (gensym 'coercion)]
+    (-> acc
+        (update :outer-lets into [g coercion])
+        (assoc-in [:info :coercion] g)
+        (update-in [:middleware] conj [`mw/wrap-coercion g]))))
 
 ;;
 ;; Impl
 ;;
 
 (defmacro dummy-let
-  "Dummy let-macro used in resolving route-docs. not part of normal invokation chain."
+  "Dummy let-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
   (let [bind-form (vec (apply concat (for [n (take-nth 2 bindings)] [n nil])))]
     `(let ~bind-form ~@body)))
 
 (defmacro dummy-letk
-  "Dummy letk-macro used in resolving route-docs. not part of normal invokation chain."
+  "Dummy letk-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
   (reduce
     (fn [cur-body-form [bind-form]]
@@ -607,12 +647,6 @@
           `(let [~map-sym nil] ~body-form))))
     `(do ~@body)
     (reverse (partition 2 bindings))))
-
-(defmacro static-context
-  [path route]
-  `(compojure.api.compojure-compat/make-context
-     ~(#'compojure.core/context-route path)
-     (constantly ~route)))
 
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity (flatten handlers)))]
@@ -684,7 +718,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (let [sym (symbol v)]
+                 (let [sym (var->sym v)]
                    (or (endpoint-vars sym)
                        (and (routes-vars sym)
                             (static-body? &env (next form))))))))))))
@@ -699,7 +733,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (let [sym (symbol v)]
+                 (let [sym (var->sym v)]
                    (when (and (resource-vars sym)
                               (= 2 (count form)))
                      (let [[_ data] form]
@@ -719,7 +753,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (context-vars (symbol v)))))))))
+                 (context-vars (var->sym v)))))))))
 
 (def middleware-vars (into #{}
                            (mapcat (fn [n]
@@ -753,7 +787,7 @@
            (when (symbol? sym)
              (when-some [v (resolve &env sym)]
                (when (var? v)
-                 (when (route-middleware-vars (symbol v))
+                 (when (route-middleware-vars (var->sym v))
                    (let [[_ mids & body] body]
                      (and (some? mids)
                           (static-body? &env body)))))))))))
@@ -809,7 +843,7 @@
       (and (seq? form)
            ('#{clojure.spec.alpha/keys}
              (some-> (resolve-var &env (first form))
-                     symbol)))
+                     var->sym)))
       (and (seq? form)
            (symbol? (first form))
            (when-some [v (resolve-var &env (first form))]
@@ -817,11 +851,11 @@
                           "spec-tools.core"
                           "schema.core"
                           "ring.util.http-response"}
-                         (namespace (symbol v)))
+                         (namespace (var->sym v)))
                        ('#{compojure.api.sweet/describe
                            ring.swagger.json-schema/describe
                            clojure.core/constantly}
-                         (symbol v)))
+                         (var->sym v)))
                (when-not (some #{:dynamic :macro} (meta v))
                  (every? #(static-form? &env %) (next form))))))))
 
@@ -853,7 +887,7 @@
        (when-some [op (or (when (= 'let* (first form))
                             'let*)
                           (when-some [v (resolve-var &env (first form))]
-                            (let [sym (symbol v)]
+                            (let [sym (var->sym v)]
                               (when (contains?
                                       '#{clojure.core/let clojure.core/for
                                          compojure.api.sweet/let-routes compojure.api.core/let-routes}
@@ -901,6 +935,7 @@
 
         {:keys [lets
                 letks
+                outer-lets
                 responses
                 middleware
                 info
@@ -910,6 +945,7 @@
                            (restructure-param k v (update-in acc [:parameters] dissoc k)))
                          {:lets lets
                           :letks []
+                          :outer-lets [] ;; lets around the call to map->Route
                           :responses nil
                           :middleware []
                           :info {}
@@ -922,6 +958,7 @@
                             (-> info :public :static)))
                   "Cannot be both a :dynamic and :static context.")
 
+        ;; I think it's ok if we have :outer-lets
         bindings? (boolean (or (route-args? route-arg) (seq lets) (seq letks)))
 
         _ (assert (not (and (-> info :public :static)
@@ -982,8 +1019,7 @@
                                    :print)
                           _ (when (:verbose coach)
                               (println "The following forms were not inferred static:")
-                              ((requiring-resolve 'clojure.pprint/pprint)
-                               @a))
+                              (pp/pprint @a))
                           msg (str "This looks like it could be a static context: " (pr-str {:form &form :meta (meta &form)})
                                    "\n\n"
                                    "If you intend for the body of this context to be evaluated on every request, please "
@@ -1034,7 +1070,8 @@
                    form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
             form (if static-context?
-                   `(static-context ~path ~form)
+                   `(let [form# ~form]
+                      (compojure.core/context ~path ~arg-with-request form#))
                    `(compojure.core/context ~path ~arg-with-request ~form))
 
             ;; create and apply a separate lookup-function to find the inner routes
@@ -1044,24 +1081,26 @@
                          form `(compojure.core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
                          form `(fn [~'+compojure-api-request+] ~form)
                          form `(delay (flatten (~form {})))]
-                     form)]
-
-        `(routes/map->Route
-           {:path ~path-string
-            :method ~method
-            :info (merge-parameters ~info)
-            :childs ~childs
-            :handler ~form}))
+                     form)
+            form `(routes/map->Route
+                    {:path ~path-string
+                     :method ~method
+                     :info (merge-parameters ~info)
+                     :childs ~childs
+                     :handler ~form})
+            form (if (seq outer-lets) `(let ~outer-lets ~form) form)]
+        form)
 
       ;; endpoints
       (let [form `(do ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (compojure.core/compile-route method path arg-with-request (list form))
-            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
-
-        `(routes/map->Route
-           {:path ~path-string
-            :method ~method
-            :info (merge-parameters ~info)
-            :handler ~form})))))
+            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)
+            form `(routes/map->Route
+                    {:path ~path-string
+                     :method ~method
+                     :info (merge-parameters ~info)
+                     :handler ~form})
+            form (if (seq outer-lets) `(let ~outer-lets ~form) form)]
+        form))))

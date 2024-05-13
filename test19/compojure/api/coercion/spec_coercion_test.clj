@@ -176,7 +176,8 @@
 
 (deftest apis-test
   (let [app (api
-              {:swagger {:spec "/swagger.json"}
+              {:formatter :muuntaja
+               :swagger {:spec "/swagger.json"}
                :coercion :spec}
 
               (POST "/body" []
@@ -545,7 +546,8 @@
   (testing "custom spec printer"
     (let [printer (expound.alpha/custom-printer {:theme :figwheel-theme, :print-specs? false})
           app (api
-                {:coercion :spec
+                {:formatter :muuntaja
+                 :coercion :spec
                  :exceptions {:handlers
                               {::ex/request-validation
                                (fn [e data request]

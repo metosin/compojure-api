@@ -127,7 +127,8 @@
 
 (deftest middleware-ordering-test
   (let [app (api
-              {:middleware [[middleware* 0]]}
+              {:formatter :muuntaja
+               :middleware [[middleware* 0]]}
               (route-middleware [[middleware* "a"] [middleware* "b"]]
                 (context "/middlewares" []
                   :middleware [(fn [handler] (middleware* handler 1)) [middleware* 2]]
@@ -155,6 +156,7 @@
 
 (deftest context-middleware-test
   (let [app (api
+              {:formatter :muuntaja}
               (context "/middlewares" []
                 :middleware [(fn [h] (fn mw
                                        ([r] (ok {:middleware "hello"}))
@@ -168,6 +170,7 @@
 
 (deftest middleware-multiple-routes-test
   (let [app (api
+              {:formatter :muuntaja}
               (GET "/first" []
                 (ok {:value "first"}))
               (GET "/second" []
@@ -190,6 +193,7 @@
 
 (deftest middleware-editing-request-test
   (let [app (api
+              {:formatter :muuntaja}
               (GET "/first" []
                 :query-params [x :- Long]
                 :middleware [middleware-x]
@@ -201,6 +205,7 @@
 
 (deftest body-query-headers-and-return-test
   (let [app (api
+              {:formatter :muuntaja}
               (context "/models" []
                 (GET "/pertti" []
                   :return User
@@ -288,6 +293,7 @@
 (deftest responses-test
   (testing "normal cases"
     (let [app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (GET "/lotto/:x" []
                   :path-params [x :- Long]
@@ -331,6 +337,7 @@
 
   (testing ":responses 200 and :return"
     (let [app (api
+                {:formatter :muuntaja}
                 (GET "/lotto/:x" []
                   :path-params [x :- Long]
                   :return {:return String}
@@ -353,6 +360,7 @@
 
   (testing ":responses 200 and :return - other way around"
     (let [app (api
+                {:formatter :muuntaja}
                 (GET "/lotto/:x" []
                   :path-params [x :- Long]
                   :responses {200 {:schema {:value String}}}
@@ -375,6 +383,7 @@
 
 (deftest query-params-path-params-header-params-body-params-and-form-params-test
   (let [app (api
+              {:formatter :muuntaja}
               (context "/smart" []
                 (GET "/plus" []
                   :query-params [x :- Long y :- Long]
@@ -424,7 +433,8 @@
 
 (deftest primitive-support-test
   (let [app (api
-              {:swagger {:spec "/swagger.json"}}
+              {:formatter :muuntaja
+               :swagger {:spec "/swagger.json"}}
               (context "/primitives" []
                 (GET "/return-long" []
                   :return Long
@@ -480,6 +490,7 @@
 
 (deftest compojure-destructuring-support-test
   (let [app (api
+              {:formatter :muuntaja}
               (context "/destructuring" []
                 (GET "/regular" {{:keys [a]} :params}
                   (ok {:a a
@@ -510,6 +521,7 @@
 (deftest counting-execution-times-issue-19-test
   (let [execution-times (atom 0)
         app (api
+              {:formatter :muuntaja}
               (GET "/user" []
                 :return User
                 :query [user User]
@@ -649,7 +661,7 @@
   (testing "swagger-routes"
 
     (testing "with defaults"
-      (let [app (api (swagger-routes))]
+      (let [app (api {:formatter :muuntaja} (swagger-routes))]
 
         (testing "api-docs are mounted to /"
           (let [[status body] (raw-get* app "/")]
@@ -662,9 +674,11 @@
             (is (= "2.0" (:swagger body)))))))
 
     (testing "with partial overridden values"
-      (let [app (api (swagger-routes {:ui "/api-docs"
-                                      :data {:info {:title "Kikka"}
-                                             :paths {"/ping" {:get {}}}}}))]
+      (let [app (api
+                  {:formatter :muuntaja}
+                  (swagger-routes {:ui "/api-docs"
+                                   :data {:info {:title "Kikka"}
+                                          :paths {"/ping" {:get {}}}}}))]
 
         (testing "api-docs are mounted"
           (let [[status body] (raw-get* app "/api-docs")]
@@ -681,7 +695,7 @@
   (testing "swagger via api-options"
 
     (testing "with defaults"
-      (let [app (api)]
+      (let [app (api {:formatter :muuntaja})]
 
         (testing "api-docs are not mounted"
           (let [[status body] (raw-get* app "/")]
@@ -692,7 +706,8 @@
             (is (= nil status))))))
 
     (testing "with spec"
-      (let [app (api {:swagger {:spec "/swagger.json"}})]
+      (let [app (api {:formatter :muuntaja
+                      :swagger {:spec "/swagger.json"}})]
 
         (testing "api-docs are not mounted"
           (let [[status body] (raw-get* app "/")]
@@ -704,7 +719,8 @@
             (is (= "2.0" (:swagger body))))))))
 
   (testing "with ui"
-    (let [app (api {:swagger {:ui "/api-docs"}})]
+    (let [app (api {:formatter :muuntaja
+                    :swagger {:ui "/api-docs"}})]
 
       (testing "api-docs are mounted"
         (let [[status body] (raw-get* app "/api-docs")]
@@ -716,7 +732,8 @@
           (is (= nil status))))))
 
   (testing "with ui and spec"
-    (let [app (api {:swagger {:spec "/swagger.json", :ui "/api-docs"}})]
+    (let [app (api {:formatter :muuntaja
+                    :swagger {:spec "/swagger.json", :ui "/api-docs"}})]
 
       (testing "api-docs are mounted"
         (let [[status body] (raw-get* app "/api-docs")]
@@ -730,6 +747,7 @@
 
 (deftest swagger-docs-with-anonymous-Return-and-Body-models-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (POST "/echo" []
                 :return (s/either {:a String})
@@ -760,6 +778,7 @@
 ;; "https://github.com/metosin/compojure-api/issues/53"
 (deftest issue-53-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (POST "/" []
                 :return ReturnValue
@@ -786,6 +805,7 @@
 ; https://github.com/metosin/compojure-api/issues/94
 (deftest preserves-deeply-nested-schema-names-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (POST "/" []
                 :return Urho
@@ -802,6 +822,7 @@
 
 (deftest swagger-docs-works-with-the-middleware-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (GET "/middleware" []
                 :query-params [x :- String]
@@ -824,6 +845,7 @@
               (and (= status 200)
                    (= body response)))
         app (api
+              {:formatter :muuntaja}
               (swagger-routes {:ui nil})
               (GET "/" [] ok)
               (GET "/a" [] ok)
@@ -853,6 +875,7 @@
 
 (deftest formats-supported-by-ring-middleware-format-test
   (let [app (api
+              {:formatter :muuntaja}
               (POST "/echo" []
                 :body-params [foo :- String]
                 (ok {:foo foo})))]
@@ -874,6 +897,7 @@
 
 (deftest multiple-routes-in-context-test
   (let [app (api
+              {:formatter :muuntaja}
               (context "/foo" []
                 (GET "/bar" [] (ok ["bar"]))
                 (GET "/baz" [] (ok ["baz"]))))]
@@ -889,6 +913,7 @@
 
 (deftest external-deep-schemas-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               burger-routes
               (POST "/pizza" []
@@ -914,6 +939,7 @@
 
 (deftest multiple-routes-with-same-path-and-method-in-same-file-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (GET "/ping" []
                 :summary "active-ping"
@@ -932,6 +958,7 @@
 
 (deftest multiple-routes-with-same-path-and-method-over-context-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (context "/api" []
                 (context "/ipa" []
@@ -955,6 +982,7 @@
 ;; multiple routes with same overall path (with different path sniplets & method over context)
 (deftest multiple-routes-with-same-overall-path-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (context "/api/ipa" []
                 (GET "/ping" []
@@ -977,7 +1005,9 @@
 ; https://github.com/metosin/compojure-api/issues/98
 ; https://github.com/metosin/compojure-api/issues/134
 (deftest basePath-test
-  (let [app (api (swagger-routes))]
+  (let [app (api
+              {:formatter :muuntaja}
+              (swagger-routes))]
 
     (testing "no context"
       (is (= "/" (-> app get-spec :basePath))))
@@ -986,11 +1016,15 @@
       (with-redefs [rsc/context (fn [& args] "/v2")]
         (is (= "/v2" (-> app get-spec :basePath))))))
 
-  (let [app (api (swagger-routes {:data {:basePath "/serve/from/here"}}))]
+  (let [app (api
+              {:formatter :muuntaja}
+              (swagger-routes {:data {:basePath "/serve/from/here"}}))]
     (testing "override it"
       (is (= "/serve/from/here" (-> app get-spec :basePath)))))
 
-  (let [app (api (swagger-routes {:data {:basePath "/"}}))]
+  (let [app (api
+              {:formatter :muuntaja}
+              (swagger-routes {:data {:basePath "/"}}))]
     (testing "can set it to the default"
       (is (= "/" (-> app get-spec :basePath))))))
 
@@ -1001,6 +1035,7 @@
 
   (testing "api-spec with 2 schemas with non-equal contents"
     (let [app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (GET "/" []
                   :responses {200 {:schema (s/schema-with-name {:a {:d #"\D"}} "Kikka")}
@@ -1016,6 +1051,7 @@
 
 (deftest anonymous-body-models-over-defined-routes-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               over-the-hills-and-far-away)]
     (testing "generated model doesn't have namespaced keys"
@@ -1029,6 +1065,7 @@
 ;;defroutes with local symbol usage with same name (#123)
 (deftest defroutes-with-local-symbol-usage-with-same-name-test
   (let [app (api
+              {:formatter :muuntaja}
               foo)]
     (let [[status body] (get* app "/foo")]
       (is-200-status status)
@@ -1042,13 +1079,15 @@
 
 (deftest response-descriptions-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               response-descriptions-routes)]
     (is (= "Horror" (-> app get-spec :paths vals first :get :responses :500 :description)))))
 
 (deftest exceptions-options-with-custom-validation-error-handler-test
   (let [app (api
-              {:exceptions {:handlers {::ex/request-validation custom-validation-error-handler
+              {:formatter :muuntaja
+               :exceptions {:handlers {::ex/request-validation custom-validation-error-handler
                                        ::ex/request-parsing custom-validation-error-handler
                                        ::ex/response-validation custom-validation-error-handler}}}
               (swagger-routes)
@@ -1081,7 +1120,8 @@
 
 (deftest exceptions-options-with-custom-exception-and-error-handler-test
   (let [app (api
-              {:exceptions {:handlers {::ex/default (custom-exception-handler :custom-exception)
+              {:formatter :muuntaja
+               :exceptions {:handlers {::ex/default (custom-exception-handler :custom-exception)
                                        SQLException (custom-exception-handler :sql-exception)
                                        ::custom-error custom-error-handler}}}
               (swagger-routes)
@@ -1120,7 +1160,8 @@
 
 (deftest exception-handling-can-be-disabled-test
   (let [app (api
-              {:exceptions nil}
+              {:formatter :muuntaja
+               :exceptions nil}
               (GET "/throw" []
                 (throw (new RuntimeException))))]
     (is (thrown? RuntimeException (get* app "/throw")))))
@@ -1131,7 +1172,8 @@
 ;; handling schema.core/error
 (deftest handling-schema-core-error-test
   (let [app (api
-              {:exceptions {:handlers {:schema.core/error ex/schema-error-handler}}}
+              {:formatter :muuntaja
+               :exceptions {:handlers {:schema.core/error ex/schema-error-handler}}}
               (GET "/:a" []
                 :path-params [a :- s/Str]
                 (ok (s/with-fn-validation (schema-error a)))))]
@@ -1141,7 +1183,8 @@
 
 (deftest ring-swagger-options-test
   (let [app (api
-              {:ring-swagger {:default-response-description-fn status/get-description}}
+              {:formatter :muuntaja
+               :ring-swagger {:default-response-description-fn status/get-description}}
               (swagger-routes)
               (GET "/ping" []
                 :responses {500 nil}
@@ -1151,6 +1194,7 @@
 (deftest path-for-test
   (testing "simple case"
     (let [app (api
+                {:formatter :muuntaja}
                 (GET "/api/pong" []
                   :name :pong
                   (ok {:pong "pong"}))
@@ -1163,6 +1207,7 @@
 
   (testing "with path parameters"
     (let [app (api
+                {:formatter :muuntaja}
                 (GET "/lost-in/:country/:zip" []
                   :name :lost
                   :path-params [country :- (s/enum :FI :EN), zip :- s/Int]
@@ -1178,6 +1223,7 @@
 
   (testing "https://github.com/metosin/compojure-api/issues/150"
     (let [app (api
+                {:formatter :muuntaja}
                 (GET "/companies/:company-id/refresh" []
                   :path-params [company-id :- s/Int]
                   :name :refresh-company
@@ -1190,6 +1236,7 @@
 
   (testing "multiple routes with same name fail at compile-time"
     (let [app' `(api
+                  {:formatter :muuntaja}
                   (GET "/api/pong" []
                     :name :pong
                     identity)
@@ -1200,6 +1247,7 @@
 
   (testing "bindings with wrong syntax should fail nicely"
     (let [app' `(api
+                  {:formatter :muuntaja}
                   (GET "/api/:id/pong" []
                     :path-params [id ::id]
                     :name :pong
@@ -1208,10 +1256,14 @@
 
 (deftest swagger-spec-path-test
   (testing "defaults to /swagger.json"
-    (let [app (api (swagger-routes))]
+    (let [app (api
+                {:formatter :muuntaja}
+                (swagger-routes))]
       (is (= "/swagger.json" (swagger/swagger-spec-path app)))))
   (testing "follows defined path"
-    (let [app (api (swagger-routes {:spec "/api/api-docs/swagger.json"}))]
+    (let [app (api
+                {:formatter :muuntaja}
+                (swagger-routes {:spec "/api/api-docs/swagger.json"}))]
       (is (= "/api/api-docs/swagger.json" (swagger/swagger-spec-path app))))))
 
 (defrecord NonSwaggerRecord [data])
@@ -1220,6 +1272,7 @@
 
   (testing "a swagger api with valid swagger records"
     (let [app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (GET "/ping" []
                   :return {:data s/Str}
@@ -1235,6 +1288,7 @@
 
   (testing "a swagger api with invalid swagger records"
     (let [app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (GET "/ping" []
                   :return NonSwaggerRecord
@@ -1253,6 +1307,7 @@
 
   (testing "a non-swagger api with invalid swagger records"
     (let [app (api
+                {:formatter :muuntaja}
                 (GET "/ping" []
                   :return NonSwaggerRecord
                   (ok (->NonSwaggerRecord "ping"))))]
@@ -1269,7 +1324,8 @@
   (let [system {:magic 42}]
     (testing "via options"
       (let [app (api
-                  {:components system}
+                  {:formatter :muuntaja
+                   :components system}
                   (GET "/magic" []
                     :components [magic]
                     (ok {:magic magic})))]
@@ -1279,6 +1335,7 @@
 
     (testing "via middleware"
       (let [handler (api
+                      {:formatter :muuntaja}
                       (GET "/magic" []
                         :components [magic]
                         (ok {:magic magic})))
@@ -1289,6 +1346,7 @@
 
 (deftest sequential-string-parameters-test
   (let [app (api
+              {:formatter :muuntaja}
               (GET "/ints" []
                 :query-params [i :- [s/Int]]
                 (ok {:i i})))]
@@ -1304,6 +1362,7 @@
 (deftest swagger-params-just-for-documentation-test
   (testing "compile-time values"
     (let [app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (GET "/route" [q]
                   :swagger {:x-name :boolean
@@ -1334,6 +1393,7 @@
                         :description "Echoes a boolean"
                         :parameters {:query {:q s/Bool}}}
           app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (GET "/route" [q]
                   :swagger runtime-data
@@ -1368,8 +1428,9 @@
                      (ok {:message "ping"})))
                  (ANY "*" []
                    (ok {:message "404"})))
-        api1 (api {:swagger {:spec "/swagger.json", :ui "/"}} routes)
-        api2 (api (swagger-routes) routes)]
+        api1 (api {:formatter :muuntaja
+                   :swagger {:spec "/swagger.json", :ui "/"}} routes)
+        api2 (api {:formatter :muuntaja} (swagger-routes) routes)]
 
     (testing "both generate same swagger-spec"
       (is (= (get-spec api1) (get-spec api2))))
@@ -1381,6 +1442,7 @@
 ;; more swagger-data can be (deep-)merged in - either via swagger-docs at runtime via mws, fixes #170
 (deftest issue-170-test
   (let [app (api
+              {:formatter :muuntaja}
               (route-middleware [[rsm/wrap-swagger-data {:paths {"/runtime" {:get {}}}}]]
                 (swagger-routes
                   {:data
@@ -1397,22 +1459,25 @@
     (testing "by default, logs the exception"
       (let [a (atom [])]
         (with-redefs [compojure.api.impl.logging/log! (fn [& args] (swap! a conj args))]
-          (is (api invalid-routes)))
+          (is (api {:formatter :muuntaja} invalid-routes)))
         (is (= [:warn] (map first @a)))))
 
     (testing "ignoring invalid routes doesn't log"
       (let [a (atom [])]
         (with-redefs [compojure.api.impl.logging/log! (fn [& args] (swap! a conj args))]
-          (is (api {:api {:invalid-routes-fn nil}} invalid-routes)))
+          (is (api {:formatter :muuntaja, :api {:invalid-routes-fn nil}} invalid-routes)))
         (is (empty? @a))))
 
     (testing "throwing exceptions"
-      (is (thrown? Exception (api {:api {:invalid-routes-fn routes/fail-on-invalid-child-routes}} invalid-routes))))))
+      (is (thrown? Exception (api {:formatter :muuntaja
+                                   :api {:invalid-routes-fn routes/fail-on-invalid-child-routes}}
+                                  invalid-routes))))))
 
 (deftest using-local-symbols-for-restructuring-params-test
   (let [responses {400 {:schema {:fail s/Str}}}
         app (api
-              {:swagger {:spec "/swagger.json"
+              {:formatter :muuntaja
+               :swagger {:spec "/swagger.json"
                          :data {:info {:version "2.0.0"}}}}
               (GET "/a" []
                 :responses responses
@@ -1478,7 +1543,8 @@
 (deftest response-validation-handler-has-access-to-response-value-that-failed-coercion-test
   (let [incorrect-return-value {:incorrect "response"}
         app (api
-              {:exceptions {:handlers {::ex/response-validation check-for-response-handler}}}
+              {:formatter :muuntaja
+               :exceptions {:handlers {::ex/response-validation check-for-response-handler}}}
               (swagger-routes)
               (GET "/test-response" []
                 :return {:correct s/Str}
@@ -1493,6 +1559,7 @@
 ;; "correct swagger parameter order with small number or parameters, #224"
 (deftest issue-224-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (GET "/ping" []
                 :query-params [a b c d e]
@@ -1508,7 +1575,8 @@
 ;; empty top-level route, #https://github.com/metosin/ring-swagger/issues/92
 (deftest issue-92-test 
   (let [app (api
-              {:swagger {:spec "/swagger.json"}}
+              {:formatter :muuntaja
+               :swagger {:spec "/swagger.json"}}
               (GET "/" [] (ok {:kikka "kukka"})))]
     (testing "api works"
       (let [[status body] (get* app "/")]
@@ -1520,6 +1588,7 @@
 ;; describe works on anonymous bodys, #168
 (deftest issue-168-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (POST "/" []
                 :body [body (describe {:kikka [{:kukka String}]} "kikkas")]
@@ -1530,6 +1599,7 @@
 ;; swagger responses headers are mapped correctly, #232
 (deftest issue-232-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (context "/resource" []
                 (resource
@@ -1541,7 +1611,8 @@
 
 (deftest api-middleware-can-be-disabled-test
   (let [app (api
-              {:api {:disable-api-middleware? true}}
+              {:formatter :muuntaja
+               :api {:disable-api-middleware? true}}
               (swagger-routes)
               (GET "/params" [x] (ok {:x x}))
               (GET "/throw" [] (throw (RuntimeException. "kosh"))))]
@@ -1586,6 +1657,7 @@
 
 (deftest muuntaja-is-bound-in-request-test
   (let [app (api
+              {:formatter :muuntaja}
               (GET "/ping" {:keys [::request/muuntaja]}
                 (ok {:pong (slurp (m/encode muuntaja "application/json" {:is "json"}))})))]
 
@@ -1598,6 +1670,7 @@
         data {:items {"kikka" 42}}
         body* (atom nil)
         app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (POST "/echo" []
                 :body-params [items :- {:kikka Long}]
@@ -1646,6 +1719,7 @@
             invalid-data {"items" {"kikka" :kukka}}
             Schema {:items {(s/required-key "kikka") s/Keyword}}
             app (api
+                  {:formatter :muuntaja}
                   (POST "/echo" []
                     :body [_ Schema]
                     :return Schema
@@ -1673,6 +1747,7 @@
             invalid-data {:int "1", :keyword "kikka"}
             Schema {:int s/Int, :keyword s/Keyword}
             app (api
+                  {:formatter :muuntaja}
                   (POST "/echo" []
                     :body [_ Schema]
                     :return Schema
@@ -1707,6 +1782,7 @@
 
 (deftest file-responses-dont-get-coerced-test
   (let [app (api
+              {:formatter :muuntaja}
               (swagger-routes)
               (GET "/file" []
                 :return File
@@ -1742,6 +1818,7 @@
   (testing "simple middleware"
     (let [called? (atom false)
           app (api
+                {:formatter :muuntaja}
                 (route-middleware
                   [(fn [handler]
                      (fn [req]
@@ -1766,6 +1843,7 @@
   (testing "middleware with args"
     (let [mw-value (atom nil)
           app (api
+                {:formatter :muuntaja}
                 (route-middleware
                   [[(fn [handler value]
                       (fn [req]
@@ -1789,7 +1867,9 @@
         (is (nil? @mw-value))))))
 
 (deftest ring-handler-test
-  (let [app (api (GET "/ping" [] (ok)))
+  (let [app (api
+              {:formatter :muuntaja}
+              (GET "/ping" [] (ok)))
         ring-app (c/ring-handler app)]
     (testing "both work"
       (is (some #{200} (get* app "/ping")))
@@ -1799,7 +1879,9 @@
       (is (fn? ring-app)))))
 
 (deftest body-params-are-set-to-params-test
-  (let [app (api (POST "/echo" [x] (ok {:x x})))
+  (let [app (api
+              {:formatter :muuntaja}
+              (POST "/echo" [x] (ok {:x x})))
         [status body] (post* app "/echo" (json-string {:x 1}))]
     (is-200-status status)
     (is (= {:x 1} body))))
@@ -1807,7 +1889,8 @@
 ;; #306 & #313"
 (deftest body-in-error-handling-test
   (let [app (api
-              {:exceptions
+              {:formatter :muuntaja
+               :exceptions
                {:handlers
                 {:compojure.api.exception/default
                  (fn [_ _ request]
@@ -1822,6 +1905,7 @@
 
   (testing "context"
     (let [app (api
+                {:formatter :muuntaja}
                 (context "/api" []
                   (for [path ["/ping" "/pong"]]
                     (GET path [] (ok {:path path})))))]
@@ -1837,6 +1921,7 @@
 
   (testing "routes"
     (let [app (api
+                {:formatter :muuntaja}
                 (routes
                   (for [path ["/ping" "/pong"]]
                     (GET path [] (ok {:path path})))))]
@@ -1856,10 +1941,12 @@
     (testing "first api consumes the body"
       (let [app (routes
                   (api
+                    {:formatter :muuntaja}
                     (POST "/echo1" []
                       :body [body s/Any]
                       (ok body)))
                   (api
+                    {:formatter :muuntaja}
                     (POST "/echo2" []
                       :body [body s/Any]
                       (ok body))))]
@@ -1876,11 +1963,12 @@
       (testing "wrap-format with defaults"
         (let [app (-> (routes
                         (api
+                          {:formatter :muuntaja}
                           (POST "/echo1" []
                             :body [body s/Any]
                             (ok body)))
                         (api
-
+                          {:formatter :muuntaja}
                           (POST "/echo2" []
                             :body [body s/Any]
                             (ok body))))

@@ -275,6 +275,7 @@
 (deftest swagger-integration-test
   (testing "explicitly defined methods produce api-docs"
     (let [app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (context "/rest" []
                   (resource
@@ -300,6 +301,7 @@
                 (update-in [:paths "/rest" :post :responses] (comp set keys)))))))
   (testing "top-level handler doesn't contribute to docs"
     (let [app (api
+                {:formatter :muuntaja}
                 (swagger-routes)
                 (context "/rest" []
                   (resource

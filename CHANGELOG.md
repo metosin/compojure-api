@@ -1,6 +1,24 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
-## 2.0.0-alpha32 (2024-03-20)
+## 2.0.0-alpha34-SNAPSHOT
+* **BREAKING CHANGE**: `:formatter :muuntaja` sometimes required for `api{-middleware}` options
+  * to prepare for 1.x compatibility, :muuntaja must be explicitly configured
+  * Migration instructions: run your program and fix the error messages, which will provide specific instructions.
+  * to circumvent this change, set `-Dcompojure.api.middleware.global-default-formatter=:muuntaja`
+  * stable 2.x will default `:formatter` to `:ring-middleware-format`
+
+## 2.0.0-alpha33 (2024-04-30)
+* Throw an error on malformed `:{body,query,headers}`, in particular if anything other than 2 elements was provided
+  * Disable check with `-Dcompojure.api.meta.allow-bad-{body,query,headers}=true`
+* 50% reduction in the number of times `:{return,body,query,responses,headers,coercion,{body,form,header,query,path}-params}` schemas/arguments are evaluated/expanded
+  * saves 1 evaluation per schema for static contexts
+  * saves 1 evaluation per schema, per request, for dynamic contexts
+* Fix: Merge `:{form,multipart}-params` `:info :public :parameters :formData` field at runtime
+* Add `:outer-lets` field to `restructure-param` result which wraps entire resulting form
+* Remove `static-context` macro and replace with equivalent expansion without relying on compojure internals.
+* Upgrade to ring-swagger 1.0.0 to fix memory leaks
+
+## 2.0.0-alpha32 (2024-04-20)
 
 * Fix empty spec response coercion. [#413](https://github.com/metosin/compojure-api/issues/413)
 * Add back `defapi` (and deprecate it)

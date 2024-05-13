@@ -1,4 +1,4 @@
-(defproject metosin/compojure-api "2.0.0-alpha33-SNAPSHOT"
+(defproject metosin/compojure-api "2.0.0-alpha34-SNAPSHOT"
   :description "Compojure Api"
   :url "https://github.com/metosin/compojure-api"
   :license {:name "Eclipse Public License"
@@ -19,7 +19,7 @@
                  [metosin/spec-tools "0.10.0"]
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/ring-swagger-ui "3.24.3"]
-                 [metosin/ring-swagger "0.26.2"]
+                 [metosin/ring-swagger "1.0.0"]
 
                  ;; Fix dependency conflicts
                  [clj-time "0.15.2"]
@@ -29,14 +29,15 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.10.1"]
+                       :dependencies [[org.clojure/clojure "1.9.0"]
                                       [http-kit "2.3.0"]
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.4.0"]]}
              :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-ring "0.12.5"]
                              [funcool/codeina "0.5.0"]]
-                   :dependencies [[org.clojure/clojure "1.10.1"]
+                   :dependencies [[org.clojure/clojure "1.9.0"]
+                                  [org.clojure/core.unify "0.6.0"]
                                   [org.clojure/core.async "0.6.532"]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
                                   [peridot "0.5.2"]

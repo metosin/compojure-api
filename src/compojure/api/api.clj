@@ -53,6 +53,21 @@
   api
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
+        _ (assert (not (contains? options :format))
+                  (str "ERROR: Option [:format] is not used with 2.* version.\n"
+                       "Compojure-api uses now Muuntaja insted of ring-middleware-format,\n"
+                       "the new formatting options for it should be under [:formats]. See\n"
+                       "[[api-middleware]] documentation for more details.\n"))
+        _ (when (and (not (:formatter options))
+                     (not (contains? options :formats))
+                     (not (System/getProperty "compojure.api.middleware.global-default-formatter")))
+            (throw (ex-info (str "ERROR: Please set `:formatter :muuntaja` in the options map of `api`.\n"
+                                 "e.g., (api {:formatter :muuntaja} routes...)\n"
+                                 "To prepare for backwards compatibility with compojure-api 1.x, the formatting library must be\n"
+                                 "explicitly chosen if not configured by `:format` (ring-middleware-format) or \n"
+                                 "`:formats` (muuntaja). Once 2.x is stable, the default will be `:formatter :ring-middleware-format`.\n"
+                                 "To globally override the formatter, use -Dcompojure.api.middleware.global-default-formatter=:muuntaja")
+                            {})))
         options (rsc/deep-merge api-defaults options)
         handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
         partial-api-route (routes/map->Route
@@ -63,7 +78,8 @@
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
         enable-api-middleware? (not (get-in options [:api :disable-api-middleware?]))
-        api-middleware-options (mw/api-middleware-options (dissoc options :api :swagger))
+        api-middleware-options (dissoc (mw/api-middleware-options (assoc (dissoc options :api :swagger) ::via-api true))
+                                       ::mw/api-middleware-defaults)
         api-handler (-> handler
                         (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
                         (cond-> enable-api-middleware? (mw/api-middleware
