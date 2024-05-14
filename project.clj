@@ -74,7 +74,7 @@
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
-  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.10,1.11,1.12"]
+  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.10:dev,1.11:dev,1.12"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
