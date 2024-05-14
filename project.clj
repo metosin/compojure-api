@@ -47,7 +47,6 @@
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.5.0"]]}
-             :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}
              :1.11 {:dependencies [[org.clojure/clojure "1.11.3"]]}
              :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}}
