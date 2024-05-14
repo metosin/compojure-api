@@ -6,7 +6,9 @@
             [clojure.walk :as walk]
             [compojure.api.coercion.core :as cc]
             [spec-tools.swagger.core :as swagger]
-            [compojure.api.common :as common])
+            [compojure.api.common :as common]
+            ;; side effects
+            compojure.api.coercion.register-spec)
   (:import (clojure.lang IPersistentMap)
            (schema.core RequiredKey OptionalKey)
            (spec_tools.core Spec)
