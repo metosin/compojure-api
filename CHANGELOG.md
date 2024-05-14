@@ -1,7 +1,7 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
 ## Next
-* Lazily load spec and schema coercion support to preserve Clojure 1.8 support for 1.1.x
+* Lazily load spec and schema coercion
 * bump spec-tools to 0.10.6
   * notable changes: swagger `:name` defaults to `"body"` instead of `""` ([diff](https://github.com/metosin/spec-tools/compare/0.10.2...0.10.3))
 
