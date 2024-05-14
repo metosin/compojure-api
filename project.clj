@@ -63,7 +63,8 @@
                                       [ch.qos.logback/logback-classic "1.2.3" ]]}
              :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}
              :1.11 {:dependencies [[org.clojure/clojure "1.11.3"]]}
-             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}
+             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]
+                                   [org.clojure/spec.alpha "0.3.218"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
                      :dependencies [[manifold "0.1.8" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
