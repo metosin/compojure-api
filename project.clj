@@ -61,6 +61,9 @@
                                       [org.slf4j/jul-to-slf4j "1.7.30"]
                                       [org.slf4j/log4j-over-slf4j "1.7.30"]
                                       [ch.qos.logback/logback-classic "1.2.3" ]]}
+             :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}
+             :1.11 {:dependencies [[org.clojure/clojure "1.11.3"]]}
+             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
                      :dependencies [[manifold "0.1.8" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
@@ -86,7 +89,7 @@
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
-  :aliases {"all" ["with-profile" "dev:dev,async"]
+  :aliases {"all" ["with-profile" "dev:dev,async:dev,1.10:dev,1.11:dev,1.12"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["test"]
