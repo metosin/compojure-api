@@ -20,7 +20,7 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.8.0"]
+                       :dependencies [[org.clojure/clojure "1.9.0"]
                                       [http-kit "2.3.0"]
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.4.0"]]}
@@ -30,7 +30,7 @@
                              [lein-midje "3.2.1"]
                              [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
-                   :dependencies [[org.clojure/clojure "1.8.0"]
+                   :dependencies [[org.clojure/clojure "1.9.0"]
                                   [slingshot "0.12.2"]
                                   [peridot "0.5.1"]
                                   [javax.servlet/servlet-api "2.5"]
@@ -47,9 +47,10 @@
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.5.0"]]}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
-             :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}}
+             :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}
+             :1.11 {:dependencies [[org.clojure/clojure "1.11.3"]]}
+             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
@@ -73,7 +74,7 @@
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
-  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.10"]
+  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.10,1.11,1.12"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
