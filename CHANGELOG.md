@@ -1,5 +1,8 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
+## Next
+* Lazily load spec and schema coercion support to preserve Clojure 1.8 support for 1.1.x
+
 ## 2.0.0-alpha34-SNAPSHOT
 * **BREAKING CHANGE**: `:formatter :muuntaja` sometimes required for `api{-middleware}` options
   * to prepare for 1.x compatibility, :muuntaja must be explicitly configured

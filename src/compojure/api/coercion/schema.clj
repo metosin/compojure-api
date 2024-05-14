@@ -84,5 +84,3 @@
   (->SchemaCoercion :schema options))
 
 (def default-coercion (create-coercion default-options))
-
-(defmethod cc/named-coercion :schema [_] default-coercion)

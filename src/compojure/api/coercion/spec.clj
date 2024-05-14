@@ -149,5 +149,3 @@
   (->SpecCoercion :spec options))
 
 (def default-coercion (create-coercion default-options))
-
-(defmethod cc/named-coercion :spec [_] default-coercion)
