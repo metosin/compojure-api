@@ -1,11 +1,12 @@
 (ns compojure.api.validator
   (:require [compojure.api.swagger :as swagger]
-            [cheshire.core :as cheshire]
+            [compojure.api.impl.json :as json]
             [ring.swagger.validator :as rsv]
+            [muuntaja.core :as m]
             [compojure.api.middleware :as mw]))
 
 (defn validate
-  "Validates a api. If the api is Swagger-enabled, the swagger-spec
+  "Validates an api. If the api is Swagger-enabled, the swagger-spec
   is requested and validated against the JSON Schema. Returns either
   the (valid) api or throws an exception. Requires lazily the
   ring.swagger.validator -namespace allowing it to be excluded, #227"
@@ -13,8 +14,8 @@
   (when-let [uri (swagger/swagger-spec-path api)]
     (let [{status :status :as response} (api {:request-method :get
                                               :uri uri
-                                              mw/rethrow-exceptions? true})
-          body (-> response :body slurp (cheshire/parse-string true))]
+                                              ::mw/rethrow-exceptions? true})
+          body (->> response :body (m/decode json/muuntaja "application/json"))]
 
       (when-not (= status 200)
         (throw (ex-info (str "Coudn't read swagger spec from " uri)
