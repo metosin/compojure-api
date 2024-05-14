@@ -8,7 +8,7 @@
   :scm {:name "git"
         :url "https://github.com/metosin/compojure-api"}
   :dependencies [[prismatic/plumbing "0.6.0"]
-                 [cheshire "5.9.0"]
+                 [cheshire "5.13.0"]
                  [compojure "1.6.1"]
                  [prismatic/schema "1.1.12"]
                  [org.tobereplaced/lettercase "1.0.0"]
@@ -33,7 +33,10 @@
                    :dependencies [[org.clojure/clojure "1.9.0"]
                                   ;; bump
                                   [fipp "0.6.26"]
-                                  [metosin/spec-tools "0.10.0"]
+                                  [metosin/spec-tools "0.10.6"]
+                                  [metosin/muuntaja "0.6.6"]
+                                  [metosin/jsonista "0.2.5"]
+                                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.10.1"]
                                   [slingshot "0.12.2"]
                                   [peridot "0.5.1"]
                                   [javax.servlet/servlet-api "2.5"]
