@@ -31,6 +31,7 @@
                              [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
+                                  [metosin/spec-tools "0.10.0"]
                                   [slingshot "0.12.2"]
                                   [peridot "0.5.1"]
                                   [javax.servlet/servlet-api "2.5"]
