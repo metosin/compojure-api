@@ -5,7 +5,9 @@
             [compojure.api.coercion.core :as cc]
             [clojure.walk :as walk]
             [schema.core :as s]
-            [compojure.api.common :as common])
+            [compojure.api.common :as common]
+            ;; side effects
+            compojure.api.coercion.register-schema)
   (:import (java.io File)
            (schema.core OptionalKey RequiredKey)
            (schema.utils ValidationError NamedError)))
@@ -84,5 +86,3 @@
   (->SchemaCoercion :schema options))
 
 (def default-coercion (create-coercion default-options))
-
-(defmethod cc/named-coercion :schema [_] default-coercion)
