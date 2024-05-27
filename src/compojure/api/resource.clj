@@ -1,13 +1,14 @@
 (ns compojure.api.resource
   (:require [compojure.api.routes :as routes]
             [compojure.api.coerce :as coerce]
+            [compojure.api.methods :as methods]
             [ring.swagger.common :as rsc]
             [schema.core :as s]
             [plumbing.core :as p]
             [compojure.api.middleware :as mw]))
 
 (def ^:private +mappings+
-  {:methods #{:get :head :patch :delete :options :post :put}
+  {:methods methods/all-methods
    :parameters {:query-params [:query-params :query :string true]
                 :body-params [:body-params :body :body false]
                 :form-params [:form-params :formData :string true]
