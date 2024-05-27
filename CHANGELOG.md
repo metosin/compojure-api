@@ -6,6 +6,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
   * Migration instructions: run your program and fix the error messages, which will provide specific instructions.
   * to circumvent this change, set `-Dcompojure.api.middleware.global-default-formatter=:muuntaja`
   * stable 2.x will default `:formatter` to `:ring-middleware-format`
+* [#472](https://github.com/metosin/compojure-api/issues/472): Fix potential memory leak involving schemas being cached in the multimethod default cache
 
 ## 2.0.0-alpha33 (2024-04-30)
 * Throw an error on malformed `:{body,query,headers}`, in particular if anything other than 2 elements was provided
