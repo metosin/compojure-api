@@ -393,7 +393,7 @@
                                        :responses {:default {:description ""}}}}
                         "/body-map" {:post {:parameters [{:description ""
                                                           :in "body"
-                                                          :name ""
+                                                          :name "body"
                                                           :required true
                                                           :schema {:properties {:x {:format "int64"
                                                                                     :type "integer"}
@@ -404,7 +404,7 @@
                                             :responses {:default {:description ""}}}}
                         "/body-params" {:post {:parameters [{:description ""
                                                              :in "body"
-                                                             :name ""
+                                                             :name "body"
                                                              :required true
                                                              :schema {:properties {:x {:format "int64"
                                                                                        :type "integer"}
@@ -415,7 +415,7 @@
                                                :responses {:default {:description ""}}}}
                         "/body-string" {:post {:parameters [{:description ""
                                                              :in "body"
-                                                             :name ""
+                                                             :name "body"
                                                              :required true
                                                              :schema {:type "string"}}]
                                                :responses {:default {:description ""}}}}
@@ -476,7 +476,7 @@
                                                        :default {:description ""}}}
                                      :post {:parameters [{:description ""
                                                           :in "body"
-                                                          :name ""
+                                                          :name "body"
                                                           :required true
                                                           :schema {:properties {:x {:format "int64"
                                                                                     :type "integer"}

@@ -1,5 +1,10 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
+## Next
+* Lazily load spec and schema coercion
+* bump spec-tools to 0.10.6
+  * notable changes: swagger `:name` defaults to `"body"` instead of `""` ([diff](https://github.com/metosin/spec-tools/compare/0.10.2...0.10.3))
+
 ## 2.0.0-alpha34-SNAPSHOT
 * **BREAKING CHANGE**: `:formatter :muuntaja` sometimes required for `api{-middleware}` options
   * to prepare for 1.x compatibility, :muuntaja must be explicitly configured
