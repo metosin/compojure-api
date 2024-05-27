@@ -8,7 +8,7 @@
   :scm {:name "git"
         :url "https://github.com/metosin/compojure-api"}
   :dependencies [[prismatic/plumbing "0.6.0"]
-                 [cheshire "5.9.0"]
+                 [cheshire "5.13.0"]
                  [compojure "1.6.1"]
                  [prismatic/schema "1.1.12"]
                  [org.tobereplaced/lettercase "1.0.0"]
@@ -20,7 +20,7 @@
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
-                       :dependencies [[org.clojure/clojure "1.8.0"]
+                       :dependencies [[org.clojure/clojure "1.9.0"]
                                       [http-kit "2.3.0"]
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.4.0"]]}
@@ -30,7 +30,13 @@
                              [lein-midje "3.2.1"]
                              [lein-ring "0.12.0"]
                              [funcool/codeina "0.5.0"]]
-                   :dependencies [[org.clojure/clojure "1.8.0"]
+                   :dependencies [[org.clojure/clojure "1.9.0"]
+                                  ;; bump
+                                  [fipp "0.6.26"]
+                                  [metosin/spec-tools "0.10.6"]
+                                  [metosin/muuntaja "0.6.6"]
+                                  [metosin/jsonista "0.2.5"]
+                                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.10.1"]
                                   [slingshot "0.12.2"]
                                   [peridot "0.5.1"]
                                   [javax.servlet/servlet-api "2.5"]
@@ -47,9 +53,9 @@
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
              :logging {:dependencies [[org.clojure/tools.logging "0.5.0"]]}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
-             :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
-             :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}}
+             :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}
+             :1.11 {:dependencies [[org.clojure/clojure "1.11.3"]]}
+             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
@@ -73,10 +79,10 @@
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
-  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.10"]
+  :aliases {"all" ["with-profile" "dev:dev,logging:dev,1.10:dev,1.11:dev,1.12"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["midje"]
             "perf" ["with-profile" "default,dev,perf"]
             "deploy!" ^{:doc "Recompile sources, then deploy if tests succeed."}
-                      ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})
+            ["do" ["clean"] ["midje"] ["deploy" "clojars"]]})

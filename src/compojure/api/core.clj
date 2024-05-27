@@ -1,18 +1,25 @@
 (ns compojure.api.core
   (:require [compojure.api.meta :as meta]
+            [compojure.api.async]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw]
             [compojure.core :as compojure]
             [clojure.tools.macro :as macro]))
 
-(defn- handle [handlers request]
-  (some #(% request) handlers))
+(defn ring-handler
+  "Creates vanilla ring-handler from any invokable thing (e.g. compojure-api route)"
+  [handler]
+  (fn
+    ([request] (handler request))
+    ([request respond raise] (handler request respond raise))))
 
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
-  (let [handlers (seq (keep identity handlers))]
-    (routes/create nil nil {} (vec handlers) (partial handle handlers))))
+  (let [handlers (seq (keep identity (flatten handlers)))]
+    (routes/map->Route
+      {:childs (vec handlers)
+       :handler (meta/routing handlers)})))
 
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
@@ -35,7 +42,7 @@
   not satisfying compojure.api.routes/Routing -protocol."
   [& handlers]
   (let [handlers (keep identity handlers)]
-    (routes/create nil nil {} nil (partial handle handlers))))
+    (routes/map->Route {:handler (meta/routing handlers)})))
 
 (defmacro middleware
   "Wraps routes with given middlewares using thread-first macro.
@@ -67,7 +74,7 @@
       {:childs [handler]
        :handler x-handler})))
 
-(defmacro context {:style/indent 2} [& args] (meta/restructure nil      args {:context? true}))
+(defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :&form &form :&env &env}))
 
 (defmacro GET     {:style/indent 2} [& args] (meta/restructure :get     args nil))
 (defmacro ANY     {:style/indent 2} [& args] (meta/restructure nil      args nil))
