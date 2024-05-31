@@ -1,15 +1,18 @@
 (ns compojure.api.routes
   (:require [compojure.core :refer :all]
             [clojure.string :as string]
-            [cheshire.core :as json]
-            [compojure.api.middleware :as mw]
+            [compojure.api.methods :as methods]
+            [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
+            [compojure.api.impl.json :as json]
             [compojure.api.common :as common]
+            [muuntaja.core :as m]
             [ring.swagger.common :as rsc]
             [clojure.string :as str]
             [linked.core :as linked]
             [compojure.response]
-            [schema.core :as s])
+            [schema.core :as s]
+            [compojure.api.coercion :as coercion])
   (:import (clojure.lang AFn IFn Var IDeref)
            (java.io Writer)))
 
@@ -64,24 +67,22 @@
 (defrecord Route [path method info childs handler]
   Routing
   (-get-routes [this options]
-    (let [valid-childs (filter-routes this options)]
-      (if (seq childs)
+    (let [this (-> this realize-childs)
+          valid-childs (filter-routes this options)
+          make-method-path-fn (fn [m] [path m info])]
+      (if (-> this filter-childs :childs seq)
         (vec
           (for [[p m i] (mapcat #(-get-routes % options) valid-childs)]
             [(->paths path p) m (rsc/deep-merge info i)]))
-        (into [] (if path [[path method info]])))))
+        (into [] (cond
+                   (and path method) [(make-method-path-fn method)]
+                   path (mapv make-method-path-fn methods/all-methods))))))
 
   compojure.response/Renderable
-  (render [_ {:keys [uri request-method]}]
-    (throw
-      (ex-info
-        (str "\ncompojure.api.routes/Route can't be returned from endpoint "
-             (-> request-method name str/upper-case) " \"" uri "\". "
-             "For nested routes, use `context` instead: (context \"path\" []  ...)\n")
-        {:request-method request-method
-         :path path
-         :method method
-         :uri uri})))
+  (render [_ request]
+    (handler request))
+
+  ;; Sendable implementation in compojure.api.async
 
   IFn
   (invoke [_ request]
@@ -144,11 +145,16 @@
   {:paths
    (reduce
      (fn [acc [path method info]]
-       (update-in
-         acc [path method]
-         (fn [old-info]
-           (let [info (or old-info info)]
-             (ensure-path-parameters path info)))))
+       (if-not (:no-doc info)
+         (if-let [public-info (->> (get info :public {})
+                                   (coercion/get-apidocs (:coercion info) "swagger"))]
+           (update-in
+             acc [path method]
+             (fn [old-info]
+               (let [public-info (or old-info public-info)]
+                 (ensure-path-parameters path public-info))))
+           acc)
+         acc))
      (linked/map)
      routes)})
 
@@ -160,8 +166,19 @@
   (for [[id freq] (frequencies seq)
         :when (> freq 1)] id))
 
+(defn all-paths [routes]
+  (reduce
+    (fn [acc [path method info]]
+      (let [public-info (get info :public {})]
+        (update-in acc [path method]
+                   (fn [old-info]
+                     (let [public-info (or old-info public-info)]
+                       (ensure-path-parameters path public-info))))))
+    (linked/map)
+    routes))
+
 (defn route-lookup-table [routes]
-  (let [entries (for [[path endpoints] (-> routes ring-swagger-paths :paths)
+  (let [entries (for [[path endpoints] (all-paths routes)
                       [method {:keys [x-name parameters]}] endpoints
                       :let [params (:path parameters)]
                       :when x-name]
@@ -182,12 +199,6 @@
 ;; Endpoint Trasformers
 ;;
 
-(defn strip-no-doc-endpoints
-  "Endpoint transformer, strips all endpoints that have :x-no-doc true."
-  [endpoint]
-  (if-not (some-> endpoint :x-no-doc true?)
-    endpoint))
-
 (defn non-nil-routes [endpoint]
   (or endpoint {}))
 
@@ -198,7 +209,7 @@
 (defn- un-quote [s]
   (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
 
-(defn- path-string [s params]
+(defn- path-string [m s params]
   (-> s
       (str/replace #":([^/]+)" " :$1 ")
       (str/split #" ")
@@ -208,7 +219,7 @@
                  (let [key (keyword (subs token 1))
                        value (key params)]
                    (if value
-                     (un-quote (json/generate-string value))
+                     (un-quote (slurp (m/encode m "application/json" value)))
                      (throw
                        (IllegalArgumentException.
                          (str "Missing path-parameter " key " for path " s)))))
@@ -218,14 +229,14 @@
 (defn path-for*
   "Extracts the lookup-table from request and finds a route by name."
   [route-name request & [params]]
-  (let [[path details] (some-> request
-                               mw/get-options
-                               :lookup
+  (let [m (or (::request/muuntaja request) json/muuntaja)
+        [path details] (some-> request
+                               ::request/lookup
                                route-name
                                first)
         path-params (:params details)]
     (if (seq path-params)
-      (path-string path params)
+      (path-string m path params)
       path)))
 
 (defmacro path-for

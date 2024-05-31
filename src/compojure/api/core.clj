@@ -54,16 +54,16 @@
    :deprecated "1.1.14"
    :superseded-by "route-middleware"}
   [middleware & body]
-  (when (not= "true" (System/getProperty "compojure.api.core.suppress-middleware-warning"))
-    (println (str "compojure.api.core.middleware is deprecated because of security issues. "
-                  "Please use route-middleware instead. middleware will be disabled in a future release."
-                  "Set -dcompojure.api.core.suppress-middleware-warning=true to suppress this warning.")))
+  (assert (= "true" (System/getProperty "compojure.api.core.allow-dangerous-middleware"))
+          (str "compojure.api.core.middleware is deprecated because of security issues. "
+               "Please use route-middleware instead. "
+               "Set compojure.api.core.allow-dangerous-middleware=true to keep using middleware."))
   `(let [body# (routes ~@body)
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))
 
 (defn route-middleware
-  "Wraps routes with given middleware using thread-first macro."
+  "Wraps routes with given middlewares using thread-first macro."
   {:style/indent 1
    :supercedes "middleware"}
   [middleware & body]
@@ -76,11 +76,11 @@
 
 (defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :&form &form :&env &env}))
 
-(defmacro GET     {:style/indent 2} [& args] (meta/restructure :get     args nil))
-(defmacro ANY     {:style/indent 2} [& args] (meta/restructure nil      args nil))
-(defmacro HEAD    {:style/indent 2} [& args] (meta/restructure :head    args nil))
-(defmacro PATCH   {:style/indent 2} [& args] (meta/restructure :patch   args nil))
-(defmacro DELETE  {:style/indent 2} [& args] (meta/restructure :delete  args nil))
+(defmacro GET {:style/indent 2} [& args] (meta/restructure :get args nil))
+(defmacro ANY {:style/indent 2} [& args] (meta/restructure nil args nil))
+(defmacro HEAD {:style/indent 2} [& args] (meta/restructure :head args nil))
+(defmacro PATCH {:style/indent 2} [& args] (meta/restructure :patch args nil))
+(defmacro DELETE {:style/indent 2} [& args] (meta/restructure :delete args nil))
 (defmacro OPTIONS {:style/indent 2} [& args] (meta/restructure :options args nil))
-(defmacro POST    {:style/indent 2} [& args] (meta/restructure :post    args nil))
-(defmacro PUT     {:style/indent 2} [& args] (meta/restructure :put     args nil))
+(defmacro POST {:style/indent 2} [& args] (meta/restructure :post args nil))
+(defmacro PUT {:style/indent 2} [& args] (meta/restructure :put args nil))

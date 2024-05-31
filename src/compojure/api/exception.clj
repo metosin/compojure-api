@@ -2,10 +2,8 @@
   (:require [ring.util.http-response :as response]
             [clojure.walk :as walk]
             [compojure.api.impl.logging :as logging]
-            [schema.utils :as su])
-  (:import [schema.utils ValidationError NamedError]
-           [com.fasterxml.jackson.core JsonParseException]
-           [org.yaml.snakeyaml.parser ParserException]))
+            [compojure.api.coercion.core :as cc]
+            [compojure.api.coercion.schema]))
 
 ;;
 ;; Default exception handlers
@@ -21,42 +19,62 @@
   (response/internal-server-error {:type "unknown-exception"
                                    :class (.getName (.getClass e))}))
 
-(defn stringify-error
-  "Stringifies symbols and validation errors in Schema error, keeping the structure intact."
-  [error]
-  (walk/postwalk
-    (fn [x]
-      (cond
-        (instance? ValidationError x) (str (su/validation-error-explain x))
-        (instance? NamedError x) (str (su/named-error-explain x))
-        :else x))
-    error))
-
+;; TODO: coercion should handle how to publish data
 (defn response-validation-handler
-  "Creates error response based on Schema error."
-  [e data req]
-  (response/internal-server-error {:errors (stringify-error (su/error-val data))}))
+  "Creates error response based on a response error. The following keys are available:
 
-(defn request-validation-handler
-  "Creates error response based on Schema error."
+    :type            type of the exception (::response-validation)
+    :coercion        coercion instance used
+    :in              location of the value ([:response :body])
+    :schema          schema to be validated against
+    :error           schema error
+    :request         raw request
+    :response        raw response"
   [e data req]
-  (response/bad-request {:errors (stringify-error (su/error-val data))}))
+  (response/internal-server-error
+    (-> data
+        (dissoc :request :response)
+        (update :coercion cc/get-name)
+        (assoc :value (-> data :response :body))
+        (->> (cc/encode-error (:coercion data))))))
+
+;; TODO: coercion should handle how to publish data
+(defn request-validation-handler
+  "Creates error response based on Schema error. The following keys are available:
+
+    :type            type of the exception (::request-validation)
+    :coercion        coercion instance used
+    :value           value that was validated
+    :in              location of the value (e.g. [:request :query-params])
+    :schema          schema to be validated against
+    :error           schema error
+    :request         raw request"
+  [e data req]
+  (response/bad-request
+    (-> data
+        (dissoc :request)
+        (update :coercion cc/get-name)
+        (->> (cc/encode-error (:coercion data))))))
+
+(defn http-response-handler
+  "reads response from ex-data :response"
+  [_ {:keys [response]} _]
+  response)
 
 (defn schema-error-handler
   "Creates error response based on Schema error."
   [e data req]
-  ; FIXME: Why error is not wrapped to ErrorContainer here?
-  (response/bad-request {:errors (stringify-error (:error data))}))
+  (response/bad-request
+    {:errors (compojure.api.coercion.schema/stringify (:error data))}))
 
 (defn request-parsing-handler
   [^Exception ex data req]
-  (let [cause (.getCause ex)]
-    (response/bad-request {:type (cond
-                                   (instance? JsonParseException cause) "json-parse-exception"
-                                   (instance? ParserException cause) "yaml-parse-exception"
-                                   :else "parse-exception")
-                           :message (.getMessage cause)})))
-
+  (let [cause (.getCause ex)
+        original (.getCause cause)]
+    (response/bad-request
+      (merge (select-keys data [:type :format :charset])
+             (if original {:original (.getMessage original)})
+             {:message (.getMessage cause)}))))
 ;;
 ;; Logging
 ;;
@@ -75,5 +93,6 @@
 ;; Mappings from other Exception types to our base types
 ;;
 
-(def legacy-exception-types
-  {:ring.swagger.schema/validation ::request-validation})
+(def mapped-exception-types
+  {:ring.swagger.schema/validation ::request-validation
+   :muuntaja/decode ::request-parsing})

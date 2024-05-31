@@ -1,3 +1,4 @@
+;; 1.1.x
 (ns compojure.api.coerce
   (:require [schema.coerce :as sc]
             [compojure.api.middleware :as mw]

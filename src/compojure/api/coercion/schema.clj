@@ -34,7 +34,11 @@
   (common/fifo-memoize sc/coercer 1000))
 
 ;; don't use coercion for certain types
-(defmulti coerce-response? identity :default ::default)
+(defmulti coerce-response? #(if (or (class? %)
+                                    (keyword? %))
+                              %
+                              ::default)
+  :default ::default)
 (defmethod coerce-response? ::default [_] true)
 (defmethod coerce-response? File [_] false)
 
