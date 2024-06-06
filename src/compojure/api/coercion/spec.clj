@@ -6,9 +6,7 @@
             [clojure.walk :as walk]
             [compojure.api.coercion.core :as cc]
             [spec-tools.swagger.core :as swagger]
-            [compojure.api.common :as common]
-            ;; side effects
-            compojure.api.coercion.register-spec)
+            [compojure.api.common :as common])
   (:import (clojure.lang IPersistentMap)
            (schema.core RequiredKey OptionalKey)
            (spec_tools.core Spec)
@@ -151,3 +149,5 @@
   (->SpecCoercion :spec options))
 
 (def default-coercion (create-coercion default-options))
+
+(defmethod cc/named-coercion :spec [_] default-coercion)
