@@ -13,8 +13,10 @@
   (is (= (second value) expected)))
 
 (defn is-fails-with [expected-status [status body]]
-  (is (= status expected-status))
-  (is (every? (partial contains? body) [:type :coercion :in :value :schema :errors])))
+  (is (= status expected-status)
+      (pr-str body))
+  (is (every? (partial contains? body) [:type :coercion :in :value :schema :errors])
+      (pr-str body)))
 
 (deftest schema-coercion-test
   (testing "response schemas"
@@ -146,6 +148,7 @@
                       {:formatter :muuntaja
                        :coercion no-body-coercion}
                       beer-route)]
+            (prn "legacy body-coercion")
             (let [[status body] (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]}))]
               (is (= 200 status))
               (is (= {:beers ["ipa" "apa" "ipa"]} body))))

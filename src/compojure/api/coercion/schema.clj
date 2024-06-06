@@ -57,9 +57,14 @@
         (update :errors stringify)))
 
   (coerce-request [_ schema value type format request]
-    (let [type-options (options type)]
-      (if-let [matcher (or (get (get type-options :formats) format)
-                           (get type-options :default))]
+    (let [type-options (if (fn? options)
+                         (when-let [provider (options request)]
+                           (provider type))
+                         (options type))]
+      (if-let [matcher (if (fn? type-options)
+                         type-options
+                         (or (get (get type-options :formats) format)
+                             (get type-options :default)))]
         (let [coerce (memoized-coercer schema matcher)
               coerced (coerce value)]
           (if (su/error? coerced)
@@ -85,6 +90,8 @@
    :response {:default (constantly nil)}})
 
 (defn create-coercion [options]
+  {:pre [(or (map? options)
+             (fn? options))]}
   (->SchemaCoercion :schema options))
 
 (def default-coercion (create-coercion default-options))
