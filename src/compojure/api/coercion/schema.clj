@@ -57,11 +57,12 @@
         (update :errors stringify)))
 
   (coerce-request [_ schema value type format request]
-    (let [type-options (if (fn? options)
+    (let [legacy? (fn? options)
+          type-options (if legacy?
                          (when-let [provider (options request)]
                            (provider type))
                          (options type))]
-      (if-let [matcher (if (fn? type-options)
+      (if-let [matcher (if legacy?
                          type-options
                          (or (get (get type-options :formats) format)
                              (get type-options :default)))]
