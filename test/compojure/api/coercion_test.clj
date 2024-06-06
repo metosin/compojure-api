@@ -6,6 +6,7 @@
             [ring.util.http-response :refer :all]
             [clojure.core.async :as a]
             [schema.core :as s]
+            [compojure.api.middleware :as mw]
             [compojure.api.coercion.schema :as cs]))
 
 (defn is-has-body [expected value]
@@ -77,7 +78,7 @@
                 (is (= {:pong 123} body))))
             (testing "legacy"
               (let [app (api
-                          {;:formatter :muuntaja
+                          {:formatter :muuntaja
                            :coercion mw/no-response-coercion}
                           ping-route)]
                 (let [[status body] (get* app "/ping")]
