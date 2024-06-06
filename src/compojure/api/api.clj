@@ -1,16 +1,17 @@
 (ns compojure.api.api
   (:require [compojure.api.core :as c]
             [compojure.api.swagger :as swagger]
-            [compojure.api.middleware :as middleware]
+            [compojure.api.middleware :as mw]
+            [compojure.api.request :as request]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
-            [compojure.api.coerce :as coerce]
+            [compojure.api.request :as request]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]))
 
 (def api-defaults
   (merge
-    middleware/api-middleware-defaults
+    mw/api-middleware-defaults
     {:api {:invalid-routes-fn routes/log-invalid-child-routes
            :disable-api-middleware? false}
      :swagger {:ui nil, :spec nil}}))
@@ -23,8 +24,7 @@
   options map as the first parameter:
 
       (api
-        {:formats [:json-kw :edn :transit-msgpack :transit-json]
-         :exceptions {:handlers {:compojure.api.exception/default my-logging-handler}}
+        {:exceptions {:handlers {:compojure.api.exception/default my-logging-handler}}
          :api {:invalid-routes-fn (constantly nil)}
          :swagger {:spec \"/swagger.json\"
                    :ui \"/api-docs\"
@@ -47,35 +47,28 @@
 
   ### api-middleware options
 
+  See `compojure.api.middleware/api-middleware` for more available options.
+
   " (:doc (meta #'compojure.api.middleware/api-middleware)))}
   api
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
         options (rsc/deep-merge api-defaults options)
         handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
-        routes (routes/get-routes handler (:api options))
+        partial-api-route (routes/map->Route
+                            {:childs [handler]
+                             :info {:coercion (:coercion options)}})
+        routes (routes/get-routes partial-api-route (:api options))
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
         enable-api-middleware? (not (get-in options [:api :disable-api-middleware?]))
-        api-handler (cond-> handler
-                            swagger-data (rsm/wrap-swagger-data swagger-data)
-                            enable-api-middleware? (middleware/api-middleware
-                                                     (dissoc options :api :swagger))
-                            true (middleware/wrap-options
-                                   {:paths paths
-                                    :coercer (coerce/memoized-coercer)
-                                    :lookup lookup}))]
-    (routes/create nil nil {} [handler] api-handler)))
-
-(defmacro
-  ^{:doc (str
-  "Defines an api.
-
-  API middleware options:
-
-  " (:doc (meta #'compojure.api.middleware/api-middleware)))}
-  defapi
-  [name & body]
-  {:style/indent 1}
-  `(def ~name (api ~@body)))
+        api-middleware-options (mw/api-middleware-options (dissoc options :api :swagger))
+        api-handler (-> handler
+                        (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
+                        (cond-> enable-api-middleware? (mw/api-middleware
+                                                         api-middleware-options))
+                        (mw/wrap-inject-data
+                          {::request/paths paths
+                           ::request/lookup lookup}))]
+    (assoc partial-api-route :handler api-handler)))

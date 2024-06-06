@@ -8,8 +8,11 @@
             [ring.swagger.json-schema :as js]
             [schema.core :as s]
             [schema-tools.core :as st]
-            [compojure.api.coerce :as coerce]
-            compojure.core))
+            [compojure.api.coercion :as coercion]
+            [compojure.api.help :as help]
+            compojure.core
+            compojure.api.compojure-compat
+            [compojure.api.common :as common]))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
@@ -33,9 +36,10 @@
 (s/defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
   extracted from a key in a ring request."
-  [schema, key, type :- mw/CoercionType]
-  (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
-  `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+))
+  ([schema, key, type]
+    (src-coerce! schema, key, type, true))
+  ([schema, key, type, keywordize?]
+    `(coercion/coerce-request! ~schema ~key ~type ~keywordize? false ~+compojure-api-request+)))
 
 (defn- convert-return [schema]
   {200 {:schema schema
@@ -303,7 +307,7 @@
         _ (assert (not parameters) ":parameters is deprecated with 1.0.0, use :swagger instead.")
 
         ;; response coercion middleware, why not just code?
-        middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
+        middleware (if (seq responses) (conj middleware `[coercion/wrap-coerce-response (common/merge-vector ~responses)]) middleware)]
 
     (if context?
 

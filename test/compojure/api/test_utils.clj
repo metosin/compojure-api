@@ -3,8 +3,11 @@
             [clojure.string :as str]
             [peridot.core :as p]
             [clojure.java.io :as io]
-            [compojure.api.routes :as routes])
+            [compojure.api.routes :as routes]
+            [compojure.api.middleware :as mw])
   (:import [java.io InputStream]))
+
+(def muuntaja (mw/create-muuntaja))
 
 (defn read-body [body]
   (if (instance? InputStream body)
