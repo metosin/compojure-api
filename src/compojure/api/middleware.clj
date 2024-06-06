@@ -121,7 +121,9 @@
    :string coerce/query-schema-coercion-matcher
    :response coerce/json-schema-coercion-matcher})
 
-;; 1.1.x
+(def no-response-coercion
+  (constantly (dissoc default-coercion-matchers :response)))
+
 (defn coercion-matchers [request]
   (let [options (get-options request)]
     (if (contains? options :coercion)

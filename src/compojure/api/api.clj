@@ -5,7 +5,6 @@
             [compojure.api.request :as request]
             [compojure.api.routes :as routes]
             [compojure.api.common :as common]
-            [compojure.api.request :as request]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]))
 
