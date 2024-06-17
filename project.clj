@@ -12,11 +12,7 @@
                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.10.1"]
                  [ring/ring-core "1.8.0"]
                  [compojure "1.6.1" ]
-                 [org.clojure/core.memoize "0.8.2"]
-                 [clj-commons/clj-yaml "0.7.0"]
-                 [org.yaml/snakeyaml "1.24"]
-                 [ring-middleware-format "0.7.4"]
-                 [metosin/spec-tools "0.10.0"]
+                 [metosin/spec-tools "0.10.6"]
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/ring-swagger-ui "3.24.3"]
                  [metosin/ring-swagger "1.0.0"]
@@ -41,7 +37,6 @@
                                   [org.clojure/core.async "0.6.532"]
                                   [javax.servlet/javax.servlet-api "4.0.1"]
                                   [peridot "0.5.2"]
-                                  [com.rpl/specter "1.1.3"]
                                   [com.stuartsierra/component "0.4.0"]
                                   [expound "0.8.2"]
                                   [metosin/jsonista "0.2.5"]
@@ -65,6 +60,9 @@
                                       [org.slf4j/jul-to-slf4j "1.7.30"]
                                       [org.slf4j/log4j-over-slf4j "1.7.30"]
                                       [ch.qos.logback/logback-classic "1.2.3" ]]}
+             :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}
+             :1.11 {:dependencies [[org.clojure/clojure "1.11.3"]]}
+             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}
              :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
                      :dependencies [[manifold "0.1.8" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
@@ -90,7 +88,7 @@
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
-  :aliases {"all" ["with-profile" "dev:dev,async"]
+  :aliases {"all" ["with-profile" "dev:dev,async:dev,1.10:dev,1.11:dev,1.12"]
             "start-thingie" ["run"]
             "aot-uberjar" ["with-profile" "uberjar" "do" "clean," "ring" "uberjar"]
             "test-ancient" ["test"]

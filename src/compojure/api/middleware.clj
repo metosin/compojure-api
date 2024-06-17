@@ -13,6 +13,7 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
+            [ring.swagger.coerce :as coerce]
 
             [muuntaja.middleware]
             [muuntaja.core :as m]
@@ -103,6 +104,12 @@
 ;; Options
 ;;
 
+;; 1.1.x
+(defn get-options
+  "Extracts compojure-api options from the request."
+  [request]
+  (::options request))
+
 (defn wrap-inject-data
   "Injects data into the request."
   [handler data]
@@ -122,6 +129,20 @@
      (handler (coercion/set-request-coercion request coercion)))
     ([request respond raise]
      (handler (coercion/set-request-coercion request coercion) respond raise))))
+
+;; 1.1.x
+(def default-coercion-matchers
+  {:body coerce/json-schema-coercion-matcher
+   :string coerce/query-schema-coercion-matcher
+   :response coerce/json-schema-coercion-matcher})
+
+;; 1.1.x
+(defn coercion-matchers [request]
+  (let [options (get-options request)]
+    (if (contains? options :coercion)
+      (if-let [provider (:coercion options)]
+        (provider request))
+      default-coercion-matchers)))
 
 ;;
 ;; Muuntaja
