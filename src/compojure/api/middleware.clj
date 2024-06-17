@@ -308,9 +308,10 @@
   - **:ring-swagger**              options for ring-swagger's swagger-json method.
                                    e.g. `{:ignore-missing-mappings? true}`
 
-  - **:coercion**                  A function from request->type->coercion-matcher, used
+  - **:coercion**                  Either an instance of Coercion or a keyword naming it, or a
+                                   function from request->type->coercion-matcher, used
                                    in endpoint coercion for types :body, :string and :response.
-                                   Defaults to `compojure.api.middleware/default-coercion`
+                                   Defaults to `compojure.api.coercion/default-coercion`
                                    Setting value to nil disables all coercion.
 
   - **:components**                Components which should be accessible to handlers using
