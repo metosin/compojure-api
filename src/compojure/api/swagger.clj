@@ -1,14 +1,15 @@
 (ns compojure.api.swagger
   (:require [compojure.api.core :as c]
-            [compojure.api.common :as common]
             [compojure.api.middleware :as mw]
+            [compojure.api.request :as request]
             [ring.util.http-response :refer [ok]]
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]
             [ring.swagger.core :as swagger]
             [ring.swagger.swagger-ui :as swagger-ui]
             [ring.swagger.swagger2 :as swagger2]
-            [compojure.api.routes :as routes]))
+            [compojure.api.routes :as routes]
+            [spec-tools.swagger.core]))
 
 (defn base-path [request]
   (let [context (swagger/context request)]
@@ -24,9 +25,7 @@
           first))
 
 (defn transform-operations [swagger]
-  (->> swagger
-       (swagger2/transform-operations routes/non-nil-routes)
-       (swagger2/transform-operations routes/strip-no-doc-endpoints)))
+  (swagger2/transform-operations routes/non-nil-routes swagger))
 
 (defn swagger-ui [options]
   (assert (map? options) "Since 1.1.11, compojure.api.swagger/swagger-ui takes just one map as argument, with `:path` for the path.")
@@ -39,12 +38,13 @@
     (c/GET path request
       :no-doc true
       :name ::swagger
-      (let [runtime-info (rsm/get-swagger-data request)
+      (let [runtime-info1 (mw/get-swagger-data request)
+            runtime-info2 (rsm/get-swagger-data request)
             base-path {:basePath (base-path request)}
-            options (:ring-swagger (mw/get-options request))
-            paths (:paths (mw/get-options request))
-            swagger (apply rsc/deep-merge (keep identity [base-path paths extra-info runtime-info]))
-            spec (swagger2/swagger-json swagger options)]
+            options (::request/ring-swagger request)
+            paths (::request/paths request)
+            swagger (apply rsc/deep-merge (keep identity [base-path paths extra-info runtime-info1 runtime-info2]))
+            spec (spec-tools.swagger.core/swagger-spec (swagger2/swagger-json swagger options))]
         (ok spec)))))
 
 ;;
@@ -56,15 +56,21 @@
 (defn swagger-routes
   "Returns routes for swagger-articats (ui & spec). Accepts an options map, with the
   following options:
+
   **:ui**              Path for the swagger-ui (defaults to \"/\").
                        Setting the value to nil will cause the swagger-ui not to be mounted
+
   **:spec**            Path for the swagger-spec (defaults to \"/swagger.json\")
                        Setting the value to nil will cause the swagger-ui not to be mounted
+
   **:data**            Swagger data in the Ring-Swagger format.
+
   **:options**
     **:ui**            Options to configure the ui
     **:spec**          Options to configure the spec. Nada at the moment.
+
   Example options:
+
     {:ui \"/api-docs\"
      :spec \"/swagger.json\"
      :options {:ui {:jsonEditor true}
