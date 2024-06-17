@@ -3,7 +3,7 @@ name: Run tests
 
 on:
   push:
-    branches: [master, "1.1.x"]
+    branches: [master, "1.1.x", "rmf-adapter"]
   pull_request:
     branches: [master, "1.1.x"]
 
