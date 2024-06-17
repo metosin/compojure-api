@@ -1,6 +1,7 @@
 (ns compojure.api.integration-test
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.test-utils :refer :all]
+            compojure.api.middleware.rmf-muuntaja-adapter
             [compojure.api.exception :as ex]
             [compojure.api.swagger :as swagger]
             [midje.sweet :refer :all]

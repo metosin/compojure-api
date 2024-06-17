@@ -1,5 +1,6 @@
 (ns compojure.api.routes-test
   (:require [midje.sweet :refer :all]
+            compojure.api.middleware.rmf-muuntaja-adapter
             [compojure.api.sweet :refer :all]
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]

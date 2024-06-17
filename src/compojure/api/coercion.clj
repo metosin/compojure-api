@@ -4,7 +4,7 @@
             [compojure.api.request :as request]
             [compojure.api.coercion.core :as cc]
             ;; side effects
-            compojure.api.coercion.schema
+            [compojure.api.coercion.schema :as cschema]
             compojure.api.coercion.spec)
   (:import (compojure.api.coercion.core CoercionError)))
 
@@ -23,6 +23,7 @@
     (nil? coercion) nil
     (keyword? coercion) (cc/named-coercion coercion)
     (satisfies? cc/Coercion coercion) coercion
+    (fn? coercion) (cschema/create-coercion coercion)
     :else (throw (ex-info (str "invalid coercion " coercion) {:coercion coercion}))))
 
 (defn get-apidocs [maybe-coercion spec info]

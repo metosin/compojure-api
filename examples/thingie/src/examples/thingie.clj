@@ -2,6 +2,7 @@
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
             [compojure.api.upload :refer :all]
+            compojure.api.middleware.rmf-muuntaja-adapter
             [schema.core :as s]
             ring.swagger.json-schema-dirty
             ring.middleware.multipart-params.byte-array

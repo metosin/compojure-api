@@ -42,6 +42,11 @@
   [e data req]
   (response/bad-request {:errors (stringify-error (su/error-val data))}))
 
+(defn http-response-handler
+  "reads response from ex-data :response"
+  [_ {:keys [response]} _]
+  response)
+
 (defn schema-error-handler
   "Creates error response based on Schema error."
   [e data req]

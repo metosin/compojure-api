@@ -5,18 +5,23 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
-  :scm {:name "git"
-        :url "https://github.com/metosin/compojure-api"}
-  :dependencies [[prismatic/plumbing "0.6.0"]
-                 [cheshire "5.13.0"]
-                 [compojure "1.6.1"]
-                 [prismatic/schema "1.1.12"]
-                 [org.tobereplaced/lettercase "1.0.0"]
-                 [frankiesardo/linked "1.3.0"]
-                 [ring-middleware-format "0.7.4"]
+  :dependencies [[prismatic/schema "1.1.12"]
+                 [prismatic/plumbing "0.5.5"]
+                 [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
+                 [metosin/muuntaja "0.6.6"]
+                 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.10.1"]
+                 [ring/ring-core "1.8.0"]
+                 [compojure "1.6.1" ]
+                 [metosin/spec-tools "0.10.6"]
                  [metosin/ring-http-response "0.9.1"]
+                 [metosin/ring-swagger-ui "3.24.3"]
                  [metosin/ring-swagger "1.0.0"]
-                 [metosin/ring-swagger-ui "2.2.10"]]
+
+                 ;; Fix dependency conflicts
+                 [clj-time "0.15.2"]
+                 [joda-time "2.10.5"]
+                 [riddley "0.2.0"]]
+  :pedantic? :abort
   :profiles {:uberjar {:aot :all
                        :ring {:handler examples.thingie/app}
                        :source-paths ["examples/thingie/src"]
@@ -24,25 +29,23 @@
                                       [http-kit "2.3.0"]
                                       [reloaded.repl "0.2.4"]
                                       [com.stuartsierra/component "0.4.0"]]}
-             :dev {:jvm-opts ["-Dcompojure.api.core.allow-dangerous-middleware=true"]
-                   :repl-options {:init-ns user}
-                   :plugins [[lein-clojars "0.9.1"]
+             :dev {:plugins [[lein-clojars "0.9.1"]
                              [lein-midje "3.2.1"]
-                             [lein-ring "0.12.0"]
+                             [lein-ring "0.12.5"]
                              [funcool/codeina "0.5.0"]]
                    :dependencies [[org.clojure/clojure "1.9.0"]
-                                  ;; bump
-                                  [fipp "0.6.26"]
-                                  [metosin/spec-tools "0.10.6"]
-                                  [metosin/muuntaja "0.6.6"]
-                                  [metosin/jsonista "0.2.5"]
-                                  [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.10.1"]
-                                  [slingshot "0.12.2"]
-                                  [peridot "0.5.1"]
-                                  [javax.servlet/servlet-api "2.5"]
-                                  [midje "1.9.9"]
+                                  [org.clojure/core.unify "0.6.0"]
+                                  [org.clojure/core.async "0.6.532"]
+                                  [javax.servlet/javax.servlet-api "4.0.1"]
+                                  [peridot "0.5.2"]
                                   [com.stuartsierra/component "0.4.0"]
+                                  [expound "0.8.2"]
+                                  [metosin/jsonista "0.2.5"]
                                   [reloaded.repl "0.2.4"]
+                                  [midje "1.9.9" :exclusions [commons-codec org.clojure/tools.namespace]]
+                                  [metosin/muuntaja-msgpack "0.6.6"]
+                                  [metosin/muuntaja-yaml "0.6.6"]
+                                  [org.immutant/immutant "2.1.10"]
                                   [http-kit "2.3.0"]
                                   [criterium "0.4.5"]]
                    :ring {:handler examples.thingie/app
@@ -52,10 +55,16 @@
              :perf {:jvm-opts ^:replace ["-server"
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
-             :logging {:dependencies [[org.clojure/tools.logging "0.5.0"]]}
+             :logging {:dependencies [[org.clojure/tools.logging "0.5.0"]
+                                      [org.slf4j/jcl-over-slf4j "1.7.30"]
+                                      [org.slf4j/jul-to-slf4j "1.7.30"]
+                                      [org.slf4j/log4j-over-slf4j "1.7.30"]
+                                      [ch.qos.logback/logback-classic "1.2.3" ]]}
              :1.10 {:dependencies [[org.clojure/clojure "1.10.1"]]}
              :1.11 {:dependencies [[org.clojure/clojure "1.11.3"]]}
-             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}}
+             :1.12 {:dependencies [[org.clojure/clojure "1.12.0-alpha11"]]}
+             :async {:jvm-opts ["-Dcompojure-api.test.async=true"]
+                     :dependencies [[manifold "0.1.8" :exclusions [org.clojure/tools.logging]]]}}
   :eastwood {:namespaces [:source-paths]
              :add-linters [:unused-namespaces]}
   :codeina {:sources ["src"]
