@@ -5,11 +5,6 @@
             [compojure.api.coercion :as coercion]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
-
-            [ring.swagger.coerce :as coerce]
-
-            ring.middleware.http-response
-            [ring.swagger.middleware :as rsm]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.params :refer [wrap-params]]
@@ -21,8 +16,6 @@
             [ring.swagger.common :as rsc]
             [ring.util.http-response :refer :all])
   (:import [clojure.lang ArityException]
-           [org.yaml.snakeyaml.parser ParserException]
-           [com.fasterxml.jackson.core JsonParseException]
            [com.fasterxml.jackson.datatype.joda JodaModule]))
 
 ;;
@@ -91,14 +84,6 @@
 
 (defn get-components [req]
   (::components req))
-
-;; 1.1.x
-
-(def coercion-request-ks [::options :coercion])
-
-(defn wrap-coercion [handler coercion]
-  (fn [request]
-    (handler (assoc-in request coercion-request-ks coercion))))
 
 ;;
 ;; Options
@@ -231,16 +216,9 @@
 ;; Api Middleware
 ;;
 
-(def default-coercion-matchers
-  {:body coerce/json-schema-coercion-matcher
-   :string coerce/query-schema-coercion-matcher
-   :response coerce/json-schema-coercion-matcher})
-
-(def no-response-coercion
-  (constantly (dissoc default-coercion-matchers :response)))
-
-(def ^:private muuntaja-api-middleware-defaults
-  {:formats ::default
+(def api-middleware-defaults
+  {::api-middleware-defaults true
+   :formats ::default
    :exceptions {:handlers {:ring.util.http-response/response ex/http-response-handler
                            ::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
@@ -250,153 +228,8 @@
    :coercion coercion/default-coercion
    :ring-swagger nil})
 
-(def api-middleware-defaults
-  {::api-middleware-defaults true
-   :format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
-            :params-opts {}
-            :response-opts {}}
-   :exceptions {:handlers {::ex/request-validation ex/request-validation-handler
-                           ::ex/request-parsing ex/request-parsing-handler
-                           ::ex/response-validation ex/response-validation-handler
-                           ::ex/default ex/safe-handler}}
-   :coercion (constantly default-coercion-matchers)
-   :ring-swagger nil})
-
-
 (defn api-middleware-options [options]
-  (rsc/deep-merge
-    (if (contains? options :format)
-      api-middleware-defaults
-      muuntaja-api-middleware-defaults)
-    options))
-
-(defn check-options! [options]
-  ; Break at compile time if there are deprecated options
-  ; These three have been deprecated with 0.23
-  (assert (not (:error-handler (:validation-errors options)))
-          (str "ERROR: Option: [:validation-errors :error-handler] is no longer supported, "
-               "use {:exceptions {:handlers {:compojure.api.middleware/request-validation your-handler}}} instead."
-               "Also note that exception-handler arity has been changed."))
-  (assert (not (:catch-core-errors? (:validation-errors options)))
-          (str "ERROR: Option [:validation-errors :catch-core-errors?] is no longer supported, "
-               "use {:exceptions {:handlers {:schema.core/error compojure.api.exception/schema-error-handler}}} instead."
-               "Also note that exception-handler arity has been changed."))
-  (assert (not (:exception-handler (:exceptions options)))
-          (str "ERROR: Option [:exceptions :exception-handler] is no longer supported, "
-               "use {:exceptions {:handlers {:compojure.api.exception/default your-handler}}} instead."
-               "Also note that exception-handler arity has been changed."))
-  (assert (not (map? (:coercion options)))
-          (str "ERROR: Option [:coercion] should be a funtion of request->type->matcher, got a map instead."
-               "From 1.0.0 onwards, you should wrap your type->matcher map into a request-> function. If you "
-               "want to apply the matchers for all request types, wrap your option with 'constantly'"))
-  ;; 2.0.0+
-  (assert (not (and (contains? options :format)
-                    (contains? options :formats)))
-          (str "ERROR: Option [:format] is for ring-middleware-format\n"
-               "and [:formats] is for Muuntaja. At most one can be provided.\n"
-               "See [[api-middleware]] documentation for more details.\n")))
-
-;; ring-middleware-format
-(def ^:private default-mime-types
-  {:json "application/json"
-   :json-kw "application/json"
-   :edn "application/edn"
-   :clojure "application/clojure"
-   :yaml "application/x-yaml"
-   :yaml-kw "application/x-yaml"
-   :yaml-in-html "text/html"
-   :transit-json "application/transit+json"
-   :transit-msgpack "application/transit+msgpack"})
-
-(defn mime-types
-  [format]
-  (get default-mime-types format
-       (some-> format :content-type)))
-
-(def ^:private response-only-mimes #{:clojure :yaml-in-html})
-
-(defn ->mime-types [formats] (keep mime-types formats))
-
-(defn handle-req-error [^Throwable e handler request]
-  ;; Ring-middleware-format catches all exceptions in req handling,
-  ;; i.e. (handler req) is inside try-catch. If r-m-f was changed to catch only
-  ;; exceptions from parsing the request, we wouldn't need to check the exception class.
-  (if (or (instance? JsonParseException e) (instance? ParserException e))
-    (throw (ex-info "Error parsing request" {:type ::ex/request-parsing} e))
-    (throw e)))
-
-(defn serializable?
-  "Predicate which returns true if the response body is serializable.
-   That is, return type is set by :return compojure-api key or it's
-   a collection."
-  [_ {:keys [body] :as response}]
-  (when response
-    (or (:compojure.api.meta/serializable? response)
-        (coll? body))))
-
-(defn wrap-options
-  "Injects compojure-api options into the request."
-  [handler options]
-  (fn [request]
-    (handler (update-in request [::options] merge options))))
-
-(defn- ring-middleware-format-api-middleware
-  [handler options]
-  (require 'ring.middleware.format-params
-           'ring.middleware.format-response)
-  (let [{:keys [exceptions format components]} options
-        {:keys [formats params-opts response-opts]} format]
-    (cond-> handler
-      components (wrap-components components)
-      true ring.middleware.http-response/wrap-http-response
-      (seq formats) (rsm/wrap-swagger-data {:produces (->mime-types (remove response-only-mimes formats))
-                                            :consumes (->mime-types formats)})
-      true (wrap-options (select-keys options [:ring-swagger :coercion]))
-      (seq formats) ((resolve 'ring.middleware.format-params/wrap-restful-params)
-                     {:formats (remove response-only-mimes formats)
-                      :handle-error handle-req-error
-                      :format-options params-opts})
-      exceptions (wrap-exceptions exceptions)
-      (seq formats) ((resolve 'ring.middleware.format-response/wrap-restful-response)
-                     {:formats formats
-                      :predicate serializable?
-                      :format-options response-opts})
-      true wrap-keyword-params
-      true wrap-nested-params
-      true wrap-params)))
-
-(defn- muuntaja-api-middleware
-  [handler options]
-  (let [{:keys [exceptions components formats middleware ring-swagger coercion]} options
-        muuntaja (create-muuntaja formats)]
-    (-> handler
-        (cond-> middleware ((compose-middleware middleware)))
-        (cond-> components (wrap-components components))
-        (cond-> muuntaja (wrap-swagger-data {:consumes (m/decodes muuntaja)
-                                             :produces (m/encodes muuntaja)}))
-        (wrap-inject-data
-          (cond-> {::request/coercion coercion}
-            muuntaja (assoc ::request/muuntaja muuntaja)
-            ring-swagger (assoc ::request/ring-swagger ring-swagger)))
-        (cond-> muuntaja (muuntaja.middleware/wrap-params))
-        ;; all but request-parsing exceptions (to make :body-params visible)
-        (cond-> exceptions (wrap-exceptions
-                             (update exceptions :handlers dissoc ::ex/request-parsing)))
-        (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
-        ;; just request-parsing exceptions
-        (cond-> exceptions (wrap-exceptions
-                             (update exceptions :handlers select-keys [::ex/request-parsing])))
-        (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
-        (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))
-
-        ;; these are really slow middleware, 4.5µs => 9.1µs (+100%)
-
-        ;; 7.8µs => 9.1µs (+27%)
-        wrap-keyword-params
-        ;; 7.1µs => 7.8µs (+23%)
-        wrap-nested-params
-        ;; 4.5µs => 7.1µs (+50%)
-        wrap-params)))
+  (rsc/deep-merge api-middleware-defaults options))
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
@@ -438,14 +271,6 @@
   - **:formats**                   for Muuntaja middleware. Value can be a valid muuntaja options-map,
                                    a Muuntaja instance or nil (to unmount it). See
                                    https://github.com/metosin/muuntaja/blob/master/doc/Configuration.md for details.
-                                   Incompatible with :format.
-  
-  - **:format**                    for ring-middleware-format middleware (nil to unmount it). Incompatible with :formats.
-      - **:formats**                 sequence of supported formats, e.g. `[:json-kw :edn]`
-      - **:params-opts**             for *ring.middleware.format-params/wrap-restful-params*,
-                                     e.g. `{:transit-json {:handlers readers}}`
-      - **:response-opts**           for *ring.middleware.format-params/wrap-restful-response*,
-                                     e.g. `{:transit-json {:handlers writers}}`
 
   - **:middleware**                vector of extra middleware to be applied last (just before the handler).
 
@@ -494,13 +319,47 @@
                                        {}))
                        ;; TODO 2.x stable
                        :ring-middleware-format)
-         ;; TODO remove for 2.x stable
          _ (assert (= :muuntaja formatter)
-                   (str "Invalid :formatter: " (pr-str formatter) ". Must be :muuntaja."))]
-     ((case formatter
-        :ring-middleware-format ring-middleware-format-api-middleware
-        :muuntaja muuntaja-api-middleware)
-      handler options))))
+                   (str "Invalid :formatter: " (pr-str formatter) ". Must be :muuntaja."))
+         options (api-middleware-options options)
+         {:keys [exceptions components formats middleware ring-swagger coercion]} options
+         muuntaja (create-muuntaja formats)]
+
+     ;; 1.2.0+
+     (assert (not (contains? options :format))
+             (str "ERROR: Option [:format] is not used with 2.* version.\n"
+                  "Compojure-api uses now Muuntaja insted of ring-middleware-format,\n"
+                  "the new formatting options for it should be under [:formats]. See\n"
+                  "[[api-middleware]] documentation for more details.\n"))
+
+     (-> handler
+         (cond-> middleware ((compose-middleware middleware)))
+         (cond-> components (wrap-components components))
+         (cond-> muuntaja (wrap-swagger-data {:consumes (m/decodes muuntaja)
+                                              :produces (m/encodes muuntaja)}))
+         (wrap-inject-data
+           (cond-> {::request/coercion coercion}
+                   muuntaja (assoc ::request/muuntaja muuntaja)
+                   ring-swagger (assoc ::request/ring-swagger ring-swagger)))
+         (cond-> muuntaja (muuntaja.middleware/wrap-params))
+         ;; all but request-parsing exceptions (to make :body-params visible)
+         (cond-> exceptions (wrap-exceptions
+                              (update exceptions :handlers dissoc ::ex/request-parsing)))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-request muuntaja))
+         ;; just request-parsing exceptions
+         (cond-> exceptions (wrap-exceptions
+                              (update exceptions :handlers select-keys [::ex/request-parsing])))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-response muuntaja))
+         (cond-> muuntaja (muuntaja.middleware/wrap-format-negotiate muuntaja))
+
+         ;; these are really slow middleware, 4.5µs => 9.1µs (+100%)
+
+         ;; 7.8µs => 9.1µs (+27%)
+         wrap-keyword-params
+         ;; 7.1µs => 7.8µs (+23%)
+         wrap-nested-params
+         ;; 4.5µs => 7.1µs (+50%)
+         wrap-params))))
 
 (defn wrap-format
   "Muuntaja format middleware. Can be safely mounted on top of multiple api

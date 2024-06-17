@@ -120,15 +120,6 @@
     ([request respond raise]
      (handle-async info request respond raise))))
 
-(defn- create-handler1 [info {:keys [coercion]}]
-  (fn [{:keys [request-method] :as request}]
-    (let [request (if coercion (assoc-in request mw/coercion-request-ks coercion) request)
-          ks (if (contains? info request-method) [request-method] [])]
-      (if-let [handler (resolve-handler info request-method)]
-        (-> (coerce-request request info ks)
-            handler
-            (coerce-response info request ks))))))
-
 (defn- merge-parameters-and-responses [info]
   (let [methods (select-keys info (:methods +mappings+))]
     (-> info
@@ -212,21 +203,13 @@
      :post {}
      :handler (constantly
                 (internal-server-error {:reason \"not implemented\"}))})"
-  ;1.1.x
-  ([info options]
-   (let [info (merge-parameters-and-responses info)
-         root-info (swaggerize (public-root-info info))
-         childs (create-childs info)
-         handler (create-handler1 info options)]
-     (routes/create nil nil root-info childs handler)))
-  ;2.x
-  ([data]
-   (let [data (merge-parameters-and-responses data)
-         public-info (swaggerize (public-root-info data))
-         info (merge {:public public-info} (select-keys data [:coercion]))
-         childs (create-childs data)
-         handler (create-handler data)]
-     (routes/map->Route
-       {:info info
-        :childs childs
-        :handler handler}))))
+  [data]
+  (let [data (merge-parameters-and-responses data)
+        public-info (swaggerize (public-root-info data))
+        info (merge {:public public-info} (select-keys data [:coercion]))
+        childs (create-childs data)
+        handler (create-handler data)]
+    (routes/map->Route
+      {:info info
+       :childs childs
+       :handler handler})))

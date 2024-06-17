@@ -1,7 +1,6 @@
 (ns compojure.api.routes
   (:require [compojure.core :refer :all]
             [clojure.string :as string]
-            [cheshire.core :as cjson]
             [compojure.api.methods :as methods]
             [compojure.api.request :as request]
             [compojure.api.impl.logging :as logging]
@@ -146,22 +145,16 @@
   {:paths
    (reduce
      (fn [acc [path method info]]
-       (if (fn? (:coercion info)) ;; 1.1.x
-         (update-in
-           acc [path method]
-           (fn [old-info]
-             (let [info (or old-info info)]
-               (ensure-path-parameters path info))))
-         (if-not (:no-doc info)
-           (if-let [public-info (->> (get info :public {})
-                                     (coercion/get-apidocs (:coercion info) "swagger"))]
-             (update-in
-               acc [path method]
-               (fn [old-info]
-                 (let [public-info (or old-info public-info)]
-                   (ensure-path-parameters path public-info))))
-             acc)
-       acc)))
+       (if-not (:no-doc info)
+         (if-let [public-info (->> (get info :public {})
+                                   (coercion/get-apidocs (:coercion info) "swagger"))]
+           (update-in
+             acc [path method]
+             (fn [old-info]
+               (let [public-info (or old-info public-info)]
+                 (ensure-path-parameters path public-info))))
+           acc)
+         acc))
      (linked/map)
      routes)})
 
@@ -216,27 +209,22 @@
 (defn- un-quote [s]
   (str/replace s #"^\"(.+(?=\"$))\"$" "$1"))
 
-(defn- path-string
-  ([s params] (path-string nil s params))
-  ([m s params]
-   (-> s
-       (str/replace #":([^/]+)" " :$1 ")
-       (str/split #" ")
-       (->> (map
-              (fn [[head :as token]]
-                (if (= head \:)
-                  (let [key (keyword (subs token 1))
-                        value (key params)]
-                    (if value
-                      (un-quote (if m
-                                  (slurp (m/encode m "application/json" value))
-                                  ;;1.1.x
-                                  (cjson/generate-string value)))
-                      (throw
-                        (IllegalArgumentException.
-                          (str "Missing path-parameter " key " for path " s)))))
-                  token)))
-            (apply str)))))
+(defn- path-string [m s params]
+  (-> s
+      (str/replace #":([^/]+)" " :$1 ")
+      (str/split #" ")
+      (->> (map
+             (fn [[head :as token]]
+               (if (= head \:)
+                 (let [key (keyword (subs token 1))
+                       value (key params)]
+                   (if value
+                     (un-quote (slurp (m/encode m "application/json" value)))
+                     (throw
+                       (IllegalArgumentException.
+                         (str "Missing path-parameter " key " for path " s)))))
+                 token)))
+           (apply str))))
 
 (defn path-for*
   "Extracts the lookup-table from request and finds a route by name."
