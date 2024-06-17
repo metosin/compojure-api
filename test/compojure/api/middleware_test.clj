@@ -40,7 +40,7 @@
 
     (ring.util.test/string-input-stream "foobar") false false))
 
-(def default-options (:exceptions api-middleware-defaults))
+(def default-options (:exceptions api-middleware-defaults-v1))
 
 (facts "wrap-exceptions"
   (with-out-str

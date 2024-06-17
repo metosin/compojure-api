@@ -150,7 +150,7 @@
 ;; Api Middleware
 ;;
 
-(def api-middleware-defaults
+(def api-middleware-defaults-v1
   {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
             :params-opts {}
             :response-opts {}}
@@ -210,7 +210,7 @@
                                    middleware manually.). Defaults to nil (middleware not mounted)."
   ([handler] (api-middleware handler nil))
   ([handler options]
-   (let [options (rsc/deep-merge api-middleware-defaults options)
+   (let [options (rsc/deep-merge api-middleware-defaults-v1 options)
          {:keys [exceptions format components]} options
          {:keys [formats params-opts response-opts]} format]
      ; Break at compile time if there are deprecated options
