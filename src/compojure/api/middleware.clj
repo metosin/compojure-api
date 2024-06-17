@@ -358,7 +358,6 @@
   ([handler options]
    (let [v1? (or (contains? options :format)
                  (seq @rmf-format->muuntaja-formats))
-         _ (prn "rmf" @rmf-format->muuntaja-formats)
          _ (assert v1? "Please require compojure.api.middleware.rmf-muuntaja-adapter for future compatability")
          _ (when v1?
              (assert (not (contains? options :formats))
