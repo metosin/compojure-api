@@ -47,7 +47,9 @@
                                   [metosin/muuntaja-yaml "0.6.6"]
                                   [org.immutant/immutant "2.1.10"]
                                   [http-kit "2.3.0"]
-                                  [criterium "0.4.5"]]
+                                  [criterium "0.4.5"]
+                                  ;; compojure.api.integration-test
+                                  [ring-middleware-format "0.7.4" :exclusions [org.clojure/core.memoize]]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/thingie/src"]}
                    :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
