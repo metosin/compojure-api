@@ -5,9 +5,7 @@
             [compojure.api.coercion.core :as cc]
             [clojure.walk :as walk]
             [schema.core :as s]
-            [compojure.api.common :as common]
-            ;; side effects
-            compojure.api.coercion.register-schema)
+            [compojure.api.common :as common])
   (:import (java.io File)
            (schema.core OptionalKey RequiredKey)
            (schema.utils ValidationError NamedError)))
@@ -34,7 +32,11 @@
   (common/fifo-memoize sc/coercer 1000))
 
 ;; don't use coercion for certain types
-(defmulti coerce-response? identity :default ::default)
+(defmulti coerce-response? #(if (or (class? %)
+                                    (keyword? %))
+                              %
+                              ::default)
+  :default ::default)
 (defmethod coerce-response? ::default [_] true)
 (defmethod coerce-response? File [_] false)
 
@@ -55,9 +57,15 @@
         (update :errors stringify)))
 
   (coerce-request [_ schema value type format request]
-    (let [type-options (options type)]
-      (if-let [matcher (or (get (get type-options :formats) format)
-                           (get type-options :default))]
+    (let [legacy? (fn? options)
+          type-options (if legacy?
+                         (when-let [provider (options request)]
+                           (provider type))
+                         (options type))]
+      (if-let [matcher (if legacy?
+                         type-options
+                         (or (get (get type-options :formats) format)
+                             (get type-options :default)))]
         (let [coerce (memoized-coercer schema matcher)
               coerced (coerce value)]
           (if (su/error? coerced)
@@ -83,6 +91,10 @@
    :response {:default (constantly nil)}})
 
 (defn create-coercion [options]
+  {:pre [(or (map? options)
+             (fn? options))]}
   (->SchemaCoercion :schema options))
 
 (def default-coercion (create-coercion default-options))
+
+(defmethod cc/named-coercion :schema [_] default-coercion)

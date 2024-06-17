@@ -154,9 +154,9 @@
                         Top-level mw are applied first if route matches, method-level
                         mw are applied next if method matches
 
-  - **:coercion**       A function from request->type->coercion-matcher, used
+  - **:coercion**       A named coercion or instance of Coercion
                         in resource coercion for :body, :string and :response.
-                        Setting value to `(constantly nil)` disables both request- &
+                        Setting value to `nil` disables both request- &
                         response coercion. See tests and wiki for details.
 
   Enhancements to ring-swagger operations map:

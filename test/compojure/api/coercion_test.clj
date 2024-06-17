@@ -6,14 +6,17 @@
             [ring.util.http-response :refer :all]
             [clojure.core.async :as a]
             [schema.core :as s]
+            [compojure.api.middleware :as mw]
             [compojure.api.coercion.schema :as cs]))
 
 (defn is-has-body [expected value]
   (is (= (second value) expected)))
 
 (defn is-fails-with [expected-status [status body]]
-  (is (= status expected-status))
-  (is (every? (partial contains? body) [:type :coercion :in :value :schema :errors])))
+  (is (= status expected-status)
+      (pr-str body))
+  (is (every? (partial contains? body) [:type :coercion :in :value :schema :errors])
+      (pr-str body)))
 
 (deftest schema-coercion-test
   (testing "response schemas"
@@ -73,7 +76,15 @@
                         ping-route)]
               (let [[status body] (get* app "/ping")]
                 (is (= 200 status))
-                (is (= {:pong 123} body)))))
+                (is (= {:pong 123} body))))
+            (testing "legacy"
+              (let [app (api
+                          {:formatter :muuntaja
+                           :coercion mw/no-response-coercion}
+                          ping-route)]
+                (let [[status body] (get* app "/ping")]
+                  (is (= 200 status))
+                  (is (= {:pong 123} body))))))
           (testing "all coercion"
             (let [app (api
                         {:coercion nil}
@@ -99,7 +110,7 @@
                                (a/go (ok "foo"))))]
                 (is-fails-with 500 (get* app "/async"))))))))
 
-    (testing "body coersion"
+    (testing "body coercion"
       (let [beer-route (POST "/beer" []
                          :body [body {:beers #{(s/enum "ipa" "apa")}}]
                          (ok body))]
@@ -127,10 +138,34 @@
               (is (= 200 status))
               (is (= {:beers ["ipa" "apa" "ipa"]} body)))))
 
+        (testing "legacy body-coercion can be disabled"
+          (let [no-body-coercion (constantly (dissoc mw/default-coercion-matchers :body))
+                app (api
+                      {:formatter :muuntaja
+                       :coercion no-body-coercion}
+                      beer-route)]
+            (let [[status body] (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]}))]
+              (is (= 200 status))
+              (is (= {:beers ["ipa" "apa" "ipa"]} body))))
+          (let [app (api
+                      {:formatter :muuntaja
+                       :coercion nil}
+                      beer-route)]
+            (let [[status body] (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]}))]
+              (is (= 200 status))
+              (is (= {:beers ["ipa" "apa" "ipa"]} body)))))
+
         (testing "body-coercion can be changed"
           (let [nop-body-coercion (cs/create-coercion (assoc cs/default-options :body {:default (constantly nil)}))
                 app (api
                       {:coercion nop-body-coercion}
+                      beer-route)]
+            (is-fails-with 400 (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]})))))
+        (testing "legacy body-coercion can be changed"
+          (let [nop-body-coercion (constantly (assoc mw/default-coercion-matchers :body (constantly nil)))
+                app (api
+                      {:formatter :muuntaja
+                       :coercion nop-body-coercion}
                       beer-route)]
             (is-fails-with 400 (post* app "/beer" (json-string {:beers ["ipa" "apa" "ipa"]})))))))
 
@@ -156,10 +191,28 @@
               (is (= 200 status))
               (is (= {:i "10"} body)))))
 
+        (testing "legacy query-coercion can be disabled"
+          (let [no-query-coercion (constantly (dissoc mw/default-coercion-matchers :string))
+                app (api
+                      {:formatter :muuntaja
+                       :coercion no-query-coercion}
+                      query-route)]
+            (let [[status body] (get* app "/query" {:i 10})]
+              (is (= 200 status))
+              (is (= {:i "10"} body)))))
+
         (testing "query-coercion can be changed"
           (let [nop-query-coercion (cs/create-coercion (assoc cs/default-options :string {:default (constantly nil)}))
                 app (api
                       {:coercion nop-query-coercion}
+                      query-route)]
+            (is-fails-with 400 (get* app "/query" {:i 10}))))
+
+        (testing "legacy query-coercion can be changed"
+          (let [nop-query-coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
+                app (api
+                      {:formatter :muuntaja
+                       :coercion nop-query-coercion}
                       query-route)]
             (is-fails-with 400 (get* app "/query" {:i 10}))))))
 
@@ -201,6 +254,52 @@
         (testing "no coercion"
           (let [[status body] (get* app "/no-coercion" {:i 10})]
             (is (= 200 status))
+            (is (= {:i "10"} body))))))
+    (testing "legacy route-specific coercion"
+      (let [app (api
+                  {:formatter :muuntaja}
+                  (GET "/default" []
+                    :query-params [i :- s/Int]
+                    (ok {:i i}))
+                  (GET "/disabled-coercion" []
+                    :coercion (constantly (assoc mw/default-coercion-matchers :string (constantly nil)))
+                    :query-params [i :- s/Int]
+                    (ok {:i i}))
+                  (GET "/no-coercion" []
+                    :coercion (constantly nil)
+                    :query-params [i :- s/Int]
+                    (ok {:i i}))
+                  (GET "/nil-coercion" []
+                    :coercion nil
+                    :query-params [i :- s/Int]
+                    (ok {:i i})))]
+
+        (testing "default coercion"
+          (let [[status body] (get* app "/default" {:i 10})]
+            (is (= 200 status))
+            (is (= {:i 10} body))))
+
+        (testing "disabled coercion"
+          (is-fails-with 400 (get* app "/disabled-coercion" {:i 10})))
+
+        (testing "exception data"
+          (let [ex (get* app "/disabled-coercion" {:i 10})]
+            (is (= 400 (first ex)))
+            (is (= {:type "compojure.api.exception/request-validation"
+                    :coercion "schema",
+                    :in ["request" "query-params"],
+                    :value {:i "10"}
+                    :schema "{Keyword Any, :i Int}",
+                    :errors {:i "(not (integer? \"10\"))"}}
+                   (select-keys (second ex)
+                                [:type :coercion :in :value :schema :errors])))))
+
+        (testing "no coercion"
+          (let [[status body] (get* app "/no-coercion" {:i 10})]
+            (is (= 200 status))
+            (is (= {:i "10"} body)))
+          (let [[status body] (get* app "/nil-coercion" {:i 10})]
+            (is (= 200 status))
             (is (= {:i "10"} body)))))))
 
   (testing "apiless coercion"
@@ -222,6 +321,19 @@
                   :query-params [{y :- Long 0}]
                   (GET "/ping" []
                     :coercion nil
+                    :query-params [x :- Long]
+                    (ok [x y])))]
+        (is (thrown? Exception (app {:request-method :get :uri "/api/ping" :query-params {}})))
+        (is (= ["abba" 0] (:body (app {:request-method :get :uri "/api/ping" :query-params {:x "abba"}}))))
+        (is (= ["1" 0] (:body (app {:request-method :get :uri "/api/ping" :query-params {:x "1"}}))))
+        (is (= ["1" 2] (:body (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y 2}}))))
+        (is (thrown? Exception (app {:request-method :get :uri "/api/ping" :query-params {:x "1", :y "abba"}})))))
+
+    (testing "legacy coercion can be overridden"
+      (let [app (context "/api" []
+                  :query-params [{y :- Long 0}]
+                  (GET "/ping" []
+                    :coercion (constantly nil)
                     :query-params [x :- Long]
                     (ok [x y])))]
         (is (thrown? Exception (app {:request-method :get :uri "/api/ping" :query-params {}})))

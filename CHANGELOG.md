@@ -1,9 +1,12 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
 ## 2.0.0-alpha34-SNAPSHOT
-* Lazily load spec and schema coercion
 * bump spec-tools to 0.10.6
   * notable changes: swagger `:name` defaults to `"body"` instead of `""` ([diff](https://github.com/metosin/spec-tools/compare/0.10.2...0.10.3))
+* Add compatibility for 1.x coercions
+  * implies Schema backend
+  * fn from request->field->schema->coercer
+  * mostly often just `(constantly nil)` or (constantly {:body matcher})
 * **BREAKING**: removed `api-defaults` vars
   * add `-v2` suffix to vars
 

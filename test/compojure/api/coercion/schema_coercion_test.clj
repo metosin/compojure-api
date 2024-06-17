@@ -284,3 +284,10 @@
 
     (testing "generates valid swagger spec"
       (is (validator/validate app)))))
+
+(def some-spec (s/conditional
+                 identity s/Int))
+(defmethod cs/coerce-response? some-spec [_] false)
+
+(deftest coerce-response-memory-leak-test
+  (is (true? (cs/coerce-response? some-spec))))
