@@ -38,7 +38,7 @@
                        :compojure.api.meta/serializable? ?serializable?})
              ?res)))))
 
-(def default-options (:exceptions api-middleware-defaults))
+(def default-options (:exceptions api-middleware-defaults-v2))
 
 (defn- call-async [handler request]
   (let [result (promise)]

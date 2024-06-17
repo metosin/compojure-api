@@ -1,16 +1,11 @@
 See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
 
-## Next
+## 2.0.0-alpha34-SNAPSHOT
 * Lazily load spec and schema coercion
 * bump spec-tools to 0.10.6
   * notable changes: swagger `:name` defaults to `"body"` instead of `""` ([diff](https://github.com/metosin/spec-tools/compare/0.10.2...0.10.3))
-
-## 2.0.0-alpha34-SNAPSHOT
-* **BREAKING CHANGE**: `:formatter :muuntaja` sometimes required for `api{-middleware}` options
-  * to prepare for 1.x compatibility, :muuntaja must be explicitly configured
-  * Migration instructions: run your program and fix the error messages, which will provide specific instructions.
-  * to circumvent this change, set `-Dcompojure.api.middleware.global-default-formatter=:muuntaja`
-  * stable 2.x will default `:formatter` to `:ring-middleware-format`
+* **BREAKING**: removed `api-defaults` vars
+  * add `-v2` suffix to vars
 
 ## 2.0.0-alpha33 (2024-04-30)
 * Throw an error on malformed `:{body,query,headers}`, in particular if anything other than 2 elements was provided

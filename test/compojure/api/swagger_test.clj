@@ -183,7 +183,7 @@
             [[{} "/swagger.json" "/" {:data {:basePath "/app"}} "/app/swagger.json" "/app"]
              [{:data {:basePath "/app"} :options {:ui {:swagger-docs "/imaginary.json"}}} "/imaginary.json" "/app"]]]
       (testing (pr-str test-case)
-        (let [app (api {:formatter :muuntaja} (swagger-routes ?given-options))]
+        (let [app (api {} (swagger-routes ?given-options))]
           (is (= (->
                    (get* app "/swagger.json")
                    (nth 1)

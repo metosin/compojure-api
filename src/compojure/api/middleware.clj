@@ -188,6 +188,30 @@
        (apply comp identity)))
 
 ;;
+;; ring-middleware-format stuff
+;;
+
+(def ^:private default-mime-types
+  {:json "application/json"
+   :json-kw "application/json"
+   :edn "application/edn"
+   :clojure "application/clojure"
+   :yaml "application/x-yaml"
+   :yaml-kw "application/x-yaml"
+   :yaml-in-html "text/html"
+   :transit-json "application/transit+json"
+   :transit-msgpack "application/transit+msgpack"})
+
+(defn mime-types
+  [format]
+  (get default-mime-types format
+       (some-> format :content-type)))
+
+(def ^:private response-only-mimes #{:clojure :yaml-in-html})
+
+(defn ->mime-types [formats] (keep mime-types formats))
+
+;;
 ;; swagger-data
 ;;
 
@@ -216,9 +240,20 @@
 ;; Api Middleware
 ;;
 
-(def api-middleware-defaults
-  {::api-middleware-defaults true
-   :formats ::default
+(def api-middleware-defaults-v1
+  {:format {:formats [:json-kw :yaml-kw :edn :transit-json :transit-msgpack]
+            :params-opts {}
+            :response-opts {}}
+   :exceptions {:handlers {:ring.util.http-response/response ex/http-response-handler
+                           ::ex/request-validation ex/request-validation-handler
+                           ::ex/request-parsing ex/request-parsing-handler
+                           ::ex/response-validation ex/response-validation-handler
+                           ::ex/default ex/safe-handler}}
+   :coercion (constantly default-coercion-matchers)
+   :ring-swagger nil})
+
+(def api-middleware-defaults-v2
+  {:formats ::default
    :exceptions {:handlers {:ring.util.http-response/response ex/http-response-handler
                            ::ex/request-validation ex/request-validation-handler
                            ::ex/request-parsing ex/request-parsing-handler
@@ -228,8 +263,11 @@
    :coercion coercion/default-coercion
    :ring-swagger nil})
 
-(defn api-middleware-options [options]
-  (rsc/deep-merge api-middleware-defaults options))
+(defn api-middleware-options-v1 [options]
+  (rsc/deep-merge api-middleware-defaults-v1 options))
+
+(defn api-middleware-options-v2 [options]
+  (rsc/deep-merge api-middleware-defaults-v2 options))
 
 ;; TODO: test all options! (https://github.com/metosin/compojure-api/issues/137)
 (defn api-middleware
@@ -256,15 +294,6 @@
 
   ### Options
 
-  - **:formatter**                 either :ring-middleware-format or :muuntaja.
-                                   During 2.x pre-releases, this will be a required key, unless
-                                   :formats is provided, which is equivalent to setting to :muuntaja.
-                                   Stable 2.x releases will default to :ring-middleware-format if
-                                   not provided or :format is set, unless :formats is provided,
-                                   which is equivalent to setting to :muuntaja.
-                                   Stable 2.x will print a deprecation warning if implicitly
-                                   or explicitly set to :ring-middleware-format.
-
   - **:exceptions**                for *compojure.api.middleware/wrap-exceptions* (nil to unmount it)
       - **:handlers**                Map of error handlers for different exception types, type refers to `:type` key in ExceptionInfo data.
 
@@ -286,42 +315,11 @@
                                    :components restructuring. (If you are using api,
                                    you might want to take look at using wrap-components
                                    middleware manually.). Defaults to nil (middleware not mounted)."
-  ([handler]
-   (throw (ex-info (str "ERROR: Please set `:formatter :muuntaja` in the options map of `api-middleware.\n"
-                        "e.g., (api-middleware <handler> {:formatter :muuntaja})\n"
-                        "To prepare for backwards compatibility with compojure-api 1.x, the formatting library must be \n"
-                        "explicitly chosen if not configured by `:format` (ring-middleware-format) or\n"
-                        "`:formats` (muuntaja). Once 2.x is stable, the default will be `:formatter :ring-middleware-format`.")
-                   {}))
-   (api-middleware handler api-middleware-defaults))
+  ([handler] (api-middleware handler api-middleware-defaults-v2))
   ([handler options]
-   (when (and (::api-middleware-defaults options)
-              (not (:formatter options))
-              (not (System/getProperty "compojure.api.middleware.global-default-formatter")))
-     (throw (ex-info (str "ERROR: Please set `:formatter :muuntaja` in the options map of `api-middleware.\n"
-                          "e.g., (api-middleware <handler> {:formatter :muuntaja})\n"
-                          "To prepare for backwards compatibility with compojure-api 1.x, the formatting library must be\n"
-                          "explicitly chosen if not configured by `:format` (ring-middleware-format) or\n"
-                          ":formats (muuntaja). Once 2.x is stable, the default will be `:formatter :ring-middleware-format`.\n"
-                          "To globally override the default formatter, use -Dcompojure.api.middleware.global-default-formatter=:muuntaja")
-                     {})))
-   (let [formatter (or (:formatter options)
-                       (when (or (contains? options :formats)
-                                 (= (System/getProperty "compojure.api.middleware.global-default-formatter")
-                                    ":muuntaja"))
-                         :muuntaja)
-                       (throw (ex-info (str "ERROR: Please set `:formatter :muuntaja` in the options map of `api-middleware.\n"
-                                            "e.g., (api-middleware <handler> {:formatter :muuntaja})\n"
-                                            "To prepare for backwards compatibility with compojure-api 1.x, the formatting library must be\n"
-                                            "explicitly chosen if not configured by `:format` (ring-middleware-format) or\n"
-                                            ":formats (muuntaja). Once 2.x is stable, the default will be `:formatter :ring-middleware-format`.\n"
-                                            "To globally override the default formatter, use -Dcompojure.api.middleware.global-default-formatter=:muuntaja")
-                                       {}))
-                       ;; TODO 2.x stable
-                       :ring-middleware-format)
-         _ (assert (= :muuntaja formatter)
-                   (str "Invalid :formatter: " (pr-str formatter) ". Must be :muuntaja."))
-         options (api-middleware-options options)
+   (let [options (if (:format options)
+                   (assert (not (:format options)))
+                   (api-middleware-options-v2 options))
          {:keys [exceptions components formats middleware ring-swagger coercion]} options
          muuntaja (create-muuntaja formats)]
 

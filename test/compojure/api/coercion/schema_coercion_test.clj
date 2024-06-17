@@ -150,8 +150,7 @@
 
 (deftest apis-test
   (let [app (api
-              {:formatter :muuntaja
-               :swagger {:spec "/swagger.json"}
+              {:swagger {:spec "/swagger.json"}
                :coercion :schema}
 
               (POST "/body" []

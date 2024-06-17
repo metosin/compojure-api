@@ -18,8 +18,7 @@
 
 (def app
   (api
-    {:formatter :muuntaja
-     :swagger {:spec "/swagger.json"
+    {:swagger {:spec "/swagger.json"
                :data {:info {:version "1.0.0"
                              :title "Sausages"
                              :description "Sausage description"
@@ -211,8 +210,7 @@
 
 (deftest produces-and-consumes-test
   (let [app (api
-              {:formatter :muuntaja
-               :swagger {:spec "/swagger.json"
+              {:swagger {:spec "/swagger.json"
                          :data {:produces ["application/json" "application/edn"]
                                 :consumes ["application/json" "application/edn"]}}}
               ping-route)]

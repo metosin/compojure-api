@@ -29,8 +29,7 @@
 
 (def app
   (api
-    {:formatter :muuntaja
-     :swagger
+    {:swagger
      {:ui "/"
       :spec "/swagger.json"
       :data {:info {:title "Futomaki"

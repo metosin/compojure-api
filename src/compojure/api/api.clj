@@ -9,9 +9,16 @@
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]))
 
-(def api-defaults
+(def api-defaults-v1
   (merge
-    mw/api-middleware-defaults
+    mw/api-middleware-defaults-v1
+    {:api {:invalid-routes-fn routes/log-invalid-child-routes
+           :disable-api-middleware? false}
+     :swagger {:ui nil, :spec nil}}))
+
+(def api-defaults-v2
+  (merge
+    mw/api-middleware-defaults-v2
     {:api {:invalid-routes-fn routes/log-invalid-child-routes
            :disable-api-middleware? false}
      :swagger {:ui nil, :spec nil}}))
@@ -58,17 +65,9 @@
                        "Compojure-api uses now Muuntaja insted of ring-middleware-format,\n"
                        "the new formatting options for it should be under [:formats]. See\n"
                        "[[api-middleware]] documentation for more details.\n"))
-        _ (when (and (not (:formatter options))
-                     (not (contains? options :formats))
-                     (not (System/getProperty "compojure.api.middleware.global-default-formatter")))
-            (throw (ex-info (str "ERROR: Please set `:formatter :muuntaja` in the options map of `api`.\n"
-                                 "e.g., (api {:formatter :muuntaja} routes...)\n"
-                                 "To prepare for backwards compatibility with compojure-api 1.x, the formatting library must be\n"
-                                 "explicitly chosen if not configured by `:format` (ring-middleware-format) or \n"
-                                 "`:formats` (muuntaja). Once 2.x is stable, the default will be `:formatter :ring-middleware-format`.\n"
-                                 "To globally override the formatter, use -Dcompojure.api.middleware.global-default-formatter=:muuntaja")
-                            {})))
-        options (rsc/deep-merge api-defaults options)
+        options (if (:format options)
+                  (assert nil ":format")
+                  (rsc/deep-merge api-defaults-v2 options))
         handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
         partial-api-route (routes/map->Route
                             {:childs [handler]
@@ -78,8 +77,8 @@
         lookup (routes/route-lookup-table routes)
         swagger-data (get-in options [:swagger :data])
         enable-api-middleware? (not (get-in options [:api :disable-api-middleware?]))
-        api-middleware-options (dissoc (mw/api-middleware-options (assoc (dissoc options :api :swagger) ::via-api true))
-                                       ::mw/api-middleware-defaults)
+        api-middleware-options ((if (:format options) mw/api-middleware-options-v1 mw/api-middleware-options-v2)
+                                (dissoc options :api :swagger))
         api-handler (-> handler
                         (cond-> swagger-data (rsm/wrap-swagger-data swagger-data))
                         (cond-> enable-api-middleware? (mw/api-middleware
