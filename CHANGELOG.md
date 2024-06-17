@@ -462,7 +462,7 @@ Maintenance 1.1 release, adding several patches from 2.0 branch.
 (require '[muuntaja.format.msgpack :as msgpack-format])
 
 (api
-  {:formats (-> muuntaja/default-options)
+  {:formats (-> muuntaja/default-options
                 (yaml-format/with-yaml-format)
                 (msgpack-format/with-msgpack-format))}
   ...)
