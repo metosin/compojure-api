@@ -4,8 +4,8 @@
             [compojure.api.request :as request]
             [compojure.api.coercion.core :as cc]
             ;; side effects
-            compojure.api.coercion.register-schema
-            compojure.api.coercion.register-spec)
+            compojure.api.coercion.schema
+            compojure.api.coercion.spec)
   (:import (compojure.api.coercion.core CoercionError)))
 
 (def default-coercion :schema)

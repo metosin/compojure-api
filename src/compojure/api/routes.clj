@@ -10,7 +10,8 @@
             [linked.core :as linked]
             [compojure.response]
             [schema.core :as s])
-  (:import [clojure.lang AFn IFn Var]))
+  (:import (clojure.lang AFn IFn Var IDeref)
+           (java.io Writer)))
 
 ;;
 ;; Route records
@@ -47,6 +48,19 @@
        (update-in route [0] (fn [uri] (if (str/blank? uri) "/" uri))))
      (-get-routes handler options))))
 
+(defn get-static-context-routes
+  ([handler]
+   (get-static-context-routes handler nil))
+  ([handler options]
+   (filter (fn [[_ _ info]] (get info :static-context?))
+           (get-routes handler options))))
+
+(defn- realize-childs [route]
+  (update route :childs #(if (instance? IDeref %) @% %)))
+
+(defn- filter-childs [route]
+  (update route :childs (partial filter (partial satisfies? Routing))))
+
 (defrecord Route [path method info childs handler]
   Routing
   (-get-routes [this options]
@@ -72,11 +86,24 @@
   IFn
   (invoke [_ request]
     (handler request))
+  (invoke [_ request respond raise]
+    (handler request respond raise))
+
   (applyTo [this args]
     (AFn/applyToHelper this args)))
 
 (defn create [path method info childs handler]
   (->Route path method info childs handler))
+
+(defmethod print-method Route
+  [this ^Writer w]
+  (let [childs (some-> this realize-childs filter-childs :childs seq vec)]
+    (.write w (str "#Route"
+                   (cond-> (dissoc this :handler :childs)
+                           (not (:path this)) (dissoc :path)
+                           (not (seq (:info this))) (dissoc :info)
+                           (not (:method this)) (dissoc :method)
+                           childs (assoc :childs childs))))))
 
 ;;
 ;; Invalid route handlers
