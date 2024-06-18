@@ -295,7 +295,7 @@
 
 (defn- v1->v2 [options]
   (let [{:keys [format] :as options} (api-middleware-options-v1 options)]
-    (-> m/default-options
+    (-> options
         (assoc :formats (when (some? format)
                           (update m/default-options :formats into (format->formats format))))
         (dissoc :format))))
