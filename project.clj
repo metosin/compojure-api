@@ -5,6 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
+  :exclusions [frankiesardo/linked]
   :dependencies [[prismatic/schema "1.1.12"]
                  [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original

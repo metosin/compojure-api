@@ -85,8 +85,7 @@ metosin:compojure-api:jar:2.0.0-alpha34-SNAPSHOT
 |  |     \- net.sf.jopt-simple:jopt-simple:jar:5.0.3:compile
 |  +- (clj-time:clj-time:jar:0.15.1:compile - omitted for conflict with 0.15.2)
 |  +- org.tobereplaced:lettercase:jar:1.0.0:compile
-|  +- (potemkin:potemkin:jar:0.4.5:compile - omitted for duplicate)
-|  \- frankiesardo:linked:jar:1.3.0:compile
+|  \- (potemkin:potemkin:jar:0.4.5:compile - omitted for duplicate)
 +- clj-time:clj-time:jar:0.15.2:compile
 |  \- (joda-time:joda-time:jar:2.10:compile - omitted for conflict with 2.10.5)
 +- joda-time:joda-time:jar:2.10.5:compile
