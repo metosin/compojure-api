@@ -45,7 +45,7 @@ jobs:
       - name: Setup Babashka
         run: bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
       - name: Check dependabot is in sync with project.clj
-        run: ./script/check-dependabot
+        run: ./scripts/check-dependabot
       - name: Run tests
         run: lein do clean, all test, all check
   deploy:
