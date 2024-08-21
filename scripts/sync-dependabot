@@ -4,7 +4,7 @@ set -xe
 
 SHA=$(git rev-parse HEAD)
 
-lein pom
+lein with-profile -dev pom
 mkdir -p dependabot
 mv pom.xml dependabot
 # lein pom uses the origin git remote to add metadata. remove for reproducibility.

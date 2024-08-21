@@ -18,7 +18,7 @@
   
   <build>
     <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test19</testSourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
     <resources>
       <resource>
         <directory>resources</directory>
@@ -31,27 +31,7 @@
     </testResources>
     <directory>target</directory>
     <outputDirectory>target/classes</outputDirectory>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>add-test-source</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>test</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
+    <plugins/>
   </build>
   <repositories>
     <repository>
@@ -232,174 +212,6 @@
           <groupId>frankiesardo</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <version>1.9.0</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>core.unify</artifactId>
-      <version>0.6.0</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>core.async</artifactId>
-      <version>0.6.532</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>4.0.1</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>peridot</groupId>
-      <artifactId>peridot</artifactId>
-      <version>0.5.2</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.stuartsierra</groupId>
-      <artifactId>component</artifactId>
-      <version>0.4.0</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>expound</groupId>
-      <artifactId>expound</artifactId>
-      <version>0.8.2</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>metosin</groupId>
-      <artifactId>jsonista</artifactId>
-      <version>0.2.5</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>reloaded.repl</groupId>
-      <artifactId>reloaded.repl</artifactId>
-      <version>0.2.4</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>metosin</groupId>
-      <artifactId>muuntaja-msgpack</artifactId>
-      <version>0.6.6</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>metosin</groupId>
-      <artifactId>muuntaja-yaml</artifactId>
-      <version>0.6.6</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant</artifactId>
-      <version>2.1.10</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>http-kit</groupId>
-      <artifactId>http-kit</artifactId>
-      <version>2.3.0</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>criterium</groupId>
-      <artifactId>criterium</artifactId>
-      <version>0.4.5</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>linked</artifactId>
-          <groupId>frankiesardo</groupId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
