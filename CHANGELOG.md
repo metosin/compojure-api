@@ -9,6 +9,7 @@ See also: [compojure-api 1.1.x changelog](./CHANGELOG-1.1.x.md)
   * mostly often just `(constantly nil)` or (constantly {:body matcher})
 * **BREAKING**: removed `api-defaults` vars
   * add `-v2` suffix to vars
+* exclude frankiesardo/linked [#476](https://github.com/metosin/compojure-api/issues/476)
 
 ## 2.0.0-alpha33 (2024-04-30)
 * Throw an error on malformed `:{body,query,headers}`, in particular if anything other than 2 elements was provided
