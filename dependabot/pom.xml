@@ -117,7 +117,7 @@
     <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-core</artifactId>
-      <version>1.8.0</version>
+      <version>1.12.2</version>
       <exclusions>
         <exclusion>
           <artifactId>linked</artifactId>
