@@ -1,0 +1,60 @@
+metosin:compojure-api:jar:2.0.0-alpha34-SNAPSHOT
++- prismatic:schema:jar:1.1.12:compile
++- prismatic:plumbing:jar:0.5.5:compile
+|  \- de.kotka:lazymap:jar:3.1.0:compile
++- ikitommi:linked:jar:1.3.1-alpha1:compile
++- metosin:muuntaja:jar:0.6.6:compile
+|  +- metosin:jsonista:jar:0.2.5:compile
+|  |  \- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.10.0:compile
+|  \- com.cognitect:transit-clj:jar:0.8.319:compile
+|     \- com.cognitect:transit-java:jar:0.8.337:compile
+|        +- org.msgpack:msgpack:jar:0.6.12:compile
+|        |  +- com.googlecode.json-simple:json-simple:jar:1.1.1:compile
+|        |  \- org.javassist:javassist:jar:3.18.1-GA:compile
+|        \- javax.xml.bind:jaxb-api:jar:2.3.0:compile
++- com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.10.1:compile
+|  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.10.1:compile
+|  +- com.fasterxml.jackson.core:jackson-core:jar:2.10.1:compile
+|  \- com.fasterxml.jackson.core:jackson-databind:jar:2.10.1:compile
++- ring:ring-core:jar:1.8.0:compile
+|  +- ring:ring-codec:jar:1.1.2:compile
+|  |  \- commons-codec:commons-codec:jar:1.11:compile
+|  +- commons-io:commons-io:jar:2.6:compile
+|  +- commons-fileupload:commons-fileupload:jar:1.4:compile
+|  +- crypto-random:crypto-random:jar:1.2.0:compile
+|  \- crypto-equality:crypto-equality:jar:1.0.0:compile
++- compojure:compojure:jar:1.6.1:compile
+|  +- org.clojure:tools.macro:jar:0.1.5:compile
+|  +- clout:clout:jar:2.2.1:compile
+|  |  \- instaparse:instaparse:jar:1.4.8:compile
+|  \- medley:medley:jar:1.0.0:compile
++- metosin:spec-tools:jar:0.10.6:compile
+|  \- org.clojure:spec.alpha:jar:0.3.218:compile
++- metosin:ring-http-response:jar:0.9.1:compile
+|  \- potemkin:potemkin:jar:0.4.5:compile
+|     \- clj-tuple:clj-tuple:jar:0.2.2:compile
++- metosin:ring-swagger-ui:jar:3.24.3:compile
++- metosin:ring-swagger:jar:1.0.0:compile
+|  +- cheshire:cheshire:jar:5.8.1:compile
+|  |  +- com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.9.6:compile
+|  |  +- com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.9.6:compile
+|  |  \- tigris:tigris:jar:0.1.1:compile
+|  +- metosin:schema-tools:jar:0.11.0:compile
+|  +- metosin:scjsv:jar:0.5.0:compile
+|  |  \- com.github.java-json-tools:json-schema-validator:jar:2.2.10:compile
+|  |     +- com.github.java-json-tools:json-schema-core:jar:1.2.10:compile
+|  |     |  +- com.github.java-json-tools:jackson-coreutils:jar:1.9:compile
+|  |     |  |  +- com.google.guava:guava:jar:16.0.1:compile
+|  |     |  |  \- com.github.fge:msg-simple:jar:1.1:compile
+|  |     |  |     \- com.github.fge:btf:jar:1.2:compile
+|  |     |  +- com.github.fge:uri-template:jar:0.9:compile
+|  |     |  \- org.mozilla:rhino:jar:1.7.7.1:compile
+|  |     +- javax.mail:mailapi:jar:1.4.3:compile
+|  |     |  \- javax.activation:activation:jar:1.1:compile
+|  |     +- com.googlecode.libphonenumber:libphonenumber:jar:8.0.0:compile
+|  |     +- com.google.code.findbugs:jsr305:jar:3.0.1:compile
+|  |     \- net.sf.jopt-simple:jopt-simple:jar:5.0.3:compile
+|  \- org.tobereplaced:lettercase:jar:1.0.0:compile
++- clj-time:clj-time:jar:0.15.2:compile
++- joda-time:joda-time:jar:2.10.5:compile
+\- riddley:riddley:jar:0.2.0:compile

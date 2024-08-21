@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -xe
+
+SHA=$(git rev-parse HEAD)
+
+lein with-profile -dev pom
+mkdir -p dependabot
+mv pom.xml dependabot
+# lein pom uses the origin git remote to add metadata. remove for reproducibility.
+bb '(spit "dependabot/pom.xml" (-> "dependabot/pom.xml" slurp xml/parse-str (update :content (partial remove #(some-> % :tag name #{"scm" "url"}))) xml/emit-str))'
+cd dependabot
+mvn --no-transfer-progress dependency:tree -Dexcludes=org.clojure:clojure -DoutputFile=dependency-tree.txt
+mvn --no-transfer-progress dependency:tree -Dverbose -Dexcludes=org.clojure:clojure -DoutputFile=verbose-dependency-tree.txt
