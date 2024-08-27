@@ -1,0 +1,19 @@
+{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        metosin/compojure-api {:local/root "../.."}}
+ :aliases {:dev {:extra-paths ["test"]}
+           :clj-kondo
+           {:replace-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
+            :main-opts ["-m" "clj-kondo.main"]}
+           :test {:extra-deps {io.github.cognitect-labs/test-runner 
+                               {:git/tag "v0.5.0" :git/sha "b3fd0d2"}}
+                  :main-opts ["-m" "cognitect.test-runner"]
+                  :exec-fn cognitect.test-runner.api/test}
+           :nREPL
+           {:extra-deps
+            {cider/cider-nrepl {:mvn/version "0.28.2"},
+             cider/piggieback {:mvn/version "0.5.3"},
+             net.cgrand/parsley {:mvn/version "0.9.3"},
+             nrepl/nrepl {:mvn/version "0.8.3"},
+             reply/reply {:mvn/version "0.5.1"}},
+            :jvm-opts ["-XX:-OmitStackTraceInFastThrow"]
+            :main-opts ["-m" "nrepl.cmdline" "--interactive"]}}}

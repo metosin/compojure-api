@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./script/clj-kondo --lint src --config '{:output {:format :text :summary false}}'

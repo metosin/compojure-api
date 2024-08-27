@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+./script/prep-lint
+set +e
+./script/lint > output/actual-output 
+set -e
+diff output/expected-output output/actual-output
