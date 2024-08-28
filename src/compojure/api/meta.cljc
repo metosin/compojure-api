@@ -217,13 +217,13 @@
 ;;
 
 (defmacro dummy-let
-  "Dummy let-macro used in resolving route-docs. not part of normal invokation chain."
+  "Dummy let-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
   (let [bind-form (vec (apply concat (for [n (take-nth 2 bindings)] [n nil])))]
     `(let ~bind-form ~@body)))
 
 (defmacro dummy-letk
-  "Dummy letk-macro used in resolving route-docs. not part of normal invokation chain."
+  "Dummy letk-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
   (reduce
     (fn [cur-body-form [bind-form]]
@@ -270,7 +270,7 @@
                 (str "unknown compojure destruction syntax: " arg))))))
 
 (defn merge-parameters
-  "Merge parameters at runtime to allow usage of runtime-paramers with route-macros."
+  "Merge parameters at runtime to allow usage of runtime-parameters with route-macros."
   [{:keys [responses swagger] :as parameters}]
   (cond-> parameters
           (seq responses) (assoc :responses (common/merge-vector responses))
