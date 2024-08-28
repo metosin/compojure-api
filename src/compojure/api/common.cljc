@@ -1,5 +1,6 @@
 (ns compojure.api.common
-  (:require [linked.core :as linked]))
+  #?@(:bb []
+      :default [(:require [linked.core :as linked])]))
 
 (defn plain-map?
   "checks whether input is a map, but not a record"
@@ -51,6 +52,8 @@
     x
     y))
 
+#?(:bb nil
+   :default
 (defn fifo-memoize [f size]
   "Returns a memoized version of a referentially transparent f. The
   memoized version of the function keeps a cache of the mapping from arguments
@@ -66,6 +69,7 @@
                                (dissoc mem (-> mem first first))
                                mem))))
             value)))))
+)
 
 ;; NB: when-ns eats all exceptions inside the body, including those about
 ;; unresolvable symbols. Keep this in mind when debugging the definitions below.

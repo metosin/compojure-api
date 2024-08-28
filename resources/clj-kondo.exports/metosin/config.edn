@@ -1,0 +1,3 @@
+{:hooks
+ {:macroexpand
+  {compojure.api.core/defroutes compojure.api.core/defroutes}}}
