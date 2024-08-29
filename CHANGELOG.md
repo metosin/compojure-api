@@ -1,9 +1,10 @@
 ## NEXT
-
-## NEXT
 * drop support for Clojure 1.8
 * upgrade cheshire 5.13.0
 * Backport: use muuntaja in compojure.api.validator
+* **BREAKING**: removed `api-defaults` vars
+  * add `-v1` suffix to vars
+* Backport arity checks for `:body`, `:query`, `:headers
 
 ## 1.1.14 (2024-04-30)
 * Remove potemkin [#445](https://github.com/metosin/compojure-api/issues/445)

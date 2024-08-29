@@ -85,7 +85,7 @@
 ; :swagger {:responses {200 {:schema User}
 ;                       404 {:schema Error
 ;                            :description "Not Found"} }
-;           :paramerers {:query {:q s/Str}
+;           :parameters {:query {:q s/Str}
 ;                        :body NewUser}}}
 (defmethod restructure-param :swagger [_ swagger acc]
   (assoc-in acc [:swagger :swagger] swagger))
@@ -128,7 +128,11 @@
 ; second is the Schema to be coerced! against.
 ; Examples:
 ; :body [user User]
-(defmethod restructure-param :body [_ [value schema] acc]
+(defmethod restructure-param :body [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-body"))
+    (assert (= 2 (count bv))
+            (str ":body should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-body=true")))
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :body-params :body)])
       (assoc-in [:swagger :parameters :body] schema)))
@@ -137,7 +141,11 @@
 ; second is the Schema to be coerced! against.
 ; Examples:
 ; :query [user User]
-(defmethod restructure-param :query [_ [value schema] acc]
+(defmethod restructure-param :query [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-query"))
+    (assert (= 2 (count bv))
+            (str ":query should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-query=true")))
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
       (assoc-in [:swagger :parameters :query] schema)))
@@ -146,7 +154,12 @@
 ; second is the Schema to be coerced! against.
 ; Examples:
 ; :headers [headers Headers]
-(defmethod restructure-param :headers [_ [value schema] acc]
+(defmethod restructure-param :headers [_ [value schema :as bv] acc]
+  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-headers"))
+    (assert (= 2 (count bv))
+            (str ":headers should be [sym schema], provided: " bv
+                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-headers=true")))
+
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :headers :string)])
       (assoc-in [:swagger :parameters :header] schema)))

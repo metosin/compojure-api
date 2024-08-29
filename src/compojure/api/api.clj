@@ -8,9 +8,9 @@
             [ring.swagger.common :as rsc]
             [ring.swagger.middleware :as rsm]))
 
-(def api-defaults
+(def api-defaults-v1
   (merge
-    middleware/api-middleware-defaults
+    middleware/api-middleware-defaults-v1
     {:api {:invalid-routes-fn routes/log-invalid-child-routes
            :disable-api-middleware? false}
      :swagger {:ui nil, :spec nil}}))
@@ -51,7 +51,7 @@
   api
   [& body]
   (let [[options handlers] (common/extract-parameters body false)
-        options (rsc/deep-merge api-defaults options)
+        options (rsc/deep-merge api-defaults-v1 options)
         handler (apply c/routes (concat [(swagger/swagger-routes (:swagger options))] handlers))
         routes (routes/get-routes handler (:api options))
         paths (-> routes routes/ring-swagger-paths swagger/transform-operations)
