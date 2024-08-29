@@ -84,7 +84,7 @@
 ; :swagger {:responses {200 {:schema User}
 ;                       404 {:schema Error
 ;                            :description "Not Found"} }
-;           :paramerers {:query {:q s/Str}
+;           :parameters {:query {:q s/Str}
 ;                        :body NewUser}}}
 (defmethod restructure-param :swagger [_ swagger acc]
   (assoc-in acc [:swagger :swagger] swagger))
