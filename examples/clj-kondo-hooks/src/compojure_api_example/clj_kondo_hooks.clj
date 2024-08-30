@@ -3,7 +3,7 @@
             [compojure.api.core :as core]
             [ring.util.http-response :as resp]
             [schema.core :as s]
-            [ring.util.http-response :refer [describe]]
+            ;; intentionally blank
             ;; intentionally blank
             ;; intentionally blank
             ;; intentionally blank
@@ -44,6 +44,6 @@
             :responses {200 {:schema s/Any}}
             :summary "summary"
             :query-params [{qparam :- s/Int nil}]
-            :body [body (describe s/Any "description")]
+            :body [body (resp/describe s/Any "description")]
             :description (str "foo" "bar")
-            (ok (str qparam body))))
+            (resp/ok (str qparam body))))
