@@ -1,1 +1,1 @@
-{:hooks {:macroexpand {compojure.api.core/GET compojure.api.core/GET}}}
+{:linters {:unresolved-namespace {:exclude [(compojure.api.routes)]}}, :hooks {:macroexpand {compojure.api.core/GET compojure.api.core/GET}}}

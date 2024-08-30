@@ -381,8 +381,12 @@
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
 
+    #?(:clj-kondo (let [form `(do ~@body)
+                        form (if (seq letks) `(p/letk ~letks ~form) form)
+                        form (if (seq lets) `(let ~lets ~form) form)]
+                    `(fn [~+compojure-api-request+] ~form))
+    :default
     (if context?
-
       ;; context
       (let [form `(comp-core/routes ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
@@ -406,8 +410,7 @@
       (let [form `(do ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
-            form #?(:clj-kondo `(comp-core/let-request [~arg-with-request {}] ~form)
-                    :default (comp-core/compile-route method path arg-with-request (list form)))
+            form (comp-core/compile-route method path arg-with-request (list form))
             form (if (seq middleware) `(comp-core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
 
-        `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
+        `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form))))))

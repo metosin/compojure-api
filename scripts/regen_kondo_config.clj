@@ -15,7 +15,8 @@
     (spit to
           (str/replace (slurp from) ":clj-kondo" ":default")))
   (spit "resources/clj-kondo.exports/metosin/compojure-api/config.edn"
-        '{:hooks
+        '{:linters {:unresolved-namespace {:exclude [(compojure.api.routes)]}}
+          :hooks
           {:macroexpand
            {compojure.api.core/GET compojure.api.core/GET}}}))
 
