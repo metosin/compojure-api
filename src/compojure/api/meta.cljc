@@ -13,6 +13,11 @@
             [compojure.api.coerce #?(:clj-kondo :as-alias :default :as) coerce]
             [compojure.core #?(:clj-kondo :as-alias :default :as) comp-core]))
 
+(defmacro ^:private system-property-check
+  [& body]
+  #?(:clj-kondo nil
+     :default `(do ~@body)))
+
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
   '+compojure-api-request+)
@@ -55,25 +60,28 @@
   (dissoc schema 'schema.core/Keyword))
 
 (defn fnk-schema [bind]
-  (->>
-    (:input-schema
-      ;;TODO clj-kondo
-      (fnk-impl/letk-input-schema-and-body-form
-        nil (with-meta bind {:schema s/Any}) [] nil))
-    reverse
-    (into {})))
+  #?(:clj-kondo {}
+     :default (->>
+                (:input-schema
+                  ;;TODO clj-kondo
+                  (fnk-impl/letk-input-schema-and-body-form
+                    nil (with-meta bind {:schema s/Any}) [] nil))
+                reverse
+                (into {}))))
 
 (defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
   extracted from a key in a ring request."
   [schema, key, type #_#_:- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
-  (assert (#{:body :body :string :response} type))
+  (assert (#{:body :string :response} type))
   `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+))
 
 (defn- convert-return [schema]
   {200 {:schema schema
-        :description (or (js/json-schema-meta schema) "")}})
+        :description (or #?(:clj-kondo nil
+                            :default (js/json-schema-meta schema))
+                         "")}})
 
 ;;
 ;; Extension point
@@ -162,10 +170,11 @@
 ; Examples:
 ; :body [user User]
 (defmethod restructure-param :body [_ [value schema :as bv] acc]
-  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-body"))
-    (assert (= 2 (count bv))
-            (str ":body should be [sym schema], provided: " bv
-                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-body=true")))
+  (system-property-check
+    (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-body"))
+      (assert (= 2 (count bv))
+              (str ":body should be [sym schema], provided: " bv
+                   "\nDisable this check with -Dcompojure.api.meta.allow-bad-body=true"))))
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :body-params :body)])
       (assoc-in [:swagger :parameters :body] schema)))
@@ -175,10 +184,11 @@
 ; Examples:
 ; :query [user User]
 (defmethod restructure-param :query [_ [value schema :as bv] acc]
-  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-query"))
-    (assert (= 2 (count bv))
-            (str ":query should be [sym schema], provided: " bv
-                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-query=true")))
+  (system-property-check
+    (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-query"))
+      (assert (= 2 (count bv))
+              (str ":query should be [sym schema], provided: " bv
+                   "\nDisable this check with -Dcompojure.api.meta.allow-bad-query=true"))))
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :query-params :string)])
       (assoc-in [:swagger :parameters :query] schema)))
@@ -188,10 +198,11 @@
 ; Examples:
 ; :headers [headers Headers]
 (defmethod restructure-param :headers [_ [value schema :as bv] acc]
-  (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-headers"))
-    (assert (= 2 (count bv))
-            (str ":headers should be [sym schema], provided: " bv
-                 "\nDisable this check with -Dcompojure.api.meta.allow-bad-headers=true")))
+  (system-property-check
+    (when-not (= "true" (System/getProperty "compojure.api.meta.allow-bad-headers"))
+      (assert (= 2 (count bv))
+              (str ":headers should be [sym schema], provided: " bv
+                   "\nDisable this check with -Dcompojure.api.meta.allow-bad-headers=true"))))
 
   (-> acc
       (update-in [:lets] into [value (src-coerce! schema :headers :string)])
@@ -259,7 +270,10 @@
 
 ; route-specific override for coercers
 (defmethod restructure-param :coercion [_ coercion acc]
-  (update-in acc [:middleware] conj [mw/wrap-coercion coercion]))
+  (update-in acc [:middleware] conj [#?(:clj-kondo `mw/wrap-coercion
+                                        ;;FIXME why not quoted?
+                                        :default mw/wrap-coercion)
+                                     coercion]))
 
 ;;
 ;; Impl
@@ -367,13 +381,14 @@
             form `(comp-core/context ~path ~arg-with-request ~form)
 
             ;; create and apply a separate lookup-function to find the inner routes
-            childs (let [form (vec body)
-                         form (if (seq letks) `(dummy-letk ~letks ~form) form)
-                         form (if (seq lets) `(dummy-let ~lets ~form) form)
-                         form `(comp-core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
-                         form `(fn [~'+compojure-api-request+] ~form)
-                         form `(~form {})]
-                     form)]
+            childs #?(:clj-kondo nil
+                      :default (let [form (vec body)
+                                     form (if (seq letks) `(dummy-letk ~letks ~form) form)
+                                     form (if (seq lets) `(dummy-let ~lets ~form) form)
+                                     form `(comp-core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
+                                     form `(fn [~'+compojure-api-request+] ~form)
+                                     form `(~form {})]
+                                 form))]
 
         `(routes/create ~path-string ~method (merge-parameters ~swagger) ~childs ~form))
 
