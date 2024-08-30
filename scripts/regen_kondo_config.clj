@@ -10,16 +10,17 @@
    "src/compojure/api/meta.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/meta.clj"
    "dev/compojure_api_kondo_hooks/compojure/core.clj" "resources/clj-kondo.exports/metosin/compojure-api/compojure_api_kondo_hooks/compojure/core.clj"})
 
+(def restructured-macro-names
+  '#{context GET ANY HEAD PATCH DELETE OPTIONS POST PUT})
 
 (defn -main [& args]
   (doseq [[from to] renames]
     (spit to
           (str/replace (slurp from) ":clj-kondo" ":default")))
   (spit "resources/clj-kondo.exports/metosin/compojure-api/config.edn"
-        '{:linters {:unresolved-namespace {:exclude [(compojure.api.routes)]}}
-          :hooks
+        '{:hooks
           {:macroexpand
-           {compojure.api.core/GET compojure.api.core/GET
+           {;compojure.api.core/GET compojure.api.core/GET
             }}}))
 
 (when (= *file* (System/getProperty "babashka.file")) (-main))
