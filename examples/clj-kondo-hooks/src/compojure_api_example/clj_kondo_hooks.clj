@@ -1,6 +1,6 @@
 (ns compojure-api-example.clj-kondo-hooks
   (:require ;[compojure.api.sweet :as sweet]
-            [compojure.api.sweet :as core]
+            [compojure.api.core :as core]
             [ring.util.http-response :as resp]))
 
 (core/GET "/30" [] (resp/ok {:result 30}))
