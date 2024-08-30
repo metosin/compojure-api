@@ -1,10 +1,11 @@
 #!/bin/bash
 
-set -e
+set -ex
 
-bb -f ./script/regen_kondo_config.clj
+# bb -f ./script/regen_kondo_config.clj
 
 mkdir -p resources/clj-kondo.exports/metosin/compojure-api/compojure/api
 
-;; rename to .clj
+# rename to .clj
 cp src/compojure/api/common.cljc resources/clj-kondo.exports/metosin/compojure-api/compojure/api/common.clj
+cp src/compojure/api/core.cljc resources/clj-kondo.exports/metosin/compojure-api/compojure/api/core.clj
