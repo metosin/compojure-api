@@ -7,10 +7,11 @@
             [plumbing.fnk.impl #?(:default :as-alias :default :as) fnk-impl]
             [ring.swagger.common #?(:default :as-alias :default :as) rsc]
             [ring.swagger.json-schema #?(:default :as-alias :default :as) js]
-            [schema.core :as s]
-            [schema-tools.core :as st]
+            #?@(:default []
+                :default [[schema.core :as s]
+                          [schema-tools.core :as st]])
             [compojure.api.coerce #?(:default :as-alias :default :as) coerce]
-            compojure.core))
+            [compojure.core #?(:default :as-alias :default :as) comp-core]))
 
 (def +compojure-api-request+
   "lexically bound ring-request for handlers."
@@ -62,11 +63,12 @@
     reverse
     (into {})))
 
-(s/defn src-coerce!
+(defn src-coerce!
   "Return source code for coerce! for a schema with coercion type,
   extracted from a key in a ring request."
-  [schema, key, type :- mw/CoercionType]
+  [schema, key, type #_#_:- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
+  (assert (#{:body :body :string :response} type))
   `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+))
 
 (defn- convert-return [schema]
@@ -209,7 +211,8 @@
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
         (update-in [:letks] into [form-params (src-coerce! schema :form-params :string)])
-        (update-in [:swagger :parameters :formData] st/merge schema)
+        #?@(:default []
+            :default [(update-in [:swagger :parameters :formData] st/merge schema)])
         (assoc-in [:swagger :consumes] ["application/x-www-form-urlencoded"]))))
 
 ; restructures multipart-params with plumbing letk notation and consumes "multipart/form-data"
@@ -218,7 +221,8 @@
   (let [schema (strict (fnk-schema params))]
     (-> acc
         (update-in [:letks] into [params (src-coerce! schema :multipart-params :string)])
-        (update-in [:swagger :parameters :formData] st/merge schema)
+        #?@(:default []
+            :default [(update-in [:swagger :parameters :formData] st/merge schema)])
         (assoc-in [:swagger :consumes] ["multipart/form-data"]))))
 
 ; restructures header-params with plumbing letk notation. Example:
@@ -286,7 +290,7 @@
 
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity (flatten handlers)))]
-    (apply compojure.core/routes handlers)
+    (apply comp-core/routes handlers)
     (fn ([_] nil) ([_ respond _] (respond nil)))))
 
 ;;
@@ -356,17 +360,17 @@
     (if context?
 
       ;; context
-      (let [form `(compojure.core/routes ~@body)
+      (let [form `(comp-core/routes ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
             form (if (seq middleware) `((mw/compose-middleware ~middleware) ~form) form)
-            form `(compojure.core/context ~path ~arg-with-request ~form)
+            form `(comp-core/context ~path ~arg-with-request ~form)
 
             ;; create and apply a separate lookup-function to find the inner routes
             childs (let [form (vec body)
                          form (if (seq letks) `(dummy-letk ~letks ~form) form)
                          form (if (seq lets) `(dummy-let ~lets ~form) form)
-                         form `(compojure.core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
+                         form `(comp-core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
                          form `(fn [~'+compojure-api-request+] ~form)
                          form `(~form {})]
                      form)]
@@ -377,7 +381,7 @@
       (let [form `(do ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
-            form (compojure.core/compile-route method path arg-with-request (list form))
-            form (if (seq middleware) `(compojure.core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
+            form (comp-core/compile-route method path arg-with-request (list form))
+            form (if (seq middleware) `(comp-core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
 
         `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
