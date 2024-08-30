@@ -6,4 +6,5 @@
 (core/GET "/30" [] (resp/ok {:result 30}))
 
 (core/GET "/30" req
-          (resp/ok {:result (:body req)}))
+          (do +compojure-api-request+
+              (resp/ok {:result (:body req)})))

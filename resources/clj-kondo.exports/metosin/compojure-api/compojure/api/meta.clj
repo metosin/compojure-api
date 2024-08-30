@@ -11,7 +11,8 @@
                 :default [[schema.core :as s]
                           [schema-tools.core :as st]])
             [compojure.api.coerce #?(:default :as-alias :default :as) coerce]
-            [compojure.core #?(:default :as-alias :default :as) comp-core]))
+            #?(:default [compojure-api-kondo-hooks.compojure.core :as comp-core]
+               :default [compojure.core :as comp-core])))
 
 (defmacro ^:private system-property-check
   [& body]
@@ -74,7 +75,8 @@
   [schema, key, type #_#_:- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
   (assert (#{:body :string :response} type))
-  `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+))
+  #?(:default `(do ~schema ~key ~type ~+compojure-api-request+)
+     :default `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+)))
 
 (defn- convert-return [schema]
   {200 {:schema schema
@@ -350,8 +352,6 @@
                 swagger (-> (dissoc :swagger) (rsc/deep-merge swagger)))))
 
 (defn restructure [method [path arg & args] {:keys [context? kondo-rule?]}]
-  #?(:default (assert kondo-rule?)
-     :default nil)
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path arg)
 
@@ -381,11 +381,26 @@
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
 
-    #?(:default (let [form `(do ~@body)
-                        form (if (seq letks) `(p/letk ~letks ~form) form)
-                        form (if (seq lets) `(let ~lets ~form) form)]
-                    `(fn [~+compojure-api-request+] ~form))
-    :default
+    #?(:default (do (assert kondo-rule?)
+                      (if context?
+                        ;; context
+                        (let [form `(do ~@body)
+                              form (if (seq letks) `(p/letk ~letks ~form) form)
+                              form (if (seq lets) `(let ~lets ~form) form)
+                              form `(comp-core/context ~path ~arg-with-request ~form)]
+                          form)
+
+                        ;; endpoints
+                        (let [form `(do ~@body)
+                              form (if (seq letks) `(p/letk ~letks ~form) form)
+                              form (if (seq lets) `(let ~lets ~form) form)
+                              form (comp-core/compile-route method path arg-with-request (list form))
+                              form `(fn [~'+compojure-api-request+]
+                                      ~'+compojure-api-request+ ;;always used
+                                      ~form)]
+                          (prn "form" form)
+                          form)))
+    :default ;; JVM
     (if context?
       ;; context
       (let [form `(comp-core/routes ~@body)
@@ -395,14 +410,13 @@
             form `(comp-core/context ~path ~arg-with-request ~form)
 
             ;; create and apply a separate lookup-function to find the inner routes
-            childs #?(:default nil
-                      :default (let [form (vec body)
-                                     form (if (seq letks) `(dummy-letk ~letks ~form) form)
-                                     form (if (seq lets) `(dummy-let ~lets ~form) form)
-                                     form `(comp-core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
-                                     form `(fn [~'+compojure-api-request+] ~form)
-                                     form `(~form {})]
-                                 form))]
+            childs (let [form (vec body)
+                         form (if (seq letks) `(dummy-letk ~letks ~form) form)
+                         form (if (seq lets) `(dummy-let ~lets ~form) form)
+                         form `(comp-core/let-request [~arg-with-request ~'+compojure-api-request+] ~form)
+                         form `(fn [~'+compojure-api-request+] ~form)
+                         form `(~form {})]
+                     form)]
 
         `(routes/create ~path-string ~method (merge-parameters ~swagger) ~childs ~form))
 
