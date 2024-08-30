@@ -63,7 +63,6 @@
   #?(:default {}
      :default (->>
                 (:input-schema
-                  ;;TODO clj-kondo
                   (fnk-impl/letk-input-schema-and-body-form
                     nil (with-meta bind {:schema s/Any}) [] nil))
                 reverse
@@ -279,12 +278,17 @@
 ;; Impl
 ;;
 
+#?(:default nil
+   :default
 (defmacro dummy-let
   "Dummy let-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
   (let [bind-form (vec (apply concat (for [n (take-nth 2 bindings)] [n nil])))]
     `(let ~bind-form ~@body)))
+)
 
+#?(:default nil
+   :default
 (defmacro dummy-letk
   "Dummy letk-macro used in resolving route-docs. not part of normal invocation chain."
   [bindings & body]
@@ -301,11 +305,15 @@
           `(let [~map-sym nil] ~body-form))))
     `(do ~@body)
     (reverse (partition 2 bindings))))
+)
 
+#?(:default nil
+   :default
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity (flatten handlers)))]
     (apply comp-core/routes handlers)
     (fn ([_] nil) ([_ respond _] (respond nil)))))
+)
 
 ;;
 ;; Api
@@ -329,8 +337,9 @@
       ;; GET "/route" req
       (symbol? arg) [path-string [+compojure-api-request+ arg] arg arg]
       :else (throw
-              (RuntimeException.
-                (str "unknown compojure destruction syntax: " arg))))))
+              (ex-info
+                (str "unknown compojure destruction syntax: " arg)
+                {})))))
 
 (defn merge-parameters
   "Merge parameters at runtime to allow usage of runtime-parameters with route-macros."
