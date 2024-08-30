@@ -18,9 +18,15 @@
     (spit to
           (str/replace (slurp from) ":clj-kondo" ":default")))
   (spit "resources/clj-kondo.exports/metosin/compojure-api/config.edn"
-        '{:hooks
-          {:macroexpand
-           {;compojure.api.core/GET compojure.api.core/GET
-            }}}))
+        {:hooks
+         {:macroexpand
+          (reduce
+            (fn [m n]
+              (let [core-macro (symbol "compojure.api.core" (name n))
+                    sweet-macro (symbol "compojure.api.sweet" (name n))]
+                (-> m
+                    (assoc core-macro core-macro
+                           sweet-macro core-macro))))
+            {} restructured-macro-names)}}))
 
 (when (= *file* (System/getProperty "babashka.file")) (-main))

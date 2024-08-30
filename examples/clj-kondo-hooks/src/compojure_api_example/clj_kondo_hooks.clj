@@ -12,3 +12,5 @@
 (core/GET "/30" {:keys [body]} (resp/ok {:result body}))
 (core/GET "/30" {:as req} (resp/ok {:result (:body req)}))
 (core/GET "/30" {:as req} (resp/ok {:result (:body req)}))
+
+(core/PUT "/30" req (resp/ok {:result (:body req)}))
