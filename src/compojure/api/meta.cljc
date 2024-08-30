@@ -3,7 +3,8 @@
             [compojure.api.common :as common :refer [extract-parameters]]
             [compojure.api.middleware #?(:clj-kondo :as-alias :default :as) mw]
             [compojure.api.routes #?(:clj-kondo :as-alias :default :as) routes]
-            [plumbing.core #?(:clj-kondo :as-alias :default :as) p]
+            #?(:clj-kondo [compojure-api-kondo-hooks.plumbing.core :as p]
+               :default [plumbing.core :as p])
             [plumbing.fnk.impl #?(:clj-kondo :as-alias :default :as) fnk-impl]
             [ring.swagger.common #?(:clj-kondo :as-alias :default :as) rsc]
             [ring.swagger.json-schema #?(:clj-kondo :as-alias :default :as) js]
@@ -388,6 +389,7 @@
                               form (if (seq letks) `(p/letk ~letks ~form) form)
                               form (if (seq lets) `(let ~lets ~form) form)
                               form `(comp-core/context ~path ~arg-with-request ~form)]
+                          (prn "context" form)
                           form)
 
                         ;; endpoints
@@ -398,6 +400,7 @@
                               form `(fn [~'+compojure-api-request+]
                                       ~'+compojure-api-request+ ;;always used
                                       ~form)]
+                          (prn "endpoint" form)
                           form)))
     :default ;; JVM
     (if context?
