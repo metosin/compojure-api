@@ -319,7 +319,9 @@
           (seq responses) (assoc :responses (common/merge-vector responses))
           swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
 
-(defn restructure [method [path arg & args] {:keys [context?]}]
+(defn restructure [method [path arg & args] {:keys [context? kondo-rule?]}]
+  #?(:bb (assert kondo-rule?)
+     :default nil)
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path arg)
 
@@ -338,7 +340,8 @@
                           :responses nil
                           :middleware []
                           :swagger {}
-                          :body body}
+                          :body body
+                          :kondo-rule? kondo-rule?}
                          options)
 
         ;; migration helpers

@@ -3,20 +3,12 @@
             [compojure.api.routes :as-alias routes]
             [compojure.api.middleware :as-alias mw]))
 
-;; simulate clojure.tools.macro/name-with-attributes
-(defn- name-with-attributes [name routes]
-  (let [routes (cond-> routes
-                 (string? (first routes)) next)
-        routes (cond-> routes
-                 (map? (first routes)) next)]
-    [name routes]))
-
 (defmacro defroutes
   "Define a Ring handler function from a sequence of routes.
   The name may optionally be followed by a doc-string and metadata map."
   {:style/indent 1}
   [name & routes]
-  (let [[name routes] (name-with-attributes name routes)]
+  (let [[name routes] (meta/name-with-attributes name routes)]
     `(def ~name (routes ~@routes))))
 
 (defmacro let-routes
