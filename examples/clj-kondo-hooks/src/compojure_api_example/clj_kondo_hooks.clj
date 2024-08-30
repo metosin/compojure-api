@@ -2,8 +2,8 @@
   (:require [compojure.api.sweet :as sweet]
             [compojure.api.core :as core]
             [ring.util.http-response :as resp]
-            ;; intentionally blank
-            ;; intentionally blank           
+            [schema.core :as s]
+            [ring.util.http-response :refer [describe]]
             ;; intentionally blank
             ;; intentionally blank
             ;; intentionally blank
@@ -35,5 +35,15 @@
 (core/GET "/30" {:keys [body]} (resp/ok {:result body}))
 (core/GET "/30" {:as req} (resp/ok {:result (:body req)}))
 (core/GET "/30" {:as req} (resp/ok {:result (:body req)}))
+(core/GET "/30" _ (resp/ok {:result (:body req)})) ;; src/compojure_api_example/clj_kondo_hooks.clj:38:44: error: Unresolved symbol: req
 
 (core/PUT "/30" req (resp/ok {:result (:body req)}))
+
+(core/routes
+  (core/PUT "/" []
+            :responses {200 {:schema s/Any}}
+            :summary "summary"
+            :query-params [{qparam :- s/Int nil}]
+            :body [body (describe s/Any "description")]
+            :description (str "foo" "bar")
+            (ok (str qparam body))))
