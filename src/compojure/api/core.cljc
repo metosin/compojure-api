@@ -4,8 +4,8 @@
             #?@(:bb []
                 :default [[compojure.api.async]
                           [compojure.core :as compojure]])
-            [compojure.api.routes ?@(:bb :as-alias :default :as) routes]
-            [compojure.api.middleware ?@(:bb :as-alias :default :as) mw]))
+            [compojure.api.routes #?(:bb :as-alias :default :as) routes]
+            [compojure.api.middleware #?(:bb :as-alias :default :as) mw]))
 
 (defn ring-handler
   "Creates vanilla ring-handler from any invokable thing (e.g. compojure-api route)"
