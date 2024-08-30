@@ -1,5 +1,6 @@
 (ns compojure.api.meta
-  (:require [compojure.api.common :as common :refer [extract-parameters]]
+  (:require [clojure.walk :as walk]
+            [compojure.api.common :as common :refer [extract-parameters]]
             [compojure.api.middleware :as mw]
             [compojure.api.routes :as routes]
             [plumbing.core :as p]
@@ -247,7 +248,7 @@
                                             (fnk-impl/ensure-schema-metadata &env bind-form)
                                             []
                                             cur-body-form)
-              body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
+              body-form (walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
           `(let [~map-sym nil] ~body-form))))
     `(do ~@body)
     (reverse (partition 2 bindings))))
