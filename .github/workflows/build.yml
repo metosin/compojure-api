@@ -42,6 +42,8 @@ jobs:
         uses: DeLaGuardo/setup-clojure@master
         with:
           lein: latest
+      - name: Check kondo hooks
+        run: cd examples/clj-kondo-hooks && ./script/test
       - name: Run tests
         run: lein do clean, all midje, all check
   deploy:
