@@ -320,7 +320,7 @@
           swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
 
 (defn restructure [method [path arg & args] {:keys [context? kondo-rule?]}]
-  #?(:bb (assert kondo-rule?)
+  #?(:clj-kondo (assert kondo-rule?)
      :default nil)
   (let [[options body] (extract-parameters args true)
         [path-string lets arg-with-request arg] (destructure-compojure-api-request path arg)

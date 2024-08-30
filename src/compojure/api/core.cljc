@@ -1,11 +1,10 @@
-;; :bb reader feature assumes clj-kondo
 (ns compojure.api.core
   (:require [compojure.api.meta :as meta]
-            #?@(:bb []
+            #?@(:clj-kondo []
                 :default [[compojure.api.async]
                           [compojure.core :as compojure]])
-            [compojure.api.routes #?(:bb :as-alias :default :as) routes]
-            [compojure.api.middleware #?(:bb :as-alias :default :as) mw]))
+            [compojure.api.routes #?(:clj-kondo :as-alias :default :as) routes]
+            [compojure.api.middleware #?(:clj-kondo :as-alias :default :as) mw]))
 
 (defn ring-handler
   "Creates vanilla ring-handler from any invokable thing (e.g. compojure-api route)"
@@ -17,7 +16,7 @@
 (defn routes
   "Create a Ring handler by combining several handlers into one."
   [& handlers]
-  #?(:bb (throw (ex-info "Not supported in bb"))
+  #?(:clj-kondo (throw (ex-info "Not supported in bb"))
      :default (let [handlers (seq (keep identity (flatten handlers)))]
                 (routes/map->Route
                   {:childs (vec handlers)
@@ -43,7 +42,7 @@
   "Routes without route-documentation. Can be used to wrap routes,
   not satisfying compojure.api.routes/Routing -protocol."
   [& handlers]
-  #?(:bb (throw (ex-info "Not supported in bb"))
+  #?(:clj-kondo (throw (ex-info "Not supported in bb"))
      :default (let [handlers (keep identity handlers)]
                 (routes/map->Route {:handler (meta/routing handlers)}))))
 
@@ -70,7 +69,7 @@
   {:style/indent 1
    :supercedes "middleware"}
   [middleware & body]
-  #?(:bb (throw (ex-info "Not supported in bb"))
+  #?(:clj-kondo (throw (ex-info "Not supported in bb"))
      :default
      (let [handler (apply routes body)
            x-handler (compojure/wrap-routes handler (mw/compose-middleware middleware))]
@@ -79,13 +78,13 @@
          {:childs [handler]
           :handler x-handler}))))
 
-(defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :&form &form :&env &env :kondo-rule? #?(:bb true :default false)}))
+(defmacro context {:style/indent 2} [& args] (meta/restructure nil args {:context? true :&form &form :&env &env :kondo-rule? #?(:clj-kondo true :default false)}))
 
-(defmacro GET     {:style/indent 2} [& args] (meta/restructure :get     args #?(:bb {:kondo-rule? true} :default nil)))
-(defmacro ANY     {:style/indent 2} [& args] (meta/restructure nil      args #?(:bb {:kondo-rule? true} :default nil)))
-(defmacro HEAD    {:style/indent 2} [& args] (meta/restructure :head    args #?(:bb {:kondo-rule? true} :default nil)))
-(defmacro PATCH   {:style/indent 2} [& args] (meta/restructure :patch   args #?(:bb {:kondo-rule? true} :default nil)))
-(defmacro DELETE  {:style/indent 2} [& args] (meta/restructure :delete  args #?(:bb {:kondo-rule? true} :default nil)))
-(defmacro OPTIONS {:style/indent 2} [& args] (meta/restructure :options args #?(:bb {:kondo-rule? true} :default nil)))
-(defmacro POST    {:style/indent 2} [& args] (meta/restructure :post    args #?(:bb {:kondo-rule? true} :default nil)))
-(defmacro PUT     {:style/indent 2} [& args] (meta/restructure :put     args #?(:bb {:kondo-rule? true} :default nil)))
+(defmacro GET     {:style/indent 2} [& args] (meta/restructure :get     args #?(:clj-kondo {:kondo-rule? true} :default nil)))
+(defmacro ANY     {:style/indent 2} [& args] (meta/restructure nil      args #?(:clj-kondo {:kondo-rule? true} :default nil)))
+(defmacro HEAD    {:style/indent 2} [& args] (meta/restructure :head    args #?(:clj-kondo {:kondo-rule? true} :default nil)))
+(defmacro PATCH   {:style/indent 2} [& args] (meta/restructure :patch   args #?(:clj-kondo {:kondo-rule? true} :default nil)))
+(defmacro DELETE  {:style/indent 2} [& args] (meta/restructure :delete  args #?(:clj-kondo {:kondo-rule? true} :default nil)))
+(defmacro OPTIONS {:style/indent 2} [& args] (meta/restructure :options args #?(:clj-kondo {:kondo-rule? true} :default nil)))
+(defmacro POST    {:style/indent 2} [& args] (meta/restructure :post    args #?(:clj-kondo {:kondo-rule? true} :default nil)))
+(defmacro PUT     {:style/indent 2} [& args] (meta/restructure :put     args #?(:clj-kondo {:kondo-rule? true} :default nil)))

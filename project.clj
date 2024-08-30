@@ -47,8 +47,13 @@
                                   [criterium "0.4.5"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/thingie/src"]}
-                   :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
+                   :source-paths ["examples/thingie/src"
+                                  "examples/thingie/dev-src"
+                                  "dev"]
                    :main examples.server}
+             :expand-kondo-feature {:source-paths ["dev"]
+                                    :dependencies [[org.clojure/tools.reader "1.5.0"]
+                                                   [org.clojure/tools.namespace "1.5.0"]]}
              :perf {:jvm-opts ^:replace ["-server"
                                          "-Xmx4096m"
                                          "-Dclojure.compiler.direct-linking=true"]}
