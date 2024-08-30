@@ -56,10 +56,11 @@
    :deprecated "1.1.14"
    :superseded-by "route-middleware"}
   [middleware & body]
-  (when (not= "true" (System/getProperty "compojure.api.core.suppress-middleware-warning"))
-    (println (str "compojure.api.core.middleware is deprecated because of security issues. "
-                  "Please use route-middleware instead. middleware will be disabled in a future release."
-                  "Set -dcompojure.api.core.suppress-middleware-warning=true to suppress this warning.")))
+  #?(:default nil
+     :default (when (not= "true" (System/getProperty "compojure.api.core.suppress-middleware-warning"))
+                (println (str "compojure.api.core.middleware is deprecated because of security issues. "
+                              "Please use route-middleware instead. middleware will be disabled in a future release."
+                              "Set -dcompojure.api.core.suppress-middleware-warning=true to suppress this warning."))))
   `(let [body# (routes ~@body)
          wrap-mw# (mw/compose-middleware ~middleware)]
      (routes/create nil nil {} [body#] (wrap-mw# body#))))

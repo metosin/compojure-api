@@ -344,9 +344,10 @@
 (defn merge-parameters
   "Merge parameters at runtime to allow usage of runtime-parameters with route-macros."
   [{:keys [responses swagger] :as parameters}]
-  (cond-> parameters
-          (seq responses) (assoc :responses (common/merge-vector responses))
-          swagger (-> (dissoc :swagger) (rsc/deep-merge swagger))))
+  #?(:clj-kondo parameters
+     :default (cond-> parameters
+                (seq responses) (assoc :responses (common/merge-vector responses))
+                swagger (-> (dissoc :swagger) (rsc/deep-merge swagger)))))
 
 (defn restructure [method [path arg & args] {:keys [context? kondo-rule?]}]
   #?(:clj-kondo (assert kondo-rule?)
@@ -405,7 +406,8 @@
       (let [form `(do ~@body)
             form (if (seq letks) `(p/letk ~letks ~form) form)
             form (if (seq lets) `(let ~lets ~form) form)
-            form (comp-core/compile-route method path arg-with-request (list form))
+            form #?(:clj-kondo `(comp-core/let-request [~arg-with-request {}] ~form)
+                    :default (comp-core/compile-route method path arg-with-request (list form)))
             form (if (seq middleware) `(comp-core/wrap-routes ~form (mw/compose-middleware ~middleware)) form)]
 
         `(routes/create ~path-string ~method (merge-parameters ~swagger) nil ~form)))))
