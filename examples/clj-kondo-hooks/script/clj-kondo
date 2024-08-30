@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if command -v clj-kondo &> /dev/null; then
+  clj-kondo "$@"
+else
+  clojure -M:clj-kondo "$@"
+fi

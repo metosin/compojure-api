@@ -1,0 +1,11 @@
+{:paths ["src" "resources"]
+ :deps {prismatic/plumbing {:mvn/version "0.6.0"}
+        cheshire/cheshire {:mvn/version "5.13.0"}
+        compojure/compojure {:mvn/version "1.6.1"}
+        prismatic/schema {:mvn/version "1.1.12"}
+        org.tobereplaced/lettercase {:mvn/version "1.0.0"}
+        frankiesardo/linked {:mvn/version "1.3.0"}
+        ring-middleware-format/ring-middleware-format {:mvn/version "0.7.4"}
+        metosin/ring-http-response {:mvn/version "0.9.1"}
+        metosin/ring-swagger {:mvn/version "1.0.0"}
+        metosin/ring-swagger-ui {:mvn/version "2.2.10"}}}

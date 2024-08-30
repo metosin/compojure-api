@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+./script/prep-lint
+./script/lint > output/expected-output

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm -fr .clj-kondo/metosin
+./script/clj-kondo --lint "$(clojure -Spath)" --copy-configs --skip-lint

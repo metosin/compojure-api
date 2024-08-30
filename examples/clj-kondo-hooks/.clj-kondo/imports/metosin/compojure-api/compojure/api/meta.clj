@@ -1,23 +1,23 @@
 (ns compojure.api.meta
   (:require [clojure.walk :as walk]
             [compojure.api.common :as common :refer [extract-parameters]]
-            [compojure.api.middleware #?(:clj-kondo :as-alias :default :as) mw]
-            [compojure.api.routes #?(:clj-kondo :as-alias :default :as) routes]
-            #?(:clj-kondo [compojure-api-kondo-hooks.plumbing.core :as p]
+            [compojure.api.middleware #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" :as-alias :default :as) mw]
+            [compojure.api.routes #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" :as-alias :default :as) routes]
+            #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" [compojure-api-kondo-hooks.plumbing.core :as p]
                :default [plumbing.core :as p])
-            [plumbing.fnk.impl #?(:clj-kondo :as-alias :default :as) fnk-impl]
-            [ring.swagger.common #?(:clj-kondo :as-alias :default :as) rsc]
-            [ring.swagger.json-schema #?(:clj-kondo :as-alias :default :as) js]
-            #?@(:clj-kondo []
+            [plumbing.fnk.impl #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" :as-alias :default :as) fnk-impl]
+            [ring.swagger.common #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" :as-alias :default :as) rsc]
+            [ring.swagger.json-schema #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" :as-alias :default :as) js]
+            #?@(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" []
                 :default [[schema.core :as s]
                           [schema-tools.core :as st]])
-            [compojure.api.coerce #?(:clj-kondo :as-alias :default :as) coerce]
-            #?(:clj-kondo [compojure-api-kondo-hooks.compojure.core :as comp-core]
+            [compojure.api.coerce #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" :as-alias :default :as) coerce]
+            #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" [compojure-api-kondo-hooks.compojure.core :as comp-core]
                :default [compojure.core :as comp-core])))
 
 (defmacro ^:private system-property-check
   [& body]
-  #?(:clj-kondo nil
+  #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" nil
      :default `(do ~@body)))
 
 (def +compojure-api-request+
@@ -62,7 +62,7 @@
   (dissoc schema 'schema.core/Keyword))
 
 (defn fnk-schema [bind]
-  #?(:clj-kondo {}
+  #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" {}
      :default (->>
                 (:input-schema
                   (fnk-impl/letk-input-schema-and-body-form
@@ -76,12 +76,12 @@
   [schema, key, type #_#_:- mw/CoercionType]
   (assert (not (#{:query :json} type)) (str type " is DEPRECATED since 0.22.0. Use :body or :string instead."))
   (assert (#{:body :string :response} type))
-  #?(:clj-kondo `(do ~schema ~key ~type ~+compojure-api-request+)
+  #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" `(do ~schema ~key ~type ~+compojure-api-request+)
      :default `(coerce/coerce! ~schema ~key ~type ~+compojure-api-request+)))
 
 (defn- convert-return [schema]
   {200 {:schema schema
-        :description (or #?(:clj-kondo nil
+        :description (or #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" nil
                             :default (js/json-schema-meta schema))
                          "")}})
 
@@ -224,7 +224,7 @@
   (let [schema (strict (fnk-schema form-params))]
     (-> acc
         (update-in [:letks] into [form-params (src-coerce! schema :form-params :string)])
-        #?@(:clj-kondo []
+        #?@(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" []
             :default [(update-in [:swagger :parameters :formData] st/merge schema)])
         (assoc-in [:swagger :consumes] ["application/x-www-form-urlencoded"]))))
 
@@ -234,7 +234,7 @@
   (let [schema (strict (fnk-schema params))]
     (-> acc
         (update-in [:letks] into [params (src-coerce! schema :multipart-params :string)])
-        #?@(:clj-kondo []
+        #?@(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" []
             :default [(update-in [:swagger :parameters :formData] st/merge schema)])
         (assoc-in [:swagger :consumes] ["multipart/form-data"]))))
 
@@ -272,7 +272,7 @@
 
 ; route-specific override for coercers
 (defmethod restructure-param :coercion [_ coercion acc]
-  (update-in acc [:middleware] conj [#?(:clj-kondo `mw/wrap-coercion
+  (update-in acc [:middleware] conj [#?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" `mw/wrap-coercion
                                         ;;FIXME why not quoted?
                                         :default mw/wrap-coercion)
                                      coercion]))
@@ -281,7 +281,7 @@
 ;; Impl
 ;;
 
-#?(:clj-kondo nil
+#?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" nil
    :default
 (defmacro dummy-let
   "Dummy let-macro used in resolving route-docs. not part of normal invocation chain."
@@ -290,7 +290,7 @@
     `(let ~bind-form ~@body)))
 )
 
-#?(:clj-kondo nil
+#?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" nil
    :default
 (defmacro dummy-letk
   "Dummy letk-macro used in resolving route-docs. not part of normal invocation chain."
@@ -310,7 +310,7 @@
     (reverse (partition 2 bindings))))
 )
 
-#?(:clj-kondo nil
+#?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" nil
    :default
 (defn routing [handlers]
   (if-let [handlers (seq (keep identity (flatten handlers)))]
@@ -347,7 +347,7 @@
 (defn merge-parameters
   "Merge parameters at runtime to allow usage of runtime-parameters with route-macros."
   [{:keys [responses swagger] :as parameters}]
-  #?(:clj-kondo parameters
+  #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" parameters
      :default (cond-> parameters
                 (seq responses) (assoc :responses (common/merge-vector responses))
                 swagger (-> (dissoc :swagger) (rsc/deep-merge swagger)))))
@@ -382,7 +382,7 @@
         ;; response coercion middleware, why not just code?
         middleware (if (seq responses) (conj middleware `[coerce/body-coercer-middleware (common/merge-vector ~responses)]) middleware)]
 
-    #?(:clj-kondo (do (assert kondo-rule?)
+    #?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" (do (assert kondo-rule?)
                       (if context?
                         ;; context
                         (let [form `(do ~@body)

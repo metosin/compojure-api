@@ -47,7 +47,9 @@
                                   [criterium "0.4.5"]]
                    :ring {:handler examples.thingie/app
                           :reload-paths ["src" "examples/thingie/src"]}
-                   :source-paths ["examples/thingie/src" "examples/thingie/dev-src"]
+                   :source-paths ["examples/thingie/src"
+                                  "examples/thingie/dev-src"
+                                  "dev"]
                    :main examples.server}
              :perf {:jvm-opts ^:replace ["-server"
                                          "-Xmx4096m"
