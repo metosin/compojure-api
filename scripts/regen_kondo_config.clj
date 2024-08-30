@@ -8,7 +8,11 @@
   {"src/compojure/api/common.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/common.clj"
    "src/compojure/api/core.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/core.clj"
    "src/compojure/api/meta.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/meta.clj"
-   "dev/compojure_api_kondo_hooks/compojure/core.clj" "resources/clj-kondo.exports/metosin/compojure-api/compojure_api_kondo_hooks/compojure/core.clj"})
+   "dev/compojure_api_kondo_hooks/compojure/core.clj" "resources/clj-kondo.exports/metosin/compojure-api/compojure_api_kondo_hooks/compojure/core.clj"
+   "dev/compojure_api_kondo_hooks/plumbing/core.clj" "resources/clj-kondo.exports/metosin/compojure-api/compojure_api_kondo_hooks/plumbing/core.clj"
+   "dev/compojure_api_kondo_hooks/schema/macros.clj" "resources/clj-kondo.exports/metosin/compojure-api/compojure_api_kondo_hooks/schema/macros.clj"
+   "dev/compojure_api_kondo_hooks/plumbing/fnk/impl.clj" "resources/clj-kondo.exports/metosin/compojure-api/compojure_api_kondo_hooks/plumbing/fnk/impl.clj"
+   })
 
 (def restructured-macro-names
   '#{context GET ANY HEAD PATCH DELETE OPTIONS POST PUT})
