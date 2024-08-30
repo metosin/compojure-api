@@ -110,6 +110,14 @@ which can be found in the file epl-v10.html at the root of this distribution. By
 be bound bythe terms of this license. You must not remove this notice, or any other, from this software.
 ```
 
+Copied code from compojure has license:
+
+```
+Copyright © 2024 James Reeves
+
+Distributed under the Eclipse Public License, the same as Clojure.
+```
+
 All other code:
 
 Copyright © 2014-2016 [Metosin Oy](https://www.metosin.fi)

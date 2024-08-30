@@ -398,7 +398,6 @@
                               form `(fn [~'+compojure-api-request+]
                                       ~'+compojure-api-request+ ;;always used
                                       ~form)]
-                          (prn "form" form)
                           form)))
     :default ;; JVM
     (if context?
