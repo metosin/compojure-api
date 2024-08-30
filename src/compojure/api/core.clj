@@ -3,8 +3,7 @@
             [compojure.api.async]
             [compojure.api.routes :as routes]
             [compojure.api.middleware :as mw]
-            [compojure.core :as compojure]
-            [clojure.tools.macro :as macro]))
+            [compojure.core :as compojure]))
 
 (defn ring-handler
   "Creates vanilla ring-handler from any invokable thing (e.g. compojure-api route)"
@@ -26,7 +25,7 @@
   The name may optionally be followed by a doc-string and metadata map."
   {:style/indent 1}
   [name & routes]
-  (let [[name routes] (macro/name-with-attributes name routes)]
+  (let [[name routes] (meta/name-with-attributes name routes)]
     `(def ~name (routes ~@routes))))
 
 (defmacro let-routes
