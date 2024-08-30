@@ -1,5 +1,5 @@
 (ns compojure.api.common
-  #?@(:default []
+  #?@(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" []
       :default [(:require [linked.core :as linked])]))
 
 (defn plain-map?
@@ -52,7 +52,7 @@
     x
     y))
 
-#?(:default nil
+#?(:default #_"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj" nil
    :default
 (defn fifo-memoize [f size]
   "Returns a memoized version of a referentially transparent f. The

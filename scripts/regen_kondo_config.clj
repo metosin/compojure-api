@@ -16,7 +16,7 @@
 (defn -main [& args]
   (doseq [[from to] renames]
     (spit to
-          (str/replace (slurp from) ":clj-kondo" ":default")))
+          (str/replace (slurp from) ":clj-kondo" ":default #_\"the redundant :default is intentional, see ./scripts/regen_kondo_config.clj\"")))
   (spit "resources/clj-kondo.exports/metosin/compojure-api/config.edn"
         {:hooks
          {:macroexpand
