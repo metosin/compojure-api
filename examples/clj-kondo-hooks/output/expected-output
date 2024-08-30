@@ -1,1 +1,2 @@
-src/compojure_api_example/clj_kondo_hooks.clj:7:20: error: keyword :ok is called with 0 args but expects 1 or 2
+src/compojure_api_example/clj_kondo_hooks.clj:26:20: error: keyword :ok is called with 0 args but expects 1 or 2
+src/compojure_api_example/clj_kondo_hooks.clj:30:21: error: keyword :ok is called with 0 args but expects 1 or 2
