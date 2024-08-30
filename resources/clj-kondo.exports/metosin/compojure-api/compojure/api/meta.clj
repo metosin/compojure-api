@@ -1,14 +1,15 @@
 (ns compojure.api.meta
-  (:require [compojure.api.common :as common :refer [extract-parameters]]
-            [compojure.api.middleware :as mw]
-            [compojure.api.routes :as routes]
-            [plumbing.core :as p]
-            [plumbing.fnk.impl :as fnk-impl]
-            [ring.swagger.common :as rsc]
-            [ring.swagger.json-schema :as js]
+  (:require [clojure.walk :as walk]
+            [compojure.api.common :as common :refer [extract-parameters]]
+            [compojure.api.middleware #?(:default :as-alias :default :as) mw]
+            [compojure.api.routes #?(:default :as-alias :default :as) routes]
+            [plumbing.core #?(:default :as-alias :default :as) p]
+            [plumbing.fnk.impl #?(:default :as-alias :default :as) fnk-impl]
+            [ring.swagger.common #?(:default :as-alias :default :as) rsc]
+            [ring.swagger.json-schema #?(:default :as-alias :default :as) js]
             [schema.core :as s]
             [schema-tools.core :as st]
-            [compojure.api.coerce :as coerce]
+            [compojure.api.coerce #?(:default :as-alias :default :as) coerce]
             compojure.core))
 
 (def +compojure-api-request+
@@ -55,6 +56,7 @@
 (defn fnk-schema [bind]
   (->>
     (:input-schema
+      ;;TODO clj-kondo
       (fnk-impl/letk-input-schema-and-body-form
         nil (with-meta bind {:schema s/Any}) [] nil))
     reverse
@@ -272,12 +274,12 @@
     (fn [cur-body-form [bind-form]]
       (if (symbol? bind-form)
         `(let [~bind-form nil] ~cur-body-form)
-        (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form
+        (let [{:keys [map-sym body-form]} (fnk-impl/letk-input-schema-and-body-form ;;TODO clj-kondo
                                             &env
                                             (fnk-impl/ensure-schema-metadata &env bind-form)
                                             []
                                             cur-body-form)
-              body-form (clojure.walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
+              body-form (walk/prewalk-replace {'plumbing.fnk.schema/safe-get 'clojure.core/get} body-form)]
           `(let [~map-sym nil] ~body-form))))
     `(do ~@body)
     (reverse (partition 2 bindings))))

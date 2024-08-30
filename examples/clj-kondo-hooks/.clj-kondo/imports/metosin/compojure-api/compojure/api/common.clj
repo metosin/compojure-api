@@ -1,5 +1,5 @@
 (ns compojure.api.common
-  #?@(:bb []
+  #?@(:default []
       :default [(:require [linked.core :as linked])]))
 
 (defn plain-map?
@@ -52,7 +52,7 @@
     x
     y))
 
-#?(:bb nil
+#?(:default nil
    :default
 (defn fifo-memoize [f size]
   "Returns a memoized version of a referentially transparent f. The
