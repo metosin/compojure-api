@@ -7,7 +7,8 @@
   ;; rename to .clj
   {"src/compojure/api/common.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/common.clj"
    "src/compojure/api/core.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/core.clj"
-   "src/compojure/api/meta.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/meta.clj"})
+   "src/compojure/api/meta.cljc" "resources/clj-kondo.exports/metosin/compojure-api/compojure/api/meta.clj"
+   "dev/compojure_api_kondo_hooks/compojure/core.clj" "resources/clj-kondo.exports/metosin/compojure-api/compojure_api_kondo_hooks/compojure/core.clj"})
 
 
 (defn -main [& args]
@@ -18,6 +19,7 @@
         '{:linters {:unresolved-namespace {:exclude [(compojure.api.routes)]}}
           :hooks
           {:macroexpand
-           {compojure.api.core/GET compojure.api.core/GET}}}))
+           {compojure.api.core/GET compojure.api.core/GET
+            }}}))
 
 (when (= *file* (System/getProperty "babashka.file")) (-main))
