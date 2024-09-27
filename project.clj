@@ -10,7 +10,7 @@
                  [prismatic/plumbing "0.5.5"]
                  [ikitommi/linked "1.3.1-alpha1"] ;; waiting for the original
                  [metosin/muuntaja "0.6.6"]
-                 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.10.1"]
+                 [com.fasterxml.jackson.datatype/jackson-datatype-joda "2.12.3"]
                  [ring/ring-core "1.8.0"]
                  [compojure "1.6.1" ]
                  [metosin/spec-tools "0.10.6"]
