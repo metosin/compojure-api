@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Java ${{ matrix.jdk }}
-        uses: actions/setup-java@v3.11.0
+        uses: actions/setup-java@v4.4.0
         with:
           distribution: temurin
           java-version: ${{ matrix.jdk }}
@@ -68,7 +68,7 @@ jobs:
             m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-${{ hashFiles('project.clj') }}-
             m2-cache-${{ env.ACTIONS_CACHE_VERSION }}-
       - name: Prepare java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v4.4.0
         with:
           distribution: 'adopt'
           java-version: '11'
